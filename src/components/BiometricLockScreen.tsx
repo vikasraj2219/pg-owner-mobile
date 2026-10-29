@@ -1,42 +1,100 @@
-import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Fingerprint, LogOut } from 'lucide-react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, SafeAreaView } from 'react-native';
+import { Fingerprint, AlertCircle } from 'lucide-react-native';
+import { AppLogo } from './AppLogo';
 import { useAuth } from '../hooks/useAuth';
 
 export const BiometricLockScreen: React.FC = () => {
-  const { user, organization, unlockWithBiometrics, logout } = useAuth();
+  const { organization, unlockWithBiometrics, logout } = useAuth();
+  const [hasFailed, setHasFailed] = useState(false);
+  const [attemptCount, setAttemptCount] = useState(1);
+  const maxAttempts = 3;
+
+  const triggerAuth = async () => {
+    const success = await unlockWithBiometrics();
+    if (!success) {
+      setHasFailed(true);
+      setAttemptCount(prev => Math.min(prev + 1, maxAttempts));
+    } else {
+      setHasFailed(false);
+    }
+  };
+
+  useEffect(() => {
+    // Attempt biometric unlock on initial display
+    void triggerAuth();
+  }, []);
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-900 justify-between items-center p-8">
-      <View className="items-center mt-12">
-        <View className="w-20 h-20 bg-primary-600 rounded-3xl items-center justify-center mb-6 shadow-lg shadow-primary-500/50">
-          <Fingerprint size={44} color="#ffffff" />
+    <SafeAreaView className="flex-1 bg-[#F8F9FA] justify-between items-center px-6 py-10">
+      {/* Top Header */}
+      <View className="items-center mt-8">
+        <View className="mb-5">
+          <AppLogo size={52} />
         </View>
-        <Text className="text-2xl font-bold text-white text-center">PG Owner</Text>
-        <Text className="text-sm text-slate-400 text-center mt-1">
-          {organization?.name || 'Property Management'}
+        <Text className="text-2xl font-extrabold text-slate-900 tracking-tight">
+          Unlock PG Manager
         </Text>
-        {user && (
-          <Text className="text-xs text-slate-500 text-center mt-2">Signed in as {user.name}</Text>
+        <Text className="text-sm text-slate-500 font-medium mt-1">
+          {organization?.name || 'Sri Sai Boys PG, Madhapur'}
+        </Text>
+      </View>
+
+      {/* Center Biometric Ring */}
+      <View className="items-center w-full max-w-sm">
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={triggerAuth}
+          className={`w-52 h-52 rounded-full items-center justify-center mb-8 border-2 ${
+            hasFailed ? 'border-rose-300 bg-rose-50/60' : 'border-emerald-300 bg-[#E8F5EE]/40'
+          }`}
+          style={{
+            shadowColor: hasFailed ? '#F43F5E' : '#0A6C50',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.1,
+            shadowRadius: 16,
+            elevation: 3,
+          }}
+        >
+          {/* Inner ring */}
+          <View
+            className={`w-40 h-40 rounded-full items-center justify-center border ${
+              hasFailed ? 'border-rose-200' : 'border-emerald-200'
+            }`}
+          >
+            <Fingerprint size={72} color={hasFailed ? '#BE123C' : '#0A6C50'} strokeWidth={1.75} />
+          </View>
+        </TouchableOpacity>
+
+        {/* Status Prompt / Error Message */}
+        {hasFailed ? (
+          <View className="w-full items-center">
+            <View className="flex-row items-center justify-center px-3 mb-6">
+              <AlertCircle size={17} color="#BE123C" />
+              <Text className="text-sm font-semibold text-rose-800 ml-1.5 text-center">
+                Fingerprint not recognised. Try again ({attemptCount} of {maxAttempts})
+              </Text>
+            </View>
+
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={triggerAuth}
+              className="w-full bg-[#0A6C50] py-3.5 rounded-xl items-center shadow-sm"
+            >
+              <Text className="text-white font-bold text-base">Try again</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <Text className="text-base font-bold text-slate-800 mt-2">
+            Touch the sensor to unlock
+          </Text>
         )}
       </View>
 
-      <View className="w-full max-w-xs items-center gap-4 mb-8">
-        <TouchableOpacity
-          className="w-full bg-primary-600 py-3.5 rounded-xl items-center flex-row justify-center gap-2 shadow-sm"
-          onPress={() => void unlockWithBiometrics()}
-        >
-          <Fingerprint size={20} color="#ffffff" />
-          <Text className="text-white font-semibold text-base">Unlock App</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          className="flex-row items-center gap-1.5 py-2"
-          onPress={() => void logout()}
-        >
-          <LogOut size={16} color="#94a3b8" />
-          <Text className="text-xs text-slate-400 font-medium">Switch Account / Sign Out</Text>
+      {/* Bottom Option */}
+      <View className="items-center mb-4">
+        <TouchableOpacity onPress={() => void logout()} className="py-2.5 px-4">
+          <Text className="text-blue-600 font-bold text-sm underline">Use password instead</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Switch, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Alert, Modal } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Zap,
   TrendingDown,
@@ -10,17 +11,17 @@ import {
   LogOut,
   ChevronRight,
   Fingerprint,
+  Sparkles,
 } from 'lucide-react-native';
 import { useAuth } from '../../src/hooks/useAuth';
+import { SplashScreenView } from '../../src/components/SplashScreenView';
 
 export default function MoreScreen() {
-  const { user, organization, subscription, logout, isBiometricSupported, enableBiometrics } =
-    useAuth();
-
-  const [biometricEnabled, setBiometricEnabled] = useState(true);
+  const { user, organization, logout, unlockWithBiometrics } = useAuth();
+  const [showSplashPreview, setShowSplashPreview] = useState(false);
 
   const getInitials = (name?: string) => {
-    if (!name) return 'PG';
+    if (!name) return 'RK';
     const parts = name.trim().split(' ');
     if (parts.length >= 2 && parts[0] && parts[1]) {
       return (parts[0][0] + parts[1][0]).toUpperCase();
@@ -28,13 +29,8 @@ export default function MoreScreen() {
     return name.slice(0, 2).toUpperCase();
   };
 
-  const handleToggleBiometrics = async (value: boolean) => {
-    setBiometricEnabled(value);
-    await enableBiometrics(value);
-  };
-
   const handleLogout = () => {
-    Alert.alert('Sign Out', 'Are you sure you want to sign out of PG Owner?', [
+    Alert.alert('Sign Out', 'Are you sure you want to log out of PG Manager?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Sign Out',
@@ -48,111 +44,150 @@ export default function MoreScreen() {
     {
       title: 'Operations',
       items: [
-        { icon: Zap, label: 'Sub-meter Electricity Log', detail: 'Readings & Splits' },
-        { icon: TrendingDown, label: 'Expenses & Monthly P&L', detail: 'Groceries, Maintenance' },
-        { icon: Building, label: 'Properties & Rooms', detail: '1 Property, 25 Beds' },
-        { icon: Users, label: 'Staff & Manager Logins', detail: 'Pro Plan' },
+        {
+          icon: Zap,
+          label: 'Sub-meter Electricity Log',
+          detail: 'Readings & automatic splits',
+        },
+        {
+          icon: TrendingDown,
+          label: 'Expenses & Monthly P&L',
+          detail: 'Groceries, Maintenance, EB',
+        },
+        {
+          icon: Building,
+          label: 'Properties & Rooms',
+          detail: '1 Property · 48 Beds',
+        },
+        {
+          icon: Users,
+          label: 'Staff & Manager Logins',
+          detail: 'Access controls & roles',
+        },
       ],
     },
     {
-      title: 'Subscription & Security',
+      title: 'App & Security',
       items: [
+        {
+          icon: Fingerprint,
+          label: 'Biometric Lock Test',
+          detail: 'Touch sensor simulation',
+          onPress: () => void unlockWithBiometrics(),
+        },
+        {
+          icon: Sparkles,
+          label: 'Brand Splash Screen',
+          detail: 'View design splash screen',
+          onPress: () => setShowSplashPreview(true),
+        },
         {
           icon: CreditCard,
           label: 'Subscription Plan',
-          detail: `${subscription?.plan ? subscription.plan.toUpperCase() : 'STARTER'} (${subscription?.status || 'Active'})`,
+          detail: '14-Day Free Trial (11 days left)',
         },
-        { icon: ShieldCheck, label: 'Privacy & KYC Compliance', detail: 'DPDP 2023 / UIDAI' },
+        {
+          icon: ShieldCheck,
+          label: 'DPDP & KYC Compliance',
+          detail: 'Data privacy & Aadhaar store',
+        },
       ],
     },
   ];
 
   return (
-    <ScrollView className="flex-1 bg-slate-50 p-4">
-      {/* Owner Profile Card */}
-      <View className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm mb-6 flex-row items-center">
-        <View className="w-12 h-12 bg-primary-100 rounded-full items-center justify-center mr-3">
-          <Text className="text-primary-700 font-bold text-lg">{getInitials(user?.name)}</Text>
-        </View>
-        <View className="flex-1">
-          <Text className="text-base font-bold text-slate-900">
-            {user?.name || 'Property Owner'}
-          </Text>
-          <Text className="text-xs text-slate-500">
-            {organization?.name || 'My PG Organization'} ·{' '}
-            {user?.role ? user.role.toUpperCase() : 'OWNER'}
-          </Text>
-        </View>
-        <View className="bg-emerald-100 px-2.5 py-1 rounded-full">
-          <Text className="text-[10px] font-bold text-emerald-800 uppercase">
-            {subscription?.status || 'TRIALING'}
-          </Text>
-        </View>
-      </View>
-
-      {/* Biometric Security Preference Card */}
-      {isBiometricSupported && (
-        <View className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 mb-6 flex-row items-center justify-between">
-          <View className="flex-row items-center flex-1 pr-4">
-            <View className="w-8 h-8 rounded-lg bg-blue-50 items-center justify-center mr-3">
-              <Fingerprint size={20} color="#2563eb" />
-            </View>
-            <View className="flex-1">
-              <Text className="text-sm font-semibold text-slate-800">Biometric App Unlock</Text>
-              <Text className="text-xs text-slate-400">
-                Require Face ID / Fingerprint on launch
-              </Text>
-            </View>
-          </View>
-          <Switch
-            value={biometricEnabled}
-            onValueChange={handleToggleBiometrics}
-            trackColor={{ false: '#cbd5e1', true: '#2563eb' }}
-          />
-        </View>
-      )}
-
-      {/* Menu Sections */}
-      {menuSections.map(sec => (
-        <View key={sec.title} className="mb-6">
-          <Text className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">
-            {sec.title}
-          </Text>
-          <View className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            {sec.items.map((item, idx) => {
-              const Icon = item.icon;
-              return (
-                <TouchableOpacity
-                  key={item.label}
-                  className={`p-4 flex-row items-center justify-between ${
-                    idx < sec.items.length - 1 ? 'border-b border-slate-100' : ''
-                  }`}
-                >
-                  <View className="flex-row items-center flex-1">
-                    <View className="w-8 h-8 rounded-lg bg-slate-100 items-center justify-center mr-3">
-                      <Icon size={18} color="#475569" />
-                    </View>
-                    <View className="flex-1">
-                      <Text className="text-sm font-semibold text-slate-800">{item.label}</Text>
-                      {item.detail && <Text className="text-xs text-slate-400">{item.detail}</Text>}
-                    </View>
-                  </View>
-                  <ChevronRight size={18} color="#94a3b8" />
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </View>
-      ))}
-
-      {/* Logout Button */}
-      <TouchableOpacity
-        className="bg-rose-50 border border-rose-200 rounded-xl p-3.5 flex-row items-center justify-center gap-2 mb-10"
-        onPress={handleLogout}
+    <SafeAreaView className="flex-1 bg-[#F8F9FA]" edges={['top']}>
+      <ScrollView
+        className="flex-1 px-5 pt-3"
+        contentContainerStyle={{ paddingBottom: 60 }}
+        showsVerticalScrollIndicator={false}
       >
-        <LogOut size={18} color="#e11d48" />
-        <Text className="text-rose-600 font-bold text-sm">Sign Out</Text>
-      </TouchableOpacity>
-    </ScrollView>
+        {/* Header */}
+        <View className="mb-4">
+          <Text className="text-3xl font-extrabold text-slate-900 tracking-tight">More</Text>
+          <Text className="text-sm font-medium text-slate-600 mt-1">Settings & Operations</Text>
+        </View>
+
+        {/* Owner Profile Card */}
+        <View className="bg-white border border-slate-200/80 rounded-2xl p-4 mb-5 shadow-xs flex-row items-center">
+          <View className="w-12 h-12 rounded-full bg-[#E8F5EE] items-center justify-center mr-3.5">
+            <Text className="text-[#0A6C50] font-extrabold text-base">
+              {getInitials(user?.name || 'Ramesh Kumar')}
+            </Text>
+          </View>
+          <View className="flex-1 mr-2">
+            <Text className="text-base font-extrabold text-slate-900">
+              {user?.name || 'Ramesh Kumar'}
+            </Text>
+            <Text className="text-xs font-medium text-slate-500 mt-0.5">
+              {organization?.name || 'Sri Sai Boys PG, Madhapur'} · Owner
+            </Text>
+          </View>
+          <View className="bg-[#FEF9C3] border border-[#FDE047] px-2.5 py-1 rounded-full">
+            <Text className="text-[10px] font-bold text-[#854D0E]">11d Trial</Text>
+          </View>
+        </View>
+
+        {/* Menu Sections */}
+        {menuSections.map(section => (
+          <View key={section.title} className="mb-5">
+            <Text className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2.5 ml-1">
+              {section.title}
+            </Text>
+
+            <View className="bg-white border border-slate-200/80 rounded-2xl overflow-hidden shadow-xs">
+              {section.items.map((item, idx) => {
+                const IconComponent = item.icon;
+                const isLast = idx === section.items.length - 1;
+                return (
+                  <TouchableOpacity
+                    key={item.label}
+                    activeOpacity={0.7}
+                    onPress={
+                      item.onPress || (() => Alert.alert(item.label, `${item.label} configured.`))
+                    }
+                    className={`p-4 flex-row items-center justify-between ${
+                      !isLast ? 'border-b border-slate-100' : ''
+                    }`}
+                  >
+                    <View className="flex-row items-center flex-1 mr-2">
+                      <View className="w-9 h-9 rounded-xl bg-[#F0FDF4] items-center justify-center mr-3">
+                        <IconComponent size={18} color="#0A6C50" />
+                      </View>
+                      <View className="flex-1">
+                        <Text className="text-sm font-bold text-slate-900">{item.label}</Text>
+                        <Text className="text-xs text-slate-500 mt-0.5 font-medium">
+                          {item.detail}
+                        </Text>
+                      </View>
+                    </View>
+                    <ChevronRight size={18} color="#94A3B8" />
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+        ))}
+
+        {/* Sign Out Button */}
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={handleLogout}
+          className="bg-white border border-rose-200 rounded-2xl p-4 flex-row items-center justify-center shadow-xs mt-1"
+        >
+          <LogOut size={18} color="#BE123C" />
+          <Text className="text-sm font-bold text-[#BE123C] ml-2">Log out of PG Manager</Text>
+        </TouchableOpacity>
+      </ScrollView>
+
+      {/* Splash preview modal */}
+      <Modal
+        visible={showSplashPreview}
+        animationType="fade"
+        onRequestClose={() => setShowSplashPreview(false)}
+      >
+        <SplashScreenView onDismiss={() => setShowSplashPreview(false)} />
+      </Modal>
+    </SafeAreaView>
   );
 }

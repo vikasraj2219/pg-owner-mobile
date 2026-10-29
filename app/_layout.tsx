@@ -38,8 +38,8 @@ function NavigationGuard() {
 
   if (isLoading) {
     return (
-      <View className="flex-1 justify-center items-center bg-slate-50">
-        <ActivityIndicator size="large" color="#2563eb" />
+      <View className="flex-1 justify-center items-center bg-[#F8F9FA]">
+        <ActivityIndicator size="large" color="#0A6C50" />
       </View>
     );
   }
@@ -53,10 +53,7 @@ function NavigationGuard() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="(auth)" />
-      <Stack.Screen
-        name="checkin/[bedId]"
-        options={{ presentation: 'modal', headerShown: true, title: 'Quick Check-in' }}
-      />
+      <Stack.Screen name="checkin/[bedId]" options={{ presentation: 'card', headerShown: false }} />
       <Stack.Screen
         name="checkout/[tenantId]"
         options={{ presentation: 'modal', headerShown: true, title: 'Checkout Settlement' }}
@@ -70,7 +67,7 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <StatusBar style="auto" />
+          <StatusBar style="dark" />
           <NavigationGuard />
         </AuthProvider>
       </QueryClientProvider>

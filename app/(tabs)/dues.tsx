@@ -1,157 +1,274 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import { formatINR } from '../../src/utils/currency';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { MessageCircle } from 'lucide-react-native';
 import { sendRentReminder } from '../../src/utils/whatsapp';
-import { MessageCircle, CheckCircle2 } from 'lucide-react-native';
+
+interface DueInvoice {
+  id: string;
+  initials: string;
+  name: string;
+  bed: string;
+  dueDate: string;
+  amount: string;
+  amountNumber: number;
+  overdueText: string;
+  phone: string;
+  status: 'overdue' | 'unpaid' | 'paid';
+}
 
 export default function DuesScreen() {
-  const [filter, setFilter] = useState<'all' | 'overdue' | 'unpaid' | 'paid'>('all');
+  const [filter, setFilter] = useState<'all' | 'overdue' | 'unpaid' | 'paid'>('overdue');
 
-  const invoices = [
+  const [invoices, setInvoices] = useState<DueInvoice[]>([
     {
-      id: 'inv-1',
-      tenantName: 'Amit Shah',
-      bedNumber: '102-A',
+      id: '1',
+      initials: 'RV',
+      name: 'Rahul Verma',
+      bed: 'Bed 201-A',
+      dueDate: 'Due 5 Oct',
+      amount: '₹8,500',
+      amountNumber: 850000,
+      overdueText: '24 days overdue',
       phone: '9876543210',
-      amountDuePaise: 700000,
-      dueDate: '05 Nov 2026',
       status: 'overdue',
-      daysOverdue: 6,
     },
     {
-      id: 'inv-2',
-      tenantName: 'Kunal Sharma',
-      bedNumber: '201-A',
+      id: '2',
+      initials: 'SK',
+      name: 'Suresh Kumar',
+      bed: 'Bed 101-B',
+      dueDate: 'Due 10 Oct',
+      amount: '₹7,500',
+      amountNumber: 750000,
+      overdueText: '19 days overdue',
       phone: '9876543211',
-      amountDuePaise: 900000,
-      dueDate: '05 Nov 2026',
-      status: 'unpaid',
-      daysOverdue: 2,
+      status: 'overdue',
     },
     {
-      id: 'inv-3',
-      tenantName: 'Rahul Verma',
-      bedNumber: '101-B',
+      id: '3',
+      initials: 'AR',
+      name: 'Anil Reddy',
+      bed: 'Bed 305-C',
+      dueDate: 'Due 15 Oct',
+      amount: '₹12,000',
+      amountNumber: 1200000,
+      overdueText: '14 days overdue',
       phone: '9876543212',
-      amountDuePaise: 850000,
-      dueDate: '01 Nov 2026',
-      status: 'paid',
-      paidAt: '01 Nov 2026',
+      status: 'overdue',
     },
-  ];
+    {
+      id: '4',
+      initials: 'VS',
+      name: 'Vikram Singh',
+      bed: 'Bed 102-B',
+      dueDate: 'Due 25 Oct',
+      amount: '₹9,000',
+      amountNumber: 900000,
+      overdueText: '4 days overdue',
+      phone: '9876543213',
+      status: 'unpaid',
+    },
+    {
+      id: '5',
+      initials: 'KS',
+      name: 'Karan Sharma',
+      bed: 'Bed 202-A',
+      dueDate: 'Due 28 Oct',
+      amount: '₹8,000',
+      amountNumber: 800000,
+      overdueText: '1 day overdue',
+      phone: '9876543214',
+      status: 'unpaid',
+    },
+    {
+      id: '6',
+      initials: 'DM',
+      name: 'Deepak Mishra',
+      bed: 'Bed 301-A',
+      dueDate: 'Due 30 Oct',
+      amount: '₹8,000',
+      amountNumber: 800000,
+      overdueText: 'Due today',
+      phone: '9876543215',
+      status: 'unpaid',
+    },
+  ]);
 
-  const filteredInvoices = invoices.filter(inv => {
-    if (filter === 'overdue') return inv.status === 'overdue';
-    if (filter === 'unpaid') return inv.status === 'unpaid' || inv.status === 'overdue';
-    if (filter === 'paid') return inv.status === 'paid';
+  const filteredList = invoices.filter(item => {
+    if (filter === 'all') return true;
+    if (filter === 'overdue') return item.status === 'overdue';
+    if (filter === 'unpaid') return item.status === 'unpaid' || item.status === 'overdue';
+    if (filter === 'paid') return item.status === 'paid';
     return true;
   });
 
-  const handleReminder = (inv: (typeof invoices)[0]) => {
-    sendRentReminder(inv.phone, inv.tenantName, inv.bedNumber, inv.amountDuePaise, 'pgowner@upi');
+  const handleSendWhatsApp = (item: DueInvoice) => {
+    sendRentReminder(item.phone, item.name, item.bed, item.amountNumber, 'srisaipg@okaxis');
   };
 
-  const handleMarkPaid = (inv: (typeof invoices)[0]) => {
+  const handleMarkReceived = (item: DueInvoice) => {
     Alert.alert(
-      'Confirm Payment',
-      `Mark ${formatINR(inv.amountDuePaise)} received via UPI/Cash from ${inv.tenantName}?`,
+      'Mark Rent as Received',
+      `Confirm receipt of ${item.amount} from ${item.name} (${item.bed})?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Confirm & Share PDF',
-          onPress: () => Alert.alert('Success', 'Receipt generated!'),
+          text: 'Confirm Received',
+          onPress: () => {
+            setInvoices(prev =>
+              prev.map(inv =>
+                inv.id === item.id ? { ...inv, status: 'paid', overdueText: 'Paid' } : inv,
+              ),
+            );
+            Alert.alert('Payment Recorded', `Receipt generated for ${item.name}.`);
+          },
         },
       ],
     );
   };
 
   return (
-    <ScrollView className="flex-1 bg-slate-50 p-4">
-      {/* Filter Chips */}
-      <View className="flex-row gap-2 mb-4">
-        {[
-          { key: 'all', label: 'All' },
-          { key: 'overdue', label: 'Overdue (>5d)' },
-          { key: 'unpaid', label: 'Unpaid' },
-          { key: 'paid', label: 'Paid' },
-        ].map(item => (
+    <SafeAreaView className="flex-1 bg-[#F8F9FA]" edges={['top']}>
+      <ScrollView
+        className="flex-1 px-5 pt-3"
+        contentContainerStyle={{ paddingBottom: 60 }}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header Title & Month */}
+        <View className="mb-4">
+          <Text className="text-3xl font-extrabold text-slate-900 tracking-tight">Dues</Text>
+          <Text className="text-sm font-medium text-slate-600 mt-1">October 2026</Text>
+        </View>
+
+        {/* Total Outstanding Card */}
+        <View className="bg-white border border-slate-200/80 rounded-2xl p-4 flex-row items-center justify-between mb-4 shadow-xs">
+          <Text className="text-sm font-semibold text-slate-700">
+            Total outstanding · 6 tenants
+          </Text>
+          <Text className="text-2xl font-extrabold text-[#BE123C]">₹48,000</Text>
+        </View>
+
+        {/* Filter Pills */}
+        <View className="flex-row items-center gap-2 mb-4 flex-wrap">
           <TouchableOpacity
-            key={item.key}
-            className={`px-3 py-1.5 rounded-full ${
-              filter === item.key ? 'bg-primary-600' : 'bg-white border border-slate-200'
+            activeOpacity={0.8}
+            onPress={() => setFilter('all')}
+            className={`px-4 py-2 rounded-full ${
+              filter === 'all' ? 'bg-[#0A6C50]' : 'bg-white border border-slate-200'
             }`}
-            onPress={() => setFilter(item.key as typeof filter)}
           >
             <Text
-              className={`text-xs font-semibold ${
-                filter === item.key ? 'text-white' : 'text-slate-700'
-              }`}
+              className={`text-sm font-bold ${filter === 'all' ? 'text-white' : 'text-slate-800'}`}
             >
-              {item.label}
+              All
             </Text>
           </TouchableOpacity>
-        ))}
-      </View>
 
-      {/* Invoice Cards */}
-      {filteredInvoices.map(inv => {
-        const isPaid = inv.status === 'paid';
-        return (
-          <View
-            key={inv.id}
-            className="bg-white rounded-xl p-4 mb-3 border border-slate-200 shadow-sm"
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => setFilter('overdue')}
+            className={`px-4 py-2 rounded-full ${
+              filter === 'overdue' ? 'bg-[#0A6C50]' : 'bg-white border border-slate-200'
+            }`}
           >
-            <View className="flex-row justify-between items-start mb-2">
-              <View>
-                <Text className="text-base font-bold text-slate-900">{inv.tenantName}</Text>
-                <Text className="text-xs text-slate-500 font-medium">Bed {inv.bedNumber}</Text>
+            <Text
+              className={`text-sm font-bold ${
+                filter === 'overdue' ? 'text-white' : 'text-slate-800'
+              }`}
+            >
+              Overdue (&gt;5 days)
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => setFilter('unpaid')}
+            className={`px-4 py-2 rounded-full ${
+              filter === 'unpaid' ? 'bg-[#0A6C50]' : 'bg-white border border-slate-200'
+            }`}
+          >
+            <Text
+              className={`text-sm font-bold ${
+                filter === 'unpaid' ? 'text-white' : 'text-slate-800'
+              }`}
+            >
+              Unpaid
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => setFilter('paid')}
+            className={`px-4 py-2 rounded-full ${
+              filter === 'paid' ? 'bg-[#0A6C50]' : 'bg-white border border-slate-200'
+            }`}
+          >
+            <Text
+              className={`text-sm font-bold ${filter === 'paid' ? 'text-white' : 'text-slate-800'}`}
+            >
+              Paid
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Invoices List */}
+        {filteredList.map(item => (
+          <View
+            key={item.id}
+            className="bg-white border border-slate-200/80 rounded-2xl p-4 mb-3 shadow-xs"
+          >
+            {/* Top row with Avatar, Name, Bed, Amount */}
+            <View className="flex-row items-start justify-between">
+              <View className="flex-row items-center flex-1 mr-2">
+                <View className="w-11 h-11 rounded-full bg-[#E2E8F0] items-center justify-center mr-3">
+                  <Text className="text-sm font-bold text-slate-700">{item.initials}</Text>
+                </View>
+                <View className="flex-1">
+                  <Text className="text-base font-extrabold text-slate-900" numberOfLines={1}>
+                    {item.name}
+                  </Text>
+                  <Text className="text-xs font-medium text-slate-500 mt-0.5">
+                    {item.bed} · {item.dueDate}
+                  </Text>
+                </View>
               </View>
+
               <View className="items-end">
-                <Text className="text-base font-extrabold text-slate-900">
-                  {formatINR(inv.amountDuePaise)}
-                </Text>
+                <Text className="text-lg font-extrabold text-slate-900">{item.amount}</Text>
                 <Text
-                  className={`text-[10px] font-bold px-1.5 py-0.5 rounded mt-0.5 ${
-                    isPaid
-                      ? 'bg-emerald-100 text-emerald-800'
-                      : inv.status === 'overdue'
-                        ? 'bg-rose-100 text-rose-800'
-                        : 'bg-amber-100 text-amber-800'
+                  className={`text-xs font-bold mt-0.5 ${
+                    item.status === 'paid' ? 'text-[#0A6C50]' : 'text-[#BE123C]'
                   }`}
                 >
-                  {isPaid
-                    ? 'PAID'
-                    : inv.status === 'overdue'
-                      ? `${inv.daysOverdue}d OVERDUE`
-                      : 'DUE'}
+                  {item.overdueText}
                 </Text>
               </View>
             </View>
 
-            <Text className="text-xs text-slate-400 mb-3">Due: {inv.dueDate}</Text>
-
-            {!isPaid && (
-              <View className="flex-row gap-2 pt-2 border-t border-slate-100">
+            {/* Actions: WhatsApp + Mark received */}
+            {item.status !== 'paid' && (
+              <View className="flex-row items-center gap-2.5 mt-3.5">
                 <TouchableOpacity
-                  className="bg-emerald-50 border border-emerald-200 rounded-lg py-2 px-3 flex-1 flex-row items-center justify-center gap-1.5"
-                  onPress={() => handleReminder(inv)}
+                  activeOpacity={0.8}
+                  onPress={() => handleSendWhatsApp(item)}
+                  className="w-12 h-11 bg-[#F0FDF4] border border-[#86EFAC] rounded-xl items-center justify-center"
                 >
-                  <MessageCircle size={16} color="#059669" />
-                  <Text className="text-xs font-bold text-emerald-800">WhatsApp Reminder</Text>
+                  <MessageCircle size={20} color="#0A6C50" strokeWidth={2.2} />
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  className="bg-primary-600 rounded-lg py-2 px-3 flex-1 flex-row items-center justify-center gap-1.5"
-                  onPress={() => handleMarkPaid(inv)}
+                  activeOpacity={0.85}
+                  onPress={() => handleMarkReceived(item)}
+                  className="flex-1 h-11 bg-[#0A6C50] rounded-xl items-center justify-center shadow-xs"
                 >
-                  <CheckCircle2 size={16} color="#ffffff" />
-                  <Text className="text-xs font-bold text-white">Mark Received</Text>
+                  <Text className="text-white font-bold text-sm">Mark received</Text>
                 </TouchableOpacity>
               </View>
             )}
           </View>
-        );
-      })}
-    </ScrollView>
+        ))}
+      </ScrollView>
+    </SafeAreaView>
   );
 }

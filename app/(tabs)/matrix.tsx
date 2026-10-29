@@ -1,215 +1,379 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { formatINR } from '../../src/utils/currency';
 
-type MockBed =
-  | { bedNumber: string; status: 'available'; rentPaise?: number }
-  | { bedNumber: string; status: 'occupied'; tenantName: string; paymentStatus: 'PAID' | 'DUE' }
-  | { bedNumber: string; status: 'notice_period'; tenantName: string; daysLeft: number }
-  | { bedNumber: string; status: 'maintenance' };
+type BedStatus = 'vacant' | 'occupied' | 'notice' | 'maintenance';
 
-interface MockRoom {
+interface BedItem {
+  id: string;
+  roomNumber: string;
+  status: BedStatus;
+  tenantName?: string;
+  paymentStatus?: 'PAID' | 'DUE';
+  rent?: string;
+  noticeInfo?: string;
+  maintenanceNote?: string;
+}
+
+interface RoomGroup {
   roomNumber: string;
   floor: number;
-  sharing: string;
-  baseRentPaise: number;
-  beds: MockBed[];
+  tags: string[];
+  beds: BedItem[];
 }
 
 export default function MatrixScreen() {
   const router = useRouter();
-  const [selectedFloor, setSelectedFloor] = useState<number | null>(null);
-  const [vacantOnly, setVacantOnly] = useState(false);
+  const [selectedFloor, setSelectedFloor] = useState<number>(1);
+  const [vacantOnly, setVacantOnly] = useState<boolean>(false);
 
-  // Wireframe rooms mock data
-  const rooms: MockRoom[] = [
+  const roomsData: RoomGroup[] = [
     {
       roomNumber: '101',
       floor: 1,
-      sharing: '2-Sharing',
-      baseRentPaise: 850000,
+      tags: ['AC', 'Washroom'],
       beds: [
-        { bedNumber: '101-A', status: 'available', rentPaise: 850000 },
         {
-          bedNumber: '101-B',
+          id: '101-A',
+          roomNumber: '101',
           status: 'occupied',
           tenantName: 'Rahul Verma',
           paymentStatus: 'PAID',
+        },
+        {
+          id: '101-B',
+          roomNumber: '101',
+          status: 'occupied',
+          tenantName: 'Suresh Kumar',
+          paymentStatus: 'DUE',
+        },
+        {
+          id: '101-C',
+          roomNumber: '101',
+          status: 'vacant',
+          rent: '₹7,500',
         },
       ],
     },
     {
       roomNumber: '102',
       floor: 1,
-      sharing: '3-Sharing',
-      baseRentPaise: 700000,
+      tags: ['Washroom'],
       beds: [
-        { bedNumber: '102-A', status: 'occupied', tenantName: 'Amit Shah', paymentStatus: 'DUE' },
-        { bedNumber: '102-B', status: 'notice_period', tenantName: 'Vikram Singh', daysLeft: 6 },
-        { bedNumber: '102-C', status: 'maintenance' },
+        {
+          id: '102-A',
+          roomNumber: '102',
+          status: 'vacant',
+          rent: '₹9,000',
+        },
+        {
+          id: '102-B',
+          roomNumber: '102',
+          status: 'notice',
+          tenantName: 'Anil Reddy',
+          noticeInfo: 'Notice · 3 days',
+        },
+      ],
+    },
+    {
+      roomNumber: '103',
+      floor: 1,
+      tags: ['AC', 'Single'],
+      beds: [
+        {
+          id: '103-A',
+          roomNumber: '103',
+          status: 'maintenance',
+          maintenanceNote: 'Repair',
+        },
       ],
     },
     {
       roomNumber: '201',
       floor: 2,
-      sharing: '2-Sharing',
-      baseRentPaise: 900000,
+      tags: ['AC', 'Triple sharing'],
       beds: [
-        { bedNumber: '201-A', status: 'available', rentPaise: 900000 },
-        { bedNumber: '201-B', status: 'available', rentPaise: 900000 },
+        {
+          id: '201-A',
+          roomNumber: '201',
+          status: 'vacant',
+          rent: '₹8,500',
+        },
+        {
+          id: '201-B',
+          roomNumber: '201',
+          status: 'occupied',
+          tenantName: 'Karthik Rao',
+          paymentStatus: 'PAID',
+        },
+        {
+          id: '201-C',
+          roomNumber: '201',
+          status: 'occupied',
+          tenantName: 'Deepak S',
+          paymentStatus: 'PAID',
+        },
+      ],
+    },
+    {
+      roomNumber: '301',
+      floor: 3,
+      tags: ['AC', 'Washroom'],
+      beds: [
+        {
+          id: '301-A',
+          roomNumber: '301',
+          status: 'vacant',
+          rent: '₹8,000',
+        },
+        {
+          id: '301-B',
+          roomNumber: '301',
+          status: 'occupied',
+          tenantName: 'Vikas Roy',
+          paymentStatus: 'DUE',
+        },
       ],
     },
   ];
 
-  return (
-    <ScrollView className="flex-1 bg-slate-50 p-4">
-      {/* Floor Filter Pills */}
-      <View className="flex-row items-center gap-2 mb-4">
-        <TouchableOpacity
-          className={`px-3 py-1.5 rounded-full ${selectedFloor === null ? 'bg-primary-600' : 'bg-white border border-slate-200'}`}
-          onPress={() => setSelectedFloor(null)}
-        >
-          <Text
-            className={`text-xs font-semibold ${selectedFloor === null ? 'text-white' : 'text-slate-700'}`}
-          >
-            All Floors
-          </Text>
-        </TouchableOpacity>
+  // Filtering
+  const filteredRooms = roomsData
+    .filter(room => room.floor === selectedFloor)
+    .map(room => {
+      if (vacantOnly) {
+        return {
+          ...room,
+          beds: room.beds.filter(b => b.status === 'vacant'),
+        };
+      }
+      return room;
+    })
+    .filter(room => room.beds.length > 0);
 
-        {[1, 2].map(floor => (
+  const handleBedPress = (bed: BedItem) => {
+    if (bed.status === 'vacant') {
+      router.push(`/checkin/${bed.id}`);
+    } else if (bed.status === 'occupied') {
+      Alert.alert(
+        `Bed ${bed.id} · ${bed.tenantName}`,
+        `Payment status: ${bed.paymentStatus}\nWhat would you like to do?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'View in Dues',
+            onPress: () => router.push('/(tabs)/dues'),
+          },
+          {
+            text: 'Checkout Tenant',
+            onPress: () => router.push(`/checkout/${bed.id}`),
+          },
+        ],
+      );
+    } else if (bed.status === 'notice') {
+      Alert.alert(
+        `Bed ${bed.id} · ${bed.tenantName}`,
+        `${bed.noticeInfo}\nTenant is vacating soon.`,
+        [
+          { text: 'Close', style: 'cancel' },
+          {
+            text: 'Initiate Checkout Settlement',
+            onPress: () => router.push(`/checkout/${bed.id}`),
+          },
+        ],
+      );
+    } else {
+      Alert.alert('Bed under maintenance', 'Currently scheduled for plumbing/electrical repair.');
+    }
+  };
+
+  return (
+    <SafeAreaView className="flex-1 bg-[#F8F9FA]" edges={['top']}>
+      <ScrollView
+        className="flex-1 px-5 pt-3"
+        contentContainerStyle={{ paddingBottom: 60 }}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Screen Title & Subtitle */}
+        <View className="mb-4">
+          <Text className="text-3xl font-extrabold text-slate-900 tracking-tight">Bed matrix</Text>
+          <Text className="text-sm font-medium text-slate-600 mt-1">
+            Sri Sai Boys PG · 6 beds vacant
+          </Text>
+        </View>
+
+        {/* Filter Pills Row */}
+        <View className="flex-row items-center gap-2 mb-5 flex-wrap">
+          {[1, 2, 3].map(floor => {
+            const isActive = selectedFloor === floor;
+            return (
+              <TouchableOpacity
+                key={floor}
+                activeOpacity={0.8}
+                onPress={() => setSelectedFloor(floor)}
+                className={`px-5 py-2.5 rounded-full ${
+                  isActive ? 'bg-[#0A6C50]' : 'bg-white border border-slate-200'
+                }`}
+              >
+                <Text className={`text-sm font-bold ${isActive ? 'text-white' : 'text-slate-800'}`}>
+                  Floor {floor}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+
           <TouchableOpacity
-            key={floor}
-            className={`px-3 py-1.5 rounded-full ${selectedFloor === floor ? 'bg-primary-600' : 'bg-white border border-slate-200'}`}
-            onPress={() => setSelectedFloor(floor)}
+            activeOpacity={0.8}
+            onPress={() => setVacantOnly(!vacantOnly)}
+            className={`px-5 py-2.5 rounded-full ml-auto ${
+              vacantOnly ? 'bg-[#0A6C50]' : 'bg-white border border-slate-200'
+            }`}
           >
-            <Text
-              className={`text-xs font-semibold ${selectedFloor === floor ? 'text-white' : 'text-slate-700'}`}
-            >
-              Floor {floor}
+            <Text className={`text-sm font-bold ${vacantOnly ? 'text-white' : 'text-slate-800'}`}>
+              Vacant only
             </Text>
           </TouchableOpacity>
-        ))}
+        </View>
 
-        <TouchableOpacity
-          className={`ml-auto px-3 py-1.5 rounded-full ${vacantOnly ? 'bg-emerald-600' : 'bg-white border border-slate-200'}`}
-          onPress={() => setVacantOnly(!vacantOnly)}
-        >
-          <Text className={`text-xs font-semibold ${vacantOnly ? 'text-white' : 'text-slate-700'}`}>
-            🟢 Vacant Only
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Room & Bed Cards Grid */}
-      {rooms.map(room => (
-        <View
-          key={room.roomNumber}
-          className="bg-white rounded-xl p-4 mb-4 border border-slate-200 shadow-sm"
-        >
-          <View className="flex-row justify-between items-center mb-3">
-            <View className="flex-row items-baseline gap-2">
-              <Text className="text-lg font-bold text-slate-900">Room {room.roomNumber}</Text>
-              <Text className="text-xs text-slate-500">{room.sharing}</Text>
+        {/* Room Cards List */}
+        {filteredRooms.map(room => (
+          <View
+            key={room.roomNumber}
+            className="bg-white border border-slate-200/80 rounded-2xl p-4 mb-4 shadow-xs"
+          >
+            {/* Room Header */}
+            <View className="flex-row items-center justify-between mb-3.5">
+              <Text className="text-lg font-extrabold text-slate-900">Room {room.roomNumber}</Text>
+              <View className="flex-row items-center gap-1.5">
+                {room.tags.map(tag => (
+                  <View
+                    key={tag}
+                    className="px-2 py-0.5 rounded-md border border-slate-200 bg-white"
+                  >
+                    <Text className="text-xs font-semibold text-slate-600">{tag}</Text>
+                  </View>
+                ))}
+              </View>
             </View>
-            <Text className="text-xs font-medium text-slate-600">
-              {formatINR(room.baseRentPaise)}/mo
-            </Text>
-          </View>
 
-          {/* Bed Chips */}
-          <View className="flex-row flex-wrap gap-2">
-            {room.beds.map(bed => {
-              if (bed.status === 'available') {
+            {/* Bed Chips Row / Grid */}
+            <View className="flex-row gap-2.5 flex-wrap">
+              {room.beds.map(bed => {
+                if (bed.status === 'vacant') {
+                  return (
+                    <TouchableOpacity
+                      key={bed.id}
+                      activeOpacity={0.8}
+                      onPress={() => handleBedPress(bed)}
+                      className="flex-1 min-w-[95px] bg-[#F0FDF4] border border-[#86EFAC] rounded-xl p-3 justify-between"
+                      style={{ minHeight: 88 }}
+                    >
+                      <Text className="text-xs font-semibold text-[#0A6C50]">{bed.id}</Text>
+                      <View>
+                        <Text className="text-sm font-bold text-slate-900">Vacant</Text>
+                        <Text className="text-xs font-bold text-[#0A6C50] mt-0.5">{bed.rent}</Text>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                }
+
+                if (bed.status === 'occupied') {
+                  return (
+                    <TouchableOpacity
+                      key={bed.id}
+                      activeOpacity={0.8}
+                      onPress={() => handleBedPress(bed)}
+                      className="flex-1 min-w-[95px] bg-[#FFF1F2] border border-[#FECDD3] rounded-xl p-3 justify-between"
+                      style={{ minHeight: 88 }}
+                    >
+                      <Text className="text-xs font-semibold text-rose-500">{bed.id}</Text>
+                      <View>
+                        <Text
+                          className="text-sm font-bold text-slate-900 truncate"
+                          numberOfLines={1}
+                        >
+                          {bed.tenantName}
+                        </Text>
+                        <Text className="text-xs font-bold text-rose-600 mt-0.5">
+                          {bed.paymentStatus}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                }
+
+                if (bed.status === 'notice') {
+                  return (
+                    <TouchableOpacity
+                      key={bed.id}
+                      activeOpacity={0.8}
+                      onPress={() => handleBedPress(bed)}
+                      className="flex-1 min-w-[95px] bg-[#FFFBEB] border border-[#FDE68A] rounded-xl p-3 justify-between"
+                      style={{ minHeight: 88 }}
+                    >
+                      <Text className="text-xs font-semibold text-amber-700">{bed.id}</Text>
+                      <View>
+                        <Text
+                          className="text-sm font-bold text-slate-900 truncate"
+                          numberOfLines={1}
+                        >
+                          {bed.tenantName}
+                        </Text>
+                        <Text className="text-xs font-bold text-amber-700 mt-0.5">
+                          {bed.noticeInfo}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                }
+
+                // Maintenance
                 return (
                   <TouchableOpacity
-                    key={bed.bedNumber}
-                    className="bg-emerald-50 border border-emerald-300 rounded-lg p-2.5 flex-1 min-w-[120px]"
-                    onPress={() => router.push(`/checkin/${bed.bedNumber}`)}
+                    key={bed.id}
+                    activeOpacity={0.8}
+                    onPress={() => handleBedPress(bed)}
+                    className="w-full bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl p-3 justify-between"
+                    style={{ minHeight: 88 }}
                   >
-                    <View className="flex-row justify-between items-center">
-                      <Text className="text-xs font-bold text-emerald-800">{bed.bedNumber}</Text>
-                      <Text className="text-[10px] bg-emerald-200 text-emerald-900 font-bold px-1.5 py-0.5 rounded">
-                        VACANT
+                    <Text className="text-xs font-semibold text-slate-500">{bed.id}</Text>
+                    <View>
+                      <Text className="text-sm font-bold text-slate-900">Maintenance</Text>
+                      <Text className="text-xs font-bold text-slate-500 mt-0.5">
+                        {bed.maintenanceNote || 'Repair'}
                       </Text>
                     </View>
-                    <Text className="text-xs font-semibold text-emerald-700 mt-1">
-                      {formatINR(bed.rentPaise || room.baseRentPaise)}
-                    </Text>
                   </TouchableOpacity>
                 );
-              }
+              })}
+            </View>
+          </View>
+        ))}
 
-              if (bed.status === 'occupied') {
-                const isPaid = bed.paymentStatus === 'PAID';
-                return (
-                  <View
-                    key={bed.bedNumber}
-                    className="bg-rose-50 border border-rose-200 rounded-lg p-2.5 flex-1 min-w-[120px]"
-                  >
-                    <View className="flex-row justify-between items-center">
-                      <Text className="text-xs font-bold text-rose-900">{bed.bedNumber}</Text>
-                      <Text
-                        className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
-                          isPaid ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-200 text-rose-900'
-                        }`}
-                      >
-                        {bed.paymentStatus}
-                      </Text>
-                    </View>
-                    <Text
-                      className="text-xs text-rose-800 font-medium mt-1 truncate"
-                      numberOfLines={1}
-                    >
-                      {bed.tenantName}
-                    </Text>
-                  </View>
-                );
-              }
+        {/* Bottom Status Legend */}
+        <View className="flex-row items-center justify-around py-4 mt-2">
+          <View className="flex-row items-center">
+            <View className="w-3.5 h-3.5 rounded-sm bg-[#F0FDF4] border border-[#86EFAC] mr-1.5" />
+            <Text className="text-xs font-semibold text-slate-700">Vacant</Text>
+          </View>
 
-              if (bed.status === 'notice_period') {
-                return (
-                  <View
-                    key={bed.bedNumber}
-                    className="bg-amber-50 border border-amber-200 rounded-lg p-2.5 flex-1 min-w-[120px]"
-                  >
-                    <View className="flex-row justify-between items-center">
-                      <Text className="text-xs font-bold text-amber-900">{bed.bedNumber}</Text>
-                      <Text className="text-[9px] bg-amber-200 text-amber-900 font-bold px-1 rounded">
-                        {bed.daysLeft}d left
-                      </Text>
-                    </View>
-                    <Text
-                      className="text-xs text-amber-800 font-medium mt-1 truncate"
-                      numberOfLines={1}
-                    >
-                      {bed.tenantName}
-                    </Text>
-                  </View>
-                );
-              }
+          <View className="flex-row items-center">
+            <View className="w-3.5 h-3.5 rounded-sm bg-[#FFF1F2] border border-[#FECDD3] mr-1.5" />
+            <Text className="text-xs font-semibold text-slate-700">Occupied</Text>
+          </View>
 
-              return (
-                <View
-                  key={bed.bedNumber}
-                  className="bg-slate-100 border border-slate-200 rounded-lg p-2.5 flex-1 min-w-[120px]"
-                >
-                  <Text className="text-xs font-bold text-slate-600">{bed.bedNumber}</Text>
-                  <Text className="text-[10px] text-slate-400 mt-1">Maintenance</Text>
-                </View>
-              );
-            })}
+          <View className="flex-row items-center">
+            <View className="w-3.5 h-3.5 rounded-sm bg-[#FFFBEB] border border-[#FDE68A] mr-1.5" />
+            <Text className="text-xs font-semibold text-slate-700">Notice</Text>
+          </View>
+
+          <View className="flex-row items-center">
+            <View className="w-3.5 h-3.5 rounded-sm bg-[#F8FAFC] border border-[#CBD5E1] mr-1.5" />
+            <Text className="text-xs font-semibold text-slate-700">Maintenance</Text>
           </View>
         </View>
-      ))}
-
-      {/* Legend */}
-      <View className="flex-row justify-around py-4 mt-2">
-        <Text className="text-xs text-emerald-700 font-medium">🟢 Vacant</Text>
-        <Text className="text-xs text-rose-700 font-medium">🔴 Occupied</Text>
-        <Text className="text-xs text-amber-700 font-medium">🟡 Notice</Text>
-        <Text className="text-xs text-slate-500 font-medium">⚪ Repair</Text>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
