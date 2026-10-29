@@ -429,12 +429,12 @@ _Backend_
 - Middleware: `protect` (JWT), `enforceOrgScope` (injects `req.orgId`), rate limiting on auth routes.
 - **Test:** Organization B gets a 403/404 for Organization A's resources.
 
-_Mobile_
+_Mobile (Completed ✅)_
 
-- Initialize Expo with NativeWind v4.
-- Build `(auth)/login.tsx` and `register.tsx`.
-- Store the JWT in `expo-secure-store`.
-- Add biometric unlock with `expo-local-authentication`.
+- [x] Initialize Expo with NativeWind v4.
+- [x] Build `(auth)/login.tsx` and `register.tsx` (connected to backend API).
+- [x] Store the JWT in `expo-secure-store`.
+- [x] Add biometric unlock with `expo-local-authentication`.
 
 **Exit:** register on a physical phone, close the app, unlock with biometrics, see an authenticated screen.
 
@@ -605,3 +605,23 @@ _Mobile_
     - `src/utils/whatsapp.ts` (`sendRentReminder` via `wa.me`).
     - `src/api/client.ts` (Axios client with Bearer token interceptor).
     - `src/types/api.ts` (Mirrored backend models using integer paise).
+
+### ✅ Stage 1: Mobile Authentication, Biometrics & Session Guard
+
+- **Status**: Completed & Verified
+- **Deliverables**:
+  - **Auth Integration**:
+    - [`app/(auth)/login.tsx`](app/(auth)/login.tsx): Connected to `POST /api/auth/login` (email or phone + password), inline validation, error alert banner, loading spinner.
+    - [`app/(auth)/register.tsx`](app/(auth)/register.tsx): Connected to `POST /api/auth/register-owner` with 14-day free trial creation, full form validation.
+  - **Session Security & Storage**:
+    - [`src/context/AuthContext.tsx`](src/context/AuthContext.tsx) & [`src/hooks/useAuth.ts`](src/hooks/useAuth.ts): Full auth context managing user, organization, subscription, token recovery from `expo-secure-store`.
+    - SecureStore persistence for `auth_token`, `auth_user_cache`, and `biometric_enabled`.
+  - **Biometric Unlock**:
+    - Integrated `expo-local-authentication` (`hasHardwareAsync`, `isEnrolledAsync`, `authenticateAsync`).
+    - [`src/components/BiometricLockScreen.tsx`](src/components/BiometricLockScreen.tsx): Full-screen biometric unlock prompt triggered on app launch/resume for authenticated owners.
+    - Added Biometric Toggle switch in `(tabs)/more.tsx` to enable/disable biometric requirement.
+  - **Navigation Guard**:
+    - [`app/_layout.tsx`](app/_layout.tsx): `NavigationGuard` routing unauthenticated users to `/(auth)/login`, locked authenticated users to `<BiometricLockScreen />`, and unlocked users to `/(tabs)`.
+  - **State Binding**:
+    - [`app/(tabs)/index.tsx`](app/(tabs)/index.tsx) and [`app/(tabs)/more.tsx`](app/(tabs)/more.tsx) bound to live authenticated owner profile, organization name, and subscription trial status.
+

@@ -90,3 +90,33 @@ export interface IInvoice {
   balanceDuePaise: Paise;
   status: 'unpaid' | 'partially_paid' | 'paid' | 'canceled';
 }
+
+export interface IUser {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  role: 'owner' | 'manager' | 'staff';
+  status?: 'active' | 'inactive';
+  createdAt?: string;
+}
+
+export interface AuthResponseData {
+  token: string;
+  user: IUser;
+  organization: IOrganization;
+  subscription: ISubscription | null;
+}
+
+export interface RegisterOwnerPayload {
+  ownerName: string;
+  orgName: string;
+  phone: string;
+  email: string;
+  password: string;
+}
+
+export interface LoginPayload {
+  identifier: string;
+  password: string;
+}

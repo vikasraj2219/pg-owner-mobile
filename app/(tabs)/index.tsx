@@ -4,20 +4,28 @@ import { useRouter } from 'expo-router';
 import { StatCard } from '../../src/components/StatCard';
 import { formatINR } from '../../src/utils/currency';
 import { UserPlus, ArrowUpRight, AlertTriangle } from 'lucide-react-native';
+import { useAuth } from '../../src/hooks/useAuth';
 
 export default function PulseScreen() {
   const router = useRouter();
+  const { organization, subscription } = useAuth();
 
   return (
     <ScrollView className="flex-1 bg-slate-50 p-4">
       {/* Property & Trial Status Header */}
       <View className="flex-row justify-between items-center mb-4">
         <View>
-          <Text className="text-xs text-slate-500 font-medium">Active Property</Text>
-          <Text className="text-lg font-bold text-slate-900">Sri Sai Coliving</Text>
+          <Text className="text-xs text-slate-500 font-medium">Organization / PG</Text>
+          <Text className="text-lg font-bold text-slate-900">
+            {organization?.name || 'My PG Organization'}
+          </Text>
         </View>
         <View className="bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full">
-          <Text className="text-xs font-semibold text-emerald-700">14-Day Free Trial</Text>
+          <Text className="text-xs font-semibold text-emerald-700 capitalize">
+            {subscription?.status === 'trialing'
+              ? '14-Day Free Trial'
+              : subscription?.plan || 'Starter'}
+          </Text>
         </View>
       </View>
 
