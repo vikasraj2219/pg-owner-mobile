@@ -32,7 +32,8 @@
         {
           "faceIDPermission": "Allow PG Owner to use biometric authentication for fast and secure access."
         }
-      ]
+      ],
+      "expo-asset"
     ],
     "experiments": {
       "typedRoutes": true
