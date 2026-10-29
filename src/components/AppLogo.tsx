@@ -88,4 +88,3 @@ export const AppLogo: React.FC<AppLogoProps> = ({ size = 44, variant = 'green' }
     </View>
   );
 };
-
