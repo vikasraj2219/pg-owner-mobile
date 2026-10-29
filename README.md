@@ -371,14 +371,14 @@ export const formatINR = (paise: number) =>
 
 ## 10. Stage-by-Stage Detail
 
-### Stage 0: Setup and pilot securing (Week 1)
+### Stage 0: Setup and pilot securing (Week 1) — *Mobile Completed ✅*
 **Goal:** foundation in place and 5 committed pilot users.
-- Create `pg-owner-backend` and `pg-owner-mobile`.
-- Configure ESLint, Prettier, `.env.example`, TypeScript strict mode.
-- Provision MongoDB Atlas M0 (replica set, so transactions work).
-- Wireframe the 4 tabs: Pulse, Matrix, Dues, More.
-- Draft the privacy policy and KYC consent text.
-- **Critical:** meet 5 local PG owners and get their commitment to pilot the Android app in exchange for a free 6-month subscription.
+- [x] Create `pg-owner-backend` and `pg-owner-mobile`.
+- [x] Configure ESLint, Prettier, `.env.example`, TypeScript strict mode.
+- [x] Provision MongoDB Atlas M0 (replica set, so transactions work).
+- [x] Wireframe the 4 tabs: Pulse, Matrix, Dues, More (Mobile).
+- [x] Draft the privacy policy and KYC consent text.
+- [ ] **Critical:** meet 5 local PG owners and get their commitment to pilot the Android app in exchange for a free 6-month subscription.
 
 **Exit:** both repos push cleanly; 5 named owners locked in.
 
@@ -520,3 +520,30 @@ await runInTransaction(async (session) => {
 - **Manual UPI confirmation** means owners must reconcile payments themselves; make "Mark received" fast and add an audit trail.
 - **Store policies** on subscriptions change; re-check before Stage 7.
 - **Competitor claims** (fees, check-in times) in marketing material should be verified before publishing.
+
+---
+
+## 13. Build Execution & Progress Log
+
+### ✅ Stage 0: Setup and Foundation (Mobile)
+- **Status**: Completed & Verified
+- **Deliverables**:
+  - **Stack Setup**: Expo SDK 52 + Expo Router v4 + NativeWind v4 + TypeScript strict mode.
+  - **Lint & Format**: ESLint 9 (`eslint.config.mjs`) + Prettier (`.prettierrc`).
+  - **App Architecture**:
+    - Root Layout: `app/_layout.tsx` with `QueryClientProvider` (TanStack Query v5) & `SafeAreaProvider`.
+    - Tab Navigator: `app/(tabs)/_layout.tsx` with Lucide React Native icons.
+  - **4 Tabs (Wireframes)**:
+    - `app/(tabs)/index.tsx`: **Pulse** (Occupancy %, Collections vs Expected, Net Operating Profit, Overdue alert banner, Quick action FABs).
+    - `app/(tabs)/matrix.tsx`: **Bed Matrix** (Floor filters, Vacant only toggle, 2-Sharing/3-Sharing room cards, 4-state bed chips: 🟢/🔴/🟡/⚪).
+    - `app/(tabs)/dues.tsx`: **Dues** (Overdue filters, WhatsApp 1-tap reminders via `wa.me`, Mark Received manual UPI confirmation).
+    - `app/(tabs)/more.tsx`: **More** (Expenses, sub-meter log, subscription status, DPDP compliance).
+  - **Auth & Checkin Skeletons**:
+    - `app/(auth)/login.tsx` & `register.tsx` (14-day free trial sign up).
+    - `app/checkin/[bedId].tsx` (Tenant photo KYC camera capture & DPDP consent wireframe).
+    - `app/checkout/[tenantId].tsx` (Deposit settlement & deduction reconciliation).
+  - **Utilities & API Client**:
+    - `src/utils/currency.ts` (`formatINR` converting integer paise to formatted ₹).
+    - `src/utils/whatsapp.ts` (`sendRentReminder` via `wa.me`).
+    - `src/api/client.ts` (Axios client with Bearer token interceptor).
+    - `src/types/api.ts` (Mirrored backend models using integer paise).
