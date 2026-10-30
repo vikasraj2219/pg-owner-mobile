@@ -1,7 +1,8 @@
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 
-export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5001/api';
+export const API_BASE_URL =
+  process.env.EXPO_PUBLIC_API_URL || 'https://pg-owner-backend.onrender.com/api';
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
