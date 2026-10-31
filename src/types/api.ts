@@ -26,31 +26,55 @@ export interface ISubscription {
   maxBeds: number;
 }
 
+export type PropertyType = 'boys' | 'girls' | 'coliving';
+
 export interface IProperty {
   _id: string;
   organization: string;
   name: string;
-  type: 'boys' | 'girls' | 'coliving';
+  type: PropertyType;
+  address?: string;
   upiVpa: string;
   electricityRatePaisePerUnit: Paise;
+  isActive?: boolean;
+  stats?: {
+    totalRooms: number;
+    totalBeds: number;
+    occupiedBeds: number;
+    availableBeds: number;
+    occupancyRate: number;
+  };
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface IRoom {
   _id: string;
+  organization?: string;
   property: string;
   floorNumber: number;
   roomNumber: string;
   sharingType: number;
   baseRentPaisePerBed: Paise;
+  tags?: string[];
+  createdAt?: string;
+  updatedAt?: string;
 }
+
+export type BedStatus = 'available' | 'occupied' | 'notice_period' | 'maintenance';
 
 export interface IBed {
   _id: string;
+  organization?: string;
   property: string;
-  room: string;
+  room: string | IRoom;
   bedNumber: string;
-  status: 'available' | 'occupied' | 'notice_period' | 'maintenance';
-  currentTenant?: string;
+  status: BedStatus;
+  currentTenant?: string | ITenant;
+  noticeEndDate?: string;
+  maintenanceNote?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface ITenant {
@@ -69,6 +93,7 @@ export interface ITenant {
   kycDocUrl?: string;
   kycConsent: boolean;
   status: 'active' | 'notice_period' | 'checked_out';
+  createdAt?: string;
 }
 
 export interface IInvoice {
@@ -119,4 +144,97 @@ export interface RegisterOwnerPayload {
 export interface LoginPayload {
   identifier: string;
   password: string;
+}
+
+// ==========================================
+// STAGE 2: PROPERTY & MATRIX CONTRACTS
+// ==========================================
+
+export interface CreatePropertyPayload {
+  name: string;
+  type: PropertyType;
+  address?: string;
+  upiVpa: string;
+  electricityRatePaisePerUnit: Paise;
+}
+
+export interface CreateRoomPayload {
+  floorNumber: number;
+  roomNumber: string;
+  sharingType: number;
+  baseRentPaisePerBed: Paise;
+  tags?: string[];
+}
+
+export interface UpdateBedStatusPayload {
+  status: BedStatus;
+  maintenanceNote?: string;
+  noticeEndDate?: string;
+}
+
+export interface IMatrixBedTenant {
+  _id: string;
+  fullName: string;
+  phone: string;
+  monthlyRentPaise: Paise;
+  status?: string;
+  joinedDate?: string;
+  rentDuePaise?: Paise;
+  overdueDays?: number;
+  paymentStatus?: 'PAID' | 'DUE';
+}
+
+export interface IMatrixBed {
+  _id: string;
+  bedNumber: string;
+  status: BedStatus;
+  currentTenant?: IMatrixBedTenant | null;
+  noticeEndDate?: string;
+  maintenanceNote?: string;
+  baseRentPaise: Paise;
+}
+
+export interface IMatrixRoom {
+  _id: string;
+  roomNumber: string;
+  floorNumber: number;
+  sharingType: number;
+  baseRentPaisePerBed: Paise;
+  tags: string[];
+  beds: IMatrixBed[];
+}
+
+export interface IMatrixFloor {
+  floorNumber: number;
+  rooms: IMatrixRoom[];
+}
+
+export interface IMatrixSummary {
+  totalRooms: number;
+  totalBeds: number;
+  occupiedBeds: number;
+  availableBeds: number;
+  noticePeriodBeds: number;
+  maintenanceBeds: number;
+  occupancyRate: number;
+}
+
+export interface PropertyMatrixData {
+  property: {
+    _id: string;
+    name: string;
+    type: PropertyType;
+    address?: string;
+    upiVpa: string;
+    electricityRatePaisePerUnit: Paise;
+  };
+  floors: IMatrixFloor[];
+  summary: IMatrixSummary;
+}
+
+export interface ApiResponse<T> {
+  success: boolean;
+  message?: string;
+  count?: number;
+  data: T;
 }

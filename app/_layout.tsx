@@ -2,19 +2,28 @@ import '../global.css';
 import React, { useEffect } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient } from '@tanstack/react-query';
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
+import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { View, ActivityIndicator } from 'react-native';
 import { AuthProvider, useAuth } from '../src/context/AuthContext';
+import { PropertyProvider } from '../src/context/PropertyContext';
 import { BiometricLockScreen } from '../src/components/BiometricLockScreen';
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
+      gcTime: 1000 * 60 * 60 * 24, // 24 hours (v5)
       staleTime: 1000 * 60 * 5, // 5 minutes
       retry: 2,
     },
   },
+});
+
+const asyncStoragePersister = createAsyncStoragePersister({
+  storage: AsyncStorage,
 });
 
 function NavigationGuard() {
@@ -65,12 +74,17 @@ function NavigationGuard() {
 export default function RootLayout() {
   return (
     <SafeAreaProvider>
-      <QueryClientProvider client={queryClient}>
+      <PersistQueryClientProvider
+        client={queryClient}
+        persistOptions={{ persister: asyncStoragePersister }}
+      >
         <AuthProvider>
-          <StatusBar style="dark" />
-          <NavigationGuard />
+          <PropertyProvider>
+            <StatusBar style="dark" />
+            <NavigationGuard />
+          </PropertyProvider>
         </AuthProvider>
-      </QueryClientProvider>
+      </PersistQueryClientProvider>
     </SafeAreaProvider>
   );
 }

@@ -438,7 +438,7 @@ _Mobile (Completed ✅)_
 
 **Exit:** register on a physical phone, close the app, unlock with biometrics, see an authenticated screen.
 
-### Stage 2: Property hierarchy and visual bed matrix (Weeks 4–5)
+### Stage 2: Property hierarchy and visual bed matrix (Weeks 4–5) — _Mobile Completed ✅_
 
 **Goal:** floors, rooms and beds rendered with offline caching.
 
