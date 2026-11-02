@@ -13,6 +13,8 @@ import { loginApi, registerOwnerApi, getMeApi } from '../api/auth';
 
 const TOKEN_KEY = 'auth_token';
 const USER_CACHE_KEY = 'auth_user_cache';
+const BIOMETRIC_TOKEN_KEY = 'biometric_auth_token';
+const BIOMETRIC_CACHE_KEY = 'biometric_user_cache';
 const BIOMETRIC_PREF_KEY = 'biometric_enabled';
 
 interface AuthContextType {
@@ -25,11 +27,13 @@ interface AuthContextType {
   isUnlocked: boolean;
   isBiometricSupported: boolean;
   isBiometricEnrolled: boolean;
+  isBiometricEnabled: boolean;
   login: (payload: LoginPayload) => Promise<void>;
   register: (payload: RegisterOwnerPayload) => Promise<void>;
-  logout: () => Promise<void>;
+  logout: (clearBiometrics?: boolean) => Promise<void>;
   unlockWithBiometrics: () => Promise<boolean>;
-  enableBiometrics: (enable: boolean) => Promise<void>;
+  enableBiometrics: (enable: boolean) => Promise<boolean>;
+  loginWithBiometrics: () => Promise<{ success: boolean; message?: string }>;
   loginWithDemo: () => Promise<void>;
 }
 
@@ -44,6 +48,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [isBiometricSupported, setIsBiometricSupported] = useState(false);
   const [isBiometricEnrolled, setIsBiometricEnrolled] = useState(false);
+  const [isBiometricEnabled, setIsBiometricEnabled] = useState(false);
 
   // Check hardware biometric capability
   const checkBiometrics = useCallback(async () => {
@@ -94,15 +99,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsUnlocked(true);
 
     try {
+      const cachePayload = JSON.stringify({
+        user: data.user,
+        organization: data.organization,
+        subscription: data.subscription,
+      });
+
       await safeStorage.setItem(TOKEN_KEY, data.token);
-      await safeStorage.setItem(
-        USER_CACHE_KEY,
-        JSON.stringify({
-          user: data.user,
-          organization: data.organization,
-          subscription: data.subscription,
-        }),
-      );
+      await safeStorage.setItem(USER_CACHE_KEY, cachePayload);
+
+      // Also persist for quick biometric login on this device
+      await safeStorage.setItem(BIOMETRIC_TOKEN_KEY, data.token);
+      await safeStorage.setItem(BIOMETRIC_CACHE_KEY, cachePayload);
     } catch (_err) {
       // Ignore storage persistence failure
     }
@@ -117,6 +125,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const storedToken = await safeStorage.getItem(TOKEN_KEY);
         const cachedDataStr = await safeStorage.getItem(USER_CACHE_KEY);
         const biometricPref = await safeStorage.getItem(BIOMETRIC_PREF_KEY);
+        setIsBiometricEnabled(biometricPref === 'true');
 
         if (storedToken && cachedDataStr) {
           const cachedData = JSON.parse(cachedDataStr);
@@ -217,12 +226,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const logout = async () => {
+  const logout = async (clearBiometrics = false) => {
     setIsLoading(true);
     try {
       await safeStorage.deleteItem(TOKEN_KEY);
       await safeStorage.deleteItem(USER_CACHE_KEY);
       await safeStorage.deleteItem('selected_property_id');
+      if (clearBiometrics) {
+        await safeStorage.deleteItem(BIOMETRIC_TOKEN_KEY);
+        await safeStorage.deleteItem(BIOMETRIC_CACHE_KEY);
+        await safeStorage.deleteItem(BIOMETRIC_PREF_KEY);
+        setIsBiometricEnabled(false);
+      }
       setToken(null);
       setUser(null);
       setOrganization(null);
@@ -235,11 +250,94 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const enableBiometrics = async (enable: boolean) => {
+  const enableBiometrics = async (enable: boolean): Promise<boolean> => {
     try {
+      if (enable) {
+        const success = await unlockWithBiometrics();
+        if (!success) return false;
+      }
       await safeStorage.setItem(BIOMETRIC_PREF_KEY, enable ? 'true' : 'false');
+      setIsBiometricEnabled(enable);
+      return true;
     } catch (_err) {
-      // Ignore
+      return false;
+    }
+  };
+
+  const loginWithBiometrics = async (): Promise<{ success: boolean; message?: string }> => {
+    try {
+      const compatible = await LocalAuthentication.hasHardwareAsync();
+      if (!compatible) {
+        return {
+          success: false,
+          message: 'Biometric authentication is not supported on this device.',
+        };
+      }
+
+      const enrolled = await LocalAuthentication.isEnrolledAsync();
+      if (!enrolled) {
+        return {
+          success: false,
+          message:
+            'No biometric credentials (fingerprint/face) enrolled on this device. Please set up biometrics in your device Settings.',
+        };
+      }
+
+      // Check saved credentials
+      const savedToken =
+        (await safeStorage.getItem(BIOMETRIC_TOKEN_KEY)) || (await safeStorage.getItem(TOKEN_KEY));
+      const savedDataStr =
+        (await safeStorage.getItem(BIOMETRIC_CACHE_KEY)) ||
+        (await safeStorage.getItem(USER_CACHE_KEY));
+
+      if (!savedToken || !savedDataStr) {
+        return {
+          success: false,
+          message:
+            'No saved account found for biometric quick login. Please log in with your phone or email and password first.',
+        };
+      }
+
+      const result = await LocalAuthentication.authenticateAsync({
+        promptMessage: 'Log in to PG Manager',
+        cancelLabel: 'Cancel',
+        disableDeviceFallback: false,
+      });
+
+      if (!result.success) {
+        return {
+          success: false,
+          message: 'Biometric authentication was cancelled or not recognized.',
+        };
+      }
+
+      const cachedData = JSON.parse(savedDataStr);
+      setToken(savedToken);
+      setUser(cachedData.user);
+      setOrganization(cachedData.organization);
+      setSubscription(cachedData.subscription);
+      setIsUnlocked(true);
+
+      // Re-persist active session
+      await safeStorage.setItem(TOKEN_KEY, savedToken);
+      await safeStorage.setItem(USER_CACHE_KEY, savedDataStr);
+
+      // Silently refresh in background
+      try {
+        const freshData = await getMeApi();
+        setUser(freshData.user);
+        setOrganization(freshData.organization);
+        setSubscription(freshData.subscription);
+      } catch {
+        // Offline is fine
+      }
+
+      return { success: true };
+    } catch (_err) {
+      return {
+        success: false,
+        message: 'An error occurred during biometric authentication.',
+      };
     }
   };
 
@@ -255,11 +353,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isUnlocked,
         isBiometricSupported,
         isBiometricEnrolled,
+        isBiometricEnabled,
         login,
         register,
         logout,
         unlockWithBiometrics,
         enableBiometrics,
+        loginWithBiometrics,
         loginWithDemo,
       }}
     >

@@ -23,7 +23,7 @@ import {
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { login, loginWithDemo, unlockWithBiometrics } = useAuth();
+  const { login, loginWithDemo, loginWithBiometrics } = useAuth();
 
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
@@ -93,11 +93,15 @@ export default function LoginScreen() {
   };
 
   const handleBiometricAuth = async () => {
-    const success = await unlockWithBiometrics();
-    if (success) {
+    setErrorMessage(null);
+    const result = await loginWithBiometrics();
+    if (result.success) {
       router.replace('/(tabs)');
     } else {
-      Alert.alert('Biometric Unlock', 'Biometric authentication was cancelled or not recognized.');
+      Alert.alert(
+        'Biometric Login',
+        result.message || 'Biometric authentication was cancelled or not recognized.',
+      );
     }
   };
 

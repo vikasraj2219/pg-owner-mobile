@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Alert, Modal } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Alert, Modal, Switch } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Zap,
@@ -18,7 +18,16 @@ import { useProperties } from '../../src/context/PropertyContext';
 import { SplashScreenView } from '../../src/components/SplashScreenView';
 
 export default function MoreScreen() {
-  const { user, organization, subscription, logout, unlockWithBiometrics } = useAuth();
+  const {
+    user,
+    organization,
+    subscription,
+    logout,
+    isBiometricEnabled,
+    enableBiometrics,
+    isBiometricSupported,
+    isBiometricEnrolled,
+  } = useAuth();
   const { properties } = useProperties();
   const [showSplashPreview, setShowSplashPreview] = useState(false);
 
@@ -85,9 +94,41 @@ export default function MoreScreen() {
       items: [
         {
           icon: Fingerprint,
-          label: 'Biometric Lock Test',
-          detail: 'Touch sensor simulation',
-          onPress: () => void unlockWithBiometrics(),
+          label: 'Biometric App Lock',
+          detail: isBiometricEnabled
+            ? 'Enabled (Unlock required when opening app)'
+            : isBiometricSupported
+              ? 'Disabled (Tap to enable Face ID / Fingerprint)'
+              : 'Not supported on this device',
+          isSwitch: isBiometricSupported && isBiometricEnrolled,
+          switchValue: isBiometricEnabled,
+          onSwitchChange: async (val: boolean) => {
+            const success = await enableBiometrics(val);
+            if (!success && val) {
+              Alert.alert(
+                'Biometrics Failed',
+                'Fingerprint or facial recognition could not be verified.',
+              );
+            }
+          },
+          onPress: async () => {
+            if (!isBiometricSupported) {
+              Alert.alert('Not Supported', 'Biometric hardware is not available on this device.');
+              return;
+            }
+            if (!isBiometricEnrolled) {
+              Alert.alert(
+                'No Biometrics Enrolled',
+                'Please enroll your fingerprint or face in device Settings first.',
+              );
+              return;
+            }
+            const nextVal = !isBiometricEnabled;
+            const success = await enableBiometrics(nextVal);
+            if (!success && nextVal) {
+              Alert.alert('Authentication Failed', 'Biometrics could not be verified.');
+            }
+          },
         },
         {
           icon: Sparkles,
@@ -175,7 +216,16 @@ export default function MoreScreen() {
                         </Text>
                       </View>
                     </View>
-                    <ChevronRight size={18} color="#94A3B8" />
+                    {'isSwitch' in item && item.isSwitch ? (
+                      <Switch
+                        value={item.switchValue}
+                        onValueChange={item.onSwitchChange}
+                        trackColor={{ false: '#E2E8F0', true: '#0A6C50' }}
+                        thumbColor="#FFFFFF"
+                      />
+                    ) : (
+                      <ChevronRight size={18} color="#94A3B8" />
+                    )}
                   </TouchableOpacity>
                 );
               })}
