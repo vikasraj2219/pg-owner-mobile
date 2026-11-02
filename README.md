@@ -455,16 +455,16 @@ _Mobile_
 
 **Exit:** the matrix renders; with Airplane Mode on, the layout and statuses still show without crashing.
 
-### Stage 3: Quick check-in, KYC and proration (Weeks 6–7)
+### Stage 3: Quick check-in, KYC and proration (Weeks 6–7) — _Completed ✅_
 
 **Goal:** onboard a tenant in under 2 minutes, reliably.
 
-_Backend_
+_Backend (Completed ✅)_
 
-- Models: Tenant, BedAssignment, Invoice, SecurityDeposit/DepositLedger.
-- Unique index on Invoice `{ tenant, month, year }`.
-- Proration utility with 10+ unit tests: 28/29/30/31-day months, leap February, joining on day 1 and on the last day.
-- Single-transaction check-in:
+- [x] Models: Tenant, BedAssignment, Invoice, SecurityDeposit/DepositLedger.
+- [x] Unique index on Invoice `{ tenant, month, year }`.
+- [x] Proration utility with 15 unit tests: 28/29/30/31-day months, leap February, joining on day 1 and on the last day.
+- [x] Single-transaction check-in (`POST /api/checkins/quick`):
 
 ```typescript
 await runInTransaction(async session => {
@@ -475,31 +475,34 @@ await runInTransaction(async session => {
 });
 ```
 
-- KYC: private/authenticated Cloudinary asset, doc type + masked number, consent flag required.
+- [x] KYC: masked Aadhaar number (`XXXX-XXXX-1234`), DPDP Act 2023 consent flag required.
 
-_Mobile_
+_Mobile (Completed ✅)_
 
-- `checkin/[bedId].tsx` opens on tapping a green bed.
-- Capture with `expo-camera`, compress with `expo-image-manipulator` (under 200 KB), retry on failed upload.
-- Form pre-fills base rent from the bed's room.
+- [x] `checkin/[bedId].tsx` opens on tapping a green bed.
+- [x] Capture with `expo-image-picker`, compress with `expo-image-manipulator` (under 200 KB).
+- [x] Form pre-fills base rent and room information from the bed's room.
+- [x] Live proration calculation breakdown, UIDAI Aadhaar masking, DPDP consent checkbox.
+- [x] Dynamic UPI QR modal & cash toggle with TanStack Query invalidation.
 
 **Exit:** tap a green bed, snap an ID, submit → bed turns red and the prorated invoice exists.
 
-### Stage 4: Collections, WhatsApp and receipts (Weeks 8–9)
+### Stage 4: Collections, WhatsApp and receipts (Weeks 8–9) — _Next Milestone ⏳_
 
 **Goal:** monthly billing, 1-tap reminders, instant receipts.
 
-_Backend_
+_Backend (Upcoming ⏳)_
 
-- `POST /api/invoices/generate-monthly`: idempotent, secret-header protected; run it from a scheduled GitHub Action. Running it twice must create no duplicates.
-- `POST /api/payments/mark-paid`: updates the balance, supports partial payments, logs the payment, generates a sequential receipt number.
+- [ ] `POST /api/invoices/generate-monthly`: idempotent, secret-header protected; run it from a scheduled GitHub Action. Running it twice must create no duplicates.
+- [ ] `POST /api/payments/mark-paid`: updates the balance, supports partial payments, logs the payment, generates a sequential receipt number (`RCP-YYYYMM-XXXX`).
+- [ ] `GET /api/invoices`: list receivables with filter support (overdue, unpaid, paid).
 
-_Mobile_
+_Mobile (Upcoming ⏳)_
 
-- `dues.tsx` with filters: Overdue (>5 days), Unpaid, Paid.
-- WhatsApp button builds a `wa.me` link with name, bed, amount and the owner's UPI ID.
-- UPI QR modal with `react-native-qrcode-svg`, shared as an image via the share sheet.
-- "Mark received" button, then a PDF receipt via `expo-print` + `expo-sharing`.
+- [ ] `dues.tsx` with filters: Overdue (>5 days), Unpaid, Paid.
+- [ ] WhatsApp button builds a `wa.me` link with name, bed, amount and the owner's UPI ID.
+- [ ] UPI QR modal with `react-native-qrcode-svg`, shared as an image via the share sheet.
+- [ ] "Mark received" button, then a PDF receipt via `expo-print` + `expo-sharing`.
 
 **Exit:** send a reminder, record payment in one tap, send a PDF receipt to the tenant.
 
