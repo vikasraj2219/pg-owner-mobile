@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Modal,
   View,
@@ -12,7 +12,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { ChevronLeft } from 'lucide-react-native';
+import { ChevronLeft, AlertCircle, Sparkles } from 'lucide-react-native';
 import { IProperty } from '../types/api';
 import { getApiErrorMessage } from '../utils/validation';
 
@@ -20,6 +20,8 @@ interface AddRoomModalProps {
   visible: boolean;
   onClose: () => void;
   property: IProperty | null;
+  existingRooms?: string[];
+  defaultFloor?: number;
   onSubmit: (payload: {
     floorNumber: number;
     roomNumber: string;
@@ -30,19 +32,81 @@ interface AddRoomModalProps {
   isSubmitting: boolean;
 }
 
+/**
+ * Finds the next unused room number for a given floor
+ */
+function getNextAvailableRoomNumber(floor: number, existing: string[]): string {
+  const normalizedSet = new Set(existing.map(r => r.toLowerCase().trim()));
+
+  if (floor === 0) {
+    // Ground floor: G01, G02, ...
+    for (let i = 1; i <= 99; i++) {
+      const candidate = i < 10 ? `G0${i}` : `G${i}`;
+      if (!normalizedSet.has(candidate.toLowerCase())) {
+        return candidate;
+      }
+    }
+  }
+
+  // Standard floors (Floor 1 -> 101, 102... Floor 2 -> 201, 202...)
+  const base = floor * 100;
+  for (let i = 1; i <= 99; i++) {
+    const candidate = `${base + i}`;
+    if (!normalizedSet.has(candidate.toLowerCase())) {
+      return candidate;
+    }
+  }
+
+  return `${floor}01`;
+}
+
 export const AddRoomModal: React.FC<AddRoomModalProps> = ({
   visible,
   onClose,
   property,
+  existingRooms = [],
+  defaultFloor = 1,
   onSubmit,
   isSubmitting,
 }) => {
-  const [floorNumber, setFloorNumber] = useState('1');
-  const [roomNumber, setRoomNumber] = useState('101');
+  const [floorNumber, setFloorNumber] = useState(defaultFloor.toString());
+  const [roomNumber, setRoomNumber] = useState('');
   const [sharingType, setSharingType] = useState<number>(3);
   const [hasAC, setHasAC] = useState(true);
   const [hasWashroom, setHasWashroom] = useState(true);
   const [rentPerBed, setRentPerBed] = useState('7500');
+
+  // Automatically suggest next available room number whenever modal becomes visible
+  useEffect(() => {
+    if (visible) {
+      const floorInt = parseInt(floorNumber, 10) || defaultFloor || 1;
+      setFloorNumber(floorInt.toString());
+      const suggested = getNextAvailableRoomNumber(floorInt, existingRooms);
+      setRoomNumber(suggested);
+    }
+  }, [visible, defaultFloor, existingRooms]);
+
+  // Handle floor number change and automatically recalculate suggested room number
+  const handleFloorChange = (newFloorText: string) => {
+    setFloorNumber(newFloorText);
+    const parsedFloor = parseInt(newFloorText, 10);
+    if (!isNaN(parsedFloor) && parsedFloor >= 0) {
+      const suggested = getNextAvailableRoomNumber(parsedFloor, existingRooms);
+      setRoomNumber(suggested);
+    }
+  };
+
+  // Check if current entered room number already exists in this property
+  const isDuplicateRoom = useMemo(() => {
+    if (!roomNumber.trim()) return false;
+    return existingRooms.some(r => r.toLowerCase().trim() === roomNumber.toLowerCase().trim());
+  }, [roomNumber, existingRooms]);
+
+  // Suggested unique room number if duplicate
+  const suggestedAlternative = useMemo(() => {
+    const floorInt = parseInt(floorNumber, 10);
+    return getNextAvailableRoomNumber(isNaN(floorInt) ? 1 : floorInt, existingRooms);
+  }, [floorNumber, existingRooms]);
 
   // Generate preview of bed labels
   const bedLabels = useMemo(() => {
@@ -62,15 +126,25 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
   const handleCreate = async () => {
     const floor = parseInt(floorNumber, 10);
     if (isNaN(floor)) {
-      Alert.alert('Required Field', 'Please enter a valid floor number.');
+      Alert.alert(
+        'Required Field',
+        'Please enter a valid floor number (e.g. 0 for Ground, 1, 2...).',
+      );
       return;
     }
     if (!roomNumber.trim()) {
       Alert.alert('Required Field', 'Please enter a room number.');
       return;
     }
+    if (isDuplicateRoom) {
+      Alert.alert(
+        'Room Already Exists',
+        `Room "${roomNumber.trim()}" already exists in ${property?.name || 'this property'}. Please enter a unique room number (e.g. "${suggestedAlternative}").`,
+      );
+      return;
+    }
     if (rentNumeric <= 0) {
-      Alert.alert('Required Field', 'Please enter a valid rent per bed.');
+      Alert.alert('Required Field', 'Please enter a valid monthly rent per bed.');
       return;
     }
 
@@ -90,11 +164,12 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
         tags,
       });
 
-      // Increment room number suggestion for next room
-      const currentNum = parseInt(roomNumber.trim(), 10);
-      if (!isNaN(currentNum)) {
-        setRoomNumber((currentNum + 1).toString());
-      }
+      // Suggest next room number for subsequent creation
+      const nextSuggested = getNextAvailableRoomNumber(floor, [
+        ...existingRooms,
+        roomNumber.trim(),
+      ]);
+      setRoomNumber(nextSuggested);
       onClose();
     } catch (err: unknown) {
       const message = getApiErrorMessage(err);
@@ -122,10 +197,12 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
           >
             <ChevronLeft size={22} color="#1E293B" />
           </TouchableOpacity>
-          <View>
+          <View className="flex-1">
             <Text className="text-xl font-extrabold text-slate-900">Add room</Text>
             {property && (
-              <Text className="text-xs font-medium text-slate-500 mt-0.5">{property.name}</Text>
+              <Text className="text-xs font-medium text-slate-500 mt-0.5" numberOfLines={1}>
+                {property.name}
+              </Text>
             )}
           </View>
         </View>
@@ -136,18 +213,18 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
           keyboardShouldPersistTaps="handled"
         >
           {/* Floor & Room Number Row */}
-          <View className="flex-row gap-3 mb-5">
-            <View className="flex-1">
+          <View className="flex-row gap-3 mb-2">
+            <View className="w-1/3">
               <Text className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
                 Floor
               </Text>
               <TextInput
                 value={floorNumber}
-                onChangeText={setFloorNumber}
+                onChangeText={handleFloorChange}
                 placeholder="1"
                 placeholderTextColor="#94A3B8"
                 keyboardType="numeric"
-                className="bg-white border border-slate-300 rounded-xl px-4 py-3.5 text-base text-slate-900 font-semibold"
+                className="bg-white border border-slate-300 rounded-xl px-4 py-3.5 text-base text-slate-900 font-semibold shadow-xs"
               />
             </View>
             <View className="flex-1">
@@ -157,17 +234,48 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
               <TextInput
                 value={roomNumber}
                 onChangeText={setRoomNumber}
-                placeholder="101"
+                placeholder="e.g. 101"
                 placeholderTextColor="#94A3B8"
-                className="bg-white border border-slate-300 rounded-xl px-4 py-3.5 text-base text-slate-900 font-semibold"
+                className={`bg-white border rounded-xl px-4 py-3.5 text-base text-slate-900 font-semibold shadow-xs ${
+                  isDuplicateRoom ? 'border-[#BE123C] bg-rose-50/20' : 'border-slate-300'
+                }`}
               />
             </View>
           </View>
 
+          {/* Duplicate Room Warning & Auto-suggestion */}
+          {isDuplicateRoom && (
+            <View className="bg-rose-50 border border-rose-200 rounded-xl p-3 mb-4">
+              <View className="flex-row items-center mb-1.5">
+                <AlertCircle size={16} color="#BE123C" />
+                <Text className="text-xs font-bold text-[#BE123C] ml-1.5">
+                  Room &quot;{roomNumber.trim()}&quot; already exists in this property!
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setRoomNumber(suggestedAlternative)}
+                className="flex-row items-center bg-white border border-rose-200 py-1.5 px-2.5 rounded-lg self-start mt-1"
+              >
+                <Sparkles size={14} color="#0A6C50" />
+                <Text className="text-xs font-bold text-[#0A6C50] ml-1.5">
+                  Use next available: Room {suggestedAlternative}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {!isDuplicateRoom && (
+            <View className="mb-4">
+              <Text className="text-[11px] text-slate-400 font-medium ml-1">
+                Must be unique within this property
+              </Text>
+            </View>
+          )}
+
           {/* Sharing Type */}
           <View className="mb-5">
             <Text className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-              Sharing type
+              Sharing type (Beds per room)
             </Text>
             <View className="flex-row gap-2">
               {[1, 2, 3, 4].map(count => {
@@ -177,7 +285,7 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
                     key={count}
                     activeOpacity={0.8}
                     onPress={() => setSharingType(count)}
-                    className={`flex-1 py-3.5 rounded-xl items-center justify-center border ${
+                    className={`flex-1 py-3.5 rounded-xl items-center justify-center border shadow-xs ${
                       isSelected ? 'bg-[#0A6C50] border-[#0A6C50]' : 'bg-white border-slate-300'
                     }`}
                   >
@@ -195,7 +303,7 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
           </View>
 
           {/* AC Switch */}
-          <View className="bg-white border border-slate-200 rounded-xl px-4 py-3.5 flex-row items-center justify-between mb-3">
+          <View className="bg-white border border-slate-200 rounded-xl px-4 py-3.5 flex-row items-center justify-between mb-3 shadow-xs">
             <Text className="text-base font-semibold text-slate-900">Air conditioning</Text>
             <Switch
               value={hasAC}
@@ -206,7 +314,7 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
           </View>
 
           {/* Washroom Switch */}
-          <View className="bg-white border border-slate-200 rounded-xl px-4 py-3.5 flex-row items-center justify-between mb-5">
+          <View className="bg-white border border-slate-200 rounded-xl px-4 py-3.5 flex-row items-center justify-between mb-5 shadow-xs">
             <Text className="text-base font-semibold text-slate-900">Attached washroom</Text>
             <Switch
               value={hasWashroom}
@@ -221,11 +329,11 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
             <Text className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
               Rent per bed
             </Text>
-            <View className="flex-row items-center bg-white border border-slate-300 rounded-xl px-4 py-3.5">
+            <View className="flex-row items-center bg-white border border-slate-300 rounded-xl px-4 py-3.5 shadow-xs">
               <TextInput
                 value={rentPerBed}
                 onChangeText={setRentPerBed}
-                placeholder="7,500"
+                placeholder="7500"
                 placeholderTextColor="#94A3B8"
                 keyboardType="numeric"
                 className="flex-1 text-base font-bold text-slate-900 p-0"
@@ -234,10 +342,10 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
             </View>
           </View>
 
-          {/* Live Preview Box (Matching Page 39) */}
+          {/* Live Preview Box */}
           <View className="bg-[#EFF6FF] border border-[#BFDBFE] rounded-2xl p-4 mb-6">
             <Text className="text-sm font-bold text-[#1E40AF] mb-3">
-              This will create beds {bedLabels.join(', ')}
+              This will create beds: {bedLabels.join(', ')}
             </Text>
             <View className="flex-row flex-wrap gap-2 mb-3">
               {bedLabels.map(label => (
@@ -259,8 +367,10 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={handleCreate}
-            disabled={isSubmitting}
-            className="w-full bg-[#0A6C50] rounded-xl py-4 items-center justify-center shadow-sm"
+            disabled={isSubmitting || isDuplicateRoom}
+            className={`w-full rounded-xl py-4 items-center justify-center shadow-sm ${
+              isDuplicateRoom ? 'bg-slate-300' : 'bg-[#0A6C50]'
+            }`}
           >
             {isSubmitting ? (
               <ActivityIndicator color="#FFFFFF" />

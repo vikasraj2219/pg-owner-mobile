@@ -234,7 +234,15 @@ export function getApiErrorMessage(error: unknown): string {
       { message?: string; error?: string; errors?: Array<{ message?: string }> } | undefined;
 
     if (responseData?.message && typeof responseData.message === 'string') {
-      return responseData.message;
+      const msg = responseData.message;
+      if (
+        msg.toLowerCase().includes('duplicate key') ||
+        msg.toLowerCase().includes('already exists') ||
+        msg.toLowerCase().includes('e11000')
+      ) {
+        return 'A room or resource with this unique identifier already exists. Please choose a different number (e.g. 102, 103, 201).';
+      }
+      return msg;
     }
     if (responseData?.error && typeof responseData.error === 'string') {
       return responseData.error;

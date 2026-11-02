@@ -103,6 +103,12 @@ export default function MatrixScreen() {
   const totalRoomsCount = matrixData?.summary?.totalRooms ?? 0;
   const vacantBedsCount = matrixData?.summary?.availableBeds ?? 0;
 
+  // Extract all existing room numbers across all floors
+  const existingRoomNumbers = useMemo(() => {
+    if (!matrixData?.floors) return [];
+    return matrixData.floors.flatMap(floor => floor.rooms.map(room => room.roomNumber));
+  }, [matrixData]);
+
   const handleBedPress = (bed: IMatrixBed, room: IMatrixRoom) => {
     if (bed.status === 'available') {
       setActiveVacantBed({ bed, room });
@@ -472,6 +478,8 @@ export default function MatrixScreen() {
         visible={isAddRoomOpen}
         onClose={() => setIsAddRoomOpen(false)}
         property={selectedProperty}
+        existingRooms={existingRoomNumbers}
+        defaultFloor={selectedFloor}
         onSubmit={payload => createRoom(payload)}
         isSubmitting={isCreatingRoom}
       />

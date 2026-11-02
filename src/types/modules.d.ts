@@ -31,4 +31,3 @@ declare module '@tanstack/react-query-persist-client' {
 
   export const PersistQueryClientProvider: React.FC<PersistQueryClientProviderProps>;
 }
-
