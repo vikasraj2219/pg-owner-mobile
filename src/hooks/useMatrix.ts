@@ -22,7 +22,8 @@ export function useMatrix(propertyId: string | null) {
       return fetchPropertyMatrix(propertyId);
     },
     enabled: !!propertyId,
-    staleTime: 1000 * 60 * 3, // 3 minutes
+    staleTime: 1000 * 30, // 30 seconds
+    refetchOnMount: 'always',
   });
 
   const createRoomMutation = useMutation<IRoom, Error, CreateRoomPayload>({

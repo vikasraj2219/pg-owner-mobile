@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { safeStorage } from '../utils/storage';
 import { fetchProperties, createProperty as createPropertyApi } from '../api/properties';
 import { IProperty, CreatePropertyPayload } from '../types/api';
 
@@ -32,14 +32,15 @@ export const PropertyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   } = useQuery({
     queryKey: ['properties'],
     queryFn: fetchProperties,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 2, // 2 minutes
+    refetchOnMount: 'always',
   });
 
   // Restore stored selected property id on load
   useEffect(() => {
     const loadSelected = async () => {
       try {
-        const stored = await AsyncStorage.getItem(SELECTED_PROPERTY_KEY);
+        const stored = await safeStorage.getItem(SELECTED_PROPERTY_KEY);
         if (stored) {
           setSelectedPropertyIdState(stored);
         }
@@ -56,7 +57,7 @@ export const PropertyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       if (!selectedPropertyId || !properties.some(p => p._id === selectedPropertyId)) {
         const defaultId = properties[0]._id;
         setSelectedPropertyIdState(defaultId);
-        AsyncStorage.setItem(SELECTED_PROPERTY_KEY, defaultId).catch(() => {});
+        safeStorage.setItem(SELECTED_PROPERTY_KEY, defaultId).catch(() => {});
       }
     } else {
       setSelectedPropertyIdState(null);
@@ -66,7 +67,7 @@ export const PropertyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const setSelectedPropertyId = async (id: string) => {
     setSelectedPropertyIdState(id);
     try {
-      await AsyncStorage.setItem(SELECTED_PROPERTY_KEY, id);
+      await safeStorage.setItem(SELECTED_PROPERTY_KEY, id);
     } catch (_err) {
       // Ignore storage error
     }

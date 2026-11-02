@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,8 +9,8 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { ChevronDown, Plus, AlertCircle, RefreshCw } from 'lucide-react-native';
+import { useRouter, useFocusEffect } from 'expo-router';
+import { ChevronDown, Plus, AlertCircle, RefreshCw, Building } from 'lucide-react-native';
 import { useProperties } from '../../src/context/PropertyContext';
 import { useMatrix } from '../../src/hooks/useMatrix';
 import { IMatrixBed, IMatrixRoom } from '../../src/types/api';
@@ -32,11 +32,14 @@ export default function MatrixScreen() {
     selectedPropertyId,
     setSelectedPropertyId,
     refetchProperties,
+    isLoading: isPropertiesLoading,
   } = useProperties();
 
   const {
     matrixData,
-    isLoading,
+    isLoading: isMatrixLoading,
+    isPending: isMatrixPending,
+    isFetching: isMatrixFetching,
     isError,
     error,
     isRefetching,
@@ -46,6 +49,22 @@ export default function MatrixScreen() {
     updateBedStatus,
     isUpdatingBedStatus,
   } = useMatrix(selectedPropertyId);
+
+  // Automatically refresh bed matrix when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      if (selectedPropertyId) {
+        void refetchMatrix();
+      }
+    }, [selectedPropertyId, refetchMatrix]),
+  );
+
+  const isDataLoading =
+    isPropertiesLoading ||
+    (!selectedPropertyId && properties.length > 0) ||
+    (Boolean(selectedPropertyId) &&
+      (isMatrixLoading || isMatrixPending || isMatrixFetching) &&
+      !matrixData);
 
   // Filters state
   const [selectedFloor, setSelectedFloor] = useState<number>(1);
@@ -229,10 +248,28 @@ export default function MatrixScreen() {
         </View>
 
         {/* Loading State */}
-        {isLoading && !matrixData ? (
+        {isDataLoading ? (
           <View className="flex-1 justify-center items-center py-20">
             <ActivityIndicator size="large" color="#0A6C50" />
             <Text className="text-sm font-semibold text-slate-500 mt-3">Loading bed matrix...</Text>
+          </View>
+        ) : properties.length === 0 ? (
+          <View className="flex-1 justify-center items-center py-16 px-6">
+            <Building size={48} color="#0A6C50" />
+            <Text className="text-xl font-bold text-slate-900 mt-4 text-center">
+              No properties found
+            </Text>
+            <Text className="text-sm font-medium text-slate-500 text-center mb-6 max-w-[280px]">
+              Create your first PG property to start adding rooms and beds.
+            </Text>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => setIsAddPropertyOpen(true)}
+              className="bg-[#0A6C50] px-6 py-3.5 rounded-xl flex-row items-center shadow-sm"
+            >
+              <Plus size={18} color="#FFFFFF" strokeWidth={2.5} />
+              <Text className="text-sm font-bold text-white ml-2">Add Property</Text>
+            </TouchableOpacity>
           </View>
         ) : isError && !matrixData ? (
           <View className="flex-1 justify-center items-center py-16 px-6">
