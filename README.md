@@ -625,3 +625,36 @@ _Mobile_
   - **State Binding**:
     - [`app/(tabs)/index.tsx`](app/(tabs)/index.tsx) and [`app/(tabs)/more.tsx`](app/(tabs)/more.tsx) bound to live authenticated owner profile, organization name, and subscription trial status.
 
+### ✅ Stage 2: Property Hierarchy & Visual Bed Matrix
+
+- **Status**: Completed & Verified
+- **Deliverables**:
+  - **Backend Property & Room Endpoints**:
+    - Registered Mongoose schemas: `Property`, `Room`, `Bed`, `Tenant` in `pg-owner-backend`.
+    - `GET /api/properties` & `POST /api/properties`: Property creation and listing scoped by authenticated owner organization.
+    - `POST /api/properties/:id/rooms`: Auto-generates bed records (e.g. `101-A`, `101-B`) with integer paise rent & deposit.
+    - `GET /api/properties/:id/matrix`: Live hierarchical matrix endpoint (floors → rooms → beds with tenant summaries and live status).
+    - `PUT /api/beds/:id/status`: Live toggle between available and maintenance statuses.
+  - **Mobile State & Data Layer**:
+    - [`src/context/PropertyContext.tsx`](src/context/PropertyContext.tsx): Global property context with active property selection, cached in `safeStorage`.
+    - [`src/hooks/useMatrix.ts`](src/hooks/useMatrix.ts): TanStack Query hook managing live matrix fetch, refetchOnMount, and room/bed mutations.
+  - **Interactive Bed Matrix Screen**:
+    - [`app/(tabs)/matrix.tsx`](app/(tabs)/matrix.tsx):
+      - Header property switcher pill showing vacant bed count and active property name.
+      - Quick Add Room (+) floating action button.
+      - Floor selector pills (Floor 1, Floor 2, etc.) and "Vacant only" filter toggle.
+      - Room cards displaying room number, sharing type badge, and bed chips.
+      - 4 visual bed states: 🟢 Vacant with rent, 🔴 Occupied with tenant initials & name, 🟡 Notice period, ⚪ Maintenance.
+      - Guarded loading transition (`isDataLoading`) eliminating premature empty state flash.
+      - Auto-refetch on tab focus via `useFocusEffect`.
+  - **Modals & Action Sheets**:
+    - [`src/components/PropertySwitcherModal.tsx`](src/components/PropertySwitcherModal.tsx): Select active property or create new.
+    - [`src/components/AddPropertyModal.tsx`](src/components/AddPropertyModal.tsx): Create property with name, code, address, and floors.
+    - [`src/components/AddRoomModal.tsx`](src/components/AddRoomModal.tsx): Add room with sharing type (1-4), floor number, rent, and deposit in ₹ (stored as paise).
+    - [`src/components/VacantBedSheet.tsx`](src/components/VacantBedSheet.tsx): Quick check-in shortcut and Mark Maintenance toggle.
+    - [`src/components/OccupiedBedSheet.tsx`](src/components/OccupiedBedSheet.tsx): View tenant profile and 1-tap WhatsApp rent reminder.
+    - [`src/components/MaintenanceBedSheet.tsx`](src/components/MaintenanceBedSheet.tsx): Mark bed available action.
+  - **Offline Resilience**:
+    - [`src/components/OfflineBanner.tsx`](src/components/OfflineBanner.tsx): Graceful offline banner alert with cached data fallback.
+
+
