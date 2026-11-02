@@ -584,6 +584,7 @@ export default function MatrixScreen() {
           );
           const propertyId = selectedPropertyId || '';
           const roomNumber = activeVacantBed?.room.roomNumber || '';
+          const floorNumber = String(activeVacantBed?.room.floorNumber || selectedFloor || 1);
           router.push({
             pathname: '/checkin/[bedId]',
             params: {
@@ -592,6 +593,7 @@ export default function MatrixScreen() {
               baseRentPaise,
               propertyId,
               roomNumber,
+              floorNumber,
             },
           });
         }}

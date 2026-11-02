@@ -657,4 +657,26 @@ _Mobile_
   - **Offline Resilience**:
     - [`src/components/OfflineBanner.tsx`](src/components/OfflineBanner.tsx): Graceful offline banner alert with cached data fallback.
 
+### ✅ Stage 3: Quick Check-in, Camera KYC & Proration (Mobile)
+
+- **Status**: Completed & Verified
+- **Deliverables**:
+  - **Screen Design (matching Pages 15–21, 54–55 of `PG Manager Core Screens (2).pdf`)**:
+    - [`app/checkin/[bedId].tsx`](app/checkin/[bedId].tsx): Full 3-step check-in onboarding flow:
+      - **Header**: Back arrow, bed and floor title (`Bed 201-A, Floor 2`), and 3-step progress pill (`ID ✓ · Tenant ✓ · Money ✓`).
+      - **1 · ID Proof & KYC**: Dashed photo capture card, camera trigger with `expo-image-picker`, automated compression under 200 KB with `expo-image-manipulator`, retake button, size badge (`168 KB · ready to upload`), and DPDP Act 2023 consent checkbox.
+      - **2 · Tenant Details**: Full name, 10-digit primary phone, optional emergency phone with inline error feedback.
+      - **3 · Money & Proration**: Monthly rent and deposit inputs in ₹, joining date indicator, live proration calculation banner (`Joining on 18th: ₹4,516 for 14 days · Advance due now: ₹24,516`), and payment mode toggles (Cash vs UPI QR).
+      - **Bottom CTA Bar**: Status prompt and disabled/active state on `Check in tenant` button.
+  - **Modals & Workflows**:
+    - [`src/components/DynamicUpiQrModal.tsx`](src/components/DynamicUpiQrModal.tsx) (Page 20): Dynamic QR code generated with `react-native-qrcode-svg`, advance amount display in ₹, payment breakdown (Deposit + first rent), UPI ID pill, and share sheet action.
+    - **Uploading Progress Modal** (Page 18): Compression readout (`2.4 MB → 168 KB`), animated progress bar (`Uploading… 64%`), and non-blocking safety guidance.
+    - **Upload Error Modal** (Page 19): Upload failure dialog with one-tap Retry.
+    - **Camera Permission Modal** (Page 55): Purpose-driven camera access disclosure with system settings redirect.
+    - **Check-in Success & WhatsApp Card** (Page 21): Bed occupied confirmation, first invoice summary, and one-tap WhatsApp welcome message link (`wa.me`).
+  - **Integration & State Synchronisation**:
+    - Connected to `POST /api/checkins/quick` on `pg-owner-backend`.
+    - TanStack Query cache invalidation (`matrix`, `properties`, `tenants`) immediately reflects newly occupied bed (🔴) across Bed Matrix and Pulse tabs.
+
+
 
