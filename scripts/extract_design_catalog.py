@@ -24,3 +24,4 @@ with open(out_file, 'w', encoding='utf-8') as f:
     f.write(''.join(lines_out))
 
 print(f'Successfully cataloged {len(reader.pages)} screens into {out_file}')
+

@@ -111,3 +111,5 @@ export const useProperties = (): PropertyContextType => {
   }
   return context;
 };
+
+export const useProperty = useProperties;

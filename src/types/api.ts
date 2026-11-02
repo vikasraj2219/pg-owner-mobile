@@ -238,3 +238,52 @@ export interface ApiResponse<T> {
   count?: number;
   data: T;
 }
+
+// ==========================================
+// STAGE 3: QUICK CHECKIN & TENANT CONTRACTS
+// ==========================================
+
+export interface QuickCheckinPayload {
+  propertyId: string;
+  bedId: string;
+  fullName: string;
+  phone: string;
+  emergencyPhone?: string;
+  joinDate?: string;
+  monthlyRentPaise: Paise;
+  depositPaise: Paise;
+  depositPaidPaise: Paise;
+  depositPaymentMethod: 'cash' | 'upi' | 'bank_transfer';
+  depositTransactionRef?: string;
+  kycDocType?: 'aadhaar' | 'pan' | 'passport' | 'voter_id';
+  kycMaskedNumber?: string;
+  kycDocUrl?: string;
+  kycConsent: boolean;
+}
+
+export interface QuickCheckinResponseData {
+  tenant: ITenant;
+  bed: {
+    _id: string;
+    bedNumber: string;
+    status: BedStatus;
+  };
+  invoice: IInvoice;
+  deposit?: {
+    _id: string;
+    amountPaise: Paise;
+    type: string;
+    paymentMethod: string;
+    date: string;
+  } | null;
+  proration: {
+    monthlyRentPaise: Paise;
+    payablePaise: Paise;
+    totalDays: number;
+    billableDays: number;
+    joinDay: number;
+    month: number;
+    year: number;
+    isProrated: boolean;
+  };
+}

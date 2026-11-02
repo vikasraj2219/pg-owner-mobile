@@ -576,7 +576,24 @@ export default function MatrixScreen() {
         bed={activeVacantBed?.bed || null}
         room={activeVacantBed?.room || null}
         onCheckIn={bedId => {
-          router.push(`/checkin/${bedId}`);
+          const bedNumber = activeVacantBed?.bed.bedNumber || '';
+          const baseRentPaise = String(
+            activeVacantBed?.bed.baseRentPaise ||
+              activeVacantBed?.room.baseRentPaisePerBed ||
+              850000,
+          );
+          const propertyId = selectedPropertyId || '';
+          const roomNumber = activeVacantBed?.room.roomNumber || '';
+          router.push({
+            pathname: '/checkin/[bedId]',
+            params: {
+              bedId,
+              bedNumber,
+              baseRentPaise,
+              propertyId,
+              roomNumber,
+            },
+          });
         }}
         onMarkMaintenance={handleMarkMaintenance}
         isLoading={isUpdatingBedStatus}
