@@ -28,6 +28,7 @@ import * as ImageManipulator from 'expo-image-manipulator';
 import { useQueryClient } from '@tanstack/react-query';
 import { validateName, validatePhone, validatePositiveNumber } from '../../src/utils/validation';
 import { quickCheckinApi } from '../../src/api/checkin';
+import { useAuth } from '../../src/hooks/useAuth';
 import { useProperties } from '../../src/context/PropertyContext';
 import { QuickCheckinPayload, QuickCheckinResponseData } from '../../src/types/api';
 import { DynamicUpiQrModal } from '../../src/components/DynamicUpiQrModal';
@@ -45,6 +46,7 @@ export default function CheckinScreen() {
 
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { organization } = useAuth();
   const { selectedPropertyId, selectedProperty } = useProperties();
 
   const effectiveBedId = params.bedId;
@@ -266,7 +268,7 @@ export default function CheckinScreen() {
   };
 
   // WhatsApp welcome message format matching Page 21
-  const propertyName = selectedProperty?.name || 'Sri Sai Boys PG';
+  const propertyName = selectedProperty?.name || organization?.name || 'PG Property';
   const tenantFirstName = fullName.split(' ')[0] || 'there';
   const whatsappWelcomeText = `Welcome to ${propertyName}, ${tenantFirstName}! Your bed is ${displayBed}. Rent is ${formatINR(
     Math.round(parseFloat(monthlyRent || '0') * 100),
@@ -700,7 +702,7 @@ export default function CheckinScreen() {
         <DynamicUpiQrModal
           visible={showUpiModal}
           onClose={() => setShowUpiModal(false)}
-          upiVpa={selectedProperty?.upiVpa || 'sri.sai.pg@okhdfcbank'}
+          upiVpa={selectedProperty?.upiVpa || ''}
           amountPaise={totalAdvance * 100}
           tenantName={fullName || 'Tenant'}
           depositPaise={parseFloat(deposit || '0') * 100}

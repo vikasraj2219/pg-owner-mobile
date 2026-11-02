@@ -611,6 +611,10 @@ export default function MatrixScreen() {
         onViewProfile={_tenantId => {
           router.push('/(tabs)/dues');
         }}
+        onCheckout={tenantId => {
+          setActiveOccupiedBed(null);
+          router.push(`/checkout/${tenantId}`);
+        }}
       />
 
       {/* Maintenance Bed Bottom Sheet */}

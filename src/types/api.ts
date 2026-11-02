@@ -287,3 +287,50 @@ export interface QuickCheckinResponseData {
     isProrated: boolean;
   };
 }
+
+export interface DashboardStats {
+  totalRooms: number;
+  totalBeds: number;
+  occupiedBeds: number;
+  availableBeds: number;
+  occupancyRate: number;
+  collectedThisMonthPaise: Paise;
+  expectedThisMonthPaise: Paise;
+  pendingAmountPaise: Paise;
+  collectionRate: number;
+  overdueCount: number;
+  overdueAmountPaise: Paise;
+  netProfitPaise: Paise;
+  totalTenants: number;
+}
+
+export interface DueInvoiceItem {
+  _id: string;
+  invoiceNumber: string;
+  month: number;
+  year: number;
+  dueDate: string;
+  totalAmountPaise: Paise;
+  amountPaidPaise: Paise;
+  balanceDuePaise: Paise;
+  status: 'unpaid' | 'partially_paid' | 'paid' | 'canceled';
+  overdueDays?: number;
+  tenant: {
+    _id: string;
+    fullName: string;
+    phone: string;
+    currentBed?:
+      | {
+          _id: string;
+          bedNumber: string;
+        }
+      | string;
+    status?: string;
+  };
+  property: {
+    _id: string;
+    name: string;
+    type?: string;
+    upiVpa?: string;
+  };
+}

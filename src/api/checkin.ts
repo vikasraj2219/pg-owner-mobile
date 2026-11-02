@@ -56,3 +56,22 @@ export const getTenantByIdApi = async (
   >(`/tenants/${tenantId}`);
   return response.data.data;
 };
+
+/**
+ * Execute checkout & settlement for a vacating tenant
+ * Releases bed to available, records deposit refund/deduction, and updates tenant status
+ */
+export const vacateTenantApi = async (
+  tenantId: string,
+  payload: {
+    deductionsPaise?: number;
+    refundPaise?: number;
+    paymentMethod?: 'cash' | 'upi' | 'bank_transfer';
+    notes?: string;
+  },
+): Promise<{ tenantId: string; status: string; netRefundPaise: number }> => {
+  const response = await apiClient.post<
+    ApiResponse<{ tenantId: string; status: string; netRefundPaise: number }>
+  >(`/tenants/${tenantId}/vacate`, payload);
+  return response.data.data;
+};

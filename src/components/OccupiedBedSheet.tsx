@@ -1,6 +1,6 @@
 import React from 'react';
 import { Modal, View, Text, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
-import { MessageSquare, X } from 'lucide-react-native';
+import { MessageSquare, X, LogOut } from 'lucide-react-native';
 import { IMatrixBed, IMatrixRoom } from '../types/api';
 import { formatINR } from '../utils/currency';
 import { sendRentReminder } from '../utils/whatsapp';
@@ -12,6 +12,7 @@ interface OccupiedBedSheetProps {
   room: IMatrixRoom | null;
   upiVpa?: string;
   onViewProfile: (tenantId: string) => void;
+  onCheckout?: (tenantId: string) => void;
 }
 
 export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
@@ -21,6 +22,7 @@ export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
   room,
   upiVpa = '',
   onViewProfile,
+  onCheckout,
 }) => {
   if (!bed || !room || !bed.currentTenant) return null;
 
@@ -36,6 +38,14 @@ export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
 
   const isDue = tenant.paymentStatus === 'DUE' || (tenant.rentDuePaise && tenant.rentDuePaise > 0);
   const overdueText = tenant.overdueDays ? ` · ${tenant.overdueDays} days overdue` : '';
+
+  const joinedDisplay = tenant.joinedDate
+    ? new Date(tenant.joinedDate).toLocaleDateString('en-IN', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      })
+    : 'Active Tenant';
 
   const handleWhatsApp = () => {
     if (tenant.phone) {
@@ -95,7 +105,7 @@ export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
               </View>
 
               {/* Info Table */}
-              <View className="bg-slate-50 rounded-2xl p-4 mb-6 border border-slate-100">
+              <View className="bg-slate-50 rounded-2xl p-4 mb-5 border border-slate-100">
                 <View className="flex-row items-center justify-between py-2 border-b border-slate-200/60">
                   <Text className="text-sm text-slate-500 font-medium">Monthly rent</Text>
                   <Text className="text-sm font-bold text-slate-900">
@@ -116,14 +126,12 @@ export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
 
                 <View className="flex-row items-center justify-between py-2">
                   <Text className="text-sm text-slate-500 font-medium">Joined</Text>
-                  <Text className="text-sm font-bold text-slate-900">
-                    {tenant.joinedDate || '12 Jun 2026'}
-                  </Text>
+                  <Text className="text-sm font-bold text-slate-900">{joinedDisplay}</Text>
                 </View>
               </View>
 
               {/* Actions Row */}
-              <View className="flex-row gap-3">
+              <View className="flex-row gap-3 mb-3">
                 <TouchableOpacity
                   activeOpacity={0.8}
                   onPress={handleWhatsApp}
@@ -140,9 +148,26 @@ export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
                   }}
                   className="flex-1 bg-[#0A6C50] rounded-2xl py-4 items-center justify-center shadow-sm"
                 >
-                  <Text className="text-base font-extrabold text-white">View profile</Text>
+                  <Text className="text-base font-extrabold text-white">View dues & profile</Text>
                 </TouchableOpacity>
               </View>
+
+              {/* Checkout / Vacate Button */}
+              {onCheckout && (
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => {
+                    onClose();
+                    onCheckout(tenant._id);
+                  }}
+                  className="w-full bg-[#FFF1F2] border border-[#FECDD3] rounded-2xl py-3.5 flex-row items-center justify-center shadow-xs"
+                >
+                  <LogOut size={18} color="#BE123C" />
+                  <Text className="text-sm font-bold text-[#BE123C] ml-2">
+                    Checkout / Vacate Bed
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
           </TouchableWithoutFeedback>
         </View>

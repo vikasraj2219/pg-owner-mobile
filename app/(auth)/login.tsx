@@ -23,13 +23,12 @@ import {
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { login, loginWithDemo, loginWithBiometrics, isBiometricEnabled } = useAuth();
+  const { login, loginWithBiometrics, isBiometricEnabled } = useAuth();
 
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isDemoSubmitting, setIsDemoSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<{ identifier?: string; password?: string }>({});
 
@@ -77,18 +76,6 @@ export default function LoginScreen() {
       });
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  const handleDemoLogin = async () => {
-    setErrorMessage(null);
-    setIsDemoSubmitting(true);
-    try {
-      await loginWithDemo();
-    } catch (err: unknown) {
-      setErrorMessage(getApiErrorMessage(err));
-    } finally {
-      setIsDemoSubmitting(false);
     }
   };
 
@@ -233,7 +220,7 @@ export default function LoginScreen() {
               activeOpacity={0.85}
               className="bg-[#0A6C50] rounded-xl py-3.5 items-center justify-center flex-row shadow-sm"
               onPress={handleLogin}
-              disabled={isSubmitting || isDemoSubmitting}
+              disabled={isSubmitting}
             >
               {isSubmitting ? (
                 <>
@@ -259,7 +246,7 @@ export default function LoginScreen() {
                 isBiometricEnabled ? 'bg-white border-[#0A6C50]' : 'bg-slate-50 border-slate-200'
               }`}
               onPress={handleBiometricAuth}
-              disabled={isSubmitting || isDemoSubmitting}
+              disabled={isSubmitting}
             >
               <Fingerprint size={22} color={isBiometricEnabled ? '#0A6C50' : '#94A3B8'} />
               <Text
@@ -270,24 +257,6 @@ export default function LoginScreen() {
                 {isBiometricEnabled ? 'Unlock with biometrics' : 'Biometrics disabled'}
               </Text>
             </TouchableOpacity>
-
-            {/* Testing Demo Account Shortcut */}
-            <View className="mt-5 items-center">
-              <TouchableOpacity
-                onPress={handleDemoLogin}
-                disabled={isSubmitting || isDemoSubmitting}
-                className="py-2 px-3 rounded-lg bg-slate-100 border border-slate-200/80 flex-row items-center"
-              >
-                {isDemoSubmitting ? (
-                  <ActivityIndicator size="small" color="#475569" />
-                ) : (
-                  <Text className="text-xs font-semibold text-slate-600">
-                    Testing offline?{' '}
-                    <Text className="text-[#0A6C50] font-bold">Try Demo Account</Text>
-                  </Text>
-                )}
-              </TouchableOpacity>
-            </View>
           </View>
 
           {/* Bottom Register Link */}

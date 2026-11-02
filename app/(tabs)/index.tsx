@@ -1,18 +1,29 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { ChevronDown, Bell, AlertCircle, ChevronRight, Plus } from 'lucide-react-native';
+import {
+  ChevronDown,
+  Bell,
+  AlertCircle,
+  ChevronRight,
+  Plus,
+  CheckCircle2,
+} from 'lucide-react-native';
 import { useAuth } from '../../src/hooks/useAuth';
 import { useProperties } from '../../src/context/PropertyContext';
+import { useDashboard } from '../../src/hooks/useDashboard';
 import { PropertySwitcherModal } from '../../src/components/PropertySwitcherModal';
 import { AddPropertyModal } from '../../src/components/AddPropertyModal';
+import { formatINR, formatINRCompact } from '../../src/utils/currency';
 
 export default function PulseScreen() {
   const router = useRouter();
   const { organization, subscription } = useAuth();
   const { properties, selectedProperty, selectedPropertyId, setSelectedPropertyId } =
     useProperties();
+
+  const { stats, isRefetching, refetch } = useDashboard(selectedPropertyId);
 
   const [showPropertyPicker, setShowPropertyPicker] = useState(false);
   const [showAddProperty, setShowAddProperty] = useState(false);
@@ -30,6 +41,8 @@ export default function PulseScreen() {
   }, [subscription]);
 
   const activePropertyName = selectedProperty?.name || organization?.name || 'My PG Property';
+  const overdueCount = stats?.overdueCount ?? 0;
+  const overdueAmountPaise = stats?.overdueAmountPaise ?? 0;
 
   return (
     <SafeAreaView className="flex-1 bg-[#F8F9FA]" edges={['top']}>
@@ -38,6 +51,14 @@ export default function PulseScreen() {
           className="flex-1 px-5 pt-3"
           contentContainerStyle={{ paddingBottom: 100 }}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefetching}
+              onRefresh={refetch}
+              tintColor="#0A6C50"
+              colors={['#0A6C50']}
+            />
+          }
         >
           {/* Top PG Selector and Notification Bell */}
           <View className="flex-row items-center justify-between gap-3 mb-4">
@@ -61,7 +82,9 @@ export default function PulseScreen() {
               onPress={() => router.push('/(tabs)/dues')}
             >
               <Bell size={20} color="#1E293B" strokeWidth={2} />
-              <View className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-rose-500" />
+              {overdueCount > 0 && (
+                <View className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-rose-500" />
+              )}
             </TouchableOpacity>
           </View>
 
@@ -80,18 +103,26 @@ export default function PulseScreen() {
             <Text className="text-sm font-semibold text-slate-700 mb-2">Collected this month</Text>
             <View className="flex-row items-baseline mb-3">
               <Text className="text-3xl font-extrabold text-slate-900 tracking-tight">
-                ₹3,42,000
+                {formatINR(stats?.collectedThisMonthPaise ?? 0)}
               </Text>
-              <Text className="text-base font-medium text-slate-500 ml-2">of ₹4,10,000</Text>
+              <Text className="text-base font-medium text-slate-500 ml-2">
+                of {formatINR(stats?.expectedThisMonthPaise ?? 0)}
+              </Text>
             </View>
 
             {/* Dark green progress bar */}
             <View className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden mb-2.5">
-              <View className="h-full bg-[#0A6C50] rounded-full" style={{ width: '83%' }} />
+              <View
+                className="h-full bg-[#0A6C50] rounded-full"
+                style={{
+                  width: `${Math.min(100, Math.max(0, stats?.collectionRate ?? 0))}%`,
+                }}
+              />
             </View>
 
             <Text className="text-xs font-medium text-slate-500">
-              83% collected · ₹68,000 pending
+              {stats?.collectionRate ?? 0}% collected · {formatINR(stats?.pendingAmountPaise ?? 0)}{' '}
+              pending
             </Text>
           </View>
 
@@ -107,10 +138,14 @@ export default function PulseScreen() {
                 <Text className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">
                   Occupancy
                 </Text>
-                <Text className="text-2xl font-extrabold text-slate-900">42 / 48</Text>
+                <Text className="text-2xl font-extrabold text-slate-900">
+                  {stats?.occupiedBeds ?? 0} / {stats?.totalBeds ?? 0}
+                </Text>
               </View>
               <View className="flex-row items-center justify-between mt-3 pt-2 border-t border-slate-100">
-                <Text className="text-xs font-bold text-[#0A6C50]">87.5% full</Text>
+                <Text className="text-xs font-bold text-[#0A6C50]">
+                  {stats?.occupancyRate ?? 0}% full
+                </Text>
                 <ChevronRight size={16} color="#94A3B8" />
               </View>
             </TouchableOpacity>
@@ -125,32 +160,58 @@ export default function PulseScreen() {
                 <Text className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">
                   Net profit
                 </Text>
-                <Text className="text-2xl font-extrabold text-slate-900">₹2.18L</Text>
+                <Text className="text-2xl font-extrabold text-slate-900">
+                  {formatINRCompact(stats?.netProfitPaise ?? 0)}
+                </Text>
               </View>
               <View className="flex-row items-center justify-between mt-3 pt-2 border-t border-slate-100">
-                <Text className="text-xs font-semibold text-slate-500">After ₹1.24L exp</Text>
+                <Text className="text-xs font-semibold text-slate-500">
+                  {stats?.occupiedBeds ?? 0} active beds
+                </Text>
                 <ChevronRight size={16} color="#94A3B8" />
               </View>
             </TouchableOpacity>
           </View>
 
-          {/* Overdue Alert Banner */}
-          <TouchableOpacity
-            activeOpacity={0.85}
-            onPress={() => router.push('/(tabs)/dues')}
-            className="bg-[#FFF1F2] border border-[#FECDD3] rounded-2xl p-4 mb-4 flex-row items-center justify-between shadow-xs"
-          >
-            <View className="flex-row items-center flex-1 mr-3">
-              <View className="w-10 h-10 rounded-full bg-rose-100 items-center justify-center mr-3">
-                <AlertCircle size={22} color="#BE123C" />
+          {/* Overdue / Dues Status Banner */}
+          {overdueCount > 0 ? (
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => router.push('/(tabs)/dues')}
+              className="bg-[#FFF1F2] border border-[#FECDD3] rounded-2xl p-4 mb-4 flex-row items-center justify-between shadow-xs"
+            >
+              <View className="flex-row items-center flex-1 mr-3">
+                <View className="w-10 h-10 rounded-full bg-rose-100 items-center justify-center mr-3">
+                  <AlertCircle size={22} color="#BE123C" />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-sm font-bold text-[#991B1B]">
+                    {overdueCount} tenant{overdueCount === 1 ? '' : 's'} overdue &gt; 5d
+                  </Text>
+                  <Text className="text-xs text-rose-700 mt-0.5">
+                    {formatINR(overdueAmountPaise)} pending collection
+                  </Text>
+                </View>
               </View>
-              <View className="flex-1">
-                <Text className="text-sm font-bold text-[#991B1B]">3 tenants overdue &gt; 5d</Text>
-                <Text className="text-xs text-rose-700 mt-0.5">₹28,000 pending collection</Text>
+              <ChevronRight size={20} color="#BE123C" />
+            </TouchableOpacity>
+          ) : (
+            <View className="bg-[#F0FDF4] border border-[#BBF7D0] rounded-2xl p-4 mb-4 flex-row items-center justify-between shadow-xs">
+              <View className="flex-row items-center flex-1 mr-3">
+                <View className="w-10 h-10 rounded-full bg-emerald-100 items-center justify-center mr-3">
+                  <CheckCircle2 size={22} color="#0A6C50" />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-sm font-bold text-[#065F46]">
+                    All rents collected on time
+                  </Text>
+                  <Text className="text-xs text-emerald-700 mt-0.5">
+                    Zero overdue accounts pending
+                  </Text>
+                </View>
               </View>
             </View>
-            <ChevronRight size={20} color="#BE123C" />
-          </TouchableOpacity>
+          )}
         </ScrollView>
 
         {/* Floating Action Button (FAB) */}
