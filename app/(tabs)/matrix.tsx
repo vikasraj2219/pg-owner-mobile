@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { ChevronDown, Plus } from 'lucide-react-native';
+import { ChevronDown, Plus, AlertCircle, RefreshCw } from 'lucide-react-native';
 import { useProperties } from '../../src/context/PropertyContext';
 import { useMatrix } from '../../src/hooks/useMatrix';
 import { IMatrixBed, IMatrixRoom } from '../../src/types/api';
@@ -37,6 +37,8 @@ export default function MatrixScreen() {
   const {
     matrixData,
     isLoading,
+    isError,
+    error,
     isRefetching,
     refetch: refetchMatrix,
     createRoom,
@@ -100,8 +102,32 @@ export default function MatrixScreen() {
       .filter(room => room.beds.length > 0);
   }, [matrixData, selectedFloor, vacantOnly]);
 
-  const totalRoomsCount = matrixData?.summary?.totalRooms ?? 0;
-  const vacantBedsCount = matrixData?.summary?.availableBeds ?? 0;
+  const totalRoomsCount = useMemo(() => {
+    if (matrixData?.summary?.totalRooms !== undefined && matrixData.summary.totalRooms > 0) {
+      return matrixData.summary.totalRooms;
+    }
+    if (matrixData?.floors) {
+      return matrixData.floors.reduce((acc, f) => acc + (f.rooms?.length || 0), 0);
+    }
+    return 0;
+  }, [matrixData]);
+
+  const vacantBedsCount = useMemo(() => {
+    if (matrixData?.summary?.availableBeds !== undefined) {
+      return matrixData.summary.availableBeds;
+    }
+    if (matrixData?.floors) {
+      return matrixData.floors.reduce((acc, f) => {
+        return (
+          acc +
+          f.rooms.reduce((rAcc, r) => {
+            return rAcc + r.beds.filter(b => b.status === 'available').length;
+          }, 0)
+        );
+      }, 0);
+    }
+    return 0;
+  }, [matrixData]);
 
   // Extract all existing room numbers across all floors
   const existingRoomNumbers = useMemo(() => {
@@ -207,6 +233,28 @@ export default function MatrixScreen() {
           <View className="flex-1 justify-center items-center py-20">
             <ActivityIndicator size="large" color="#0A6C50" />
             <Text className="text-sm font-semibold text-slate-500 mt-3">Loading bed matrix...</Text>
+          </View>
+        ) : isError && !matrixData ? (
+          <View className="flex-1 justify-center items-center py-16 px-6">
+            <View className="w-16 h-16 rounded-full bg-red-50 items-center justify-center mb-4">
+              <AlertCircle size={32} color="#DC2626" />
+            </View>
+            <Text className="text-xl font-bold text-slate-900 mb-2 text-center">
+              Unable to load rooms
+            </Text>
+            <Text className="text-sm font-medium text-slate-500 text-center mb-6 max-w-[280px]">
+              {error instanceof Error
+                ? error.message
+                : 'Failed to fetch bed matrix data. Please pull down to refresh or tap Retry.'}
+            </Text>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => refetchMatrix()}
+              className="bg-[#0A6C50] px-6 py-3 rounded-xl flex-row items-center"
+            >
+              <RefreshCw size={16} color="#FFFFFF" />
+              <Text className="text-sm font-bold text-white ml-2">Retry</Text>
+            </TouchableOpacity>
           </View>
         ) : totalRoomsCount === 0 ? (
           /* Empty State matching Page 49 */

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import * as SecureStore from 'expo-secure-store';
+import { safeStorage } from '../utils/storage';
 
 export const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_URL || 'https://pg-owner-backend.onrender.com/api';
@@ -12,16 +12,16 @@ export const apiClient = axios.create({
   },
 });
 
-// Interceptor to inject JWT token into requests
+// Interceptor to inject JWT token into requests across Web, Android, and iOS
 apiClient.interceptors.request.use(
   async config => {
     try {
-      const token = await SecureStore.getItemAsync('auth_token');
+      const token = await safeStorage.getItem('auth_token');
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
     } catch (_err) {
-      // SecureStore may fail in unsupported environments (e.g. web mock)
+      // Ignore storage read error
     }
     return config;
   },

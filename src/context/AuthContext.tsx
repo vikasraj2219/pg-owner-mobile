@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import * as SecureStore from 'expo-secure-store';
 import * as LocalAuthentication from 'expo-local-authentication';
+import { safeStorage } from '../utils/storage';
 import {
   IUser,
   IOrganization,
@@ -85,7 +85,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  // Set Auth state and persist in SecureStore
+  // Set Auth state and persist across native and web
   const persistAuthData = async (data: AuthResponseData) => {
     setToken(data.token);
     setUser(data.user);
@@ -94,8 +94,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsUnlocked(true);
 
     try {
-      await SecureStore.setItemAsync(TOKEN_KEY, data.token);
-      await SecureStore.setItemAsync(
+      await safeStorage.setItem(TOKEN_KEY, data.token);
+      await safeStorage.setItem(
         USER_CACHE_KEY,
         JSON.stringify({
           user: data.user,
@@ -104,7 +104,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }),
       );
     } catch (_err) {
-      // SecureStore may fail on certain web setups
+      // Ignore storage persistence failure
     }
   };
 
@@ -114,9 +114,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         await checkBiometrics();
 
-        const storedToken = await SecureStore.getItemAsync(TOKEN_KEY);
-        const cachedDataStr = await SecureStore.getItemAsync(USER_CACHE_KEY);
-        const biometricPref = await SecureStore.getItemAsync(BIOMETRIC_PREF_KEY);
+        const storedToken = await safeStorage.getItem(TOKEN_KEY);
+        const cachedDataStr = await safeStorage.getItem(USER_CACHE_KEY);
+        const biometricPref = await safeStorage.getItem(BIOMETRIC_PREF_KEY);
 
         if (storedToken && cachedDataStr) {
           const cachedData = JSON.parse(cachedDataStr);
@@ -220,8 +220,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = async () => {
     setIsLoading(true);
     try {
-      await SecureStore.deleteItemAsync(TOKEN_KEY);
-      await SecureStore.deleteItemAsync(USER_CACHE_KEY);
+      await safeStorage.deleteItem(TOKEN_KEY);
+      await safeStorage.deleteItem(USER_CACHE_KEY);
+      await safeStorage.deleteItem('selected_property_id');
       setToken(null);
       setUser(null);
       setOrganization(null);
@@ -236,7 +237,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const enableBiometrics = async (enable: boolean) => {
     try {
-      await SecureStore.setItemAsync(BIOMETRIC_PREF_KEY, enable ? 'true' : 'false');
+      await safeStorage.setItem(BIOMETRIC_PREF_KEY, enable ? 'true' : 'false');
     } catch (_err) {
       // Ignore
     }
