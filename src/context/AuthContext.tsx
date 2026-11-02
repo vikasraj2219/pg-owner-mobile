@@ -108,9 +108,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await safeStorage.setItem(TOKEN_KEY, data.token);
       await safeStorage.setItem(USER_CACHE_KEY, cachePayload);
 
-      // Also persist for quick biometric login on this device
-      await safeStorage.setItem(BIOMETRIC_TOKEN_KEY, data.token);
-      await safeStorage.setItem(BIOMETRIC_CACHE_KEY, cachePayload);
+      // Only persist biometric credentials if user has not explicitly disabled them
+      const currentPref = await safeStorage.getItem(BIOMETRIC_PREF_KEY);
+      if (currentPref !== 'false') {
+        await safeStorage.setItem(BIOMETRIC_TOKEN_KEY, data.token);
+        await safeStorage.setItem(BIOMETRIC_CACHE_KEY, cachePayload);
+        if (currentPref === null) {
+          await safeStorage.setItem(BIOMETRIC_PREF_KEY, 'true');
+          setIsBiometricEnabled(true);
+        }
+      }
     } catch (_err) {
       // Ignore storage persistence failure
     }
@@ -255,6 +262,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (enable) {
         const success = await unlockWithBiometrics();
         if (!success) return false;
+        // Save active session as biometric credentials
+        if (token && user && organization) {
+          const cachePayload = JSON.stringify({
+            user,
+            organization,
+            subscription,
+          });
+          await safeStorage.setItem(BIOMETRIC_TOKEN_KEY, token);
+          await safeStorage.setItem(BIOMETRIC_CACHE_KEY, cachePayload);
+        }
+      } else {
+        // Disabling: completely purge stored biometric credentials
+        await safeStorage.deleteItem(BIOMETRIC_TOKEN_KEY);
+        await safeStorage.deleteItem(BIOMETRIC_CACHE_KEY);
       }
       await safeStorage.setItem(BIOMETRIC_PREF_KEY, enable ? 'true' : 'false');
       setIsBiometricEnabled(enable);
@@ -283,18 +304,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
       }
 
+      // Check if user explicitly turned off biometrics
+      const biometricPref = await safeStorage.getItem(BIOMETRIC_PREF_KEY);
+      if (biometricPref === 'false') {
+        return {
+          success: false,
+          message:
+            'Biometric login is currently turned off. Please log in with your phone or email and password, then enable Biometric App Lock in More > Settings.',
+        };
+      }
+
       // Check saved credentials
-      const savedToken =
-        (await safeStorage.getItem(BIOMETRIC_TOKEN_KEY)) || (await safeStorage.getItem(TOKEN_KEY));
-      const savedDataStr =
-        (await safeStorage.getItem(BIOMETRIC_CACHE_KEY)) ||
-        (await safeStorage.getItem(USER_CACHE_KEY));
+      const savedToken = await safeStorage.getItem(BIOMETRIC_TOKEN_KEY);
+      const savedDataStr = await safeStorage.getItem(BIOMETRIC_CACHE_KEY);
 
       if (!savedToken || !savedDataStr) {
         return {
           success: false,
           message:
-            'No saved account found for biometric quick login. Please log in with your phone or email and password first.',
+            'No saved biometric credentials found on this device. Please log in with your phone or email and password first.',
         };
       }
 

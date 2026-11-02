@@ -23,7 +23,7 @@ import {
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { login, loginWithDemo, loginWithBiometrics } = useAuth();
+  const { login, loginWithDemo, loginWithBiometrics, isBiometricEnabled } = useAuth();
 
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
@@ -255,13 +255,19 @@ export default function LoginScreen() {
             {/* Fingerprint unlock */}
             <TouchableOpacity
               activeOpacity={0.8}
-              className="bg-white border border-[#0A6C50] py-3.5 rounded-xl items-center justify-center flex-row shadow-sm"
+              className={`border py-3.5 rounded-xl items-center justify-center flex-row shadow-sm ${
+                isBiometricEnabled ? 'bg-white border-[#0A6C50]' : 'bg-slate-50 border-slate-200'
+              }`}
               onPress={handleBiometricAuth}
               disabled={isSubmitting || isDemoSubmitting}
             >
-              <Fingerprint size={22} color="#0A6C50" />
-              <Text className="text-[#0A6C50] font-bold text-base ml-2.5">
-                Unlock with biometrics
+              <Fingerprint size={22} color={isBiometricEnabled ? '#0A6C50' : '#94A3B8'} />
+              <Text
+                className={`font-bold text-base ml-2.5 ${
+                  isBiometricEnabled ? 'text-[#0A6C50]' : 'text-slate-400'
+                }`}
+              >
+                {isBiometricEnabled ? 'Unlock with biometrics' : 'Biometrics disabled'}
               </Text>
             </TouchableOpacity>
 
