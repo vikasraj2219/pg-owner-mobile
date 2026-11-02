@@ -32,7 +32,7 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
   onClose,
   onSuccess,
 }) => {
-  const { createPropertyMutation, isCreating } = useProperties();
+  const { properties, createPropertyMutation, isCreating } = useProperties();
 
   const [name, setName] = useState('');
   const [type, setType] = useState<PropertyType>('boys');
@@ -46,6 +46,15 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
     const nameResult = validateName(name, 'Property name');
     if (!nameResult.isValid) {
       Alert.alert('Required Field', nameResult.error);
+      return;
+    }
+
+    const trimmedName = name.trim();
+    if (properties.some(p => p.name.trim().toLowerCase() === trimmedName.toLowerCase())) {
+      Alert.alert(
+        'Duplicate Property Name',
+        `A property named "${trimmedName}" already exists. Please choose a different name.`,
+      );
       return;
     }
 
