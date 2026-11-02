@@ -14,54 +14,119 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Eye, EyeOff, Check, AlertCircle } from 'lucide-react-native';
 import { AppLogo } from '../../src/components/AppLogo';
 import { useAuth } from '../../src/hooks/useAuth';
+import {
+  validateName,
+  validatePhone,
+  validateEmail,
+  validatePassword,
+  getApiErrorMessage,
+} from '../../src/utils/validation';
 
 export default function RegisterScreen() {
   const router = useRouter();
   const { register } = useAuth();
 
-  const [ownerName, setOwnerName] = useState('Ramesh Kumar');
-  const [orgName, setOrgName] = useState('Sri Sai Boys PG');
-  const [phone, setPhone] = useState('98765 43210');
-  const [email, setEmail] = useState('ramesh@srisaipg.in');
-  const [password, setPassword] = useState('password123');
+  const [ownerName, setOwnerName] = useState('');
+  const [orgName, setOrgName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [agreedToTerms, setAgreedToTerms] = useState(true);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<{
+    ownerName?: string;
+    orgName?: string;
+    phone?: string;
+    email?: string;
+    password?: string;
+    confirmPassword?: string;
+    agreedToTerms?: string;
+  }>({});
 
   const handleRegister = async () => {
-    if (!ownerName.trim() || !orgName.trim() || !phone.trim() || !email.trim() || !password) {
-      setErrorMessage('Please fill in all details.');
-      return;
-    }
-
-    if (password.length < 8) {
-      setErrorMessage('Password must be at least 8 characters.');
-      return;
-    }
-
-    if (!agreedToTerms) {
-      setErrorMessage('Please agree to the Terms of Service and Privacy Policy.');
-      return;
-    }
-
     setErrorMessage(null);
+    const newFieldErrors: typeof fieldErrors = {};
+
+    // 1. Validate Owner Name
+    const nameResult = validateName(ownerName, 'Owner name');
+    if (!nameResult.isValid) {
+      newFieldErrors.ownerName = nameResult.error;
+    }
+
+    // 2. Validate PG Business Name
+    const orgResult = validateName(orgName, 'PG business name');
+    if (!orgResult.isValid) {
+      newFieldErrors.orgName = orgResult.error;
+    }
+
+    // 3. Validate Phone Number
+    const phoneResult = validatePhone(phone);
+    if (!phoneResult.isValid) {
+      newFieldErrors.phone = phoneResult.error;
+    }
+
+    // 4. Validate Email Address
+    const emailResult = validateEmail(email);
+    if (!emailResult.isValid) {
+      newFieldErrors.email = emailResult.error;
+    }
+
+    // 5. Validate Password
+    const passwordResult = validatePassword(password, 8);
+    if (!passwordResult.isValid) {
+      newFieldErrors.password = passwordResult.error;
+    } else if (password !== confirmPassword) {
+      newFieldErrors.confirmPassword = 'Passwords do not match.';
+    }
+
+    // 6. Check Terms Agreement
+    if (!agreedToTerms) {
+      newFieldErrors.agreedToTerms = 'You must agree to the Terms of Service & Privacy Policy.';
+    }
+
+    if (Object.keys(newFieldErrors).length > 0) {
+      setFieldErrors(newFieldErrors);
+      setErrorMessage(
+        newFieldErrors.ownerName ||
+          newFieldErrors.orgName ||
+          newFieldErrors.phone ||
+          newFieldErrors.email ||
+          newFieldErrors.password ||
+          newFieldErrors.confirmPassword ||
+          newFieldErrors.agreedToTerms ||
+          'Please complete all required fields.',
+      );
+      return;
+    }
+
+    setFieldErrors({});
     setIsSubmitting(true);
 
     try {
       await register({
         ownerName: ownerName.trim(),
         orgName: orgName.trim(),
-        phone: phone.trim(),
+        phone: phoneResult.normalized,
         email: email.trim().toLowerCase(),
         password,
       });
       // NavigationGuard navigates to (tabs) upon successful registration
-    } catch (_err) {
-      // In case backend is offline, mock register successfully
-      router.replace('/(tabs)');
+    } catch (err: unknown) {
+      const parsedMessage = getApiErrorMessage(err);
+      setErrorMessage(parsedMessage);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const clearFieldError = (field: keyof typeof fieldErrors) => {
+    if (fieldErrors[field] || errorMessage) {
+      setFieldErrors(prev => ({ ...prev, [field]: undefined }));
+      setErrorMessage(null);
     }
   };
 
@@ -101,64 +166,116 @@ export default function RegisterScreen() {
             </View>
           )}
 
-          {/* Form Fields */}
+          {/* Form Field: Owner name */}
           <View className="mb-3.5">
             <Text className="text-sm font-semibold text-slate-700 mb-1.5">Owner name</Text>
             <TextInput
-              className="bg-white border border-slate-200 rounded-xl px-4 py-3 text-base text-slate-900 shadow-sm"
-              placeholder="Ramesh Kumar"
+              className={`bg-white border rounded-xl px-4 py-3 text-base text-slate-900 shadow-sm ${
+                fieldErrors.ownerName ? 'border-[#BE123C] bg-rose-50/20' : 'border-slate-200'
+              }`}
+              placeholder="e.g. Ramesh Kumar"
               placeholderTextColor="#94A3B8"
               value={ownerName}
-              onChangeText={setOwnerName}
+              onChangeText={text => {
+                setOwnerName(text);
+                clearFieldError('ownerName');
+              }}
+              autoCapitalize="words"
             />
+            {fieldErrors.ownerName && (
+              <Text className="text-xs font-semibold text-[#BE123C] mt-1 ml-1">
+                {fieldErrors.ownerName}
+              </Text>
+            )}
           </View>
 
+          {/* Form Field: PG Business name */}
           <View className="mb-3.5">
             <Text className="text-sm font-semibold text-slate-700 mb-1.5">PG business name</Text>
             <TextInput
-              className="bg-white border border-slate-200 rounded-xl px-4 py-3 text-base text-slate-900 shadow-sm"
-              placeholder="Sri Sai Boys PG"
+              className={`bg-white border rounded-xl px-4 py-3 text-base text-slate-900 shadow-sm ${
+                fieldErrors.orgName ? 'border-[#BE123C] bg-rose-50/20' : 'border-slate-200'
+              }`}
+              placeholder="e.g. Sri Sai Boys PG"
               placeholderTextColor="#94A3B8"
               value={orgName}
-              onChangeText={setOrgName}
+              onChangeText={text => {
+                setOrgName(text);
+                clearFieldError('orgName');
+              }}
             />
+            {fieldErrors.orgName && (
+              <Text className="text-xs font-semibold text-[#BE123C] mt-1 ml-1">
+                {fieldErrors.orgName}
+              </Text>
+            )}
           </View>
 
+          {/* Form Field: Phone */}
           <View className="mb-3.5">
-            <Text className="text-sm font-semibold text-slate-700 mb-1.5">Phone</Text>
+            <Text className="text-sm font-semibold text-slate-700 mb-1.5">Phone number</Text>
             <TextInput
-              className="bg-white border border-slate-200 rounded-xl px-4 py-3 text-base text-slate-900 shadow-sm"
-              placeholder="98765 43210"
+              className={`bg-white border rounded-xl px-4 py-3 text-base text-slate-900 shadow-sm ${
+                fieldErrors.phone ? 'border-[#BE123C] bg-rose-50/20' : 'border-slate-200'
+              }`}
+              placeholder="10-digit mobile (e.g. 9876543210)"
               placeholderTextColor="#94A3B8"
               keyboardType="phone-pad"
               value={phone}
-              onChangeText={setPhone}
+              onChangeText={text => {
+                setPhone(text);
+                clearFieldError('phone');
+              }}
             />
+            {fieldErrors.phone && (
+              <Text className="text-xs font-semibold text-[#BE123C] mt-1 ml-1">
+                {fieldErrors.phone}
+              </Text>
+            )}
           </View>
 
+          {/* Form Field: Email */}
           <View className="mb-3.5">
-            <Text className="text-sm font-semibold text-slate-700 mb-1.5">Email</Text>
+            <Text className="text-sm font-semibold text-slate-700 mb-1.5">Email address</Text>
             <TextInput
-              className="bg-white border border-slate-200 rounded-xl px-4 py-3 text-base text-slate-900 shadow-sm"
-              placeholder="ramesh@srisaipg.in"
+              className={`bg-white border rounded-xl px-4 py-3 text-base text-slate-900 shadow-sm ${
+                fieldErrors.email ? 'border-[#BE123C] bg-rose-50/20' : 'border-slate-200'
+              }`}
+              placeholder="e.g. owner@example.com"
               placeholderTextColor="#94A3B8"
               autoCapitalize="none"
               keyboardType="email-address"
               value={email}
-              onChangeText={setEmail}
+              onChangeText={text => {
+                setEmail(text);
+                clearFieldError('email');
+              }}
             />
+            {fieldErrors.email && (
+              <Text className="text-xs font-semibold text-[#BE123C] mt-1 ml-1">
+                {fieldErrors.email}
+              </Text>
+            )}
           </View>
 
-          <View className="mb-5">
+          {/* Form Field: Password */}
+          <View className="mb-3.5">
             <Text className="text-sm font-semibold text-slate-700 mb-1.5">Password</Text>
-            <View className="bg-white border border-slate-200 rounded-xl flex-row items-center px-4 py-0.5 shadow-sm">
+            <View
+              className={`bg-white border rounded-xl flex-row items-center px-4 py-0.5 shadow-sm ${
+                fieldErrors.password ? 'border-[#BE123C] bg-rose-50/20' : 'border-slate-200'
+              }`}
+            >
               <TextInput
                 className="flex-1 py-2.5 text-base text-slate-900"
-                placeholder="••••••••"
+                placeholder="At least 8 characters"
                 placeholderTextColor="#94A3B8"
                 secureTextEntry={!showPassword}
                 value={password}
-                onChangeText={setPassword}
+                onChangeText={text => {
+                  setPassword(text);
+                  clearFieldError('password');
+                }}
               />
               <TouchableOpacity
                 onPress={() => setShowPassword(!showPassword)}
@@ -172,18 +289,67 @@ export default function RegisterScreen() {
                 )}
               </TouchableOpacity>
             </View>
-            <Text className="text-xs text-slate-400 font-medium mt-1">At least 8 characters</Text>
+            {fieldErrors.password && (
+              <Text className="text-xs font-semibold text-[#BE123C] mt-1 ml-1">
+                {fieldErrors.password}
+              </Text>
+            )}
+          </View>
+
+          {/* Form Field: Confirm Password */}
+          <View className="mb-5">
+            <Text className="text-sm font-semibold text-slate-700 mb-1.5">Confirm Password</Text>
+            <View
+              className={`bg-white border rounded-xl flex-row items-center px-4 py-0.5 shadow-sm ${
+                fieldErrors.confirmPassword ? 'border-[#BE123C] bg-rose-50/20' : 'border-slate-200'
+              }`}
+            >
+              <TextInput
+                className="flex-1 py-2.5 text-base text-slate-900"
+                placeholder="Re-enter your password"
+                placeholderTextColor="#94A3B8"
+                secureTextEntry={!showConfirmPassword}
+                value={confirmPassword}
+                onChangeText={text => {
+                  setConfirmPassword(text);
+                  clearFieldError('confirmPassword');
+                }}
+              />
+              <TouchableOpacity
+                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="p-1"
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                {showConfirmPassword ? (
+                  <EyeOff size={20} color="#64748B" />
+                ) : (
+                  <Eye size={20} color="#64748B" />
+                )}
+              </TouchableOpacity>
+            </View>
+            {fieldErrors.confirmPassword && (
+              <Text className="text-xs font-semibold text-[#BE123C] mt-1 ml-1">
+                {fieldErrors.confirmPassword}
+              </Text>
+            )}
           </View>
 
           {/* Terms checkbox */}
           <TouchableOpacity
             activeOpacity={0.8}
-            onPress={() => setAgreedToTerms(!agreedToTerms)}
+            onPress={() => {
+              setAgreedToTerms(!agreedToTerms);
+              clearFieldError('agreedToTerms');
+            }}
             className="flex-row items-center mb-6"
           >
             <View
               className={`w-6 h-6 rounded-md items-center justify-center mr-3 ${
-                agreedToTerms ? 'bg-[#0A6C50]' : 'border border-slate-300 bg-white'
+                agreedToTerms
+                  ? 'bg-[#0A6C50]'
+                  : fieldErrors.agreedToTerms
+                    ? 'border-2 border-[#BE123C] bg-white'
+                    : 'border border-slate-300 bg-white'
               }`}
             >
               {agreedToTerms && <Check size={16} color="#ffffff" strokeWidth={3} />}
@@ -203,7 +369,10 @@ export default function RegisterScreen() {
             disabled={isSubmitting}
           >
             {isSubmitting ? (
-              <ActivityIndicator color="#ffffff" size="small" />
+              <>
+                <ActivityIndicator color="#ffffff" size="small" />
+                <Text className="text-white font-bold text-base ml-2">Creating account…</Text>
+              </>
             ) : (
               <Text className="text-white font-bold text-base">Create account</Text>
             )}

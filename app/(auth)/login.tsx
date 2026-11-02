@@ -8,40 +8,87 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Eye, EyeOff, Fingerprint, AlertCircle } from 'lucide-react-native';
 import { AppLogo } from '../../src/components/AppLogo';
 import { useAuth } from '../../src/hooks/useAuth';
+import {
+  validateIdentifier,
+  validatePassword,
+  getApiErrorMessage,
+} from '../../src/utils/validation';
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { login, unlockWithBiometrics } = useAuth();
+  const { login, loginWithDemo, unlockWithBiometrics } = useAuth();
 
-  const [identifier, setIdentifier] = useState('98765 43210');
-  const [password, setPassword] = useState('password123');
+  const [identifier, setIdentifier] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDemoSubmitting, setIsDemoSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<{ identifier?: string; password?: string }>({});
 
   const handleLogin = async () => {
-    if (!identifier.trim() || !password) {
-      setErrorMessage('Incorrect password. 2 attempts left.');
+    // 1. Reset existing errors
+    setErrorMessage(null);
+    const newFieldErrors: { identifier?: string; password?: string } = {};
+
+    // 2. Validate identifier (Phone or Email)
+    const idValidation = validateIdentifier(identifier);
+    if (!idValidation.isValid) {
+      newFieldErrors.identifier = idValidation.error;
+    }
+
+    // 3. Validate password
+    const pwdValidation = validatePassword(password, 6);
+    if (!pwdValidation.isValid) {
+      newFieldErrors.password = pwdValidation.error;
+    }
+
+    if (Object.keys(newFieldErrors).length > 0) {
+      setFieldErrors(newFieldErrors);
+      setErrorMessage(
+        newFieldErrors.identifier || newFieldErrors.password || 'Please check the required fields.',
+      );
       return;
     }
 
-    setErrorMessage(null);
+    setFieldErrors({});
     setIsSubmitting(true);
 
     try {
-      await login({ identifier: identifier.trim(), password });
-      // NavigationGuard navigates to (tabs) upon successful login
-    } catch (_err) {
-      // In case backend is not running or incorrect password
-      setErrorMessage('Incorrect password. 2 attempts left.');
+      // Send normalized identifier (10-digit phone or lowercased email)
+      await login({
+        identifier: idValidation.normalized,
+        password,
+      });
+      // NavigationGuard redirects to (tabs) upon successful login
+    } catch (err: unknown) {
+      const parsedMessage = getApiErrorMessage(err);
+      setErrorMessage(parsedMessage);
+      setFieldErrors({
+        identifier: ' ',
+        password: ' ',
+      });
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleDemoLogin = async () => {
+    setErrorMessage(null);
+    setIsDemoSubmitting(true);
+    try {
+      await loginWithDemo();
+    } catch (err: unknown) {
+      setErrorMessage(getApiErrorMessage(err));
+    } finally {
+      setIsDemoSubmitting(false);
     }
   };
 
@@ -49,7 +96,17 @@ export default function LoginScreen() {
     const success = await unlockWithBiometrics();
     if (success) {
       router.replace('/(tabs)');
+    } else {
+      Alert.alert('Biometric Unlock', 'Biometric authentication was cancelled or not recognized.');
     }
+  };
+
+  const handleForgotPassword = () => {
+    Alert.alert(
+      'Reset Password',
+      'Please contact your PG administrator or email support@pgowner.in with your registered phone number or email to reset your credentials.',
+      [{ text: 'OK' }],
+    );
   };
 
   return (
@@ -77,7 +134,7 @@ export default function LoginScreen() {
               Log in to manage your PG
             </Text>
 
-            {/* Error Banner (Page 7 design) */}
+            {/* Global Error Banner */}
             {errorMessage && (
               <View className="flex-row items-center bg-[#FFF1F2] border border-[#FECDD3] px-3.5 py-3 rounded-2xl mb-5">
                 <AlertCircle size={18} color="#BE123C" />
@@ -87,40 +144,59 @@ export default function LoginScreen() {
               </View>
             )}
 
-            {/* Form Fields */}
+            {/* Form Field: Identifier */}
             <View className="mb-4">
-              <Text className="text-sm font-semibold text-slate-700 mb-1.5">Phone or email</Text>
+              <Text className="text-sm font-semibold text-slate-700 mb-1.5">
+                Phone number or email
+              </Text>
               <TextInput
-                className="bg-white border border-slate-200 rounded-xl px-4 py-3.5 text-base text-slate-900 shadow-sm"
-                placeholder="98765 43210"
+                className={`bg-white border rounded-xl px-4 py-3.5 text-base text-slate-900 shadow-sm ${
+                  fieldErrors.identifier ? 'border-[#BE123C] bg-rose-50/20' : 'border-slate-200'
+                }`}
+                placeholder="e.g. 9876543210 or owner@example.com"
                 placeholderTextColor="#94A3B8"
                 value={identifier}
                 onChangeText={text => {
                   setIdentifier(text);
-                  if (errorMessage) setErrorMessage(null);
+                  if (fieldErrors.identifier || errorMessage) {
+                    setFieldErrors(prev => ({ ...prev, identifier: undefined }));
+                    setErrorMessage(null);
+                  }
                 }}
                 autoCapitalize="none"
                 autoCorrect={false}
+                keyboardType="email-address"
               />
+              {fieldErrors.identifier && fieldErrors.identifier !== ' ' && (
+                <Text className="text-xs font-semibold text-[#BE123C] mt-1 ml-1">
+                  {fieldErrors.identifier}
+                </Text>
+              )}
             </View>
 
+            {/* Form Field: Password */}
             <View className="mb-2">
               <Text className="text-sm font-semibold text-slate-700 mb-1.5">Password</Text>
               <View
                 className={`bg-white border rounded-xl flex-row items-center px-4 py-1 shadow-sm ${
-                  errorMessage ? 'border-[#BE123C]' : 'border-slate-200'
+                  fieldErrors.password ? 'border-[#BE123C] bg-rose-50/20' : 'border-slate-200'
                 }`}
               >
                 <TextInput
                   className="flex-1 py-2.5 text-base text-slate-900"
-                  placeholder="••••••••"
+                  placeholder="Enter your password"
                   placeholderTextColor="#94A3B8"
                   secureTextEntry={!showPassword}
                   value={password}
                   onChangeText={text => {
                     setPassword(text);
-                    if (errorMessage) setErrorMessage(null);
+                    if (fieldErrors.password || errorMessage) {
+                      setFieldErrors(prev => ({ ...prev, password: undefined }));
+                      setErrorMessage(null);
+                    }
                   }}
+                  autoCapitalize="none"
+                  autoCorrect={false}
                 />
                 <TouchableOpacity
                   onPress={() => setShowPassword(!showPassword)}
@@ -134,21 +210,26 @@ export default function LoginScreen() {
                   )}
                 </TouchableOpacity>
               </View>
+              {fieldErrors.password && fieldErrors.password !== ' ' && (
+                <Text className="text-xs font-semibold text-[#BE123C] mt-1 ml-1">
+                  {fieldErrors.password}
+                </Text>
+              )}
             </View>
 
             {/* Forgot password */}
             <View className="items-end mb-6">
-              <TouchableOpacity>
+              <TouchableOpacity onPress={handleForgotPassword}>
                 <Text className="text-blue-600 font-bold text-sm">Forgot password?</Text>
               </TouchableOpacity>
             </View>
 
-            {/* Log in CTA (Page 6 & 8) */}
+            {/* Log in CTA */}
             <TouchableOpacity
               activeOpacity={0.85}
               className="bg-[#0A6C50] rounded-xl py-3.5 items-center justify-center flex-row shadow-sm"
               onPress={handleLogin}
-              disabled={isSubmitting}
+              disabled={isSubmitting || isDemoSubmitting}
             >
               {isSubmitting ? (
                 <>
@@ -172,12 +253,31 @@ export default function LoginScreen() {
               activeOpacity={0.8}
               className="bg-white border border-[#0A6C50] py-3.5 rounded-xl items-center justify-center flex-row shadow-sm"
               onPress={handleBiometricAuth}
+              disabled={isSubmitting || isDemoSubmitting}
             >
               <Fingerprint size={22} color="#0A6C50" />
               <Text className="text-[#0A6C50] font-bold text-base ml-2.5">
-                Unlock with fingerprint
+                Unlock with biometrics
               </Text>
             </TouchableOpacity>
+
+            {/* Testing Demo Account Shortcut */}
+            <View className="mt-5 items-center">
+              <TouchableOpacity
+                onPress={handleDemoLogin}
+                disabled={isSubmitting || isDemoSubmitting}
+                className="py-2 px-3 rounded-lg bg-slate-100 border border-slate-200/80 flex-row items-center"
+              >
+                {isDemoSubmitting ? (
+                  <ActivityIndicator size="small" color="#475569" />
+                ) : (
+                  <Text className="text-xs font-semibold text-slate-600">
+                    Testing offline?{' '}
+                    <Text className="text-[#0A6C50] font-bold">Try Demo Account</Text>
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Bottom Register Link */}

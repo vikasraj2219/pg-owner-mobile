@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { ChevronLeft } from 'lucide-react-native';
 import { IProperty } from '../types/api';
+import { getApiErrorMessage } from '../utils/validation';
 
 interface AddRoomModalProps {
   visible: boolean;
@@ -96,10 +97,8 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
       }
       onClose();
     } catch (err: unknown) {
-      const message =
-        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-        'Failed to create room and beds. Please check inputs and try again.';
-      Alert.alert('Error', message);
+      const message = getApiErrorMessage(err);
+      Alert.alert('Room Creation Failed', message);
     }
   };
 

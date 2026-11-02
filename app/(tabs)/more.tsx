@@ -14,14 +14,28 @@ import {
   Sparkles,
 } from 'lucide-react-native';
 import { useAuth } from '../../src/hooks/useAuth';
+import { useProperties } from '../../src/context/PropertyContext';
 import { SplashScreenView } from '../../src/components/SplashScreenView';
 
 export default function MoreScreen() {
-  const { user, organization, logout, unlockWithBiometrics } = useAuth();
+  const { user, organization, subscription, logout, unlockWithBiometrics } = useAuth();
+  const { properties } = useProperties();
   const [showSplashPreview, setShowSplashPreview] = useState(false);
 
+  // Dynamic trial remaining days
+  const trialDaysLeft = React.useMemo(() => {
+    if (!subscription?.trialEndsAt) return 14;
+    const diffTime = new Date(subscription.trialEndsAt).getTime() - Date.now();
+    return Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+  }, [subscription]);
+
+  // Dynamic total beds
+  const totalBeds = React.useMemo(() => {
+    return properties.reduce((sum, p) => sum + (p.stats?.totalBeds || 0), 0);
+  }, [properties]);
+
   const getInitials = (name?: string) => {
-    if (!name) return 'RK';
+    if (!name) return 'PG';
     const parts = name.trim().split(' ');
     if (parts.length >= 2 && parts[0] && parts[1]) {
       return (parts[0][0] + parts[1][0]).toUpperCase();
@@ -57,7 +71,7 @@ export default function MoreScreen() {
         {
           icon: Building,
           label: 'Properties & Rooms',
-          detail: '1 Property · 48 Beds',
+          detail: `${properties.length} Propert${properties.length === 1 ? 'y' : 'ies'} · ${totalBeds > 0 ? `${totalBeds} Beds` : 'Manage'}`,
         },
         {
           icon: Users,
@@ -84,7 +98,7 @@ export default function MoreScreen() {
         {
           icon: CreditCard,
           label: 'Subscription Plan',
-          detail: '14-Day Free Trial (11 days left)',
+          detail: `14-Day Free Trial (${trialDaysLeft} days left)`,
         },
         {
           icon: ShieldCheck,
@@ -112,19 +126,19 @@ export default function MoreScreen() {
         <View className="bg-white border border-slate-200/80 rounded-2xl p-4 mb-5 shadow-xs flex-row items-center">
           <View className="w-12 h-12 rounded-full bg-[#E8F5EE] items-center justify-center mr-3.5">
             <Text className="text-[#0A6C50] font-extrabold text-base">
-              {getInitials(user?.name || 'Ramesh Kumar')}
+              {getInitials(user?.name || organization?.ownerName || 'Owner')}
             </Text>
           </View>
           <View className="flex-1 mr-2">
             <Text className="text-base font-extrabold text-slate-900">
-              {user?.name || 'Ramesh Kumar'}
+              {user?.name || organization?.ownerName || 'PG Owner'}
             </Text>
             <Text className="text-xs font-medium text-slate-500 mt-0.5">
-              {organization?.name || 'Sri Sai Boys PG, Madhapur'} · Owner
+              {organization?.name || 'My PG Organization'} · Owner
             </Text>
           </View>
           <View className="bg-[#FEF9C3] border border-[#FDE047] px-2.5 py-1 rounded-full">
-            <Text className="text-[10px] font-bold text-[#854D0E]">11d Trial</Text>
+            <Text className="text-[10px] font-bold text-[#854D0E]">{trialDaysLeft}d Trial</Text>
           </View>
         </View>
 

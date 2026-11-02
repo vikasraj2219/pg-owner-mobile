@@ -12,16 +12,32 @@ export default function CheckoutScreen() {
 
   const depositPaise = 1200000;
   const utilitiesDebitPaise = 45000;
-  const deductionNumber = parseInt(deductions, 10) || 0;
-  const netRefundPaise = Math.max(0, depositPaise - utilitiesDebitPaise - deductionNumber * 100);
+  const deductionNumber = Math.max(0, parseFloat(deductions.replace(/,/g, '')) || 0);
+  const netRefundPaise = Math.max(
+    0,
+    depositPaise - utilitiesDebitPaise - Math.round(deductionNumber * 100),
+  );
 
   const handleConfirmVacate = () => {
+    const deductionClean = parseFloat(deductions.replace(/,/g, ''));
+    if (isNaN(deductionClean) || deductionClean < 0) {
+      Alert.alert(
+        'Invalid Deduction',
+        'Please enter a valid non-negative deduction amount (or 0).',
+      );
+      return;
+    }
+
     Alert.alert(
       'Confirm Vacate & Settlement',
       `Net refund of ${formatINR(netRefundPaise)} recorded. Bed ${tenantId} marked vacant.`,
       [
         {
-          text: 'Complete',
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Complete Settlement',
           onPress: () => router.replace('/(tabs)/matrix'),
         },
       ],

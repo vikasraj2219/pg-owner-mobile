@@ -30,6 +30,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   unlockWithBiometrics: () => Promise<boolean>;
   enableBiometrics: (enable: boolean) => Promise<void>;
+  loginWithDemo: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -158,45 +159,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (payload: LoginPayload) => {
     setIsLoading(true);
     try {
-      try {
-        const data = await loginApi(payload);
-        await persistAuthData(data);
-      } catch (_err) {
-        // Demo fallback for offline/preview testing
-        const demoData: AuthResponseData = {
-          token: 'demo-jwt-token',
-          user: {
-            id: 'u-1',
-            name: 'Ramesh Kumar',
-            phone: payload.identifier.includes('@') ? '9876543210' : payload.identifier,
-            email: payload.identifier.includes('@') ? payload.identifier : 'ramesh@srisaipg.in',
-            role: 'owner',
-          },
-          organization: {
-            _id: 'org-1',
-            name: 'Sri Sai Boys PG, Madhapur',
-            ownerName: 'Ramesh Kumar',
-            phone: '9876543210',
-            email: 'ramesh@srisaipg.in',
-            settings: {
-              rentDueDay: 5,
-              gracePeriodDays: 5,
-              defaultLateFeePaise: 50000,
-            },
-          },
-          subscription: {
-            _id: 'sub-1',
-            organization: 'org-1',
-            plan: 'starter',
-            status: 'trialing',
-            trialEndsAt: new Date(Date.now() + 11 * 24 * 60 * 60 * 1000).toISOString(),
-            currentPeriodEnd: new Date(Date.now() + 11 * 24 * 60 * 60 * 1000).toISOString(),
-            maxProperties: 1,
-            maxBeds: 50,
-          },
-        };
-        await persistAuthData(demoData);
-      }
+      const data = await loginApi(payload);
+      await persistAuthData(data);
     } finally {
       setIsLoading(false);
     }
@@ -205,44 +169,49 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const register = async (payload: RegisterOwnerPayload) => {
     setIsLoading(true);
     try {
-      try {
-        const data = await registerOwnerApi(payload);
-        await persistAuthData(data);
-      } catch (_err) {
-        const demoData: AuthResponseData = {
-          token: 'demo-jwt-token',
-          user: {
-            id: 'u-1',
-            name: payload.ownerName,
-            phone: payload.phone,
-            email: payload.email,
-            role: 'owner',
+      const data = await registerOwnerApi(payload);
+      await persistAuthData(data);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loginWithDemo = async () => {
+    setIsLoading(true);
+    try {
+      const demoData: AuthResponseData = {
+        token: 'demo-jwt-token',
+        user: {
+          id: 'u-1',
+          name: 'Ramesh Kumar',
+          phone: '9876543210',
+          email: 'ramesh@srisaipg.in',
+          role: 'owner',
+        },
+        organization: {
+          _id: 'org-1',
+          name: 'Sri Sai Boys PG, Madhapur',
+          ownerName: 'Ramesh Kumar',
+          phone: '9876543210',
+          email: 'ramesh@srisaipg.in',
+          settings: {
+            rentDueDay: 5,
+            gracePeriodDays: 5,
+            defaultLateFeePaise: 50000,
           },
-          organization: {
-            _id: 'org-1',
-            name: payload.orgName || 'Sri Sai Boys PG, Madhapur',
-            ownerName: payload.ownerName,
-            phone: payload.phone,
-            email: payload.email,
-            settings: {
-              rentDueDay: 5,
-              gracePeriodDays: 5,
-              defaultLateFeePaise: 50000,
-            },
-          },
-          subscription: {
-            _id: 'sub-1',
-            organization: 'org-1',
-            plan: 'starter',
-            status: 'trialing',
-            trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-            currentPeriodEnd: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-            maxProperties: 1,
-            maxBeds: 50,
-          },
-        };
-        await persistAuthData(demoData);
-      }
+        },
+        subscription: {
+          _id: 'sub-1',
+          organization: 'org-1',
+          plan: 'starter',
+          status: 'trialing',
+          trialEndsAt: new Date(Date.now() + 11 * 24 * 60 * 60 * 1000).toISOString(),
+          currentPeriodEnd: new Date(Date.now() + 11 * 24 * 60 * 60 * 1000).toISOString(),
+          maxProperties: 1,
+          maxBeds: 50,
+        },
+      };
+      await persistAuthData(demoData);
     } finally {
       setIsLoading(false);
     }
@@ -290,6 +259,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         logout,
         unlockWithBiometrics,
         enableBiometrics,
+        loginWithDemo,
       }}
     >
       {children}

@@ -1,31 +1,35 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Modal } from 'react-native';
+import React, { useState, useMemo } from 'react';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import {
-  ChevronDown,
-  Bell,
-  AlertCircle,
-  ChevronRight,
-  Plus,
-  X,
-  CheckCircle2,
-} from 'lucide-react-native';
+import { ChevronDown, Bell, AlertCircle, ChevronRight, Plus } from 'lucide-react-native';
 import { useAuth } from '../../src/hooks/useAuth';
+import { useProperties } from '../../src/context/PropertyContext';
+import { PropertySwitcherModal } from '../../src/components/PropertySwitcherModal';
+import { AddPropertyModal } from '../../src/components/AddPropertyModal';
 
 export default function PulseScreen() {
   const router = useRouter();
-  const { organization } = useAuth();
-  const [showPropertyPicker, setShowPropertyPicker] = useState(false);
-  const [selectedProperty, setSelectedProperty] = useState(
-    organization?.name || 'Sri Sai Boys PG, Madhapur',
-  );
+  const { organization, subscription } = useAuth();
+  const { properties, selectedProperty, selectedPropertyId, setSelectedPropertyId } =
+    useProperties();
 
-  const properties = [
-    'Sri Sai Boys PG, Madhapur',
-    'Sri Sai Luxury PG, Gachibowli',
-    'Sri Sai Executive, Hitec City',
-  ];
+  const [showPropertyPicker, setShowPropertyPicker] = useState(false);
+  const [showAddProperty, setShowAddProperty] = useState(false);
+
+  // Dynamic month & year display
+  const currentMonthYear = useMemo(() => {
+    return new Date().toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+  }, []);
+
+  // Dynamic trial remaining days
+  const trialDaysLeft = useMemo(() => {
+    if (!subscription?.trialEndsAt) return 14;
+    const diffTime = new Date(subscription.trialEndsAt).getTime() - Date.now();
+    return Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+  }, [subscription]);
+
+  const activePropertyName = selectedProperty?.name || organization?.name || 'My PG Property';
 
   return (
     <SafeAreaView className="flex-1 bg-[#F8F9FA]" edges={['top']}>
@@ -46,7 +50,7 @@ export default function PulseScreen() {
                 className="text-base font-extrabold text-slate-900 flex-1 mr-2"
                 numberOfLines={1}
               >
-                {selectedProperty}
+                {activePropertyName}
               </Text>
               <ChevronDown size={18} color="#1E293B" strokeWidth={2.5} />
             </TouchableOpacity>
@@ -63,9 +67,11 @@ export default function PulseScreen() {
 
           {/* Month & Trial Pill Header */}
           <View className="flex-row items-center justify-between mb-4">
-            <Text className="text-base font-medium text-slate-600">October 2026</Text>
+            <Text className="text-base font-medium text-slate-600">{currentMonthYear}</Text>
             <View className="bg-[#FEF9C3] border border-[#FDE047] px-3 py-1 rounded-full">
-              <Text className="text-xs font-bold text-[#854D0E]">11 days trial left</Text>
+              <Text className="text-xs font-bold text-[#854D0E]">
+                {trialDaysLeft} days trial left
+              </Text>
             </View>
           </View>
 
@@ -98,63 +104,60 @@ export default function PulseScreen() {
               className="flex-1 bg-white border border-slate-200/80 rounded-2xl p-4 shadow-xs justify-between min-h-[120px]"
             >
               <View>
-                <Text className="text-xs font-semibold text-slate-600 mb-1.5">Occupancy</Text>
-                <Text className="text-2xl font-extrabold text-slate-900 mb-2">42 / 48</Text>
-                {/* Blue progress bar */}
-                <View className="w-full h-2 bg-slate-100 rounded-full overflow-hidden mb-2">
-                  <View className="h-full bg-blue-600 rounded-full" style={{ width: '87.5%' }} />
-                </View>
+                <Text className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">
+                  Occupancy
+                </Text>
+                <Text className="text-2xl font-extrabold text-slate-900">42 / 48</Text>
               </View>
-              <Text className="text-xs font-medium text-slate-500">87.5% beds full</Text>
+              <View className="flex-row items-center justify-between mt-3 pt-2 border-t border-slate-100">
+                <Text className="text-xs font-bold text-[#0A6C50]">87.5% full</Text>
+                <ChevronRight size={16} color="#94A3B8" />
+              </View>
             </TouchableOpacity>
 
-            {/* Net Profit Card */}
-            <View className="flex-1 bg-white border border-slate-200/80 rounded-2xl p-4 shadow-xs justify-between min-h-[120px]">
+            {/* Net Operating Profit Card */}
+            <TouchableOpacity
+              activeOpacity={0.9}
+              onPress={() => router.push('/(tabs)/more')}
+              className="flex-1 bg-white border border-slate-200/80 rounded-2xl p-4 shadow-xs justify-between min-h-[120px]"
+            >
               <View>
-                <Text className="text-xs font-semibold text-slate-600 mb-1.5">Net profit</Text>
-                <Text className="text-2xl font-extrabold text-[#0A6C50] mb-2">₹2,18,000</Text>
+                <Text className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">
+                  Net profit
+                </Text>
+                <Text className="text-2xl font-extrabold text-slate-900">₹2.18L</Text>
               </View>
-              <Text className="text-xs font-medium text-slate-500">After expenses</Text>
-            </View>
+              <View className="flex-row items-center justify-between mt-3 pt-2 border-t border-slate-100">
+                <Text className="text-xs font-semibold text-slate-500">After ₹1.24L exp</Text>
+                <ChevronRight size={16} color="#94A3B8" />
+              </View>
+            </TouchableOpacity>
           </View>
 
-          {/* Alert Banners */}
-          {/* Overdue Rents Banner */}
+          {/* Overdue Alert Banner */}
           <TouchableOpacity
-            activeOpacity={0.8}
+            activeOpacity={0.85}
             onPress={() => router.push('/(tabs)/dues')}
-            className="bg-[#FFF1F2] border border-[#FECDD3] rounded-2xl p-4 flex-row items-center justify-between mb-3 shadow-xs"
+            className="bg-[#FFF1F2] border border-[#FECDD3] rounded-2xl p-4 mb-4 flex-row items-center justify-between shadow-xs"
           >
-            <View className="flex-row items-center flex-1 mr-2">
-              <AlertCircle size={18} color="#991B1B" />
-              <Text className="text-sm font-bold text-[#991B1B] ml-2.5">
-                6 overdue rents · ₹48,000
-              </Text>
+            <View className="flex-row items-center flex-1 mr-3">
+              <View className="w-10 h-10 rounded-full bg-rose-100 items-center justify-center mr-3">
+                <AlertCircle size={22} color="#BE123C" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-sm font-bold text-[#991B1B]">3 tenants overdue &gt; 5d</Text>
+                <Text className="text-xs text-rose-700 mt-0.5">₹28,000 pending collection</Text>
+              </View>
             </View>
-            <ChevronRight size={18} color="#991B1B" />
-          </TouchableOpacity>
-
-          {/* Vacating Banner */}
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={() => router.push('/(tabs)/matrix')}
-            className="bg-[#FEFCE8] border border-[#FEF08A] rounded-2xl p-4 flex-row items-center justify-between mb-3 shadow-xs"
-          >
-            <View className="flex-row items-center flex-1 mr-2">
-              <AlertCircle size={18} color="#854D0E" />
-              <Text className="text-sm font-bold text-[#854D0E] ml-2.5">
-                1 tenant vacating this week
-              </Text>
-            </View>
-            <ChevronRight size={18} color="#854D0E" />
+            <ChevronRight size={20} color="#BE123C" />
           </TouchableOpacity>
         </ScrollView>
 
         {/* Floating Action Button (FAB) */}
         <TouchableOpacity
           activeOpacity={0.85}
-          onPress={() => router.push('/checkin/201-A')}
-          className="absolute bottom-6 right-5 w-14 h-14 rounded-full bg-[#0A6C50] items-center justify-center shadow-lg"
+          onPress={() => router.push('/(tabs)/matrix')}
+          className="absolute bottom-6 right-6 w-14 h-14 bg-[#0A6C50] rounded-full items-center justify-center shadow-lg"
           style={{
             shadowColor: '#0A6C50',
             shadowOffset: { width: 0, height: 4 },
@@ -168,46 +171,30 @@ export default function PulseScreen() {
       </View>
 
       {/* Property Switcher Modal */}
-      <Modal
+      <PropertySwitcherModal
         visible={showPropertyPicker}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowPropertyPicker(false)}
-      >
-        <TouchableOpacity
-          activeOpacity={1}
-          onPress={() => setShowPropertyPicker(false)}
-          className="flex-1 bg-black/40 justify-end"
-        >
-          <View className="bg-white rounded-t-3xl p-6">
-            <View className="flex-row justify-between items-center mb-4">
-              <Text className="text-lg font-bold text-slate-900">Select PG Branch</Text>
-              <TouchableOpacity onPress={() => setShowPropertyPicker(false)}>
-                <X size={20} color="#64748B" />
-              </TouchableOpacity>
-            </View>
-            {properties.map(item => (
-              <TouchableOpacity
-                key={item}
-                className="py-3.5 px-3 rounded-xl border border-slate-100 flex-row items-center justify-between mb-2"
-                onPress={() => {
-                  setSelectedProperty(item);
-                  setShowPropertyPicker(false);
-                }}
-              >
-                <Text
-                  className={`text-base font-semibold ${
-                    selectedProperty === item ? 'text-[#0A6C50]' : 'text-slate-800'
-                  }`}
-                >
-                  {item}
-                </Text>
-                {selectedProperty === item && <CheckCircle2 size={20} color="#0A6C50" />}
-              </TouchableOpacity>
-            ))}
-          </View>
-        </TouchableOpacity>
-      </Modal>
+        onClose={() => setShowPropertyPicker(false)}
+        properties={properties}
+        selectedPropertyId={selectedPropertyId}
+        onSelectProperty={id => {
+          void setSelectedPropertyId(id);
+          setShowPropertyPicker(false);
+        }}
+        onOpenAddProperty={() => {
+          setShowPropertyPicker(false);
+          setShowAddProperty(true);
+        }}
+      />
+
+      {/* Add Property Modal */}
+      <AddPropertyModal
+        visible={showAddProperty}
+        onClose={() => setShowAddProperty(false)}
+        onSuccess={id => {
+          void setSelectedPropertyId(id);
+          setShowAddProperty(false);
+        }}
+      />
     </SafeAreaView>
   );
 }

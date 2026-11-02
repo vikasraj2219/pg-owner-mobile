@@ -14,6 +14,12 @@ import {
 import { ChevronLeft } from 'lucide-react-native';
 import { PropertyType } from '../types/api';
 import { useProperties } from '../context/PropertyContext';
+import {
+  validateName,
+  validateUpiId,
+  validatePincode,
+  getApiErrorMessage,
+} from '../utils/validation';
 
 interface AddPropertyModalProps {
   visible: boolean;
@@ -37,16 +43,33 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
   const [electricityRate, setElectricityRate] = useState('12');
 
   const handleSave = async () => {
-    if (!name.trim()) {
-      Alert.alert('Required Field', 'Please enter a property name.');
-      return;
-    }
-    if (!upiVpa.trim()) {
-      Alert.alert('Required Field', 'Please enter a UPI ID for rent collection.');
+    const nameResult = validateName(name, 'Property name');
+    if (!nameResult.isValid) {
+      Alert.alert('Required Field', nameResult.error);
       return;
     }
 
-    const ratePaise = Math.round((parseFloat(electricityRate) || 0) * 100);
+    const upiResult = validateUpiId(upiVpa);
+    if (!upiResult.isValid) {
+      Alert.alert('Invalid UPI ID', upiResult.error);
+      return;
+    }
+
+    if (pincode.trim()) {
+      const pinResult = validatePincode(pincode);
+      if (!pinResult.isValid) {
+        Alert.alert('Invalid PIN Code', pinResult.error);
+        return;
+      }
+    }
+
+    const rateNum = parseFloat(electricityRate);
+    if (isNaN(rateNum) || rateNum < 0) {
+      Alert.alert('Invalid Electricity Rate', 'Please enter a valid rate (e.g. 12 or 0).');
+      return;
+    }
+
+    const ratePaise = Math.round(rateNum * 100);
     const fullAddress = [street.trim(), city.trim(), pincode.trim()].filter(Boolean).join(', ');
 
     try {
@@ -69,10 +92,8 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
         onSuccess(created._id);
       }
     } catch (err: unknown) {
-      const message =
-        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-        'Failed to save property. Please try again.';
-      Alert.alert('Error', message);
+      const message = getApiErrorMessage(err);
+      Alert.alert('Save Failed', message);
     }
   };
 
