@@ -288,11 +288,22 @@ export interface QuickCheckinResponseData {
   };
 }
 
+export interface ActivityFeedItem {
+  id: string;
+  type: 'payment' | 'checkin';
+  title: string;
+  subtitle: string;
+  amountPaise?: Paise;
+  timestamp: string;
+}
+
 export interface DashboardStats {
   totalRooms: number;
   totalBeds: number;
   occupiedBeds: number;
   availableBeds: number;
+  maintenanceBeds?: number;
+  noticeBeds?: number;
   occupancyRate: number;
   collectedThisMonthPaise: Paise;
   expectedThisMonthPaise: Paise;
@@ -302,6 +313,7 @@ export interface DashboardStats {
   overdueAmountPaise: Paise;
   netProfitPaise: Paise;
   totalTenants: number;
+  recentActivity?: ActivityFeedItem[];
 }
 
 export interface DueInvoiceItem {

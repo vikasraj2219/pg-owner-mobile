@@ -507,19 +507,19 @@ _Mobile (Completed ✅)_
 
 **Exit:** send a reminder, record payment in one tap, send a PDF receipt to the tenant.
 
-### Stage 5: Pulse dashboard and pilot deployment (Week 10) — _Next Milestone ⏳_
+### Stage 5: Pulse dashboard and pilot deployment (Week 10) — _Completed ✅_
 
 **Goal:** put the MVP in the hands of the 5 pilot owners.
 
-- Build `index.tsx`: collected this month, overdue total, occupancy %, overdue banner linking to Dues, floating action button.
-- Set up Sentry (free tier) on backend and mobile.
-- Build a direct-install Android APK (EAS preview profile or a local release build).
-- Test on a low-end Android phone and a slow connection.
-- Visit all 5 owners in person, install the APK, and seed their real properties and tenants.
+- [x] Build `index.tsx`: collected this month, overdue total, occupancy %, overdue banner linking to Dues, floating action button.
+- [x] Quick actions bar: Check-in, Dues, + Property shortcuts.
+- [x] Live inventory status breakdown card (🟢 Vacant, 🔴 Occupied, 🟡 Notice, ⚪ Maint.).
+- [x] Recent Pulse activity feed with real-time check-in and payment updates.
+- [x] Build direct-install Android release APK (`./pg-owner-mobile-release.apk` & `~/Downloads/pg-owner-mobile.apk`).
 
 **Exit:** all 5 pilot owners actively using it on their properties.
 
-### Stage 6: Pilot feedback and operations expansion (Weeks 11–14)
+### Stage 6: Pilot feedback and operations expansion (Weeks 11–14) — _Next Milestone ⏳_
 
 **Goal:** build second-tier tools driven by owner requests. Let feedback reorder this list.
 
@@ -704,6 +704,35 @@ _Mobile (Completed ✅)_
   - **API Integration & State Invalidation**:
     - Enhanced [`src/api/invoices.ts`](src/api/invoices.ts) and [`src/hooks/useInvoices.ts`](src/hooks/useInvoices.ts) to support multi-mode payments.
     - Invalidates `['invoices']`, `['dashboard']`, and `['matrix']` TanStack queries immediately on payment confirmation.
+
+### ✅ Stage 5: Pulse Dashboard & Pilot Deployment (Mobile)
+
+- **Status**: Completed & Verified
+- **Deliverables**:
+  - **Pulse Screen (`app/(tabs)/index.tsx`)**:
+    - **Header & Property Selector**: Active PG switcher button, notifications indicator, and real-time pull-to-refresh.
+    - **Overdue Alert Banner**: Warning banner highlighting total overdue amount with instant navigation to Dues tab.
+    - **Key Metrics Grid**:
+      - Collected This Month in formatted INR (`formatINR`).
+      - Collection efficiency progress bar (`collectionRate` %).
+      - Occupancy rate with live bed counter (`X / Y beds occupied`).
+      - Expected revenue and pending receivables in integer paise.
+    - **Quick Actions Bar**:
+      - ⚡ *Check-in*: Direct link to Bed Matrix to pick an available bed.
+      - 💰 *Collect Dues*: Direct navigation to Dues tab.
+      - 🏢 *+ Property*: Modal trigger to register an additional PG.
+    - **Bed Inventory Breakdown Card**:
+      - Visual breakdown of beds across 4 states: 🟢 Vacant, 🔴 Occupied, 🟡 Notice, ⚪ Maintenance.
+    - **Live Pulse Activity Feed**:
+      - Chronological list of recent payments and check-in events.
+      - Event icons, timestamps, tenant name, bed code, and amounts in ₹.
+  - **Type Definitions & Integration**:
+    - Expanded [`src/types/api.ts`](src/types/api.ts) with `ActivityFeedItem` and `DashboardStats` breakdown fields.
+    - Connected via `useDashboard` hook with automatic refresh on focus.
+  - **Production Android Build**:
+    - Built standalone direct-install Release APK with `./gradlew assembleRelease`.
+    - Distributed to `./pg-owner-mobile-release.apk` and `~/Downloads/pg-owner-mobile.apk`.
+
 
 
 

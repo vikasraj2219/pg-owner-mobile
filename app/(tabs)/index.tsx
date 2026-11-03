@@ -9,6 +9,11 @@ import {
   ChevronRight,
   Plus,
   CheckCircle2,
+  UserPlus,
+  Receipt,
+  Building2,
+  Clock,
+  Sparkles,
 } from 'lucide-react-native';
 import { useAuth } from '../../src/hooks/useAuth';
 import { useProperties } from '../../src/context/PropertyContext';
@@ -43,6 +48,21 @@ export default function PulseScreen() {
   const activePropertyName = selectedProperty?.name || organization?.name || 'My PG Property';
   const overdueCount = stats?.overdueCount ?? 0;
   const overdueAmountPaise = stats?.overdueAmountPaise ?? 0;
+
+  // Format relative timestamp
+  const formatTime = (ts: string) => {
+    try {
+      const date = new Date(ts);
+      const diffMs = Date.now() - date.getTime();
+      const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+      if (diffHours < 1) return 'Just now';
+      if (diffHours < 24) return `${diffHours}h ago`;
+      const diffDays = Math.floor(diffHours / 24);
+      return `${diffDays}d ago`;
+    } catch {
+      return '';
+    }
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-[#F8F9FA]" edges={['top']}>
@@ -91,7 +111,8 @@ export default function PulseScreen() {
           {/* Month & Trial Pill Header */}
           <View className="flex-row items-center justify-between mb-4">
             <Text className="text-base font-medium text-slate-600">{currentMonthYear}</Text>
-            <View className="bg-[#FEF9C3] border border-[#FDE047] px-3 py-1 rounded-full">
+            <View className="bg-[#FEF9C3] border border-[#FDE047] px-3 py-1 rounded-full flex-row items-center gap-1">
+              <Sparkles size={12} color="#854D0E" />
               <Text className="text-xs font-bold text-[#854D0E]">
                 {trialDaysLeft} days trial left
               </Text>
@@ -124,6 +145,42 @@ export default function PulseScreen() {
               {stats?.collectionRate ?? 0}% collected · {formatINR(stats?.pendingAmountPaise ?? 0)}{' '}
               pending
             </Text>
+          </View>
+
+          {/* Speed Actions: Pilot Quick-Access Bar */}
+          <View className="flex-row gap-2.5 mb-4">
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => router.push('/(tabs)/matrix')}
+              className="flex-1 bg-white border border-slate-200/80 rounded-2xl p-3 items-center justify-center shadow-xs"
+            >
+              <View className="w-10 h-10 rounded-full bg-emerald-50 items-center justify-center mb-1.5">
+                <UserPlus size={20} color="#0A6C50" />
+              </View>
+              <Text className="text-xs font-extrabold text-slate-800 text-center">Check-in</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => router.push('/(tabs)/dues')}
+              className="flex-1 bg-white border border-slate-200/80 rounded-2xl p-3 items-center justify-center shadow-xs"
+            >
+              <View className="w-10 h-10 rounded-full bg-amber-50 items-center justify-center mb-1.5">
+                <Receipt size={20} color="#D97706" />
+              </View>
+              <Text className="text-xs font-extrabold text-slate-800 text-center">Dues</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => setShowAddProperty(true)}
+              className="flex-1 bg-white border border-slate-200/80 rounded-2xl p-3 items-center justify-center shadow-xs"
+            >
+              <View className="w-10 h-10 rounded-full bg-sky-50 items-center justify-center mb-1.5">
+                <Building2 size={20} color="#0284C7" />
+              </View>
+              <Text className="text-xs font-extrabold text-slate-800 text-center">+ Property</Text>
+            </TouchableOpacity>
           </View>
 
           {/* Two-Column Stats: Occupancy & Net Profit */}
@@ -173,6 +230,48 @@ export default function PulseScreen() {
             </TouchableOpacity>
           </View>
 
+          {/* Bed Inventory Breakdown */}
+          <View className="bg-white border border-slate-200/80 rounded-2xl p-4 mb-4 shadow-xs">
+            <View className="flex-row items-center justify-between mb-3">
+              <Text className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                Bed Inventory
+              </Text>
+              <TouchableOpacity onPress={() => router.push('/(tabs)/matrix')}>
+                <Text className="text-xs font-bold text-[#0A6C50]">View Grid →</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View className="flex-row gap-2">
+              <View className="flex-1 bg-emerald-50 border border-emerald-200 rounded-xl p-2.5 items-center">
+                <Text className="text-xs font-bold text-emerald-800">🟢 Vacant</Text>
+                <Text className="text-base font-black text-emerald-900 mt-0.5">
+                  {stats?.availableBeds ?? 0}
+                </Text>
+              </View>
+
+              <View className="flex-1 bg-rose-50 border border-rose-200 rounded-xl p-2.5 items-center">
+                <Text className="text-xs font-bold text-rose-800">🔴 Occupied</Text>
+                <Text className="text-base font-black text-rose-900 mt-0.5">
+                  {stats?.occupiedBeds ?? 0}
+                </Text>
+              </View>
+
+              <View className="flex-1 bg-amber-50 border border-amber-200 rounded-xl p-2.5 items-center">
+                <Text className="text-xs font-bold text-amber-800">🟡 Notice</Text>
+                <Text className="text-base font-black text-amber-900 mt-0.5">
+                  {stats?.noticeBeds ?? 0}
+                </Text>
+              </View>
+
+              <View className="flex-1 bg-slate-100 border border-slate-200 rounded-xl p-2.5 items-center">
+                <Text className="text-xs font-bold text-slate-700">⚪ Maint.</Text>
+                <Text className="text-base font-black text-slate-800 mt-0.5">
+                  {stats?.maintenanceBeds ?? 0}
+                </Text>
+              </View>
+            </View>
+          </View>
+
           {/* Overdue / Dues Status Banner */}
           {overdueCount > 0 ? (
             <TouchableOpacity
@@ -210,6 +309,57 @@ export default function PulseScreen() {
                   </Text>
                 </View>
               </View>
+            </View>
+          )}
+
+          {/* Recent Pulse Activity Feed */}
+          {stats?.recentActivity && stats.recentActivity.length > 0 && (
+            <View className="bg-white border border-slate-200/80 rounded-2xl p-4 mb-4 shadow-xs">
+              <Text className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">
+                Recent Pulse
+              </Text>
+              {stats.recentActivity.map(activity => (
+                <View
+                  key={activity.id}
+                  className="flex-row items-center justify-between py-2.5 border-b border-slate-100 last:border-b-0"
+                >
+                  <View className="flex-row items-center flex-1 mr-3">
+                    <View
+                      className={`w-9 h-9 rounded-full items-center justify-center mr-3 ${
+                        activity.type === 'payment' ? 'bg-emerald-50' : 'bg-blue-50'
+                      }`}
+                    >
+                      {activity.type === 'payment' ? (
+                        <Receipt size={17} color="#0A6C50" />
+                      ) : (
+                        <UserPlus size={17} color="#0284C7" />
+                      )}
+                    </View>
+                    <View className="flex-1">
+                      <Text className="text-xs font-bold text-slate-900" numberOfLines={1}>
+                        {activity.title}
+                      </Text>
+                      <Text className="text-[11px] text-slate-500 mt-0.5" numberOfLines={1}>
+                        {activity.subtitle}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View className="items-end">
+                    {activity.amountPaise !== undefined && (
+                      <Text className="text-xs font-black text-slate-900">
+                        {formatINR(activity.amountPaise)}
+                      </Text>
+                    )}
+                    <View className="flex-row items-center gap-1 mt-0.5">
+                      <Clock size={10} color="#94A3B8" />
+                      <Text className="text-[10px] text-slate-400">
+                        {formatTime(activity.timestamp)}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              ))}
             </View>
           )}
         </ScrollView>
