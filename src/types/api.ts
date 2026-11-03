@@ -96,6 +96,43 @@ export interface ITenant {
   createdAt?: string;
 }
 
+export interface ITenantListItem {
+  _id: string;
+  organization: string;
+  property: {
+    _id: string;
+    name: string;
+    type?: string;
+    address?: string;
+  };
+  currentBed?: {
+    _id: string;
+    bedNumber: string;
+    status: string;
+    room?: {
+      _id?: string;
+      roomNumber: string;
+      floorNumber: number;
+      sharingType: number;
+    };
+  };
+  fullName: string;
+  phone: string;
+  emergencyPhone?: string;
+  email?: string;
+  monthlyRentPaise: Paise;
+  depositPaise: Paise;
+  depositPaidPaise: Paise;
+  kycDocType?: 'aadhaar' | 'pan' | 'passport' | 'voter_id';
+  kycMaskedNumber?: string;
+  kycDocUrl?: string;
+  kycConsent: boolean;
+  status: 'active' | 'notice_period' | 'checked_out';
+  joinedDate?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface IInvoice {
   _id: string;
   organization: string;

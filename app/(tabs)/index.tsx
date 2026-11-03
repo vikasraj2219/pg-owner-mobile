@@ -20,6 +20,7 @@ import { useProperties } from '../../src/context/PropertyContext';
 import { useDashboard } from '../../src/hooks/useDashboard';
 import { PropertySwitcherModal } from '../../src/components/PropertySwitcherModal';
 import { AddPropertyModal } from '../../src/components/AddPropertyModal';
+import { TenantsDirectoryModal } from '../../src/components/TenantsDirectoryModal';
 import { formatINR, formatINRCompact } from '../../src/utils/currency';
 import { formatSafeMonthYear } from '../../src/utils/date';
 
@@ -33,6 +34,7 @@ export default function PulseScreen() {
 
   const [showPropertyPicker, setShowPropertyPicker] = useState(false);
   const [showAddProperty, setShowAddProperty] = useState(false);
+  const [showTenantsModal, setShowTenantsModal] = useState(false);
 
   // Dynamic month & year display
   const currentMonthYear = useMemo(() => {
@@ -237,39 +239,61 @@ export default function PulseScreen() {
               <Text className="text-xs font-bold text-slate-700 uppercase tracking-wider">
                 Bed Inventory
               </Text>
-              <TouchableOpacity onPress={() => router.push('/(tabs)/matrix')}>
-                <Text className="text-xs font-bold text-[#0A6C50]">View Grid →</Text>
-              </TouchableOpacity>
+              <View className="flex-row items-center gap-3">
+                <TouchableOpacity onPress={() => setShowTenantsModal(true)}>
+                  <Text className="text-xs font-bold text-slate-700">Tenants List</Text>
+                </TouchableOpacity>
+                <Text className="text-slate-300">·</Text>
+                <TouchableOpacity onPress={() => router.push('/(tabs)/matrix')}>
+                  <Text className="text-xs font-bold text-[#0A6C50]">View Grid →</Text>
+                </TouchableOpacity>
+              </View>
             </View>
 
             <View className="flex-row gap-2">
-              <View className="flex-1 bg-emerald-50 border border-emerald-200 rounded-xl p-2.5 items-center">
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => router.push('/(tabs)/matrix')}
+                className="flex-1 bg-emerald-50 border border-emerald-200 rounded-xl p-2.5 items-center"
+              >
                 <Text className="text-xs font-bold text-emerald-800">🟢 Vacant</Text>
                 <Text className="text-base font-black text-emerald-900 mt-0.5">
                   {stats?.availableBeds ?? 0}
                 </Text>
-              </View>
+              </TouchableOpacity>
 
-              <View className="flex-1 bg-rose-50 border border-rose-200 rounded-xl p-2.5 items-center">
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => setShowTenantsModal(true)}
+                className="flex-1 bg-rose-50 border border-rose-200 rounded-xl p-2.5 items-center"
+              >
                 <Text className="text-xs font-bold text-rose-800">🔴 Occupied</Text>
                 <Text className="text-base font-black text-rose-900 mt-0.5">
                   {stats?.occupiedBeds ?? 0}
                 </Text>
-              </View>
+              </TouchableOpacity>
 
-              <View className="flex-1 bg-amber-50 border border-amber-200 rounded-xl p-2.5 items-center">
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => setShowTenantsModal(true)}
+                className="flex-1 bg-amber-50 border border-amber-200 rounded-xl p-2.5 items-center"
+              >
                 <Text className="text-xs font-bold text-amber-800">🟡 Notice</Text>
                 <Text className="text-base font-black text-amber-900 mt-0.5">
                   {stats?.noticeBeds ?? 0}
                 </Text>
-              </View>
+              </TouchableOpacity>
 
-              <View className="flex-1 bg-slate-100 border border-slate-200 rounded-xl p-2.5 items-center">
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => router.push('/(tabs)/matrix')}
+                className="flex-1 bg-slate-100 border border-slate-200 rounded-xl p-2.5 items-center"
+              >
                 <Text className="text-xs font-bold text-slate-700">⚪ Maint.</Text>
                 <Text className="text-base font-black text-slate-800 mt-0.5">
                   {stats?.maintenanceBeds ?? 0}
                 </Text>
-              </View>
+              </TouchableOpacity>
             </View>
           </View>
 
@@ -406,6 +430,15 @@ export default function PulseScreen() {
           void setSelectedPropertyId(id);
           setShowAddProperty(false);
         }}
+      />
+
+      {/* Tenants Directory Modal */}
+      <TenantsDirectoryModal
+        visible={showTenantsModal}
+        onClose={() => setShowTenantsModal(false)}
+        properties={properties}
+        selectedPropertyId={selectedPropertyId}
+        onCheckoutTenant={id => router.push(`/checkout/${id}`)}
       />
     </SafeAreaView>
   );
