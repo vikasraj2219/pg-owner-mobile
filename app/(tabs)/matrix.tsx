@@ -453,6 +453,22 @@ export default function MatrixScreen() {
                           .join('')
                           .toUpperCase();
 
+                        const daysLeft = bed.noticeEndDate
+                          ? Math.max(
+                              0,
+                              Math.ceil(
+                                (new Date(bed.noticeEndDate).getTime() - Date.now()) /
+                                  (1000 * 60 * 60 * 24),
+                              ),
+                            )
+                          : null;
+                        const noticeText =
+                          daysLeft !== null
+                            ? daysLeft === 0
+                              ? 'Notice · Ends today'
+                              : `Notice · ${daysLeft}d left`
+                            : 'Notice Period';
+
                         return (
                           <TouchableOpacity
                             key={bed._id}
@@ -479,7 +495,7 @@ export default function MatrixScreen() {
                                 {firstName}
                               </Text>
                               <Text className="text-[11px] font-bold text-amber-700 mt-0.5">
-                                Notice · 3 days left
+                                {noticeText}
                               </Text>
                             </View>
                           </TouchableOpacity>

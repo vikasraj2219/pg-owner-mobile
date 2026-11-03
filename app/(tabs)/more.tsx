@@ -16,6 +16,8 @@ import {
 import { useAuth } from '../../src/hooks/useAuth';
 import { useProperties } from '../../src/context/PropertyContext';
 import { SplashScreenView } from '../../src/components/SplashScreenView';
+import { ExpensesModal } from '../../src/components/ExpensesModal';
+import { SubMeterModal } from '../../src/components/SubMeterModal';
 
 export default function MoreScreen() {
   const {
@@ -28,8 +30,10 @@ export default function MoreScreen() {
     isBiometricSupported,
     isBiometricEnrolled,
   } = useAuth();
-  const { properties } = useProperties();
+  const { properties, selectedProperty } = useProperties();
   const [showSplashPreview, setShowSplashPreview] = useState(false);
+  const [showExpensesModal, setShowExpensesModal] = useState(false);
+  const [showSubMeterModal, setShowSubMeterModal] = useState(false);
 
   // Dynamic trial remaining days
   const trialDaysLeft = React.useMemo(() => {
@@ -71,11 +75,13 @@ export default function MoreScreen() {
           icon: Zap,
           label: 'Sub-meter Electricity Log',
           detail: 'Readings & automatic splits',
+          onPress: () => setShowSubMeterModal(true),
         },
         {
           icon: TrendingDown,
           label: 'Expenses & Monthly P&L',
           detail: 'Groceries, Maintenance, EB',
+          onPress: () => setShowExpensesModal(true),
         },
         {
           icon: Building,
@@ -252,6 +258,20 @@ export default function MoreScreen() {
       >
         <SplashScreenView onDismiss={() => setShowSplashPreview(false)} />
       </Modal>
+
+      {/* Expenses & Live P&L Modal */}
+      <ExpensesModal
+        visible={showExpensesModal}
+        onClose={() => setShowExpensesModal(false)}
+        propertyId={selectedProperty?._id}
+      />
+
+      {/* Sub-meter Electricity Modal */}
+      <SubMeterModal
+        visible={showSubMeterModal}
+        onClose={() => setShowSubMeterModal(false)}
+        property={selectedProperty}
+      />
     </SafeAreaView>
   );
 }

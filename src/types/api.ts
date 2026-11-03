@@ -361,3 +361,150 @@ export interface MarkPaidResponseData {
   invoice: DueInvoiceItem;
   payment: PaymentRecord;
 }
+
+// ==========================================
+// STAGE 6: OPERATIONS, CHECKOUT, METERS & P&L
+// ==========================================
+
+export interface ISettlementStatement {
+  _id: string;
+  settlementNumber: string;
+  checkinDate?: string;
+  checkoutDate: string;
+  depositPaidPaise: Paise;
+  unpaidDuesPaise: Paise;
+  damageDeductionsPaise: Paise;
+  electricityDeductionsPaise: Paise;
+  otherDeductionsPaise: Paise;
+  totalDeductionsPaise: Paise;
+  netRefundPaise: Paise;
+  paymentMethod: 'cash' | 'upi' | 'bank_transfer';
+  transactionReference?: string;
+  notes?: string;
+  tenant?: {
+    _id: string;
+    fullName: string;
+    phone: string;
+  };
+  property?: {
+    _id: string;
+    name: string;
+    code: string;
+  };
+  bed?: {
+    _id: string;
+    bedNumber: string;
+  };
+}
+
+export interface CheckoutPreviewData {
+  tenant: {
+    _id: string;
+    fullName: string;
+    phone: string;
+    status: string;
+    joinedDate?: string;
+    currentBed?: {
+      _id: string;
+      bedNumber: string;
+      status: string;
+    };
+    room?: {
+      _id: string;
+      roomNumber: string;
+      floorNumber: number;
+    };
+  };
+  depositPaidPaise: Paise;
+  unpaidInvoices: Array<{
+    _id: string;
+    invoiceNumber: string;
+    month: number;
+    year: number;
+    totalAmountPaise: Paise;
+    amountPaidPaise: Paise;
+    balanceDuePaise: Paise;
+    dueDate: string;
+    status: string;
+  }>;
+  unpaidDuesPaise: Paise;
+  estimatedRefundPaise: Paise;
+}
+
+export interface CheckoutConfirmPayload {
+  tenantId: string;
+  damageDeductionsPaise?: Paise;
+  electricityDeductionsPaise?: Paise;
+  otherDeductionsPaise?: Paise;
+  refundPaise?: Paise;
+  paymentMethod?: 'cash' | 'upi' | 'bank_transfer';
+  transactionReference?: string;
+  notes?: string;
+}
+
+export interface IMeterReading {
+  _id: string;
+  meterIdentifier?: string;
+  previousReading: number;
+  currentReading: number;
+  unitsConsumed: number;
+  ratePaisePerUnit: Paise;
+  totalAmountPaise: Paise;
+  readingDate: string;
+  photoUrl?: string;
+  splitMethod: 'equal' | 'by_days_occupied';
+  tenantSplits: Array<{
+    tenant: {
+      _id: string;
+      fullName: string;
+      phone: string;
+    };
+    daysOccupied: number;
+    sharePaise: Paise;
+  }>;
+}
+
+export interface IExpense {
+  _id: string;
+  category:
+    | 'maintenance'
+    | 'electricity'
+    | 'water'
+    | 'wifi'
+    | 'groceries_food'
+    | 'staff_salary'
+    | 'rent_lease'
+    | 'cleaning'
+    | 'other';
+  amountPaise: Paise;
+  description: string;
+  date: string;
+  receiptUrl?: string;
+  paymentMethod: 'cash' | 'upi' | 'bank_transfer';
+  paidTo?: string;
+  property?: {
+    _id: string;
+    name: string;
+    code: string;
+  };
+}
+
+export interface IPnLSummary {
+  period: {
+    month: number;
+    year: number;
+    start: string;
+    end: string;
+  };
+  collectionsPaise: Paise;
+  expensesPaise: Paise;
+  netCashflowPaise: Paise;
+  profitMarginRate: number;
+  categoryBreakdown: Array<{
+    category: string;
+    amountPaise: Paise;
+    percentage: number;
+  }>;
+  totalExpensesCount: number;
+  totalPaymentsCount: number;
+}

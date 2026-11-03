@@ -45,6 +45,14 @@ export const createProperty = async (payload: CreatePropertyPayload): Promise<IP
 };
 
 /**
+ * Fetch all rooms for a property
+ */
+export const fetchPropertyRooms = async (propertyId: string): Promise<IRoom[]> => {
+  const response = await apiClient.get<ApiResponse<IRoom[]>>(`/properties/${propertyId}/rooms`);
+  return response.data.data;
+};
+
+/**
  * Create a room and auto-generate bed chips inside a property
  */
 export const createRoom = async (

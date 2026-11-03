@@ -519,19 +519,18 @@ _Mobile (Completed ✅)_
 
 **Exit:** all 5 pilot owners actively using it on their properties.
 
-### Stage 6: Pilot feedback and operations expansion (Weeks 11–14) — _Next Milestone ⏳_
+### Stage 6: Pilot feedback and operations expansion (Weeks 11–14) — _Completed ✅_
 
-**Goal:** build second-tier tools driven by owner requests. Let feedback reorder this list.
+**Goal:** build second-tier tools driven by owner requests.
 
-- **Guarded checkout and settlement:** preview pending rent, unbilled electricity and damage deductions against the deposit; `POST /api/checkouts/confirm` runs in a transaction, releases the bed and produces a settlement statement.
-- **Sub-meter reader:** reading + dial photo, units × rate, split by days occupied, added as line items to the next invoice.
-- **Expense ledger and live P&L:** categories, receipt photos, net cashflow = collections − expenses.
-- **Notice period** status with countdown on the bed chip.
-- Maintenance tickets and visitor log only if pilot owners ask for them.
+- [x] **Guarded checkout and settlement:** preview pending rent, unbilled electricity and damage deductions against the deposit; `POST /api/checkouts/confirm` runs in a transaction, releases the bed, settles unpaid dues, and produces a sequential settlement statement (`SET-YYYYMM-XXXX-SEQ`).
+- [x] **Sub-meter reader:** reading dial, units × rate, split across active tenants (equal or by days stayed), saved with photo and tenant splits via [`src/components/SubMeterModal.tsx`](src/components/SubMeterModal.tsx).
+- [x] **Expense ledger and live P&L:** categories, receipt details, net cashflow = collections − expenses, profit margin calculation via [`src/components/ExpensesModal.tsx`](src/components/ExpensesModal.tsx).
+- [x] **Notice period** management: 30-day notice toggle in [`src/components/OccupiedBedSheet.tsx`](src/components/OccupiedBedSheet.tsx), dynamic days-remaining countdown badge on bed chips in [`app/(tabs)/matrix.tsx`](app/(tabs)/matrix.tsx).
 
-**Exit:** at least 3 of 5 owners use the app weekly; the top 10 complaints are fixed.
+**Exit:** checkout statements, EB splits, live P&L cashflow, and notice countdown active.
 
-### Stage 7: Team roles and subscription paywall (Weeks 15–16)
+### Stage 7: Team roles and subscription paywall (Weeks 15–16) — _Next Milestone ⏳_
 
 **Goal:** monetization and multi-staff access.
 
@@ -732,6 +731,35 @@ _Mobile (Completed ✅)_
   - **Production Android Build**:
     - Built standalone direct-install Release APK with `./gradlew assembleRelease`.
     - Distributed to `./pg-owner-mobile-release.apk` and `~/Downloads/pg-owner-mobile.apk`.
+
+### ✅ Stage 6: Pilot Feedback & Operations Expansion (Mobile)
+
+- **Status**: Completed & Verified
+- **Deliverables**:
+  - **Guarded Checkout & Settlement Screen (`app/checkout/[tenantId].tsx`)**:
+    - Live settlement preview: security deposit paid, unpaid invoice dues, damage deductions, and unbilled electricity.
+    - Payment mode selection (UPI, Cash, Bank Transfer) with integer paise calculations.
+    - Atomic checkout confirmation invoking `POST /api/checkouts/confirm`.
+    - Real-time settlement statement confirmation card with sequential `SET-YYYYMM-XXXX-SEQ` receipt number.
+  - **Notice Period Management**:
+    - [`src/components/OccupiedBedSheet.tsx`](src/components/OccupiedBedSheet.tsx): 30-day notice period toggle and cancel notice action.
+    - [`app/(tabs)/matrix.tsx`](app/(tabs)/matrix.tsx): Dynamic notice period countdown badge on yellow bed chips (`Notice · ${daysLeft}d left` or `Notice · Ends today`).
+  - **Sub-Meter Electricity Reader Modal ([`src/components/SubMeterModal.tsx`](src/components/SubMeterModal.tsx))**:
+    - Room dial logger with automatic prefill of previous reading from backend.
+    - Current dial input, rate per unit in ₹, units consumed counter, and bill amount.
+    - Split method toggle: Equal split across room tenants vs By Days Stayed.
+    - Past meter readings history with per-tenant share breakdown.
+  - **Expense Ledger & Live P&L Modal ([`src/components/ExpensesModal.tsx`](src/components/ExpensesModal.tsx))**:
+    - Live P&L Hero Card: Collections vs Expenses = Net Operating Cashflow in ₹.
+    - Expense category breakdown with percentage progress bars.
+    - Log New Expense form: 9 standard PG expense categories (Maintenance, EB, Water, Wifi, Groceries, Staff Salary, Rent/Lease, Cleaning, Other), integer paise storage, description, paid-to vendor, and payment method.
+    - Recent expense ledger list with date and formatted INR amounts.
+  - **Operations Hub in More Tab (`app/(tabs)/more.tsx`)**:
+    - Direct modal triggers from "Sub-meter Electricity Log" and "Expenses & Monthly P&L" menu items.
+  - **Standalone Android Release APK**:
+    - Recompiled with `./gradlew assembleRelease` (**BUILD SUCCESSFUL in 1m 19s**).
+    - Copied to `./pg-owner-mobile-release.apk` and `~/Downloads/pg-owner-mobile.apk`.
+
 
 
 

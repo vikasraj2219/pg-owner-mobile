@@ -1,9 +1,19 @@
-import React from 'react';
-import { Modal, View, Text, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
-import { MessageSquare, X, LogOut } from 'lucide-react-native';
+import React, { useState } from 'react';
+import {
+  Modal,
+  View,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
+import { MessageSquare, X, LogOut, Clock } from 'lucide-react-native';
+import { useQueryClient } from '@tanstack/react-query';
 import { IMatrixBed, IMatrixRoom } from '../types/api';
 import { formatINR } from '../utils/currency';
 import { sendRentReminder } from '../utils/whatsapp';
+import { setTenantNoticeApi, cancelTenantNoticeApi } from '../api/notice';
 
 interface OccupiedBedSheetProps {
   visible: boolean;
@@ -24,6 +34,9 @@ export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
   onViewProfile,
   onCheckout,
 }) => {
+  const queryClient = useQueryClient();
+  const [isUpdatingNotice, setIsUpdatingNotice] = useState(false);
+
   if (!bed || !room || !bed.currentTenant) return null;
 
   const tenant = bed.currentTenant;
@@ -38,6 +51,7 @@ export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
 
   const isDue = tenant.paymentStatus === 'DUE' || (tenant.rentDuePaise && tenant.rentDuePaise > 0);
   const overdueText = tenant.overdueDays ? ` · ${tenant.overdueDays} days overdue` : '';
+  const isOnNotice = bed.status === 'notice_period';
 
   const joinedDisplay = tenant.joinedDate
     ? new Date(tenant.joinedDate).toLocaleDateString('en-IN', {
@@ -56,6 +70,38 @@ export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
         tenant.monthlyRentPaise || bed.baseRentPaise,
         upiVpa,
       );
+    }
+  };
+
+  const handleToggleNotice = async () => {
+    if (!tenant._id) return;
+    setIsUpdatingNotice(true);
+    try {
+      if (isOnNotice) {
+        await cancelTenantNoticeApi(tenant._id);
+        queryClient.invalidateQueries({ queryKey: ['matrix'] });
+        queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+        Alert.alert('Notice Canceled', `Notice period removed for ${tenant.fullName}.`);
+        onClose();
+      } else {
+        const vacateDate = new Date();
+        vacateDate.setDate(vacateDate.getDate() + 30); // Standard 30 days notice
+        await setTenantNoticeApi(tenant._id, {
+          expectedVacateDate: vacateDate.toISOString(),
+          notes: 'Standard 30-day notice period',
+        });
+        queryClient.invalidateQueries({ queryKey: ['matrix'] });
+        queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+        Alert.alert(
+          'Notice Period Active',
+          `${tenant.fullName} has been put on 30 days notice (Ends ${vacateDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}).`,
+        );
+        onClose();
+      }
+    } catch {
+      Alert.alert('Notice Error', 'Failed to update notice period status.');
+    } finally {
+      setIsUpdatingNotice(false);
     }
   };
 
@@ -151,6 +197,29 @@ export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
                   <Text className="text-base font-extrabold text-white">View dues & profile</Text>
                 </TouchableOpacity>
               </View>
+
+              {/* Notice Period Button */}
+              <TouchableOpacity
+                activeOpacity={0.8}
+                disabled={isUpdatingNotice}
+                onPress={handleToggleNotice}
+                className={`w-full rounded-2xl py-3.5 flex-row items-center justify-center mb-2.5 border ${
+                  isOnNotice ? 'bg-[#FEF3C7] border-[#FCD34D]' : 'bg-amber-50 border-amber-200'
+                }`}
+              >
+                {isUpdatingNotice ? (
+                  <ActivityIndicator size="small" color="#B45309" />
+                ) : (
+                  <>
+                    <Clock size={18} color="#B45309" />
+                    <Text className="text-sm font-bold text-amber-900 ml-2">
+                      {isOnNotice
+                        ? 'Cancel Notice Period (Restore Bed)'
+                        : 'Mark Notice Period (30 Days)'}
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
 
               {/* Checkout / Vacate Button */}
               {onCheckout && (
