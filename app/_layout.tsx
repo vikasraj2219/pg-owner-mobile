@@ -66,6 +66,12 @@ function NavigationGuard() {
           name="checkout/[tenantId]"
           options={{ presentation: 'modal', headerShown: true, title: 'Checkout Settlement' }}
         />
+        <Stack.Screen name="tenant/[id]" options={{ presentation: 'card', headerShown: false }} />
+        <Stack.Screen
+          name="tenant/edit/[id]"
+          options={{ presentation: 'card', headerShown: false }}
+        />
+        <Stack.Screen name="tenants/add" options={{ presentation: 'card', headerShown: false }} />
       </Stack>
 
       {/* Biometric Lock Screen Overlay */}

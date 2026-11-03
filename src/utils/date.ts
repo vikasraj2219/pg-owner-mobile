@@ -59,3 +59,17 @@ export const formatSafeDate = (
     return '';
   }
 };
+
+/**
+ * Returns safe day and short month (e.g. "12 Jun", "3 Nov")
+ */
+export const formatDayMonth = (input: string | number | Date | undefined): string => {
+  if (!input) return '';
+  try {
+    const d = new Date(input);
+    if (isNaN(d.getTime())) return '';
+    return `${d.getDate()} ${MONTHS_SHORT[d.getMonth()]}`;
+  } catch {
+    return '';
+  }
+};

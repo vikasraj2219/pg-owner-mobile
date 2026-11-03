@@ -104,6 +104,7 @@ export interface ITenantListItem {
     name: string;
     type?: string;
     address?: string;
+    upiVpa?: string;
   };
   currentBed?: {
     _id: string;
@@ -114,6 +115,7 @@ export interface ITenantListItem {
       roomNumber: string;
       floorNumber: number;
       sharingType: number;
+      baseRentPaisePerBed?: number;
     };
   };
   fullName: string;
@@ -123,6 +125,8 @@ export interface ITenantListItem {
   monthlyRentPaise: Paise;
   depositPaise: Paise;
   depositPaidPaise: Paise;
+  balanceDuePaise?: Paise;
+  hasOverdue?: boolean;
   kycDocType?: 'aadhaar' | 'pan' | 'passport' | 'voter_id';
   kycMaskedNumber?: string;
   kycDocUrl?: string;
@@ -131,6 +135,63 @@ export interface ITenantListItem {
   joinedDate?: string;
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface IPayment {
+  _id: string;
+  organization: string;
+  property: string;
+  tenant: string;
+  invoice: string;
+  receiptNumber: string;
+  amountPaidPaise: Paise;
+  paymentMethod: 'cash' | 'upi' | 'bank_transfer';
+  transactionReference?: string;
+  notes?: string;
+  paymentDate: string;
+  createdAt?: string;
+}
+
+export interface IDepositLedger {
+  _id: string;
+  organization: string;
+  property: string;
+  tenant: string;
+  amountPaise: Paise;
+  type: 'received' | 'refunded' | 'deducted';
+  paymentMethod: string;
+  notes?: string;
+  date: string;
+  createdAt?: string;
+}
+
+export interface IBedAssignment {
+  _id: string;
+  organization: string;
+  property: string;
+  bed: {
+    _id: string;
+    bedNumber: string;
+  };
+  room?: {
+    _id: string;
+    roomNumber: string;
+    floorNumber: number;
+  };
+  tenant: string;
+  startDate: string;
+  endDate?: string;
+  status: 'active' | 'transferred' | 'vacated';
+  notes?: string;
+}
+
+export interface ITenantDetailData {
+  tenant: ITenantListItem;
+  invoices: IInvoice[];
+  deposits: IDepositLedger[];
+  bedHistory: IBedAssignment[];
+  payments: IPayment[];
+  balanceDuePaise: Paise;
 }
 
 export interface IInvoice {

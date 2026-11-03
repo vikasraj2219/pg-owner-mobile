@@ -71,6 +71,13 @@ export default function TabsLayout() {
           tabBarIcon: ({ color }) => <Menu color={color} size={22} strokeWidth={2.2} />,
         }}
       />
+      <Tabs.Screen
+        name="tenants"
+        options={{
+          href: null,
+          title: 'Tenants',
+        }}
+      />
     </Tabs>
   );
 }

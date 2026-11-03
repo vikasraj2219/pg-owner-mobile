@@ -240,7 +240,7 @@ export default function PulseScreen() {
                 Bed Inventory
               </Text>
               <View className="flex-row items-center gap-3">
-                <TouchableOpacity onPress={() => setShowTenantsModal(true)}>
+                <TouchableOpacity onPress={() => router.push('/(tabs)/tenants' as any)}>
                   <Text className="text-xs font-bold text-slate-700">Tenants List</Text>
                 </TouchableOpacity>
                 <Text className="text-slate-300">·</Text>
@@ -264,7 +264,9 @@ export default function PulseScreen() {
 
               <TouchableOpacity
                 activeOpacity={0.8}
-                onPress={() => setShowTenantsModal(true)}
+                onPress={() =>
+                  router.push({ pathname: '/(tabs)/tenants' as any, params: { filter: 'active' } })
+                }
                 className="flex-1 bg-rose-50 border border-rose-200 rounded-xl p-2.5 items-center"
               >
                 <Text className="text-xs font-bold text-rose-800">🔴 Occupied</Text>
@@ -275,7 +277,9 @@ export default function PulseScreen() {
 
               <TouchableOpacity
                 activeOpacity={0.8}
-                onPress={() => setShowTenantsModal(true)}
+                onPress={() =>
+                  router.push({ pathname: '/(tabs)/tenants' as any, params: { filter: 'notice' } })
+                }
                 className="flex-1 bg-amber-50 border border-amber-200 rounded-xl p-2.5 items-center"
               >
                 <Text className="text-xs font-bold text-amber-800">🟡 Notice</Text>

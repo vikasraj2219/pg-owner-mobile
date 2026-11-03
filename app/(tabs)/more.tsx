@@ -84,7 +84,7 @@ export default function MoreScreen() {
           icon: UserCheck,
           label: 'Tenants Directory',
           detail: 'Search all tenants, room details & contacts',
-          onPress: () => setShowTenantsModal(true),
+          onPress: () => router.push('/(tabs)/tenants' as any),
         },
         {
           icon: Zap,

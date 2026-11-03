@@ -21,3 +21,14 @@ export const sendRentReminder = async (
     Alert.alert('Error', 'Could not open WhatsApp. Please verify WhatsApp is installed.');
   }
 };
+
+export const openWhatsApp = async (phone: string, text?: string): Promise<void> => {
+  const cleanPhone = phone.replace(/\D/g, '');
+  const url = `https://wa.me/91${cleanPhone}${text ? `?text=${encodeURIComponent(text)}` : ''}`;
+
+  try {
+    await Linking.openURL(url);
+  } catch (_err) {
+    Alert.alert('Error', 'Could not open WhatsApp. Please verify WhatsApp is installed.');
+  }
+};
