@@ -334,3 +334,18 @@ export interface DueInvoiceItem {
     upiVpa?: string;
   };
 }
+
+export interface PaymentRecord {
+  _id: string;
+  receiptNumber: string;
+  amountPaidPaise: Paise;
+  paymentMethod: 'cash' | 'upi' | 'bank_transfer';
+  transactionReference?: string;
+  notes?: string;
+  paymentDate: string;
+}
+
+export interface MarkPaidResponseData {
+  invoice: DueInvoiceItem;
+  payment: PaymentRecord;
+}

@@ -487,26 +487,27 @@ _Mobile (Completed ✅)_
 
 **Exit:** tap a green bed, snap an ID, submit → bed turns red and the prorated invoice exists.
 
-### Stage 4: Collections, WhatsApp and receipts (Weeks 8–9) — _Next Milestone ⏳_
+### Stage 4: Collections, WhatsApp and receipts (Weeks 8–9) — _Completed ✅_
 
 **Goal:** monthly billing, 1-tap reminders, instant receipts.
 
-_Backend (Upcoming ⏳)_
+_Backend (Completed ✅)_
 
-- [ ] `POST /api/invoices/generate-monthly`: idempotent, secret-header protected; run it from a scheduled GitHub Action. Running it twice must create no duplicates.
-- [ ] `POST /api/payments/mark-paid`: updates the balance, supports partial payments, logs the payment, generates a sequential receipt number (`RCP-YYYYMM-XXXX`).
-- [ ] `GET /api/invoices`: list receivables with filter support (overdue, unpaid, paid).
+- [x] `POST /api/invoices/generate-monthly`: idempotent, secret-header (`x-cron-secret`) protected; run from scheduled GitHub Action or authenticated session. Running it twice creates 0 duplicate invoices.
+- [x] `POST /api/invoices/:id/pay`: updates the balance, supports partial and full payments, logs the payment, generates a sequential receipt number (`RCP-YYYYMM-XXXX`).
+- [x] `GET /api/invoices`: list receivables with filter support (overdue, unpaid, paid, search) and automatic grace period calculation.
+- [x] `GET /api/payments`: list recorded receipts scoped strictly by organization.
 
-_Mobile (Upcoming ⏳)_
+_Mobile (Completed ✅)_
 
-- [ ] `dues.tsx` with filters: Overdue (>5 days), Unpaid, Paid.
-- [ ] WhatsApp button builds a `wa.me` link with name, bed, amount and the owner's UPI ID.
-- [ ] UPI QR modal with `react-native-qrcode-svg`, shared as an image via the share sheet.
-- [ ] "Mark received" button, then a PDF receipt via `expo-print` + `expo-sharing`.
+- [x] `dues.tsx` with filters: Overdue (>5 days), Unpaid, Paid, All, plus real-time search.
+- [x] WhatsApp button builds a `wa.me` reminder link with tenant name, bed label, due amount and the owner's UPI ID.
+- [x] Dynamic UPI QR modal (`DynamicUpiQrModal`) accessible from each dues card.
+- [x] `RecordPaymentModal.tsx` records payment mode (UPI/Cash/Bank), partial or full amount, and generates/shares branded PDF receipt via `expo-print` + `expo-sharing`.
 
 **Exit:** send a reminder, record payment in one tap, send a PDF receipt to the tenant.
 
-### Stage 5: Pulse dashboard and pilot deployment (Week 10)
+### Stage 5: Pulse dashboard and pilot deployment (Week 10) — _Next Milestone ⏳_
 
 **Goal:** put the MVP in the hands of the 5 pilot owners.
 
@@ -680,6 +681,29 @@ _Mobile (Upcoming ⏳)_
   - **Integration & State Synchronisation**:
     - Connected to `POST /api/checkins/quick` on `pg-owner-backend`.
     - TanStack Query cache invalidation (`matrix`, `properties`, `tenants`) immediately reflects newly occupied bed (🔴) across Bed Matrix and Pulse tabs.
+
+### ✅ Stage 4: Collections, WhatsApp & Instant Receipts (Mobile)
+
+- **Status**: Completed & Verified
+- **Deliverables**:
+  - **Dues Management Screen (`app/(tabs)/dues.tsx`)**:
+    - **Header & Receivables Summary**: Live total outstanding in formatted INR (`formatINR`), unpaid tenant count badge, and current month banner.
+    - **Receivables Filters**: Instant filter pills (`All`, `Overdue (>5 days)`, `Unpaid`, `Paid`) with active indicator.
+    - **Real-Time Search**: Search bar querying tenant names or invoice numbers with instant clear.
+    - **Due Invoice Cards**: Displays tenant initials avatar, name, room/bed badge, due date, amount due in ₹, and overdue state badge.
+    - **1-Tap WhatsApp Reminder**: Generates pre-formatted `wa.me` link with payment details and property UPI ID.
+    - **Instant QR Presentation**: Direct `QrCode` trigger opening [`DynamicUpiQrModal`](src/components/DynamicUpiQrModal.tsx) for in-person payments.
+  - **Payment Recording Sheet Modal ([`src/components/RecordPaymentModal.tsx`](src/components/RecordPaymentModal.tsx))**:
+    - Full vs Partial payment toggle with auto-calculated paise precision.
+    - Payment mode selection: `UPI`, `Cash`, and `Bank Transfer`.
+    - Transaction reference / UTR / check number input and internal notes.
+    - Automatic PDF receipt generation & sharing toggle.
+  - **Branded PDF Receipt Engine ([`src/utils/pdfReceipt.ts`](src/utils/pdfReceipt.ts))**:
+    - HTML/CSS print template styled with property branding, PAID status badge, sequential receipt number (`RCP-YYYYMM-XXXX`), tenant & bed details, and payment method.
+    - Native PDF generation with `expo-print` and one-tap sharing sheet via `expo-sharing`.
+  - **API Integration & State Invalidation**:
+    - Enhanced [`src/api/invoices.ts`](src/api/invoices.ts) and [`src/hooks/useInvoices.ts`](src/hooks/useInvoices.ts) to support multi-mode payments.
+    - Invalidates `['invoices']`, `['dashboard']`, and `['matrix']` TanStack queries immediately on payment confirmation.
 
 
 

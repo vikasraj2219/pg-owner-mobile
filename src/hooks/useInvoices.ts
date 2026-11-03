@@ -1,27 +1,28 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchInvoicesApi, markInvoicePaidApi } from '../api/invoices';
-import { DueInvoiceItem } from '../types/api';
+import { fetchInvoicesApi, markInvoicePaidApi, MarkPaidPayload } from '../api/invoices';
+import { DueInvoiceItem, MarkPaidResponseData } from '../types/api';
 
 export function useInvoices(
   propertyId?: string | null,
   status?: 'all' | 'overdue' | 'unpaid' | 'paid',
+  search?: string,
 ) {
   const queryClient = useQueryClient();
 
   const query = useQuery<DueInvoiceItem[]>({
-    queryKey: ['invoices', propertyId || 'all', status || 'all'],
+    queryKey: ['invoices', propertyId || 'all', status || 'all', search || ''],
     queryFn: () =>
       fetchInvoicesApi({
         propertyId: propertyId || undefined,
         status,
+        search,
       }),
     staleTime: 1000 * 30, // 30 seconds
     refetchOnMount: 'always',
   });
 
-  const markPaidMutation = useMutation({
-    mutationFn: ({ invoiceId, amountPaise }: { invoiceId: string; amountPaise?: number }) =>
-      markInvoicePaidApi(invoiceId, amountPaise),
+  const markPaidMutation = useMutation<MarkPaidResponseData, Error, MarkPaidPayload>({
+    mutationFn: (payload: MarkPaidPayload) => markInvoicePaidApi(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
@@ -42,4 +43,3 @@ export function useInvoices(
     isMarkingPaid: markPaidMutation.isPending,
   };
 }
-

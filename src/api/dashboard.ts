@@ -7,4 +7,3 @@ export const fetchDashboardStatsApi = async (propertyId?: string): Promise<Dashb
   });
   return response.data.data;
 };
-

@@ -4,25 +4,35 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
+  TextInput,
   Alert,
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MessageCircle, CheckCircle2 } from 'lucide-react-native';
+import { MessageCircle, QrCode, CheckCircle2, Share2, Search, X } from 'lucide-react-native';
 import { useProperties } from '../../src/context/PropertyContext';
 import { useInvoices } from '../../src/hooks/useInvoices';
 import { formatINR } from '../../src/utils/currency';
 import { sendRentReminder } from '../../src/utils/whatsapp';
+import { generateAndShareReceipt } from '../../src/utils/pdfReceipt';
+import { RecordPaymentModal } from '../../src/components/RecordPaymentModal';
+import { DynamicUpiQrModal } from '../../src/components/DynamicUpiQrModal';
 import { DueInvoiceItem } from '../../src/types/api';
 
 export default function DuesScreen() {
   const { selectedProperty, selectedPropertyId } = useProperties();
   const [filter, setFilter] = useState<'all' | 'overdue' | 'unpaid' | 'paid'>('overdue');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Modals state
+  const [paymentInvoice, setPaymentInvoice] = useState<DueInvoiceItem | null>(null);
+  const [qrInvoice, setQrInvoice] = useState<DueInvoiceItem | null>(null);
 
   const { invoices, isLoading, isRefetching, refetch, markPaid, isMarkingPaid } = useInvoices(
     selectedPropertyId,
     filter,
+    searchQuery,
   );
 
   const currentMonthYear = useMemo(() => {
@@ -74,32 +84,24 @@ export default function DuesScreen() {
     sendRentReminder(tenantPhone, tenantName, bedName, amountPaise, upiVpa);
   };
 
-  const handleMarkReceived = (item: DueInvoiceItem) => {
-    const tenantName = item.tenant?.fullName || 'Tenant';
-    const bedName = getBedLabel(item);
-    const amountStr = formatINR(item.balanceDuePaise || item.totalAmountPaise);
-
-    Alert.alert(
-      'Mark Rent as Received',
-      `Confirm receipt of ${amountStr} from ${tenantName} (${bedName})?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Confirm Received',
-          onPress: async () => {
-            try {
-              await markPaid({ invoiceId: item._id });
-              Alert.alert('Payment Recorded', `Receipt generated for ${tenantName}.`);
-            } catch (err: unknown) {
-              const msg =
-                (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-                'Failed to record payment. Please try again.';
-              Alert.alert('Error', msg);
-            }
-          },
-        },
-      ],
-    );
+  const handleSharePaidReceipt = async (item: DueInvoiceItem) => {
+    try {
+      await generateAndShareReceipt({
+        receiptNo: item.invoiceNumber.replace('INV-', 'RCP-'),
+        tenantName: item.tenant?.fullName || 'Tenant',
+        bedNo: getBedLabel(item),
+        amountPaise: item.amountPaidPaise || item.totalAmountPaise,
+        date: new Date(item.dueDate).toLocaleDateString('en-IN', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+        }),
+        property: item.property?.name || selectedProperty?.name || 'PG Living',
+        paymentMethod: 'UPI',
+      });
+    } catch (_err) {
+      Alert.alert('Error', 'Unable to generate receipt PDF.');
+    }
   };
 
   return (
@@ -131,6 +133,26 @@ export default function DuesScreen() {
           <Text className="text-2xl font-extrabold text-[#BE123C]">
             {formatINR(totalOutstandingPaise)}
           </Text>
+        </View>
+
+        {/* Search Bar */}
+        <View className="flex-row items-center bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 mb-4 shadow-xs">
+          <Search size={18} color="#94A3B8" className="mr-2" />
+          <TextInput
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholder="Search tenant or invoice number…"
+            placeholderTextColor="#94A3B8"
+            className="flex-1 text-sm font-semibold text-slate-800 ml-2 py-0"
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity
+              onPress={() => setSearchQuery('')}
+              hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
+            >
+              <X size={16} color="#94A3B8" />
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Filter Pills */}
@@ -278,20 +300,31 @@ export default function DuesScreen() {
                   </View>
                 </View>
 
-                {/* Actions: WhatsApp + Mark received */}
-                {!isPaid && (
-                  <View className="flex-row items-center gap-2.5 mt-3.5">
+                {/* Actions: WhatsApp + QR Code + Mark received */}
+                {!isPaid ? (
+                  <View className="flex-row items-center gap-2 mt-3.5">
+                    {/* WhatsApp 1-tap reminder */}
                     <TouchableOpacity
                       activeOpacity={0.8}
                       onPress={() => handleSendWhatsApp(item)}
-                      className="w-12 h-11 bg-[#F0FDF4] border border-[#86EFAC] rounded-xl items-center justify-center"
+                      className="w-11 h-11 bg-[#F0FDF4] border border-[#86EFAC] rounded-xl items-center justify-center"
                     >
-                      <MessageCircle size={20} color="#0A6C50" strokeWidth={2.2} />
+                      <MessageCircle size={19} color="#0A6C50" strokeWidth={2.2} />
                     </TouchableOpacity>
 
+                    {/* Show Dynamic UPI QR Code */}
+                    <TouchableOpacity
+                      activeOpacity={0.8}
+                      onPress={() => setQrInvoice(item)}
+                      className="w-11 h-11 bg-slate-50 border border-slate-200 rounded-xl items-center justify-center"
+                    >
+                      <QrCode size={19} color="#334155" strokeWidth={2} />
+                    </TouchableOpacity>
+
+                    {/* Mark Received Button */}
                     <TouchableOpacity
                       activeOpacity={0.85}
-                      onPress={() => handleMarkReceived(item)}
+                      onPress={() => setPaymentInvoice(item)}
                       disabled={isMarkingPaid}
                       className="flex-1 h-11 bg-[#0A6C50] rounded-xl items-center justify-center shadow-xs"
                     >
@@ -302,11 +335,48 @@ export default function DuesScreen() {
                       )}
                     </TouchableOpacity>
                   </View>
+                ) : (
+                  <View className="flex-row items-center justify-end mt-3 pt-3 border-t border-slate-100">
+                    <TouchableOpacity
+                      activeOpacity={0.8}
+                      onPress={() => handleSharePaidReceipt(item)}
+                      className="flex-row items-center gap-1.5 py-1.5 px-3 bg-emerald-50 rounded-lg"
+                    >
+                      <Share2 size={14} color="#0A6C50" />
+                      <Text className="text-xs font-bold text-[#0A6C50]">Share Receipt PDF</Text>
+                    </TouchableOpacity>
+                  </View>
                 )}
               </View>
             );
           })}
       </ScrollView>
+
+      {/* Record Payment Sheet Modal */}
+      <RecordPaymentModal
+        visible={!!paymentInvoice}
+        invoice={paymentInvoice}
+        onClose={() => setPaymentInvoice(null)}
+        onRecordPayment={payload => markPaid(payload)}
+        isSubmitting={isMarkingPaid}
+      />
+
+      {/* Dynamic UPI QR Modal */}
+      {qrInvoice && (
+        <DynamicUpiQrModal
+          visible={!!qrInvoice}
+          onClose={() => setQrInvoice(null)}
+          upiVpa={selectedProperty?.upiVpa || qrInvoice.property?.upiVpa || ''}
+          amountPaise={qrInvoice.balanceDuePaise || qrInvoice.totalAmountPaise}
+          tenantName={qrInvoice.tenant?.fullName || 'Tenant'}
+          rentPaise={qrInvoice.balanceDuePaise || qrInvoice.totalAmountPaise}
+          onMarkReceived={() => {
+            const target = qrInvoice;
+            setQrInvoice(null);
+            setPaymentInvoice(target);
+          }}
+        />
+      )}
     </SafeAreaView>
   );
 }

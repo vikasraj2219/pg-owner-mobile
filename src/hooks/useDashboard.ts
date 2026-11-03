@@ -21,4 +21,3 @@ export function useDashboard(propertyId?: string | null) {
     error: query.error,
   };
 }
-
