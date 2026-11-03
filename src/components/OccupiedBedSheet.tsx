@@ -12,6 +12,7 @@ import { MessageSquare, X, LogOut, Clock } from 'lucide-react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import { IMatrixBed, IMatrixRoom } from '../types/api';
 import { formatINR } from '../utils/currency';
+import { formatSafeDate } from '../utils/date';
 import { sendRentReminder } from '../utils/whatsapp';
 import { setTenantNoticeApi, cancelTenantNoticeApi } from '../api/notice';
 
@@ -53,13 +54,7 @@ export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
   const overdueText = tenant.overdueDays ? ` · ${tenant.overdueDays} days overdue` : '';
   const isOnNotice = bed.status === 'notice_period';
 
-  const joinedDisplay = tenant.joinedDate
-    ? new Date(tenant.joinedDate).toLocaleDateString('en-IN', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-      })
-    : 'Active Tenant';
+  const joinedDisplay = tenant.joinedDate ? formatSafeDate(tenant.joinedDate) : 'Active Tenant';
 
   const handleWhatsApp = () => {
     if (tenant.phone) {
@@ -94,7 +89,7 @@ export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
         queryClient.invalidateQueries({ queryKey: ['dashboard'] });
         Alert.alert(
           'Notice Period Active',
-          `${tenant.fullName} has been put on 30 days notice (Ends ${vacateDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}).`,
+          `${tenant.fullName} has been put on 30 days notice (Ends ${formatSafeDate(vacateDate)}).`,
         );
         onClose();
       }

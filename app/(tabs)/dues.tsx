@@ -14,6 +14,7 @@ import { MessageCircle, QrCode, CheckCircle2, Share2, Search, X } from 'lucide-r
 import { useProperties } from '../../src/context/PropertyContext';
 import { useInvoices } from '../../src/hooks/useInvoices';
 import { formatINR } from '../../src/utils/currency';
+import { formatSafeMonthYear, formatSafeDate } from '../../src/utils/date';
 import { sendRentReminder } from '../../src/utils/whatsapp';
 import { generateAndShareReceipt } from '../../src/utils/pdfReceipt';
 import { RecordPaymentModal } from '../../src/components/RecordPaymentModal';
@@ -36,7 +37,7 @@ export default function DuesScreen() {
   );
 
   const currentMonthYear = useMemo(() => {
-    return new Date().toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+    return formatSafeMonthYear();
   }, []);
 
   const totalOutstandingPaise = useMemo(() => {
@@ -91,11 +92,7 @@ export default function DuesScreen() {
         tenantName: item.tenant?.fullName || 'Tenant',
         bedNo: getBedLabel(item),
         amountPaise: item.amountPaidPaise || item.totalAmountPaise,
-        date: new Date(item.dueDate).toLocaleDateString('en-IN', {
-          day: 'numeric',
-          month: 'short',
-          year: 'numeric',
-        }),
+        date: formatSafeDate(item.dueDate),
         property: item.property?.name || selectedProperty?.name || 'PG Living',
         paymentMethod: 'UPI',
       });
@@ -250,10 +247,7 @@ export default function DuesScreen() {
             const initials = getInitials(tenantName);
             const bedName = getBedLabel(item);
             const dueDateFormatted = item.dueDate
-              ? `Due ${new Date(item.dueDate).toLocaleDateString('en-IN', {
-                  day: 'numeric',
-                  month: 'short',
-                })}`
+              ? `Due ${formatSafeDate(item.dueDate)}`
               : 'Due Date';
             const amountFormatted = formatINR(item.balanceDuePaise || item.totalAmountPaise);
 

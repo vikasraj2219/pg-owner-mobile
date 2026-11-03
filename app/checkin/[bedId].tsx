@@ -102,12 +102,27 @@ export default function CheckinScreen() {
       const prorated = Math.round((rentNum * remaining) / totalDays);
       const total = prorated + depositNum;
 
+      const MONTHS_SHORT = [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec',
+      ];
+
       return {
         dayOfMonth: d,
         daysRemaining: remaining,
         proratedRent: prorated,
         totalAdvance: total,
-        currentMonthName: today.toLocaleString('default', { month: 'short' }),
+        currentMonthName: MONTHS_SHORT[today.getMonth()] || 'Month',
       };
     }, [monthlyRent, deposit]);
 

@@ -25,7 +25,7 @@ export const PropertyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [selectedPropertyId, setSelectedPropertyIdState] = useState<string | null>(null);
 
   const {
-    data: properties = [],
+    data: rawProperties = [],
     isLoading,
     isError,
     refetch: refetchProperties,
@@ -35,6 +35,8 @@ export const PropertyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     staleTime: 1000 * 60 * 2, // 2 minutes
     refetchOnMount: 'always',
   });
+
+  const properties = Array.isArray(rawProperties) ? rawProperties : [];
 
   // Restore stored selected property id on load
   useEffect(() => {

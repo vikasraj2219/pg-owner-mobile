@@ -14,6 +14,7 @@ import {
 import { X, Check, Receipt, CreditCard, Banknote, Building2 } from 'lucide-react-native';
 import { DueInvoiceItem, MarkPaidResponseData } from '../types/api';
 import { formatINR } from '../utils/currency';
+import { formatSafeDate } from '../utils/date';
 import { generateAndShareReceipt } from '../utils/pdfReceipt';
 
 interface RecordPaymentModalProps {
@@ -102,11 +103,7 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
           tenantName: invoice.tenant?.fullName || 'Tenant',
           bedNo: getBedNumber(),
           amountPaise: currentPayablePaise,
-          date: new Date().toLocaleDateString('en-IN', {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric',
-          }),
+          date: formatSafeDate(new Date()),
           property: invoice.property?.name || 'PG Property',
           paymentMethod,
           transactionRef: transactionRef.trim() || undefined,

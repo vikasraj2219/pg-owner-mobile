@@ -12,6 +12,7 @@ import {
 import { X, Plus, TrendingDown, TrendingUp, IndianRupee } from 'lucide-react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import { formatINR } from '../utils/currency';
+import { formatSafeDate } from '../utils/date';
 import { createExpenseApi, getExpensesApi, getPnLSummaryApi } from '../api/expenses';
 import { IExpense, IPnLSummary } from '../types/api';
 
@@ -267,11 +268,7 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, 
                       {exp.description}
                     </Text>
                     <Text className="text-xs font-medium text-slate-500 mt-0.5 capitalize">
-                      {exp.category.replace('_', ' ')} ·{' '}
-                      {new Date(exp.date).toLocaleDateString('en-IN', {
-                        day: 'numeric',
-                        month: 'short',
-                      })}
+                      {exp.category.replace('_', ' ')} · {formatSafeDate(exp.date)}
                       {exp.paidTo ? ` · ${exp.paidTo}` : ''}
                     </Text>
                   </View>

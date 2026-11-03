@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { ChevronLeft, AlertCircle, Sparkles } from 'lucide-react-native';
 import { IProperty } from '../types/api';
+import { formatINR } from '../utils/currency';
 import { getApiErrorMessage } from '../utils/validation';
 
 interface AddRoomModalProps {
@@ -358,8 +359,8 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
               ))}
             </View>
             <Text className="text-xs font-medium text-slate-600">
-              {sharingType} beds × ₹{rentNumeric.toLocaleString('en-IN')} = ₹
-              {totalMonthlyPotential.toLocaleString('en-IN')} a month when full
+              {sharingType} beds × {formatINR(rentNumeric * 100)} ={' '}
+              {formatINR(totalMonthlyPotential * 100)} a month when full
             </Text>
           </View>
 

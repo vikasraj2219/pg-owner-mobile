@@ -172,27 +172,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [checkBiometrics, isBiometricEnrolled, unlockWithBiometrics]);
 
   const login = async (payload: LoginPayload) => {
-    setIsLoading(true);
-    try {
-      const data = await loginApi(payload);
-      await persistAuthData(data);
-    } finally {
-      setIsLoading(false);
-    }
+    const data = await loginApi(payload);
+    await persistAuthData(data);
   };
 
   const register = async (payload: RegisterOwnerPayload) => {
-    setIsLoading(true);
-    try {
-      const data = await registerOwnerApi(payload);
-      await persistAuthData(data);
-    } finally {
-      setIsLoading(false);
-    }
+    const data = await registerOwnerApi(payload);
+    await persistAuthData(data);
   };
 
   const logout = async (clearBiometrics = false) => {
-    setIsLoading(true);
     try {
       await safeStorage.deleteItem(TOKEN_KEY);
       await safeStorage.deleteItem(USER_CACHE_KEY);
@@ -210,8 +199,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsUnlocked(false);
     } catch (_err) {
       // Ignore
-    } finally {
-      setIsLoading(false);
     }
   };
 

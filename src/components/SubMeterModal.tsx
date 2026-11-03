@@ -12,6 +12,7 @@ import {
 import { X, Zap } from 'lucide-react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import { formatINR } from '../utils/currency';
+import { formatSafeDate } from '../utils/date';
 import { recordMeterReadingApi, getMeterReadingsApi, getLatestRoomReadingApi } from '../api/meters';
 import { fetchPropertyRooms } from '../api/properties';
 import { IMeterReading, IRoom, IProperty } from '../types/api';
@@ -310,12 +311,8 @@ export const SubMeterModal: React.FC<SubMeterModalProps> = ({ visible, onClose, 
                     </Text>
                   </View>
                   <Text className="text-xs font-medium text-slate-500 mb-2">
-                    {new Date(reading.readingDate).toLocaleDateString('en-IN', {
-                      day: 'numeric',
-                      month: 'short',
-                    })}{' '}
-                    · {reading.unitsConsumed} Units ({reading.previousReading} →{' '}
-                    {reading.currentReading})
+                    {formatSafeDate(reading.readingDate)} · {reading.unitsConsumed} Units (
+                    {reading.previousReading} → {reading.currentReading})
                   </Text>
                   {reading.tenantSplits && reading.tenantSplits.length > 0 && (
                     <View className="bg-slate-50 rounded-xl p-2.5 border border-slate-100">

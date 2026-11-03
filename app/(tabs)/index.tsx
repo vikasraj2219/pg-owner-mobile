@@ -21,6 +21,7 @@ import { useDashboard } from '../../src/hooks/useDashboard';
 import { PropertySwitcherModal } from '../../src/components/PropertySwitcherModal';
 import { AddPropertyModal } from '../../src/components/AddPropertyModal';
 import { formatINR, formatINRCompact } from '../../src/utils/currency';
+import { formatSafeMonthYear } from '../../src/utils/date';
 
 export default function PulseScreen() {
   const router = useRouter();
@@ -35,7 +36,7 @@ export default function PulseScreen() {
 
   // Dynamic month & year display
   const currentMonthYear = useMemo(() => {
-    return new Date().toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+    return formatSafeMonthYear();
   }, []);
 
   // Dynamic trial remaining days
