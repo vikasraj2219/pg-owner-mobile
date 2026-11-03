@@ -7,10 +7,11 @@ import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client
 import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { AuthProvider, useAuth } from '../src/context/AuthContext';
 import { PropertyProvider } from '../src/context/PropertyContext';
 import { BiometricLockScreen } from '../src/components/BiometricLockScreen';
+import { SplashScreenView } from '../src/components/SplashScreenView';
 import { ErrorBoundary } from '../src/components/ErrorBoundary';
 
 const queryClient = new QueryClient({
@@ -81,15 +82,10 @@ function NavigationGuard() {
         </View>
       )}
 
-      {/* Initial Session Recovery Loading Overlay */}
+      {/* Brand Splash Screen Overlay during Initial Startup / Session Recovery */}
       {isLoading && (
-        <View
-          style={[
-            StyleSheet.absoluteFill,
-            { backgroundColor: '#F8F9FA', justifyContent: 'center', alignItems: 'center' },
-          ]}
-        >
-          <ActivityIndicator size="large" color="#0A6C50" />
+        <View style={StyleSheet.absoluteFill}>
+          <SplashScreenView showLoader={true} />
         </View>
       )}
     </View>

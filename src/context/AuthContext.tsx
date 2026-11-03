@@ -125,6 +125,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Initial Load & Session Recovery
   useEffect(() => {
     const initializeAuth = async () => {
+      const startTime = Date.now();
       try {
         await checkBiometrics();
 
@@ -164,6 +165,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } catch (_err) {
         // Fallback on error
       } finally {
+        const elapsed = Date.now() - startTime;
+        const minSplashTime = 900;
+        if (elapsed < minSplashTime) {
+          await new Promise(resolve => setTimeout(resolve, minSplashTime - elapsed));
+        }
         setIsLoading(false);
       }
     };

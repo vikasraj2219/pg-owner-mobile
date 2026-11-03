@@ -1,44 +1,60 @@
 import React from 'react';
-import { View, Text, SafeAreaView, TouchableOpacity } from 'react-native';
+import { View, Text, SafeAreaView, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { AppLogo } from './AppLogo';
 
 interface SplashScreenViewProps {
+  showLoader?: boolean;
   onDismiss?: () => void;
 }
 
-export const SplashScreenView: React.FC<SplashScreenViewProps> = ({ onDismiss }) => {
+export const SplashScreenView: React.FC<SplashScreenViewProps> = ({
+  showLoader = true,
+  onDismiss,
+}) => {
   return (
     <SafeAreaView className="flex-1 bg-[#0A6C50] justify-between items-center py-12 px-6">
       {/* Top spacer */}
       <View className="h-4" />
 
       {/* Center Branding */}
-      <TouchableOpacity activeOpacity={0.9} onPress={onDismiss} className="items-center">
-        <View className="mb-6">
-          <AppLogo size={88} variant="white" />
-        </View>
+      <View className="items-center">
+        <TouchableOpacity
+          activeOpacity={onDismiss ? 0.8 : 1}
+          onPress={onDismiss}
+          className="items-center"
+        >
+          <View className="mb-6 shadow-xl elevation-8">
+            <AppLogo size={96} variant="white" />
+          </View>
 
-        <Text className="text-4xl font-extrabold text-white tracking-tight mb-2 text-center">
-          PG Manager
-        </Text>
+          <Text className="text-4xl font-black text-white tracking-tight mb-2 text-center">
+            PG Owner
+          </Text>
 
-        <Text className="text-lg font-medium text-emerald-100 text-center">
-          Run your PG from your pocket
-        </Text>
-      </TouchableOpacity>
+          <Text className="text-base font-semibold text-emerald-100/90 text-center">
+            Run your PG from your pocket
+          </Text>
+        </TouchableOpacity>
+
+        {showLoader && (
+          <View className="mt-8">
+            <ActivityIndicator size="small" color="#A7F3D0" />
+          </View>
+        )}
+      </View>
 
       {/* Bottom status dots and feature tags */}
       <View className="items-center w-full">
         {/* 5 rounded capsules representing bed status colors */}
-        <View className="flex-row items-center gap-2 mb-4">
-          <View className="w-10 h-6 rounded-lg bg-[#D1FAE5]" />
-          <View className="w-10 h-6 rounded-lg bg-[#ECFDF5]" />
-          <View className="w-10 h-6 rounded-lg bg-[#FEF3C7]" />
-          <View className="w-10 h-6 rounded-lg bg-[#FEF9C3]" />
-          <View className="w-10 h-6 rounded-lg bg-[#E2E8F0]" />
+        <View className="flex-row items-center gap-2 mb-3">
+          <View className="w-10 h-3 rounded-full bg-[#34D399]" />
+          <View className="w-10 h-3 rounded-full bg-[#F87171]" />
+          <View className="w-10 h-3 rounded-full bg-[#FBBF24]" />
+          <View className="w-10 h-3 rounded-full bg-[#60A5FA]" />
+          <View className="w-10 h-3 rounded-full bg-[#94A3B8]" />
         </View>
 
-        <Text className="text-sm font-semibold text-emerald-100 tracking-wide">
+        <Text className="text-xs font-bold text-emerald-100/80 tracking-widest uppercase">
           Beds · Rent · KYC · Meters
         </Text>
       </View>
