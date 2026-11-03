@@ -263,8 +263,7 @@ export default function LoginScreen() {
           <View className="items-center py-4 mt-6">
             <TouchableOpacity onPress={() => router.push('/(auth)/register')} className="py-2">
               <Text className="text-sm font-medium text-slate-700">
-                New to PG Manager?{' '}
-                <Text className="text-blue-600 font-bold underline">Register</Text>
+                New to Nilaaya? <Text className="text-blue-600 font-bold underline">Register</Text>
               </Text>
             </TouchableOpacity>
           </View>

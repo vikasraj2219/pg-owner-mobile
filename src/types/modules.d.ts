@@ -31,3 +31,9 @@ declare module '@tanstack/react-query-persist-client' {
 
   export const PersistQueryClientProvider: React.FC<PersistQueryClientProviderProps>;
 }
+
+declare module '*.png' {
+  import { ImageSourcePropType } from 'react-native';
+  const value: ImageSourcePropType;
+  export default value;
+}

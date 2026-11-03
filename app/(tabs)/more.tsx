@@ -66,7 +66,7 @@ export default function MoreScreen() {
   };
 
   const handleLogout = () => {
-    Alert.alert('Sign Out', 'Are you sure you want to log out of PG Manager?', [
+    Alert.alert('Sign Out', 'Are you sure you want to log out of Nilaaya?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Sign Out',
@@ -271,7 +271,7 @@ export default function MoreScreen() {
           className="bg-white border border-rose-200 rounded-2xl p-4 flex-row items-center justify-center shadow-xs mt-1"
         >
           <LogOut size={18} color="#BE123C" />
-          <Text className="text-sm font-bold text-[#BE123C] ml-2">Log out of PG Manager</Text>
+          <Text className="text-sm font-bold text-[#BE123C] ml-2">Log out of Nilaaya</Text>
         </TouchableOpacity>
       </ScrollView>
 

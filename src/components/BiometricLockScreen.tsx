@@ -33,7 +33,7 @@ export const BiometricLockScreen: React.FC = () => {
           <AppLogo size={52} />
         </View>
         <Text className="text-2xl font-extrabold text-slate-900 tracking-tight">
-          Unlock PG Manager
+          Unlock Nilaaya
         </Text>
         <Text className="text-sm text-slate-500 font-medium mt-1">
           {organization?.name || 'Sri Sai Boys PG, Madhapur'}

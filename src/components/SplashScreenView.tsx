@@ -24,11 +24,11 @@ export const SplashScreenView: React.FC<SplashScreenViewProps> = ({
           className="items-center"
         >
           <View className="mb-6 shadow-xl elevation-8">
-            <AppLogo size={96} variant="white" />
+            <AppLogo size={110} variant="white" />
           </View>
 
           <Text className="text-4xl font-black text-white tracking-tight mb-2 text-center">
-            PG Owner
+            Nilaaya
           </Text>
 
           <Text className="text-base font-semibold text-emerald-100/90 text-center">

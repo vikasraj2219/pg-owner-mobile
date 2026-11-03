@@ -73,7 +73,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return true;
       }
       const result = await LocalAuthentication.authenticateAsync({
-        promptMessage: 'Unlock PG Manager',
+        promptMessage: 'Unlock Nilaaya',
         cancelLabel: 'Cancel',
         disableDeviceFallback: false,
       });
@@ -278,7 +278,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       const result = await LocalAuthentication.authenticateAsync({
-        promptMessage: 'Log in to PG Manager',
+        promptMessage: 'Log in to Nilaaya',
         cancelLabel: 'Cancel',
         disableDeviceFallback: false,
       });
