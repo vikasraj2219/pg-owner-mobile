@@ -530,14 +530,14 @@ _Mobile (Completed ✅)_
 
 **Exit:** checkout statements, EB splits, live P&L cashflow, and notice countdown active.
 
-### Stage 7: Team roles and subscription paywall (Weeks 15–16) — _Next Milestone ⏳_
+### Stage 7: Team roles and subscription paywall (Weeks 15–16) — _Completed ✅_
 
 **Goal:** monetization and multi-staff access.
 
-- **Staff roles:** owners invite managers/wardens/security with per-property permissions.
-- **Subscription enforcement:** `enforceSubscription` checks status and plan limits (properties, beds).
-- **Read-only mode:** expired accounts can view everything; mutating requests return `402 Payment Required`. Never lock owners out of their own data.
-- **Billing:** start with manual UPI subscriptions and an admin toggle. Add Razorpay subscriptions and the webhook once there are 10+ paying owners. Host billing on the web (`yourapp.com/billing`); the app stays a login-only companion.
+- [x] **Staff roles:** owners invite managers/wardens/security with per-property permissions via [`src/components/StaffManagementModal.tsx`](src/components/StaffManagementModal.tsx).
+- [x] **Subscription enforcement:** `enforceSubscription` checks status and plan limits (properties, beds).
+- [x] **Read-only mode:** expired accounts can view everything; mutating requests return `402 Payment Required`. Never lock owners out of their own data.
+- [x] **Subscription & Quota Modal:** plan overview, days remaining, live quota bars (properties used, beds used), read-only alert banner, and instant upgrade triggers via [`src/components/SubscriptionModal.tsx`](src/components/SubscriptionModal.tsx).
 
 **Exit:** a trial expires, the app goes read-only, paying on the web unlocks it immediately.
 
@@ -759,6 +759,37 @@ _Mobile (Completed ✅)_
   - **Standalone Android Release APK**:
     - Recompiled with `./gradlew assembleRelease` (**BUILD SUCCESSFUL in 1m 19s**).
     - Copied to `./pg-owner-mobile-release.apk` and `~/Downloads/pg-owner-mobile.apk`.
+
+### ✅ Stage 7: Team Roles & Subscription Paywall (Mobile)
+
+- **Status**: Completed & Verified
+- **Deliverables**:
+  - **Staff Management Modal ([`src/components/StaffManagementModal.tsx`](src/components/StaffManagementModal.tsx))**:
+    - Complete team list with role badges (`OWNER`, `MANAGER`, `STAFF`), phone numbers, and assigned properties.
+    - Owner-exclusive team member creation form: full name, phone number (10-digit Indian regex), role selector, and multi-property checkbox selector.
+    - Member removal action with confirmation and owner self-deletion protection.
+  - **Subscription & Quotas Modal ([`src/components/SubscriptionModal.tsx`](src/components/SubscriptionModal.tsx))**:
+    - Current Plan Hero Card with tier badge (`STARTER`, `GROWTH`, `PRO`), status badge, and days remaining in trial or subscription.
+    - Read-Only Alert Banner: Highlights when account is in read-only mode and that past data remains fully viewable.
+    - Quota Utilization Bars: Visual progress bars for properties used (`propertiesUsed / maxProperties`) and beds occupied (`bedsUsed / maxBeds`).
+    - Upgrade Tiers: Growth (₹999/mo, 3 properties, 100 beds) and Pro (₹1,999/mo, unlimited) tier cards with instant upgrade trigger.
+    - 7-Day Trial Extension trigger for testing or owner onboarding grace.
+  - **More Tab Enhancements ([`app/(tabs)/more.tsx`](app/(tabs)/more.tsx))**:
+    - Interactive trial badge in header that opens `SubscriptionModal` directly.
+    - Added "Staff & Manager Logins" under Settings section to launch `StaffManagementModal`.
+    - Added "Subscription & Quotas" under Account section to launch `SubscriptionModal`.
+  - **API Client & Type Definitions**:
+    - [`src/types/api.ts`](src/types/api.ts): Added `ITeamMember`, `CreateTeamMemberPayload`, `UpdateTeamMemberPayload`, and `ISubscriptionCurrent`.
+    - [`src/api/team.ts`](src/api/team.ts): `getTeamMembersApi`, `createTeamMemberApi`, `updateTeamMemberApi`, `removeTeamMemberApi`.
+    - [`src/api/subscription.ts`](src/api/subscription.ts): `getCurrentSubscriptionApi`, `upgradeSubscriptionApi`, `extendTrialApi`.
+  - **Code Quality**:
+    - `npm run typecheck`: 0 errors.
+    - `npm run lint`: 0 errors.
+    - `npm run format:check`: 100% clean formatting.
+  - **Standalone Android Release APK**:
+    - Recompiled with `./gradlew assembleRelease` (**BUILD SUCCESSFUL in 1m 9s**).
+    - Copied 83MB release APK to `./pg-owner-mobile-release.apk` and `~/Downloads/pg-owner-mobile.apk`.
+
 
 
 

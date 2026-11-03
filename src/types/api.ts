@@ -508,3 +508,36 @@ export interface IPnLSummary {
   totalExpensesCount: number;
   totalPaymentsCount: number;
 }
+
+// ==========================================
+// STAGE 7: TEAM ROLES & SUBSCRIPTION PAYWALL
+// ==========================================
+
+export interface ITeamMember {
+  _id: string;
+  name: string;
+  email: string;
+  phone: string;
+  role: 'owner' | 'manager' | 'staff';
+  status: 'active' | 'inactive';
+  assignedProperties?: Array<{
+    _id: string;
+    name: string;
+    code: string;
+  }>;
+  createdAt: string;
+}
+
+export interface ISubscriptionCurrent {
+  plan: 'starter' | 'growth' | 'pro';
+  status: 'trialing' | 'active' | 'past_due' | 'canceled' | 'expired';
+  isReadOnly: boolean;
+  daysLeft: number;
+  trialEndsAt: string;
+  currentPeriodEnd: string;
+  maxProperties: number;
+  maxBeds: number;
+  propertiesUsed: number;
+  bedsUsed: number;
+  upgradeUrl: string;
+}

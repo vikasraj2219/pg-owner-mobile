@@ -18,6 +18,8 @@ import { useProperties } from '../../src/context/PropertyContext';
 import { SplashScreenView } from '../../src/components/SplashScreenView';
 import { ExpensesModal } from '../../src/components/ExpensesModal';
 import { SubMeterModal } from '../../src/components/SubMeterModal';
+import { StaffManagementModal } from '../../src/components/StaffManagementModal';
+import { SubscriptionModal } from '../../src/components/SubscriptionModal';
 
 export default function MoreScreen() {
   const {
@@ -34,6 +36,8 @@ export default function MoreScreen() {
   const [showSplashPreview, setShowSplashPreview] = useState(false);
   const [showExpensesModal, setShowExpensesModal] = useState(false);
   const [showSubMeterModal, setShowSubMeterModal] = useState(false);
+  const [showStaffModal, setShowStaffModal] = useState(false);
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
 
   // Dynamic trial remaining days
   const trialDaysLeft = React.useMemo(() => {
@@ -92,6 +96,13 @@ export default function MoreScreen() {
           icon: Users,
           label: 'Staff & Manager Logins',
           detail: 'Access controls & roles',
+          onPress: () => setShowStaffModal(true),
+        },
+        {
+          icon: CreditCard,
+          label: 'Subscription & Quotas',
+          detail: 'Plan limits, paywall status & upgrades',
+          onPress: () => setShowSubscriptionModal(true),
         },
       ],
     },
@@ -184,9 +195,12 @@ export default function MoreScreen() {
               {organization?.name || 'My PG Organization'} · Owner
             </Text>
           </View>
-          <View className="bg-[#FEF9C3] border border-[#FDE047] px-2.5 py-1 rounded-full">
+          <TouchableOpacity
+            onPress={() => setShowSubscriptionModal(true)}
+            className="bg-[#FEF9C3] border border-[#FDE047] px-2.5 py-1 rounded-full"
+          >
             <Text className="text-[10px] font-bold text-[#854D0E]">{trialDaysLeft}d Trial</Text>
-          </View>
+          </TouchableOpacity>
         </View>
 
         {/* Menu Sections */}
@@ -271,6 +285,19 @@ export default function MoreScreen() {
         visible={showSubMeterModal}
         onClose={() => setShowSubMeterModal(false)}
         property={selectedProperty}
+      />
+
+      {/* Staff & Manager Access Modal */}
+      <StaffManagementModal
+        visible={showStaffModal}
+        onClose={() => setShowStaffModal(false)}
+        properties={properties}
+      />
+
+      {/* Subscription Paywall & Quota Modal */}
+      <SubscriptionModal
+        visible={showSubscriptionModal}
+        onClose={() => setShowSubscriptionModal(false)}
       />
     </SafeAreaView>
   );
