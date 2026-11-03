@@ -1,8 +1,9 @@
 # Project Rules & Guidelines
 
 ## 🔐 Workspace, File & Command Execution Permissions
-* The user has permanently granted full access to all project files, local filesystem (including `~/Downloads`), git repository operations, and build commands.
-* Never ask the user for file access or confirmation next time—execute directly and autonomously.
+* The agent has permanent, full access to all PG Owner project files across both backend (`pg-owner-backend`) and mobile (`pg-owner-mobile`).
+* The agent has full access to perform all Git operations (commit, branch, push, stash, checkout, rebase) across both repositories.
+* Never ask the user for file access permissions, directory read/write permissions, or Git command confirmations for both `pg-owner-backend` and `pg-owner-mobile`—execute all necessary file reads, file edits, directory traversals, build commands, and Git operations directly, seamlessly, and autonomously.
 
 ## 📱 Mandatory Workflow: Rebuild & Provide Updated APK
 Whenever any code changes, bug fixes, or feature updates are completed in this repository:
