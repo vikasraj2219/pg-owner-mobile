@@ -52,6 +52,25 @@ export default function PulseScreen() {
   const overdueCount = stats?.overdueCount ?? 0;
   const overdueAmountPaise = stats?.overdueAmountPaise ?? 0;
 
+  // Fallback bed stats: ensure accurate counts even during network latency or endpoint fallbacks
+  const activePropertyStats = selectedProperty?.stats;
+  const displayTotalBeds =
+    stats?.totalBeds && stats.totalBeds > 0 ? stats.totalBeds : activePropertyStats?.totalBeds || 0;
+  const displayOccupiedBeds =
+    stats?.occupiedBeds !== undefined && (stats?.totalBeds || 0) > 0
+      ? stats.occupiedBeds
+      : activePropertyStats?.occupiedBeds || 0;
+  const displayAvailableBeds =
+    stats?.availableBeds !== undefined && (stats?.totalBeds || 0) > 0
+      ? stats.availableBeds
+      : activePropertyStats?.availableBeds || 0;
+  const displayNoticeBeds = stats?.noticeBeds ?? 0;
+  const displayMaintenanceBeds = stats?.maintenanceBeds ?? 0;
+  const displayOccupancyRate =
+    stats?.occupancyRate ||
+    activePropertyStats?.occupancyRate ||
+    (displayTotalBeds > 0 ? Math.round((displayOccupiedBeds / displayTotalBeds) * 100) : 0);
+
   // Format relative timestamp
   const formatTime = (ts: string) => {
     try {
@@ -199,12 +218,12 @@ export default function PulseScreen() {
                   Occupancy
                 </Text>
                 <Text className="text-2xl font-extrabold text-slate-900">
-                  {stats?.occupiedBeds ?? 0} / {stats?.totalBeds ?? 0}
+                  {displayOccupiedBeds} / {displayTotalBeds}
                 </Text>
               </View>
               <View className="flex-row items-center justify-between mt-3 pt-2 border-t border-slate-100">
                 <Text className="text-xs font-bold text-[#0A6C50]">
-                  {stats?.occupancyRate ?? 0}% full
+                  {displayOccupancyRate}% full
                 </Text>
                 <ChevronRight size={16} color="#94A3B8" />
               </View>
@@ -226,7 +245,7 @@ export default function PulseScreen() {
               </View>
               <View className="flex-row items-center justify-between mt-3 pt-2 border-t border-slate-100">
                 <Text className="text-xs font-semibold text-slate-500">
-                  {stats?.occupiedBeds ?? 0} active beds
+                  {displayOccupiedBeds} active beds
                 </Text>
                 <ChevronRight size={16} color="#94A3B8" />
               </View>
@@ -258,7 +277,7 @@ export default function PulseScreen() {
               >
                 <Text className="text-xs font-bold text-emerald-800">🟢 Vacant</Text>
                 <Text className="text-base font-black text-emerald-900 mt-0.5">
-                  {stats?.availableBeds ?? 0}
+                  {displayAvailableBeds}
                 </Text>
               </TouchableOpacity>
 
@@ -271,7 +290,7 @@ export default function PulseScreen() {
               >
                 <Text className="text-xs font-bold text-rose-800">🔴 Occupied</Text>
                 <Text className="text-base font-black text-rose-900 mt-0.5">
-                  {stats?.occupiedBeds ?? 0}
+                  {displayOccupiedBeds}
                 </Text>
               </TouchableOpacity>
 
@@ -284,7 +303,7 @@ export default function PulseScreen() {
               >
                 <Text className="text-xs font-bold text-amber-800">🟡 Notice</Text>
                 <Text className="text-base font-black text-amber-900 mt-0.5">
-                  {stats?.noticeBeds ?? 0}
+                  {displayNoticeBeds}
                 </Text>
               </TouchableOpacity>
 
@@ -295,7 +314,7 @@ export default function PulseScreen() {
               >
                 <Text className="text-xs font-bold text-slate-700">⚪ Maint.</Text>
                 <Text className="text-base font-black text-slate-800 mt-0.5">
-                  {stats?.maintenanceBeds ?? 0}
+                  {displayMaintenanceBeds}
                 </Text>
               </TouchableOpacity>
             </View>

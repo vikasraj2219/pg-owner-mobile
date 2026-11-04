@@ -23,6 +23,8 @@ import { SubMeterModal } from '../../src/components/SubMeterModal';
 import { StaffManagementModal } from '../../src/components/StaffManagementModal';
 import { SubscriptionModal } from '../../src/components/SubscriptionModal';
 import { TenantsDirectoryModal } from '../../src/components/TenantsDirectoryModal';
+import { PropertiesRoomsModal } from '../../src/components/PropertiesRoomsModal';
+import { DpdpKycComplianceModal } from '../../src/components/DpdpKycComplianceModal';
 
 export default function MoreScreen() {
   const router = useRouter();
@@ -43,6 +45,8 @@ export default function MoreScreen() {
   const [showSubMeterModal, setShowSubMeterModal] = useState(false);
   const [showStaffModal, setShowStaffModal] = useState(false);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+  const [showPropertiesRoomsModal, setShowPropertiesRoomsModal] = useState(false);
+  const [showDpdpKycModal, setShowDpdpKycModal] = useState(false);
 
   // Dynamic trial remaining days
   const trialDaysLeft = React.useMemo(() => {
@@ -102,6 +106,7 @@ export default function MoreScreen() {
           icon: Building,
           label: 'Properties & Rooms',
           detail: `${properties.length} Propert${properties.length === 1 ? 'y' : 'ies'} · ${totalBeds > 0 ? `${totalBeds} Beds` : 'Manage'}`,
+          onPress: () => setShowPropertiesRoomsModal(true),
         },
         {
           icon: Users,
@@ -149,7 +154,6 @@ export default function MoreScreen() {
                 'No Biometrics Enrolled',
                 'Please enroll your fingerprint or face in device Settings first.',
               );
-              return;
             }
             const nextVal = !isBiometricEnabled;
             const success = await enableBiometrics(nextVal);
@@ -168,11 +172,13 @@ export default function MoreScreen() {
           icon: CreditCard,
           label: 'Subscription Plan',
           detail: `14-Day Free Trial (${trialDaysLeft} days left)`,
+          onPress: () => setShowSubscriptionModal(true),
         },
         {
           icon: ShieldCheck,
           label: 'DPDP & KYC Compliance',
           detail: 'Data privacy & Aadhaar store',
+          onPress: () => setShowDpdpKycModal(true),
         },
       ],
     },
@@ -318,6 +324,18 @@ export default function MoreScreen() {
       <SubscriptionModal
         visible={showSubscriptionModal}
         onClose={() => setShowSubscriptionModal(false)}
+      />
+
+      {/* Properties & Rooms Management Modal */}
+      <PropertiesRoomsModal
+        visible={showPropertiesRoomsModal}
+        onClose={() => setShowPropertiesRoomsModal(false)}
+      />
+
+      {/* DPDP & KYC Statutory Compliance Modal */}
+      <DpdpKycComplianceModal
+        visible={showDpdpKycModal}
+        onClose={() => setShowDpdpKycModal(false)}
       />
     </SafeAreaView>
   );

@@ -11,6 +11,8 @@ import {
 import { X, Sparkles, AlertCircle } from 'lucide-react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import { getCurrentSubscriptionApi, upgradeSubscriptionApi } from '../api/subscription';
+import { useAuth } from '../hooks/useAuth';
+import { useProperties } from '../context/PropertyContext';
 import { ISubscriptionCurrent } from '../types/api';
 
 interface SubscriptionModalProps {
@@ -20,6 +22,8 @@ interface SubscriptionModalProps {
 
 export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, onClose }) => {
   const queryClient = useQueryClient();
+  const { subscription: authSub } = useAuth();
+  const { properties } = useProperties();
   const [sub, setSub] = useState<ISubscriptionCurrent | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isUpgrading, setIsUpgrading] = useState(false);
@@ -30,11 +34,35 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
       const data = await getCurrentSubscriptionApi();
       setSub(data);
     } catch {
-      // ignore
+      // Fallback from auth context and properties
+      const totalBedsInProps = properties.reduce((acc, p) => acc + (p.stats?.totalBeds || 0), 0);
+      const daysLeft = authSub?.trialEndsAt
+        ? Math.max(
+            0,
+            Math.ceil(
+              (new Date(authSub.trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24),
+            ),
+          )
+        : 14;
+
+      setSub({
+        plan: (authSub?.plan as 'starter' | 'growth' | 'pro') || 'starter',
+        status: authSub?.status || 'trialing',
+        isReadOnly: false,
+        daysLeft,
+        trialEndsAt: authSub?.trialEndsAt || new Date(Date.now() + 14 * 86400000).toISOString(),
+        currentPeriodEnd:
+          authSub?.currentPeriodEnd || new Date(Date.now() + 14 * 86400000).toISOString(),
+        maxProperties: authSub?.maxProperties || 1,
+        maxBeds: authSub?.maxBeds || 30,
+        propertiesUsed: properties.length || 1,
+        bedsUsed: totalBedsInProps,
+        upgradeUrl: '',
+      });
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [authSub, properties]);
 
   useEffect(() => {
     if (visible) {
@@ -42,7 +70,7 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
     }
   }, [visible, loadSub]);
 
-  const handleUpgrade = async (plan: 'growth' | 'pro') => {
+  const handleUpgrade = async (plan: 'starter' | 'growth' | 'pro') => {
     setIsUpgrading(true);
     try {
       await upgradeSubscriptionApi(plan);
@@ -186,8 +214,48 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
 
             {/* Upgrade Options */}
             <Text className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
-              Upgrade Plans
+              Available Plans
             </Text>
+
+            {/* Starter Tier */}
+            <View className="bg-white rounded-2xl p-5 border border-slate-200 mb-4 shadow-xs">
+              <View className="flex-row justify-between items-center mb-2">
+                <Text className="text-lg font-black text-slate-900">Starter Plan</Text>
+                <Text className="text-lg font-black text-slate-700">₹499 / mo</Text>
+              </View>
+              <Text className="text-xs text-slate-500 font-medium mb-3">
+                Ideal for single-property PG owners starting out (Includes 14-day free trial)
+              </Text>
+              <View className="space-y-1 mb-4">
+                <Text className="text-xs text-slate-700 font-semibold">
+                  • 1 Property (up to 30 Beds)
+                </Text>
+                <Text className="text-xs text-slate-700 font-semibold">
+                  • Quick Tenant Check-in & Auto-Rent Invoicing
+                </Text>
+                <Text className="text-xs text-slate-700 font-semibold">
+                  • Visual Matrix Grid & Payment Ledger
+                </Text>
+              </View>
+              {sub?.plan === 'starter' && sub?.status === 'trialing' ? (
+                <View className="bg-emerald-50 rounded-xl py-2.5 items-center justify-center border border-emerald-200">
+                  <Text className="text-[#0A6C50] font-black text-xs">
+                    CURRENTLY ON 14-DAY TRIAL
+                  </Text>
+                </View>
+              ) : (
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  disabled={isUpgrading}
+                  onPress={() => handleUpgrade('starter')}
+                  className="bg-slate-800 rounded-xl py-3 items-center justify-center"
+                >
+                  <Text className="text-white font-bold text-sm">
+                    {sub?.plan === 'starter' ? 'Renew Starter Plan' : 'Switch to Starter'}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
 
             {/* Growth Tier */}
             <View className="bg-white rounded-2xl p-5 border border-slate-200 mb-4 shadow-xs">
