@@ -1,19 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  Modal,
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  Alert,
-  ActivityIndicator,
-} from 'react-native';
-import { X, Sparkles, AlertCircle } from 'lucide-react-native';
+import { Modal, View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
+import { X, Sparkles, AlertCircle, ShieldCheck } from 'lucide-react-native';
 import { useQueryClient } from '@tanstack/react-query';
-import { getCurrentSubscriptionApi, upgradeSubscriptionApi } from '../api/subscription';
+import { getCurrentSubscriptionApi } from '../api/subscription';
 import { useAuth } from '../hooks/useAuth';
 import { useProperties } from '../context/PropertyContext';
 import { ISubscriptionCurrent } from '../types/api';
+import { RazorpayCheckoutModal } from './RazorpayCheckoutModal';
 
 interface SubscriptionModalProps {
   visible: boolean;
@@ -26,7 +19,7 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
   const { properties } = useProperties();
   const [sub, setSub] = useState<ISubscriptionCurrent | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isUpgrading, setIsUpgrading] = useState(false);
+  const [checkoutPlan, setCheckoutPlan] = useState<'starter' | 'growth' | 'pro' | null>(null);
 
   const loadSub = useCallback(async () => {
     setIsLoading(true);
@@ -70,22 +63,8 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
     }
   }, [visible, loadSub]);
 
-  const handleUpgrade = async (plan: 'starter' | 'growth' | 'pro') => {
-    setIsUpgrading(true);
-    try {
-      await upgradeSubscriptionApi(plan);
-      queryClient.invalidateQueries({ queryKey: ['subscription'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-      Alert.alert(
-        'Upgrade Successful!',
-        `Your subscription is now active on the ${plan.toUpperCase()} tier for 30 days. All mutating operations are unlocked!`,
-      );
-      loadSub();
-    } catch {
-      Alert.alert('Upgrade Error', 'Failed to update plan. Please contact support.');
-    } finally {
-      setIsUpgrading(false);
-    }
+  const handleUpgrade = (plan: 'starter' | 'growth' | 'pro') => {
+    setCheckoutPlan(plan);
   };
 
   if (!visible) return null;
@@ -246,7 +225,6 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
               ) : (
                 <TouchableOpacity
                   activeOpacity={0.85}
-                  disabled={isUpgrading}
                   onPress={() => handleUpgrade('starter')}
                   className="bg-slate-800 rounded-xl py-3 items-center justify-center"
                 >
@@ -279,7 +257,6 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
               </View>
               <TouchableOpacity
                 activeOpacity={0.85}
-                disabled={isUpgrading}
                 onPress={() => handleUpgrade('growth')}
                 className="bg-[#0A6C50] rounded-xl py-3 items-center justify-center"
               >
@@ -314,7 +291,6 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
               </View>
               <TouchableOpacity
                 activeOpacity={0.85}
-                disabled={isUpgrading}
                 onPress={() => handleUpgrade('pro')}
                 className="bg-purple-700 rounded-xl py-3 items-center justify-center"
               >
@@ -323,8 +299,29 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
                 </Text>
               </TouchableOpacity>
             </View>
+
+            {/* Razorpay Trust Badge */}
+            <View className="flex-row items-center justify-center py-3 mb-6 bg-slate-50 rounded-xl border border-slate-200/80">
+              <ShieldCheck size={14} color="#0A6C50" />
+              <Text className="text-xs font-bold text-slate-600 ml-1.5">
+                Secured by Razorpay · UPI, Cards & NetBanking
+              </Text>
+            </View>
           </ScrollView>
         )}
+
+        {/* Razorpay Checkout Modal */}
+        <RazorpayCheckoutModal
+          visible={checkoutPlan !== null}
+          plan={checkoutPlan}
+          onClose={() => setCheckoutPlan(null)}
+          onSuccess={() => {
+            setCheckoutPlan(null);
+            loadSub();
+            queryClient.invalidateQueries({ queryKey: ['subscription'] });
+            queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+          }}
+        />
       </View>
     </Modal>
   );

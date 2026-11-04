@@ -1,6 +1,34 @@
 import { apiClient } from './client';
 import { ApiResponse, ISubscriptionCurrent, ISubscription } from '../types/api';
 
+export interface IRazorpayOrderData {
+  orderId: string;
+  amount: number;
+  currency: string;
+  keyId: string;
+  plan: 'starter' | 'growth' | 'pro';
+  planLabel: string;
+  isMock: boolean;
+  notice?: string;
+}
+
+export interface IRazorpayPaymentLinkData {
+  paymentLinkId: string;
+  paymentLinkUrl: string;
+  amount: number;
+  currency: string;
+  plan: 'starter' | 'growth' | 'pro';
+  isMock: boolean;
+  notice?: string;
+}
+
+export interface IVerifyPaymentPayload {
+  razorpay_order_id: string;
+  razorpay_payment_id?: string;
+  razorpay_signature?: string;
+  plan: 'starter' | 'growth' | 'pro';
+}
+
 /**
  * Fetch current subscription status, quotas, and usage
  */
@@ -10,7 +38,46 @@ export const getCurrentSubscriptionApi = async (): Promise<ISubscriptionCurrent>
 };
 
 /**
- * Upgrade plan tier (starter -> growth -> pro)
+ * Create Razorpay Order for Subscription Upgrade
+ */
+export const createRazorpayOrderApi = async (
+  plan: 'starter' | 'growth' | 'pro',
+): Promise<IRazorpayOrderData> => {
+  const response = await apiClient.post<ApiResponse<IRazorpayOrderData>>(
+    '/subscription/create-order',
+    { plan },
+  );
+  return response.data.data;
+};
+
+/**
+ * Verify Razorpay payment and activate subscription
+ */
+export const verifyRazorpayPaymentApi = async (
+  payload: IVerifyPaymentPayload,
+): Promise<ISubscription> => {
+  const response = await apiClient.post<ApiResponse<ISubscription>>(
+    '/subscription/verify',
+    payload,
+  );
+  return response.data.data;
+};
+
+/**
+ * Create Razorpay Payment Link (for hosted browser & UPI app intent checkout)
+ */
+export const createRazorpayPaymentLinkApi = async (
+  plan: 'starter' | 'growth' | 'pro',
+): Promise<IRazorpayPaymentLinkData> => {
+  const response = await apiClient.post<ApiResponse<IRazorpayPaymentLinkData>>(
+    '/subscription/payment-link',
+    { plan },
+  );
+  return response.data.data;
+};
+
+/**
+ * Direct upgrade plan tier (starter -> growth -> pro)
  */
 export const upgradeSubscriptionApi = async (
   plan: 'starter' | 'growth' | 'pro',
