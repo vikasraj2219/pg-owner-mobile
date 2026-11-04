@@ -182,30 +182,6 @@ export default function CheckinScreen() {
   const handleLaunchCamera = async () => {
     setShowPhotoOptionsModal(false);
     try {
-      const manipResult = await ImageManipulator.manipulateAsync(
-        uri,
-        [{ resize: { width: 1024 } }],
-        { compress: 0.65, format: ImageManipulator.SaveFormat.JPEG, base64: true },
-      );
-
-      const finalUri = manipResult.base64
-        ? `data:image/jpeg;base64,${manipResult.base64}`
-        : manipResult.uri;
-
-      setIdImageUri(finalUri);
-      const estSize = Math.floor(120 + Math.random() * 40);
-      setIdImageSizeKb(estSize);
-      setIdSnapped(true);
-      Alert.alert('ID Proof Attached', 'Document compressed under 200 KB and ready for check-in.');
-    } catch (err: any) {
-      Alert.alert('Image Error', err?.message || 'Could not process selected image. Please try again.');
-    }
-  };
-
-  // Launch camera to snap photo
-  const handleLaunchCamera = async () => {
-    setShowPhotoOptionsModal(false);
-    try {
       if (Platform.OS !== 'web') {
         const { status } = await ImagePicker.requestCameraPermissionsAsync();
         if (status !== 'granted') {
@@ -236,17 +212,6 @@ export default function CheckinScreen() {
         'Camera Unavailable',
         'Could not launch device camera: ' +
           (err?.message || 'Please select an image from gallery instead.'),
-        [
-          { text: 'Pick from Gallery', onPress: handleLaunchGallery },
-          { text: 'Cancel', style: 'cancel' },
-        ],
-      );
-    }
-  };
-    } catch (err: any) {
-      Alert.alert(
-        'Camera Unavailable',
-        'Could not launch device camera: ' + (err?.message || 'Please select an image from gallery instead.'),
         [
           { text: 'Pick from Gallery', onPress: handleLaunchGallery },
           { text: 'Cancel', style: 'cancel' },
@@ -288,18 +253,6 @@ export default function CheckinScreen() {
         'Gallery Error',
         'Could not open image picker: ' + (err?.message || 'Please try again.'),
       );
-
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images'],
-        allowsEditing: false,
-        quality: 0.8,
-      });
-
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        await processImageUri(result.assets[0].uri);
-      }
-    } catch (err: any) {
-      Alert.alert('Gallery Error', 'Could not open image picker: ' + (err?.message || 'Please try again.'));
     }
   };
 
@@ -979,7 +932,9 @@ export default function CheckinScreen() {
                   </View>
                   <View className="flex-1">
                     <Text className="text-sm font-black text-slate-900">Take Photo (Camera)</Text>
-                    <Text className="text-xs text-slate-500 mt-0.5">Snap directly with your device camera</Text>
+                    <Text className="text-xs text-slate-500 mt-0.5">
+                      Snap directly with your device camera
+                    </Text>
                   </View>
                 </TouchableOpacity>
 
@@ -993,7 +948,9 @@ export default function CheckinScreen() {
                   </View>
                   <View className="flex-1">
                     <Text className="text-sm font-black text-slate-900">Choose from Photos</Text>
-                    <Text className="text-xs text-slate-500 mt-0.5">Select image or WhatsApp photo from gallery</Text>
+                    <Text className="text-xs text-slate-500 mt-0.5">
+                      Select image or WhatsApp photo from gallery
+                    </Text>
                   </View>
                 </TouchableOpacity>
               </View>

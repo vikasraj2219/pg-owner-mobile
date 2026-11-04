@@ -245,7 +245,10 @@ export default function TenantDetailScreen() {
         'Notice Period Set',
         `${tenant.fullName} is now on ${noticeModal.days} days notice.`,
       );
-      Alert.alert('Notice Period Set', `${tenant.fullName} is now on ${noticeModal.days} days notice.`);
+      Alert.alert(
+        'Notice Period Set',
+        `${tenant.fullName} is now on ${noticeModal.days} days notice.`,
+      );
     } catch (err: any) {
       setNoticeModal(prev => ({ ...prev, isSubmitting: false }));
       Alert.alert('Error', err?.response?.data?.message || 'Could not start notice period.');
@@ -1219,7 +1222,9 @@ export default function TenantDetailScreen() {
                 </View>
                 <View className="flex-1">
                   <Text className="text-sm font-black text-slate-900">Take Photo (Camera)</Text>
-                  <Text className="text-xs text-slate-500 mt-0.5">Snap a new photo of tenant ID</Text>
+                  <Text className="text-xs text-slate-500 mt-0.5">
+                    Snap a new photo of tenant ID
+                  </Text>
                 </View>
               </TouchableOpacity>
 
@@ -1233,7 +1238,9 @@ export default function TenantDetailScreen() {
                 </View>
                 <View className="flex-1">
                   <Text className="text-sm font-black text-slate-900">Choose from Photos</Text>
-                  <Text className="text-xs text-slate-500 mt-0.5">Pick document from gallery or downloads</Text>
+                  <Text className="text-xs text-slate-500 mt-0.5">
+                    Pick document from gallery or downloads
+                  </Text>
                 </View>
               </TouchableOpacity>
             </View>

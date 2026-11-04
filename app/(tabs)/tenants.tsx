@@ -281,7 +281,10 @@ export default function TenantsScreen() {
         'Notice Period Set',
         `${tenant.fullName} is now on ${noticeModal.days} days notice.`,
       );
-      Alert.alert('Notice Period Set', `${tenant.fullName} is now on ${noticeModal.days} days notice.`);
+      Alert.alert(
+        'Notice Period Set',
+        `${tenant.fullName} is now on ${noticeModal.days} days notice.`,
+      );
     } catch (err: any) {
       setNoticeModal(prev => ({ ...prev, isSubmitting: false }));
       Alert.alert('Error', err?.response?.data?.message || 'Could not set notice period.');
@@ -738,9 +741,7 @@ export default function TenantsScreen() {
                 className="flex-row items-center py-3.5 border-b border-slate-50"
               >
                 <LogOut size={20} color="#BE123C" />
-                <Text className="text-sm font-bold text-[#BE123C] ml-3.5">
-                  Checkout tenant
-                </Text>
+                <Text className="text-sm font-bold text-[#BE123C] ml-3.5">Checkout tenant</Text>
               </TouchableOpacity>
             )}
 
