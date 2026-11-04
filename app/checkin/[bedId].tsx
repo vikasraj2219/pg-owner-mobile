@@ -22,16 +22,19 @@ import {
   RefreshCw,
   Send,
   ShieldCheck,
+  Eye,
 } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { useQueryClient } from '@tanstack/react-query';
 import { validateName, validatePhone, validatePositiveNumber } from '../../src/utils/validation';
 import { quickCheckinApi } from '../../src/api/checkin';
+import { uploadKycDocumentApi } from '../../src/api/upload';
 import { useAuth } from '../../src/hooks/useAuth';
 import { useProperties } from '../../src/context/PropertyContext';
 import { QuickCheckinPayload, QuickCheckinResponseData } from '../../src/types/api';
 import { DynamicUpiQrModal } from '../../src/components/DynamicUpiQrModal';
+import { IdDocumentViewerModal } from '../../src/components/IdDocumentViewerModal';
 import { formatINR } from '../../src/utils/currency';
 
 export default function CheckinScreen() {
@@ -81,6 +84,8 @@ export default function CheckinScreen() {
 
   // Modals & Status
   const [showCameraPermissionModal, setShowCameraPermissionModal] = useState(false);
+  const [showIdPreview, setShowIdPreview] = useState(false);
+  const [uploadedCloudinaryUrl, setUploadedCloudinaryUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -237,6 +242,30 @@ export default function CheckinScreen() {
       const depositPaise = Math.round((parseFloat(deposit.replace(/,/g, '')) || 0) * 100);
       const depositPaidPaise = advanceCollected ? depositPaise : 0;
 
+      // Upload ID proof image to Cloudinary
+      let finalKycUrl = 'https://images.unsplash.com/photo-1544717305-2782549b5136';
+      if (idImageUri) {
+        setUploadProgress(35);
+        try {
+          const uploadRes = await uploadKycDocumentApi(
+            idImageUri,
+            `${fullName.trim().replace(/\s+/g, '_')}_kyc.jpg`,
+            'image/jpeg',
+          );
+          if (uploadRes?.secureUrl) {
+            finalKycUrl = uploadRes.secureUrl;
+            setUploadedCloudinaryUrl(uploadRes.secureUrl);
+          }
+        } catch (uploadErr) {
+          console.warn('Cloudinary upload warning (fallback to default URL):', uploadErr);
+          if (idImageUri.startsWith('http')) {
+            finalKycUrl = idImageUri;
+          }
+        }
+      }
+
+      setUploadProgress(70);
+
       const payload: QuickCheckinPayload = {
         propertyId: effectivePropertyId,
         bedId: effectiveBedId,
@@ -249,7 +278,7 @@ export default function CheckinScreen() {
         depositPaidPaise,
         depositPaymentMethod: paymentMode,
         kycDocType: 'aadhaar',
-        kycDocUrl: idImageUri || 'https://images.unsplash.com/photo-1544717305-2782549b5136',
+        kycDocUrl: finalKycUrl,
         kycConsent: agreesToIdStorage,
       };
 
@@ -380,7 +409,11 @@ export default function CheckinScreen() {
             ) : (
               // Captured State matching Page 18 & 54
               <View className="border border-[#A7F3D0] bg-[#F0FDF4] rounded-2xl p-4 flex-row items-center justify-between shadow-xs">
-                <View className="flex-row items-center flex-1 mr-3">
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  onPress={() => setShowIdPreview(true)}
+                  className="flex-row items-center flex-1 mr-2"
+                >
                   {idImageUri ? (
                     <Image
                       source={{ uri: idImageUri }}
@@ -392,17 +425,22 @@ export default function CheckinScreen() {
                     </View>
                   )}
                   <View className="flex-1">
-                    <Text className="text-base font-black text-slate-900">ID captured</Text>
+                    <View className="flex-row items-center">
+                      <Text className="text-base font-black text-slate-900 mr-1.5">
+                        ID captured
+                      </Text>
+                      <Eye size={16} color="#0A6C50" />
+                    </View>
                     <Text className="text-xs font-bold text-[#0A6C50] mt-0.5">
-                      {idImageSizeKb} KB · ready to upload
+                      {idImageSizeKb} KB · Tap to view
                     </Text>
                   </View>
-                </View>
+                </TouchableOpacity>
 
                 <TouchableOpacity
                   activeOpacity={0.8}
                   onPress={handleCaptureId}
-                  className="bg-white border border-slate-200 px-4 py-2 rounded-xl"
+                  className="bg-white border border-slate-200 px-3.5 py-2 rounded-xl"
                 >
                   <Text className="text-xs font-bold text-slate-700">Retake</Text>
                 </TouchableOpacity>
@@ -837,6 +875,15 @@ export default function CheckinScreen() {
             </View>
           </View>
         </Modal>
+
+        {/* ID Document Preview Modal */}
+        <IdDocumentViewerModal
+          visible={showIdPreview}
+          onClose={() => setShowIdPreview(false)}
+          documentUrl={uploadedCloudinaryUrl || idImageUri}
+          tenantName={fullName || 'New Tenant'}
+          docType="Aadhaar / ID Card"
+        />
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

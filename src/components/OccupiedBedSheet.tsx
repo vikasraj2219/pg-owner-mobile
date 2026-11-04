@@ -8,13 +8,14 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { MessageSquare, X, LogOut, Clock } from 'lucide-react-native';
+import { MessageSquare, X, LogOut, Clock, ShieldCheck } from 'lucide-react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import { IMatrixBed, IMatrixRoom } from '../types/api';
 import { formatINR } from '../utils/currency';
 import { formatSafeDate } from '../utils/date';
 import { sendRentReminder } from '../utils/whatsapp';
 import { setTenantNoticeApi, cancelTenantNoticeApi } from '../api/notice';
+import { IdDocumentViewerModal } from './IdDocumentViewerModal';
 
 interface OccupiedBedSheetProps {
   visible: boolean;
@@ -37,6 +38,7 @@ export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
 }) => {
   const queryClient = useQueryClient();
   const [isUpdatingNotice, setIsUpdatingNotice] = useState(false);
+  const [showIdDocViewer, setShowIdDocViewer] = useState(false);
 
   if (!bed || !room || !bed.currentTenant) return null;
 
@@ -193,6 +195,20 @@ export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
                 </TouchableOpacity>
               </View>
 
+              {/* View ID Proof / Cloudinary Document Button */}
+              {tenant.kycDocUrl ? (
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => setShowIdDocViewer(true)}
+                  className="w-full bg-[#F0FDF4] border border-[#A7F3D0] rounded-2xl py-3.5 flex-row items-center justify-center mb-2.5 shadow-xs"
+                >
+                  <ShieldCheck size={18} color="#0A6C50" />
+                  <Text className="text-sm font-bold text-[#0A6C50] ml-2">
+                    View ID Proof ({tenant.kycDocType?.toUpperCase() || 'AADHAAR'})
+                  </Text>
+                </TouchableOpacity>
+              ) : null}
+
               {/* Notice Period Button */}
               <TouchableOpacity
                 activeOpacity={0.8}
@@ -236,6 +252,16 @@ export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
           </TouchableWithoutFeedback>
         </View>
       </TouchableWithoutFeedback>
+
+      {/* ID Document Viewer Modal */}
+      <IdDocumentViewerModal
+        visible={showIdDocViewer}
+        onClose={() => setShowIdDocViewer(false)}
+        documentUrl={tenant.kycDocUrl}
+        tenantName={tenant.fullName}
+        docType={tenant.kycDocType || 'Aadhaar'}
+        maskedNumber={tenant.kycMaskedNumber}
+      />
     </Modal>
   );
 };

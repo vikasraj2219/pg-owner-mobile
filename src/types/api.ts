@@ -280,6 +280,9 @@ export interface IMatrixBedTenant {
   rentDuePaise?: Paise;
   overdueDays?: number;
   paymentStatus?: 'PAID' | 'DUE';
+  kycDocUrl?: string;
+  kycDocType?: string;
+  kycMaskedNumber?: string;
 }
 
 export interface IMatrixBed {

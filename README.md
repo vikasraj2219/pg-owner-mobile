@@ -790,6 +790,26 @@ _Mobile (Completed ✅)_
     - Recompiled with `./gradlew assembleRelease` (**BUILD SUCCESSFUL in 1m 9s**).
     - Copied 83MB release APK to `./pg-owner-mobile-release.apk` and `~/Downloads/pg-owner-mobile.apk`.
 
+### ✅ Cloudinary Storage & KYC Document Viewer (Mobile)
+
+- **Status**: Completed & Verified
+- **Deliverables**:
+  - **Multipart Upload API Client ([`src/api/upload.ts`](src/api/upload.ts))**:
+    - `uploadKycDocumentApi`: Encapsulates React Native `FormData` multipart image upload to `POST /api/uploads/kyc`.
+    - `getUploadStatusApi`: Retrieves server storage provider and limits.
+  - **Check-in Pipeline Integration ([`app/checkin/[bedId].tsx`](app/checkin/[bedId].tsx))**:
+    - Compressed ID image (< 200 KB) is automatically uploaded directly to Cloudinary on check-in submission.
+    - Cloudinary HTTPS CDN `secureUrl` is stored in tenant's `kycDocUrl`.
+    - Added interactive ID proof thumbnail with "Tap to view" and `Eye` icon to verify photo before check-in.
+  - **ID Document Viewer Modal ([`src/components/IdDocumentViewerModal.tsx`](src/components/IdDocumentViewerModal.tsx))**:
+    - Full-screen high-res modal viewer for tenant ID proof.
+    - ActivityIndicator loading state, error fallback, and Cloudinary Verified Storage pill.
+    - "Open in Browser" action via `Linking.openURL` for full-resolution view or offline download.
+  - **Occupied Bed Sheet Integration ([`src/components/OccupiedBedSheet.tsx`](src/components/OccupiedBedSheet.tsx))**:
+    - "View ID Proof" button displayed on occupied bed sheet whenever `kycDocUrl` exists on the tenant profile.
+    - Instant 1-tap view of tenant's Aadhaar/KYC document from the Bed Matrix.
+
+
 
 
 
