@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Modal,
   View,
@@ -7,9 +7,10 @@ import {
   Image,
   ActivityIndicator,
   Linking,
+  Share,
   Alert,
 } from 'react-native';
-import { X, ExternalLink, ShieldCheck, FileText } from 'lucide-react-native';
+import { X, ExternalLink, ShieldCheck, FileText, Share2 } from 'lucide-react-native';
 
 interface IdDocumentViewerModalProps {
   visible: boolean;
@@ -31,23 +32,43 @@ export const IdDocumentViewerModal: React.FC<IdDocumentViewerModalProps> = ({
   const [loading, setLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
 
+  const isWebUrl = documentUrl?.startsWith('http://') || documentUrl?.startsWith('https://');
+  const isCloudinary = documentUrl?.includes('cloudinary.com');
+
+  useEffect(() => {
+    if (visible && documentUrl) {
+      setLoading(true);
+      setHasError(false);
+
+      // If document is a base64 data URI or local file, prevent spinner from sticking
+      if (documentUrl.startsWith('data:') || documentUrl.startsWith('file:')) {
+        const timer = setTimeout(() => setLoading(false), 400);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [visible, documentUrl]);
+
   if (!visible) return null;
 
-  const handleOpenExternal = async () => {
+  const handleShareOrOpen = async () => {
     if (!documentUrl) return;
     try {
-      const canOpen = await Linking.canOpenURL(documentUrl);
-      if (canOpen) {
-        await Linking.openURL(documentUrl);
-      } else {
-        Alert.alert('Unable to open link', 'No compatible app found to open this document.');
+      if (isWebUrl) {
+        const canOpen = await Linking.canOpenURL(documentUrl);
+        if (canOpen) {
+          await Linking.openURL(documentUrl);
+          return;
+        }
       }
+
+      await Share.share({
+        title: `${tenantName} - ${docType} ID Proof`,
+        message: isWebUrl ? documentUrl : `ID Document for ${tenantName} (${docType})`,
+      });
     } catch (_err) {
-      Alert.alert('Error', 'Could not open document link.');
+      Alert.alert('Notice', 'Unable to open or share this document.');
     }
   };
-
-  const isCloudinary = documentUrl?.includes('cloudinary.com');
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
@@ -100,7 +121,12 @@ export const IdDocumentViewerModal: React.FC<IdDocumentViewerModalProps> = ({
                   source={{ uri: documentUrl }}
                   className="w-full h-full"
                   resizeMode="contain"
-                  onLoadStart={() => setLoading(true)}
+                  onLoad={() => setLoading(false)}
+                  onLoadStart={() => {
+                    if (!documentUrl.startsWith('data:') && !documentUrl.startsWith('file:')) {
+                      setLoading(true);
+                    }
+                  }}
                   onLoadEnd={() => setLoading(false)}
                   onError={() => {
                     setLoading(false);
@@ -122,7 +148,7 @@ export const IdDocumentViewerModal: React.FC<IdDocumentViewerModalProps> = ({
                       Unable to display image preview
                     </Text>
                     <Text className="text-xs text-slate-400 mt-1 text-center">
-                      Tap 'Open in Browser' below to view or download the original file.
+                      Tap below to view or export the document.
                     </Text>
                   </View>
                 )}
@@ -142,11 +168,17 @@ export const IdDocumentViewerModal: React.FC<IdDocumentViewerModalProps> = ({
             {documentUrl && (
               <TouchableOpacity
                 activeOpacity={0.8}
-                onPress={handleOpenExternal}
+                onPress={handleShareOrOpen}
                 className="flex-1 bg-slate-100 border border-slate-200 py-3.5 px-4 rounded-2xl flex-row items-center justify-center"
               >
-                <ExternalLink size={16} color="#0A6C50" />
-                <Text className="text-sm font-bold text-[#0A6C50] ml-2">Open in Browser</Text>
+                {isWebUrl ? (
+                  <ExternalLink size={16} color="#0A6C50" />
+                ) : (
+                  <Share2 size={16} color="#0A6C50" />
+                )}
+                <Text className="text-sm font-bold text-[#0A6C50] ml-2">
+                  {isWebUrl ? 'Open in Browser' : 'Share / Export'}
+                </Text>
               </TouchableOpacity>
             )}
 

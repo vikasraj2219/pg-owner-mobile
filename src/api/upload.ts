@@ -28,6 +28,19 @@ export const uploadKycDocumentApi = async (
   fileName = 'id_proof.jpg',
   mimeType = 'image/jpeg',
 ): Promise<UploadResponseData> => {
+  // If the file is already a self-contained Data URI, return immediately
+  if (fileUri.startsWith('data:')) {
+    return {
+      url: fileUri,
+      secureUrl: fileUri,
+      publicId: `data_${Date.now()}`,
+      format: 'jpg',
+      bytes: fileUri.length,
+      resourceType: 'image',
+      originalName: fileName,
+    };
+  }
+
   const formData = new FormData();
 
   // In React Native, FormData accepts an object with uri, name, and type

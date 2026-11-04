@@ -199,15 +199,18 @@ export default function CheckinScreen() {
           allowsEditing: true,
           quality: 0.7,
         });
-        if (!galleryResult.canceled && galleryResult.assets[0]) {
-          setIdImageUri(galleryResult.assets[0].uri);
+        if (!galleryResult.canceled && galleryResult.assets && galleryResult.assets[0]) {
+          const manipResult = await ImageManipulator.manipulateAsync(
+            galleryResult.assets[0].uri,
+            [{ resize: { width: 1024 } }],
+            { compress: 0.65, format: ImageManipulator.SaveFormat.JPEG },
+          );
+          setIdImageUri(manipResult.uri);
           setIdImageSizeKb(158);
           setIdSnapped(true);
         }
-      } catch (_gErr) {
-        // Fallback for simulators without image access
-        setIdSnapped(true);
-        setIdImageSizeKb(168);
+      } catch {
+        // User cancelled or picker failed
       }
     }
   };

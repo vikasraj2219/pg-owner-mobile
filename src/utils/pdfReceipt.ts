@@ -83,7 +83,7 @@ export const generateAndShareReceipt = async (r: ReceiptShareData): Promise<void
     </div>
     <div class="footer">
       <p>Thank you for your payment!</p>
-      <p style="font-size: 11px; margin-top: 4px;">Computer-generated receipt · PG Owner Mobile System</p>
+      <p style="font-size: 11px; margin-top: 4px;">Computer-generated receipt · Nilaaya PG Management System</p>
     </div>
   </div>
 </body>
