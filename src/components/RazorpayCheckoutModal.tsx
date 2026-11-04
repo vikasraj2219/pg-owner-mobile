@@ -342,3 +342,4 @@ export const RazorpayCheckoutModal: React.FC<RazorpayCheckoutModalProps> = ({
     </Modal>
   );
 };
+
