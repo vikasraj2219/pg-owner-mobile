@@ -281,6 +281,7 @@ export default function TenantsScreen() {
         'Notice Period Set',
         `${tenant.fullName} is now on ${noticeModal.days} days notice.`,
       );
+      Alert.alert('Notice Period Set', `${tenant.fullName} is now on ${noticeModal.days} days notice.`);
     } catch (err: any) {
       setNoticeModal(prev => ({ ...prev, isSubmitting: false }));
       Alert.alert('Error', err?.response?.data?.message || 'Could not set notice period.');
@@ -724,6 +725,22 @@ export default function TenantsScreen() {
               >
                 <LogOut size={20} color="#BE123C" />
                 <Text className="text-sm font-bold text-[#BE123C] ml-3.5">Checkout tenant</Text>
+              </TouchableOpacity>
+            )}
+
+            {actionSheetTenant?.status !== 'checked_out' && (
+              <TouchableOpacity
+                onPress={() => {
+                  const id = actionSheetTenant?._id;
+                  setActionSheetTenant(null);
+                  if (id) router.push(`/checkout/${id}`);
+                }}
+                className="flex-row items-center py-3.5 border-b border-slate-50"
+              >
+                <LogOut size={20} color="#BE123C" />
+                <Text className="text-sm font-bold text-[#BE123C] ml-3.5">
+                  Checkout tenant
+                </Text>
               </TouchableOpacity>
             )}
 

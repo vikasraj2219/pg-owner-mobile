@@ -245,6 +245,7 @@ export default function TenantDetailScreen() {
         'Notice Period Set',
         `${tenant.fullName} is now on ${noticeModal.days} days notice.`,
       );
+      Alert.alert('Notice Period Set', `${tenant.fullName} is now on ${noticeModal.days} days notice.`);
     } catch (err: any) {
       setNoticeModal(prev => ({ ...prev, isSubmitting: false }));
       Alert.alert('Error', err?.response?.data?.message || 'Could not start notice period.');
@@ -1172,6 +1173,67 @@ export default function TenantDetailScreen() {
                   <Text className="text-xs text-slate-500 mt-0.5">
                     Pick document from gallery or downloads
                   </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => setShowPhotoPickerModal(false)}
+              className="py-3 items-center justify-center rounded-xl bg-slate-100"
+            >
+              <Text className="text-sm font-bold text-slate-700">Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Photo Picker Modal (Camera vs Gallery) */}
+      <Modal
+        visible={showPhotoPickerModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowPhotoPickerModal(false)}
+      >
+        <View className="flex-1 bg-black/50 justify-end">
+          <View className="bg-white rounded-t-3xl p-6 pb-8 shadow-2xl">
+            <View className="items-center mb-4">
+              <View className="w-12 h-1 rounded-full bg-slate-300" />
+            </View>
+
+            <Text className="text-lg font-black text-slate-900 mb-1">
+              {tenant?.kycDocUrl ? 'Replace ID Document' : 'Upload ID Document'}
+            </Text>
+            <Text className="text-xs text-slate-500 mb-5">
+              Take a new photo with camera or choose an image from your gallery
+            </Text>
+
+            <View className="gap-3 mb-4">
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={handleCaptureNewPhoto}
+                className="bg-[#E8F5EE] border border-[#A7F3D0] p-4 rounded-2xl flex-row items-center"
+              >
+                <View className="w-10 h-10 rounded-full bg-[#0A6C50] items-center justify-center mr-3.5">
+                  <Camera size={20} color="#FFFFFF" />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-sm font-black text-slate-900">Take Photo (Camera)</Text>
+                  <Text className="text-xs text-slate-500 mt-0.5">Snap a new photo of tenant ID</Text>
+                </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={handlePickFromGallery}
+                className="bg-slate-50 border border-slate-200 p-4 rounded-2xl flex-row items-center"
+              >
+                <View className="w-10 h-10 rounded-full bg-slate-200 items-center justify-center mr-3.5">
+                  <ImageIcon size={20} color="#334155" />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-sm font-black text-slate-900">Choose from Photos</Text>
+                  <Text className="text-xs text-slate-500 mt-0.5">Pick document from gallery or downloads</Text>
                 </View>
               </TouchableOpacity>
             </View>
