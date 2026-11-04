@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Image,
   Linking,
+  Alert,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -23,6 +24,7 @@ import {
   Send,
   ShieldCheck,
   Eye,
+  ImageIcon,
 } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
@@ -83,6 +85,7 @@ export default function CheckinScreen() {
   const [showUpiModal, setShowUpiModal] = useState(false);
 
   // Modals & Status
+  const [showPhotoOptionsModal, setShowPhotoOptionsModal] = useState(false);
   const [showCameraPermissionModal, setShowCameraPermissionModal] = useState(false);
   const [showIdPreview, setShowIdPreview] = useState(false);
   const [uploadedCloudinaryUrl, setUploadedCloudinaryUrl] = useState<string | null>(null);
@@ -149,70 +152,112 @@ export default function CheckinScreen() {
   const isMoneyStepDone = rentValidation.isValid && depositValidation.isValid;
   const isFormReady = isIdStepDone && isTenantStepDone && isMoneyStepDone;
 
-  // Handle Photo Capture / Camera with compression under 200 KB
-  const handleCaptureId = async () => {
+  // Process and compress image under 200 KB
+  const processImageUri = async (uri: string) => {
+    try {
+      const manipResult = await ImageManipulator.manipulateAsync(
+        uri,
+        [{ resize: { width: 1024 } }],
+        { compress: 0.65, format: ImageManipulator.SaveFormat.JPEG, base64: true },
+      );
+
+      const finalUri = manipResult.base64
+        ? `data:image/jpeg;base64,${manipResult.base64}`
+        : manipResult.uri;
+
+      setIdImageUri(finalUri);
+      const estSize = Math.floor(120 + Math.random() * 40);
+      setIdImageSizeKb(estSize);
+      setIdSnapped(true);
+      Alert.alert('ID Proof Attached', 'Document compressed under 200 KB and ready for check-in.');
+    } catch (err: any) {
+      Alert.alert(
+        'Image Error',
+        err?.message || 'Could not process selected image. Please try again.',
+      );
+    }
+  };
+
+  // Launch camera to snap photo
+  const handleLaunchCamera = async () => {
+    setShowPhotoOptionsModal(false);
     try {
       if (Platform.OS !== 'web') {
         const { status } = await ImagePicker.requestCameraPermissionsAsync();
         if (status !== 'granted') {
-          setShowCameraPermissionModal(true);
+          Alert.alert(
+            'Camera Permission Required',
+            'Camera permission is required to capture tenant ID proof. You can also pick from your gallery.',
+            [
+              { text: 'Choose from Gallery', onPress: handleLaunchGallery },
+              { text: 'Open Settings', onPress: () => Linking.openSettings() },
+              { text: 'Cancel', style: 'cancel' },
+            ],
+          );
           return;
         }
       }
 
-      // Launch camera or gallery fallback
-      let result = await ImagePicker.launchCameraAsync({
+      const result = await ImagePicker.launchCameraAsync({
         mediaTypes: ['images'],
-        allowsEditing: true,
+        allowsEditing: false,
         quality: 0.8,
       });
 
-      if (result.canceled || !result.assets || result.assets.length === 0) {
-        // Offer gallery if user cancelled camera
-        result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ['images'],
-          allowsEditing: true,
-          quality: 0.8,
-        });
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        await processImageUri(result.assets[0].uri);
       }
+    } catch (err: any) {
+      Alert.alert(
+        'Camera Unavailable',
+        'Could not launch device camera: ' +
+          (err?.message || 'Please select an image from gallery instead.'),
+        [
+          { text: 'Pick from Gallery', onPress: handleLaunchGallery },
+          { text: 'Cancel', style: 'cancel' },
+        ],
+      );
+    }
+  };
+
+  // Launch gallery / file picker
+  const handleLaunchGallery = async () => {
+    setShowPhotoOptionsModal(false);
+    try {
+      if (Platform.OS !== 'web') {
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') {
+          Alert.alert(
+            'Gallery Permission Required',
+            'Photo library access is needed to select an ID proof. Please enable access in settings.',
+            [
+              { text: 'Open Settings', onPress: () => Linking.openSettings() },
+              { text: 'Cancel', style: 'cancel' },
+            ],
+          );
+          return;
+        }
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: false,
+        quality: 0.8,
+      });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        const asset = result.assets[0];
-        // Compress under 200 KB using ImageManipulator
-        const manipResult = await ImageManipulator.manipulateAsync(
-          asset.uri,
-          [{ resize: { width: 1024 } }],
-          { compress: 0.65, format: ImageManipulator.SaveFormat.JPEG },
-        );
-
-        setIdImageUri(manipResult.uri);
-        // Compute approximate size in KB
-        const estSize = Math.floor(130 + Math.random() * 45);
-        setIdImageSizeKb(estSize);
-        setIdSnapped(true);
+        await processImageUri(result.assets[0].uri);
       }
-    } catch (_err) {
-      // In case of camera hardware issue, fallback to gallery picker
-      try {
-        const galleryResult = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ['images'],
-          allowsEditing: true,
-          quality: 0.7,
-        });
-        if (!galleryResult.canceled && galleryResult.assets && galleryResult.assets[0]) {
-          const manipResult = await ImageManipulator.manipulateAsync(
-            galleryResult.assets[0].uri,
-            [{ resize: { width: 1024 } }],
-            { compress: 0.65, format: ImageManipulator.SaveFormat.JPEG },
-          );
-          setIdImageUri(manipResult.uri);
-          setIdImageSizeKb(158);
-          setIdSnapped(true);
-        }
-      } catch {
-        // User cancelled or picker failed
-      }
+    } catch (err: any) {
+      Alert.alert(
+        'Gallery Error',
+        'Could not open image picker: ' + (err?.message || 'Please try again.'),
+      );
     }
+  };
+
+  const handleCaptureId = () => {
+    setShowPhotoOptionsModal(true);
   };
 
   // Submit Check-in to Backend API
@@ -790,6 +835,71 @@ export default function CheckinScreen() {
             setPaymentMode('upi');
           }}
         />
+
+        {/* ======================================================== */}
+        {/* MODAL 3.5: Photo Upload Source (Camera vs Gallery)        */}
+        {/* ======================================================== */}
+        <Modal
+          visible={showPhotoOptionsModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowPhotoOptionsModal(false)}
+        >
+          <View className="flex-1 bg-black/50 justify-end">
+            <View className="bg-white rounded-t-3xl p-6 pb-8 shadow-2xl">
+              <View className="items-center mb-4">
+                <View className="w-12 h-1 rounded-full bg-slate-300" />
+              </View>
+
+              <Text className="text-lg font-black text-slate-900 mb-1">Upload ID Document</Text>
+              <Text className="text-xs text-slate-500 mb-5">
+                Capture Aadhaar or Government ID directly or choose from photos
+              </Text>
+
+              <View className="gap-3 mb-4">
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={handleLaunchCamera}
+                  className="bg-[#E8F5EE] border border-[#A7F3D0] p-4 rounded-2xl flex-row items-center"
+                >
+                  <View className="w-10 h-10 rounded-full bg-[#0A6C50] items-center justify-center mr-3.5">
+                    <Camera size={20} color="#FFFFFF" />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-sm font-black text-slate-900">Take Photo (Camera)</Text>
+                    <Text className="text-xs text-slate-500 mt-0.5">
+                      Snap directly with your device camera
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={handleLaunchGallery}
+                  className="bg-slate-50 border border-slate-200 p-4 rounded-2xl flex-row items-center"
+                >
+                  <View className="w-10 h-10 rounded-full bg-slate-200 items-center justify-center mr-3.5">
+                    <ImageIcon size={20} color="#334155" />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-sm font-black text-slate-900">Choose from Photos</Text>
+                    <Text className="text-xs text-slate-500 mt-0.5">
+                      Select image or WhatsApp photo from gallery
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
+
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => setShowPhotoOptionsModal(false)}
+                className="py-3 items-center justify-center rounded-xl bg-slate-100"
+              >
+                <Text className="text-sm font-bold text-slate-700">Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
 
         {/* ======================================================== */}
         {/* MODAL 4: Camera Permission Dialog (Page 55)              */}

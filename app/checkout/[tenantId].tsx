@@ -104,10 +104,12 @@ export default function CheckoutScreen() {
               setSettlementResult(res.settlement);
 
               // Invalidate caches
+              queryClient.invalidateQueries({ queryKey: ['tenants'] });
               queryClient.invalidateQueries({ queryKey: ['matrix'] });
               queryClient.invalidateQueries({ queryKey: ['dashboard'] });
               queryClient.invalidateQueries({ queryKey: ['invoices'] });
               queryClient.invalidateQueries({ queryKey: ['properties'] });
+              queryClient.invalidateQueries({ queryKey: ['tenant', tenantId] });
             } catch (err: unknown) {
               const msg =
                 (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||

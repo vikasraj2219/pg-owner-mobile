@@ -26,7 +26,9 @@ import {
   AlertTriangle,
   ChevronRight,
   Check,
+  LogOut,
 } from 'lucide-react-native';
+import { useQueryClient } from '@tanstack/react-query';
 import { useTenants } from '../../src/hooks/useTenants';
 import { useProperties } from '../../src/context/PropertyContext';
 import { ITenantListItem } from '../../src/types/api';
@@ -58,6 +60,7 @@ export default function TenantsScreen() {
         : 'all',
   );
   const [isPropertySwitcherVisible, setIsPropertySwitcherVisible] = useState(false);
+  const queryClient = useQueryClient();
 
   // Selected tenant for action sheet
   const [actionSheetTenant, setActionSheetTenant] = useState<ITenantListItem | null>(null);
@@ -270,7 +273,14 @@ export default function TenantsScreen() {
         notes: '',
         isSubmitting: false,
       });
+      queryClient.invalidateQueries({ queryKey: ['tenants'] });
+      queryClient.invalidateQueries({ queryKey: ['matrix'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       void refetch();
+      Alert.alert(
+        'Notice Period Set',
+        `${tenant.fullName} is now on ${noticeModal.days} days notice.`,
+      );
     } catch (err: any) {
       setNoticeModal(prev => ({ ...prev, isSubmitting: false }));
       Alert.alert('Error', err?.response?.data?.message || 'Could not set notice period.');
@@ -281,7 +291,11 @@ export default function TenantsScreen() {
     setActionSheetTenant(null);
     try {
       await cancelTenantNoticeApi(tenant._id);
+      queryClient.invalidateQueries({ queryKey: ['tenants'] });
+      queryClient.invalidateQueries({ queryKey: ['matrix'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       void refetch();
+      Alert.alert('Notice Canceled', `Notice period removed for ${tenant.fullName}.`);
     } catch (err: any) {
       Alert.alert('Error', err?.response?.data?.message || 'Could not cancel notice period.');
     }
@@ -696,6 +710,20 @@ export default function TenantsScreen() {
               >
                 <Clock size={20} color="#334155" />
                 <Text className="text-sm font-bold text-slate-800 ml-3.5">Start notice period</Text>
+              </TouchableOpacity>
+            )}
+
+            {actionSheetTenant?.status !== 'checked_out' && (
+              <TouchableOpacity
+                onPress={() => {
+                  const id = actionSheetTenant?._id;
+                  setActionSheetTenant(null);
+                  if (id) router.push(`/checkout/${id}`);
+                }}
+                className="flex-row items-center py-3.5 border-b border-slate-50"
+              >
+                <LogOut size={20} color="#BE123C" />
+                <Text className="text-sm font-bold text-[#BE123C] ml-3.5">Checkout tenant</Text>
               </TouchableOpacity>
             )}
 

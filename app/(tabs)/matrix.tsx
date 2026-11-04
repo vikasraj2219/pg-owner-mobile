@@ -624,8 +624,9 @@ export default function MatrixScreen() {
         bed={activeOccupiedBed?.bed || null}
         room={activeOccupiedBed?.room || null}
         upiVpa={selectedProperty?.upiVpa}
-        onViewProfile={_tenantId => {
-          router.push('/(tabs)/dues');
+        onViewProfile={tenantId => {
+          setActiveOccupiedBed(null);
+          router.push(`/tenant/${tenantId}` as any);
         }}
         onCheckout={tenantId => {
           setActiveOccupiedBed(null);

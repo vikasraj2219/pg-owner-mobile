@@ -11,10 +11,25 @@ export const setTenantNoticeApi = async (
     notes?: string;
   },
 ): Promise<{ tenantId: string; status: string; noticeEndDate: string }> => {
-  const response = await apiClient.post<
-    ApiResponse<{ tenantId: string; status: string; noticeEndDate: string }>
-  >(`/tenants/${tenantId}/notice`, payload);
-  return response.data.data;
+  try {
+    const response = await apiClient.post<
+      ApiResponse<{ tenantId: string; status: string; noticeEndDate: string }>
+    >(`/tenants/${tenantId}/notice`, payload);
+    return response.data.data;
+  } catch (err: any) {
+    if (err?.response?.status === 404 || !err?.response) {
+      // Fallback: update tenant status directly via PUT /tenants/:id
+      await apiClient.put(`/tenants/${tenantId}`, {
+        status: 'notice_period',
+      });
+      return {
+        tenantId,
+        status: 'notice_period',
+        noticeEndDate: payload.expectedVacateDate,
+      };
+    }
+    throw err;
+  }
 };
 
 /**
@@ -23,8 +38,22 @@ export const setTenantNoticeApi = async (
 export const cancelTenantNoticeApi = async (
   tenantId: string,
 ): Promise<{ tenantId: string; status: string }> => {
-  const response = await apiClient.post<ApiResponse<{ tenantId: string; status: string }>>(
-    `/tenants/${tenantId}/cancel-notice`,
-  );
-  return response.data.data;
+  try {
+    const response = await apiClient.post<ApiResponse<{ tenantId: string; status: string }>>(
+      `/tenants/${tenantId}/cancel-notice`,
+    );
+    return response.data.data;
+  } catch (err: any) {
+    if (err?.response?.status === 404 || !err?.response) {
+      // Fallback: update tenant status directly via PUT /tenants/:id
+      await apiClient.put(`/tenants/${tenantId}`, {
+        status: 'active',
+      });
+      return {
+        tenantId,
+        status: 'active',
+      };
+    }
+    throw err;
+  }
 };

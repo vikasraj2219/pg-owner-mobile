@@ -77,7 +77,9 @@ export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
       if (isOnNotice) {
         await cancelTenantNoticeApi(tenant._id);
         queryClient.invalidateQueries({ queryKey: ['matrix'] });
+        queryClient.invalidateQueries({ queryKey: ['tenants'] });
         queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+        queryClient.invalidateQueries({ queryKey: ['tenant', tenant._id] });
         Alert.alert('Notice Canceled', `Notice period removed for ${tenant.fullName}.`);
         onClose();
       } else {
@@ -88,15 +90,20 @@ export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
           notes: 'Standard 30-day notice period',
         });
         queryClient.invalidateQueries({ queryKey: ['matrix'] });
+        queryClient.invalidateQueries({ queryKey: ['tenants'] });
         queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+        queryClient.invalidateQueries({ queryKey: ['tenant', tenant._id] });
         Alert.alert(
           'Notice Period Active',
           `${tenant.fullName} has been put on 30 days notice (Ends ${formatSafeDate(vacateDate)}).`,
         );
         onClose();
       }
-    } catch {
-      Alert.alert('Notice Error', 'Failed to update notice period status.');
+    } catch (err: any) {
+      Alert.alert(
+        'Notice Error',
+        err?.response?.data?.message || err?.message || 'Failed to update notice period status.',
+      );
     } finally {
       setIsUpdatingNotice(false);
     }

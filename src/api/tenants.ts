@@ -81,15 +81,7 @@ export const restoreTenantApi = async (id: string): Promise<ITenantListItem> => 
   return response.data.data;
 };
 
-export const setTenantNoticeApi = async (id: string, payload: NoticePayload): Promise<any> => {
-  const response = await apiClient.post<ApiResponse<any>>(`/tenants/${id}/notice`, payload);
-  return response.data.data;
-};
-
-export const cancelTenantNoticeApi = async (id: string): Promise<any> => {
-  const response = await apiClient.post<ApiResponse<any>>(`/tenants/${id}/cancel-notice`);
-  return response.data.data;
-};
+export { setTenantNoticeApi, cancelTenantNoticeApi } from './notice';
 
 export const vacateTenantApi = async (id: string, payload: VacatePayload): Promise<any> => {
   const response = await apiClient.post<ApiResponse<any>>(`/tenants/${id}/vacate`, payload);
