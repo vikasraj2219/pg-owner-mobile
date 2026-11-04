@@ -26,8 +26,12 @@ import {
   Trash2,
   Receipt,
   User,
+  Eye,
 } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
+import * as ImageManipulator from 'expo-image-manipulator';
+import { uploadKycDocumentApi } from '../../src/api/upload';
+import { IdDocumentViewerModal } from '../../src/components/IdDocumentViewerModal';
 import { useTenantDetail } from '../../src/hooks/useTenants';
 import { formatINR } from '../../src/utils/currency';
 import { formatSafeDate, formatDayMonth, formatSafeMonthYear } from '../../src/utils/date';
@@ -67,6 +71,10 @@ export default function TenantDetailScreen() {
   // Delete modals
   const [cantDeleteModal, setCantDeleteModal] = useState(false);
   const [confirmDeleteModal, setConfirmDeleteModal] = useState(false);
+
+  // ID Document Viewer state
+  const [showIdDocViewer, setShowIdDocViewer] = useState(false);
+  const [isReplacingPhoto, setIsReplacingPhoto] = useState(false);
 
   // Fetch tenant details
   const { tenant, invoices, deposits, payments, balanceDuePaise, isLoading, refetch } =
@@ -242,7 +250,7 @@ export default function TenantDetailScreen() {
     }
   };
 
-  // Replace ID photo
+  // Replace or Upload ID photo
   const handleReplacePhoto = async () => {
     try {
       const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -252,21 +260,54 @@ export default function TenantDetailScreen() {
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ['images'],
         allowsEditing: true,
-        aspect: [16, 10],
-        quality: 0.7,
+        quality: 0.8,
       });
 
       if (!result.canceled && result.assets[0]?.uri && tenant) {
+        setIsReplacingPhoto(true);
+        const originalUri = result.assets[0].uri;
+
+        // Compress and generate persistent base64 data URI fallback
+        let finalUrl = originalUri;
+        try {
+          const manip = await ImageManipulator.manipulateAsync(
+            originalUri,
+            [{ resize: { width: 800 } }],
+            { compress: 0.65, format: ImageManipulator.SaveFormat.JPEG, base64: true },
+          );
+          if (manip.base64) {
+            finalUrl = `data:image/jpeg;base64,${manip.base64}`;
+          }
+        } catch {
+          // ignore error
+        }
+
+        try {
+          const uploadRes = await uploadKycDocumentApi(
+            originalUri,
+            `${tenant.fullName.trim().replace(/\s+/g, '_')}_kyc.jpg`,
+            'image/jpeg',
+          );
+          if (uploadRes?.secureUrl) {
+            finalUrl = uploadRes.secureUrl;
+          }
+        } catch {
+          // Keep finalUrl as base64
+        }
+
         await updateTenantApi(tenant._id, {
-          kycDocUrl: result.assets[0].uri,
+          kycDocUrl: finalUrl,
         });
-        Alert.alert('Updated', 'ID photo updated successfully.');
+
+        Alert.alert('Updated', 'ID proof document updated successfully.');
         void refetch();
       }
     } catch {
       Alert.alert('Error', 'Failed to update photo.');
+    } finally {
+      setIsReplacingPhoto(false);
     }
   };
 
@@ -627,53 +668,101 @@ export default function TenantDetailScreen() {
           <View className="px-5 pt-4">
             <View className="bg-slate-50 border border-slate-200 rounded-3xl p-5 mb-5 shadow-sm">
               <View className="flex-row items-center justify-between mb-4">
-                <Text className="text-base font-black text-slate-900">
-                  {tenant.kycDocType ? tenant.kycDocType.toUpperCase() + ' card' : 'Aadhaar card'}
-                </Text>
+                <View>
+                  <Text className="text-base font-black text-slate-900">
+                    {tenant.kycDocType ? tenant.kycDocType.toUpperCase() + ' card' : 'Aadhaar card'}
+                  </Text>
+                  <Text className="text-xs font-semibold text-slate-500 mt-0.5">
+                    {tenant.kycMaskedNumber || 'XXXX XXXX 4521'}
+                  </Text>
+                </View>
                 <View className="flex-row items-center bg-[#E6F4EA] px-2.5 py-1 rounded-full">
                   <ShieldCheck size={14} color="#0D652D" />
                   <Text className="text-[11px] font-bold text-[#0D652D] ml-1">KYC verified</Text>
                 </View>
               </View>
 
-              {/* Card Illustration */}
-              <View className="bg-[#E2E8F0] rounded-2xl p-4 mb-4">
-                <View className="flex-row items-center mb-3">
-                  <View className="w-12 h-14 bg-slate-300 rounded-lg mr-3 items-center justify-center overflow-hidden">
-                    {tenant.kycDocUrl ? (
-                      <Image
-                        source={{ uri: tenant.kycDocUrl }}
-                        className="w-full h-full"
-                        resizeMode="cover"
-                      />
-                    ) : (
-                      <User size={24} color="#64748B" />
-                    )}
+              {/* ID Document Preview Area */}
+              {tenant.kycDocUrl ? (
+                <TouchableOpacity
+                  activeOpacity={0.9}
+                  onPress={() => setShowIdDocViewer(true)}
+                  className="bg-white rounded-2xl overflow-hidden border border-slate-200 mb-4 shadow-xs relative"
+                >
+                  <View className="w-full h-52 bg-slate-900 items-center justify-center">
+                    <Image
+                      source={{ uri: tenant.kycDocUrl }}
+                      className="w-full h-full"
+                      resizeMode="contain"
+                    />
                   </View>
-                  <View className="flex-1 space-y-1.5">
-                    <View className="w-3/4 h-2.5 bg-slate-300 rounded-full mb-1" />
-                    <View className="w-1/2 h-2.5 bg-slate-300 rounded-full" />
+
+                  {/* Tap to view overlay banner */}
+                  <View className="bg-slate-800/90 px-4 py-2.5 flex-row items-center justify-between">
+                    <View className="flex-row items-center gap-1.5">
+                      <Eye size={15} color="#FFFFFF" />
+                      <Text className="text-xs font-bold text-white">Tap to view full screen</Text>
+                    </View>
+                    <View className="bg-[#0A6C50] px-2 py-0.5 rounded-md">
+                      <Text className="text-2xs font-extrabold text-white">VERIFIED</Text>
+                    </View>
                   </View>
+                </TouchableOpacity>
+              ) : (
+                <View className="bg-white rounded-2xl p-6 border border-dashed border-slate-300 mb-4 items-center justify-center">
+                  <View className="w-12 h-12 rounded-full bg-slate-100 items-center justify-center mb-2">
+                    <User size={24} color="#64748B" />
+                  </View>
+                  <Text className="text-sm font-bold text-slate-700">No Document Uploaded</Text>
+                  <Text className="text-xs text-slate-500 text-center mt-1">
+                    Upload an Aadhaar, PAN or Voter ID proof for this tenant
+                  </Text>
                 </View>
-                <Text className="text-base font-black tracking-widest text-slate-700">
-                  {tenant.kycMaskedNumber || 'XXXX XXXX 4521'}
-                </Text>
+              )}
+
+              {/* Action Buttons */}
+              <View className="flex-row gap-3 mb-4">
+                {tenant.kycDocUrl && (
+                  <TouchableOpacity
+                    activeOpacity={0.85}
+                    onPress={() => setShowIdDocViewer(true)}
+                    className="flex-1 bg-[#0A6C50] py-3 rounded-2xl flex-row items-center justify-center shadow-xs"
+                  >
+                    <Eye size={16} color="#FFFFFF" />
+                    <Text className="text-sm font-bold text-white ml-2">View Document</Text>
+                  </TouchableOpacity>
+                )}
+
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  disabled={isReplacingPhoto}
+                  onPress={handleReplacePhoto}
+                  className={`flex-1 border border-teal-300 py-3 rounded-2xl flex-row items-center justify-center bg-white ${
+                    !tenant.kycDocUrl ? 'bg-[#0A6C50] border-[#0A6C50]' : ''
+                  }`}
+                >
+                  {isReplacingPhoto ? (
+                    <ActivityIndicator size="small" color="#0A6C50" />
+                  ) : (
+                    <>
+                      <Camera size={16} color={!tenant.kycDocUrl ? '#FFFFFF' : '#0B6645'} />
+                      <Text
+                        className={`text-sm font-bold ml-2 ${
+                          !tenant.kycDocUrl ? 'text-white' : 'text-[#0B6645]'
+                        }`}
+                      >
+                        {tenant.kycDocUrl ? 'Replace Photo' : 'Upload ID Proof'}
+                      </Text>
+                    </>
+                  )}
+                </TouchableOpacity>
               </View>
 
               {/* Consent Note */}
-              <Text className="text-xs text-slate-500 leading-relaxed mb-4">
+              <Text className="text-xs text-slate-500 leading-relaxed mb-1">
                 Consent to store ID given on {formatSafeDate(tenant.joinedDate || tenant.createdAt)}
                 . Stored privately, visible only to you and managers.
               </Text>
-
-              {/* Replace Photo Button */}
-              <TouchableOpacity
-                onPress={handleReplacePhoto}
-                className="w-full border border-teal-300 py-3 rounded-2xl flex-row items-center justify-center bg-white"
-              >
-                <Camera size={18} color="#0B6645" />
-                <Text className="text-sm font-bold text-[#0B6645] ml-2">Replace photo</Text>
-              </TouchableOpacity>
             </View>
           </View>
         )}
@@ -954,6 +1043,16 @@ export default function TenantDetailScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Full-Screen ID Proof Viewer Modal */}
+      <IdDocumentViewerModal
+        visible={showIdDocViewer}
+        onClose={() => setShowIdDocViewer(false)}
+        documentUrl={tenant?.kycDocUrl}
+        tenantName={tenant?.fullName}
+        docType={tenant?.kycDocType || 'Aadhaar'}
+        maskedNumber={tenant?.kycMaskedNumber}
+      />
     </SafeAreaView>
   );
 }
