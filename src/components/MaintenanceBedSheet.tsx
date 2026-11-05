@@ -7,7 +7,7 @@ import {
   TouchableWithoutFeedback,
   ActivityIndicator,
 } from 'react-native';
-import { Wrench, CheckCircle, X } from 'lucide-react-native';
+import { Wrench, CheckCircle, X, Trash2 } from 'lucide-react-native';
 import { IMatrixBed, IMatrixRoom } from '../types/api';
 
 interface MaintenanceBedSheetProps {
@@ -16,6 +16,7 @@ interface MaintenanceBedSheetProps {
   bed: IMatrixBed | null;
   room: IMatrixRoom | null;
   onMarkAvailable: (bedId: string) => void;
+  onDeleteBed?: (bedId: string, bedNumber: string) => void;
   isLoading?: boolean;
 }
 
@@ -25,6 +26,7 @@ export const MaintenanceBedSheet: React.FC<MaintenanceBedSheetProps> = ({
   bed,
   room,
   onMarkAvailable,
+  onDeleteBed,
   isLoading = false,
 }) => {
   if (!bed || !room) return null;
@@ -78,7 +80,7 @@ export const MaintenanceBedSheet: React.FC<MaintenanceBedSheetProps> = ({
                 activeOpacity={0.8}
                 disabled={isLoading}
                 onPress={() => onMarkAvailable(bed._id)}
-                className="w-full bg-[#0A6C50] rounded-2xl py-4 flex-row items-center justify-center shadow-sm"
+                className="w-full bg-[#0A6C50] rounded-2xl py-4 flex-row items-center justify-center shadow-sm mb-2.5"
               >
                 {isLoading ? (
                   <ActivityIndicator color="#FFFFFF" size="small" />
@@ -91,6 +93,21 @@ export const MaintenanceBedSheet: React.FC<MaintenanceBedSheetProps> = ({
                   </>
                 )}
               </TouchableOpacity>
+
+              {/* Delete Bed Button */}
+              {onDeleteBed && (
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  disabled={isLoading}
+                  onPress={() => onDeleteBed(bed._id, bed.bedNumber)}
+                  className="w-full py-3 items-center justify-center bg-rose-50 border border-rose-200 rounded-xl flex-row"
+                >
+                  <Trash2 size={15} color="#BE123C" />
+                  <Text className="text-xs font-bold text-rose-700 ml-1.5">
+                    Delete Bed Permanently
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
           </TouchableWithoutFeedback>
         </View>

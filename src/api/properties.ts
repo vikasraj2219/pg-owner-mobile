@@ -6,7 +6,10 @@ import {
   IBed,
   PropertyMatrixData,
   CreatePropertyPayload,
+  UpdatePropertyPayload,
   CreateRoomPayload,
+  UpdateRoomPayload,
+  AddBedPayload,
   UpdateBedStatusPayload,
 } from '../types/api';
 
@@ -64,6 +67,71 @@ export const createRoom = async (
     payload,
   );
   return response.data.data;
+};
+
+/**
+ * Update property details
+ */
+export const updatePropertyApi = async (
+  propertyId: string,
+  payload: UpdatePropertyPayload,
+): Promise<IProperty> => {
+  const response = await apiClient.put<ApiResponse<IProperty>>(
+    `/properties/${propertyId}`,
+    payload,
+  );
+  return response.data.data;
+};
+
+/**
+ * Delete property (only if no occupied beds)
+ */
+export const deletePropertyApi = async (propertyId: string): Promise<void> => {
+  await apiClient.delete<ApiResponse<null>>(`/properties/${propertyId}`);
+};
+
+/**
+ * Update room details (roomNumber, floorNumber, rent, sharing capacity, tags)
+ */
+export const updateRoomApi = async (
+  propertyId: string,
+  roomId: string,
+  payload: UpdateRoomPayload,
+): Promise<IRoom> => {
+  const response = await apiClient.put<ApiResponse<IRoom>>(
+    `/properties/${propertyId}/rooms/${roomId}`,
+    payload,
+  );
+  return response.data.data;
+};
+
+/**
+ * Delete room (only if all beds are vacant)
+ */
+export const deleteRoomApi = async (propertyId: string, roomId: string): Promise<void> => {
+  await apiClient.delete<ApiResponse<null>>(`/properties/${propertyId}/rooms/${roomId}`);
+};
+
+/**
+ * Add a new bed to an existing room
+ */
+export const addBedToRoomApi = async (
+  propertyId: string,
+  roomId: string,
+  payload?: AddBedPayload,
+): Promise<IBed> => {
+  const response = await apiClient.post<ApiResponse<IBed>>(
+    `/properties/${propertyId}/rooms/${roomId}/beds`,
+    payload || {},
+  );
+  return response.data.data;
+};
+
+/**
+ * Delete a vacant bed
+ */
+export const deleteBedApi = async (bedId: string): Promise<void> => {
+  await apiClient.delete<ApiResponse<null>>(`/beds/${bedId}`);
 };
 
 /**

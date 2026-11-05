@@ -258,12 +258,32 @@ export interface CreatePropertyPayload {
   electricityRatePaisePerUnit: Paise;
 }
 
+export interface UpdatePropertyPayload {
+  name?: string;
+  type?: PropertyType;
+  address?: string;
+  upiVpa?: string;
+  electricityRatePaisePerUnit?: Paise;
+}
+
 export interface CreateRoomPayload {
   floorNumber: number;
   roomNumber: string;
   sharingType: number;
   baseRentPaisePerBed: Paise;
   tags?: string[];
+}
+
+export interface UpdateRoomPayload {
+  roomNumber?: string;
+  floorNumber?: number;
+  sharingType?: number;
+  baseRentPaisePerBed?: Paise;
+  tags?: string[];
+}
+
+export interface AddBedPayload {
+  bedNumber?: string;
 }
 
 export interface UpdateBedStatusPayload {

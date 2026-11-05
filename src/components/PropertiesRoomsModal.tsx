@@ -8,15 +8,17 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { X, Building, Plus, Bed as BedIcon, Layers, Zap } from 'lucide-react-native';
+import { X, Building, Plus, Bed as BedIcon, Layers, Zap, Pencil } from 'lucide-react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useProperties } from '../context/PropertyContext';
 import { fetchPropertyMatrix, createRoom } from '../api/properties';
 import { AddRoomModal } from './AddRoomModal';
 import { AddPropertyModal } from './AddPropertyModal';
+import { EditPropertyModal } from './EditPropertyModal';
+import { EditRoomModal } from './EditRoomModal';
 import { formatINR } from '../utils/currency';
-import { IProperty, PropertyMatrixData } from '../types/api';
+import { IProperty, PropertyMatrixData, IMatrixRoom } from '../types/api';
 
 interface PropertiesRoomsModalProps {
   visible: boolean;
@@ -34,6 +36,8 @@ export const PropertiesRoomsModal: React.FC<PropertiesRoomsModalProps> = ({ visi
   );
   const [showAddRoom, setShowAddRoom] = useState(false);
   const [showAddProperty, setShowAddProperty] = useState(false);
+  const [showEditProperty, setShowEditProperty] = useState(false);
+  const [roomToEdit, setRoomToEdit] = useState<IMatrixRoom | null>(null);
 
   // Sync active property when selected property changes
   React.useEffect(() => {
@@ -187,13 +191,22 @@ export const PropertiesRoomsModal: React.FC<PropertiesRoomsModalProps> = ({ visi
                     </Text>
                   ) : null}
                 </View>
-                <TouchableOpacity
-                  onPress={() => setShowAddRoom(true)}
-                  className="bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl flex-row items-center gap-1.5"
-                >
-                  <Plus size={15} color="#0A6C50" strokeWidth={2.5} />
-                  <Text className="text-xs font-black text-[#0A6C50]">+ Room</Text>
-                </TouchableOpacity>
+                <View className="flex-row items-center gap-1.5">
+                  <TouchableOpacity
+                    onPress={() => setShowEditProperty(true)}
+                    className="bg-slate-100 border border-slate-200 px-2.5 py-1.5 rounded-xl flex-row items-center gap-1"
+                  >
+                    <Pencil size={13} color="#475569" />
+                    <Text className="text-xs font-bold text-slate-700">Edit</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => setShowAddRoom(true)}
+                    className="bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl flex-row items-center gap-1.5"
+                  >
+                    <Plus size={15} color="#0A6C50" strokeWidth={2.5} />
+                    <Text className="text-xs font-black text-[#0A6C50]">+ Room</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
 
               {/* Quick stats counter */}
@@ -307,6 +320,12 @@ export const PropertiesRoomsModal: React.FC<PropertiesRoomsModalProps> = ({ visi
                             <Text className="text-base font-black text-slate-900">
                               Room {room.roomNumber}
                             </Text>
+                            <TouchableOpacity
+                              onPress={() => setRoomToEdit(room as unknown as IMatrixRoom)}
+                              className="w-6 h-6 rounded bg-slate-100 items-center justify-center border border-slate-200"
+                            >
+                              <Pencil size={11} color="#475569" />
+                            </TouchableOpacity>
                             <View className="bg-emerald-50 px-2 py-0.5 rounded-md">
                               <Text className="text-2xs font-extrabold text-emerald-800">
                                 {room.sharingType} Sharing
@@ -427,6 +446,30 @@ export const PropertiesRoomsModal: React.FC<PropertiesRoomsModalProps> = ({ visi
 
         {/* Add Property Modal */}
         <AddPropertyModal visible={showAddProperty} onClose={() => setShowAddProperty(false)} />
+
+        {/* Edit Property Modal */}
+        <EditPropertyModal
+          visible={showEditProperty}
+          property={currentProperty || null}
+          onClose={() => setShowEditProperty(false)}
+          onSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: ['propertyMatrix', activePropertyId] });
+            queryClient.invalidateQueries({ queryKey: ['properties'] });
+          }}
+        />
+
+        {/* Edit Room Modal */}
+        <EditRoomModal
+          visible={!!roomToEdit}
+          propertyId={activePropertyId}
+          room={roomToEdit}
+          onClose={() => setRoomToEdit(null)}
+          onSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: ['propertyMatrix', activePropertyId] });
+            queryClient.invalidateQueries({ queryKey: ['properties'] });
+            queryClient.invalidateQueries({ queryKey: ['matrix'] });
+          }}
+        />
       </View>
     </Modal>
   );

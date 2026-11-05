@@ -7,7 +7,7 @@ import {
   ScrollView,
   TouchableWithoutFeedback,
 } from 'react-native';
-import { Check, Plus, X } from 'lucide-react-native';
+import { Check, Plus, X, Pencil } from 'lucide-react-native';
 import { IProperty } from '../types/api';
 
 interface PropertySwitcherModalProps {
@@ -17,6 +17,7 @@ interface PropertySwitcherModalProps {
   selectedPropertyId: string | null;
   onSelectProperty: (propertyId: string) => void;
   onOpenAddProperty: () => void;
+  onEditProperty?: (property: IProperty) => void;
 }
 
 export const PropertySwitcherModal: React.FC<PropertySwitcherModalProps> = ({
@@ -26,6 +27,7 @@ export const PropertySwitcherModal: React.FC<PropertySwitcherModalProps> = ({
   selectedPropertyId,
   onSelectProperty,
   onOpenAddProperty,
+  onEditProperty,
 }) => {
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
@@ -77,7 +79,22 @@ export const PropertySwitcherModal: React.FC<PropertySwitcherModalProps> = ({
                           {property.name}
                           {property.address ? `, ${property.address.split(',')[0]}` : ''}
                         </Text>
-                        {isSelected && <Check size={20} color="#0A6C50" strokeWidth={2.5} />}
+                        <View className="flex-row items-center gap-2">
+                          {onEditProperty && (
+                            <TouchableOpacity
+                              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                              onPress={e => {
+                                e.stopPropagation();
+                                onClose();
+                                onEditProperty(property);
+                              }}
+                              className="w-7 h-7 rounded-lg bg-slate-100 items-center justify-center border border-slate-200"
+                            >
+                              <Pencil size={12} color="#475569" />
+                            </TouchableOpacity>
+                          )}
+                          {isSelected && <Check size={20} color="#0A6C50" strokeWidth={2.5} />}
+                        </View>
                       </View>
 
                       {/* Stats Subtitle */}

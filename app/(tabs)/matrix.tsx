@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { ChevronDown, Plus, AlertCircle, RefreshCw, Building } from 'lucide-react-native';
+import { ChevronDown, Plus, AlertCircle, RefreshCw, Building, Pencil } from 'lucide-react-native';
 import { useProperties } from '../../src/context/PropertyContext';
 import { useMatrix } from '../../src/hooks/useMatrix';
 import { IMatrixBed, IMatrixRoom } from '../../src/types/api';
@@ -19,10 +19,13 @@ import { OfflineBanner } from '../../src/components/OfflineBanner';
 import { PropertySwitcherModal } from '../../src/components/PropertySwitcherModal';
 import { AddPropertyModal } from '../../src/components/AddPropertyModal';
 import { AddRoomModal } from '../../src/components/AddRoomModal';
+import { EditPropertyModal } from '../../src/components/EditPropertyModal';
+import { EditRoomModal } from '../../src/components/EditRoomModal';
 import { VacantBedSheet } from '../../src/components/VacantBedSheet';
 import { OccupiedBedSheet } from '../../src/components/OccupiedBedSheet';
 import { MaintenanceBedSheet } from '../../src/components/MaintenanceBedSheet';
 import { MatrixEmptyState } from '../../src/components/MatrixEmptyState';
+import { addBedToRoomApi, deleteBedApi } from '../../src/api/properties';
 
 export default function MatrixScreen() {
   const router = useRouter();
@@ -73,7 +76,10 @@ export default function MatrixScreen() {
   // Modals state
   const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
   const [isAddPropertyOpen, setIsAddPropertyOpen] = useState(false);
+  const [isEditPropertyOpen, setIsEditPropertyOpen] = useState(false);
   const [isAddRoomOpen, setIsAddRoomOpen] = useState(false);
+  const [roomToEdit, setRoomToEdit] = useState<IMatrixRoom | null>(null);
+  const [isAddingBedRoomId, setIsAddingBedRoomId] = useState<string | null>(null);
 
   // Selected bed sheets state
   const [activeVacantBed, setActiveVacantBed] = useState<{
@@ -193,6 +199,51 @@ export default function MatrixScreen() {
     }
   };
 
+  const handleAddBed = async (roomId: string, roomNumber: string) => {
+    if (!selectedPropertyId) return;
+    setIsAddingBedRoomId(roomId);
+    try {
+      const newBed = await addBedToRoomApi(selectedPropertyId, roomId);
+      await Promise.all([refetchMatrix(), refetchProperties()]);
+      Alert.alert('Bed Added', `Bed ${newBed.bedNumber} added successfully to Room ${roomNumber}.`);
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        (err instanceof Error ? err.message : 'Failed to add bed');
+      Alert.alert('Error', msg);
+    } finally {
+      setIsAddingBedRoomId(null);
+    }
+  };
+
+  const handleDeleteBed = (bedId: string, bedNumber: string) => {
+    Alert.alert(
+      `Delete Bed ${bedNumber}?`,
+      'Are you sure you want to delete this vacant bed? This action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete Bed',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteBedApi(bedId);
+              setActiveVacantBed(null);
+              setActiveMaintenanceBed(null);
+              await Promise.all([refetchMatrix(), refetchProperties()]);
+              Alert.alert('Deleted', `Bed ${bedNumber} has been removed.`);
+            } catch (err: unknown) {
+              const msg =
+                (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+                (err instanceof Error ? err.message : 'Failed to delete bed');
+              Alert.alert('Cannot Delete', msg);
+            }
+          },
+        },
+      ],
+    );
+  };
+
   const handleRefresh = async () => {
     await Promise.all([refetchProperties(), refetchMatrix()]);
   };
@@ -235,15 +286,24 @@ export default function MatrixScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Quick Add Room Button */}
+          {/* Quick Actions: Edit Property & Add Room Buttons */}
           {selectedProperty && (
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={() => setIsAddRoomOpen(true)}
-              className="w-10 h-10 rounded-full bg-[#0A6C50] items-center justify-center shadow-sm mt-1"
-            >
-              <Plus size={22} color="#FFFFFF" strokeWidth={2.5} />
-            </TouchableOpacity>
+            <View className="flex-row items-center gap-2 mt-1">
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => setIsEditPropertyOpen(true)}
+                className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 items-center justify-center shadow-2xs"
+              >
+                <Pencil size={17} color="#475569" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => setIsAddRoomOpen(true)}
+                className="w-10 h-10 rounded-full bg-[#0A6C50] items-center justify-center shadow-sm"
+              >
+                <Plus size={22} color="#FFFFFF" strokeWidth={2.5} />
+              </TouchableOpacity>
+            </View>
           )}
         </View>
 
@@ -348,11 +408,31 @@ export default function MatrixScreen() {
                   key={room._id}
                   className="bg-white border border-slate-200/80 rounded-2xl p-4 mb-4 shadow-xs"
                 >
-                  {/* Room Header */}
+                  {/* Room Header with Edit & Quick Add Bed */}
                   <View className="flex-row items-center justify-between mb-3.5">
-                    <Text className="text-lg font-extrabold text-slate-900">
-                      Room {room.roomNumber}
-                    </Text>
+                    <View className="flex-row items-center">
+                      <Text className="text-lg font-extrabold text-slate-900 mr-2">
+                        Room {room.roomNumber}
+                      </Text>
+                      <TouchableOpacity
+                        activeOpacity={0.7}
+                        onPress={() => setRoomToEdit(room)}
+                        className="w-7 h-7 rounded-lg bg-slate-100 items-center justify-center border border-slate-200 mr-1.5"
+                      >
+                        <Pencil size={13} color="#475569" />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        activeOpacity={0.7}
+                        disabled={isAddingBedRoomId === room._id}
+                        onPress={() => handleAddBed(room._id, room.roomNumber)}
+                        className="bg-emerald-50 border border-emerald-200 px-2 py-1 rounded-lg flex-row items-center"
+                      >
+                        <Plus size={11} color="#0A6C50" strokeWidth={2.5} />
+                        <Text className="text-[10px] font-extrabold text-[#0A6C50] ml-0.5">
+                          Add Bed
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
                     <View className="flex-row items-center gap-1.5 flex-wrap">
                       {(room.tags || []).map(tag => (
                         <View
@@ -523,6 +603,24 @@ export default function MatrixScreen() {
                         </TouchableOpacity>
                       );
                     })}
+
+                    {/* Quick + Bed Dashed Chip */}
+                    <TouchableOpacity
+                      activeOpacity={0.7}
+                      disabled={isAddingBedRoomId === room._id}
+                      onPress={() => handleAddBed(room._id, room.roomNumber)}
+                      className="min-w-[80px] bg-slate-50 border border-dashed border-slate-300 rounded-xl p-3 items-center justify-center"
+                      style={{ minHeight: 88 }}
+                    >
+                      {isAddingBedRoomId === room._id ? (
+                        <ActivityIndicator size="small" color="#0A6C50" />
+                      ) : (
+                        <>
+                          <Plus size={18} color="#0A6C50" strokeWidth={2.5} />
+                          <Text className="text-[11px] font-bold text-[#0A6C50] mt-1">+ Bed</Text>
+                        </>
+                      )}
+                    </TouchableOpacity>
                   </View>
                 </View>
               ))
@@ -562,6 +660,7 @@ export default function MatrixScreen() {
         selectedPropertyId={selectedPropertyId}
         onSelectProperty={id => setSelectedPropertyId(id)}
         onOpenAddProperty={() => setIsAddPropertyOpen(true)}
+        onEditProperty={() => setIsEditPropertyOpen(true)}
       />
 
       {/* Add Property Modal matching Page 38 */}
@@ -614,6 +713,7 @@ export default function MatrixScreen() {
           });
         }}
         onMarkMaintenance={handleMarkMaintenance}
+        onDeleteBed={handleDeleteBed}
         isLoading={isUpdatingBedStatus}
       />
 
@@ -641,7 +741,31 @@ export default function MatrixScreen() {
         bed={activeMaintenanceBed?.bed || null}
         room={activeMaintenanceBed?.room || null}
         onMarkAvailable={handleMarkAvailable}
+        onDeleteBed={handleDeleteBed}
         isLoading={isUpdatingBedStatus}
+      />
+
+      {/* Edit Property Modal */}
+      <EditPropertyModal
+        visible={isEditPropertyOpen}
+        property={selectedProperty}
+        onClose={() => setIsEditPropertyOpen(false)}
+        onSuccess={() => {
+          refetchProperties();
+          refetchMatrix();
+        }}
+      />
+
+      {/* Edit Room Modal */}
+      <EditRoomModal
+        visible={!!roomToEdit}
+        propertyId={selectedPropertyId || ''}
+        room={roomToEdit}
+        onClose={() => setRoomToEdit(null)}
+        onSuccess={() => {
+          refetchMatrix();
+          refetchProperties();
+        }}
       />
     </SafeAreaView>
   );

@@ -12,7 +12,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { ChevronLeft, AlertCircle, Sparkles } from 'lucide-react-native';
+import { ChevronLeft, AlertCircle, Sparkles, Plus, Minus } from 'lucide-react-native';
 import { IProperty } from '../types/api';
 import { formatINR } from '../utils/currency';
 import { getApiErrorMessage } from '../utils/validation';
@@ -73,6 +73,7 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
   const [floorNumber, setFloorNumber] = useState(defaultFloor.toString());
   const [roomNumber, setRoomNumber] = useState('');
   const [sharingType, setSharingType] = useState<number>(3);
+  const [showCustomSharing, setShowCustomSharing] = useState(false);
   const [hasAC, setHasAC] = useState(true);
   const [hasWashroom, setHasWashroom] = useState(true);
   const [rentPerBed, setRentPerBed] = useState('7500');
@@ -275,18 +276,26 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
 
           {/* Sharing Type */}
           <View className="mb-5">
-            <Text className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-              Sharing type (Beds per room)
-            </Text>
-            <View className="flex-row gap-2">
-              {[1, 2, 3, 4].map(count => {
-                const isSelected = sharingType === count;
+            <View className="flex-row items-center justify-between mb-2">
+              <Text className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                Sharing type (Beds per room)
+              </Text>
+              <Text className="text-xs font-bold text-[#0A6C50]">
+                {sharingType} {sharingType === 1 ? 'Bed' : 'Beds'}
+              </Text>
+            </View>
+            <View className="flex-row flex-wrap gap-2">
+              {[1, 2, 3, 4, 5, 6].map(count => {
+                const isSelected = sharingType === count && !showCustomSharing;
                 return (
                   <TouchableOpacity
                     key={count}
                     activeOpacity={0.8}
-                    onPress={() => setSharingType(count)}
-                    className={`flex-1 py-3.5 rounded-xl items-center justify-center border shadow-xs ${
+                    onPress={() => {
+                      setSharingType(count);
+                      setShowCustomSharing(false);
+                    }}
+                    className={`min-w-[42px] flex-1 py-3 rounded-xl items-center justify-center border shadow-xs ${
                       isSelected ? 'bg-[#0A6C50] border-[#0A6C50]' : 'bg-white border-slate-300'
                     }`}
                   >
@@ -300,7 +309,55 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
                   </TouchableOpacity>
                 );
               })}
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => {
+                  setShowCustomSharing(true);
+                  if (sharingType <= 6) setSharingType(7);
+                }}
+                className={`px-3 py-3 rounded-xl items-center justify-center border shadow-xs ${
+                  showCustomSharing ? 'bg-[#0A6C50] border-[#0A6C50]' : 'bg-white border-slate-300'
+                }`}
+              >
+                <Text
+                  className={`text-xs font-extrabold ${
+                    showCustomSharing ? 'text-white' : 'text-slate-800'
+                  }`}
+                >
+                  {showCustomSharing && sharingType > 6 ? `${sharingType} Beds` : '+ More'}
+                </Text>
+              </TouchableOpacity>
             </View>
+
+            {showCustomSharing && (
+              <View className="mt-3 flex-row items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-200">
+                <Text className="text-xs font-bold text-slate-700">Custom sharing capacity:</Text>
+                <View className="flex-row items-center gap-2">
+                  <TouchableOpacity
+                    onPress={() => setSharingType(prev => Math.max(1, prev - 1))}
+                    className="w-8 h-8 rounded-lg bg-white border border-slate-300 items-center justify-center"
+                  >
+                    <Minus size={15} color="#334155" />
+                  </TouchableOpacity>
+                  <TextInput
+                    value={sharingType.toString()}
+                    onChangeText={txt => {
+                      const n = parseInt(txt.replace(/[^0-9]/g, ''), 10);
+                      if (!isNaN(n)) setSharingType(Math.min(20, Math.max(1, n)));
+                      else if (txt === '') setSharingType(1);
+                    }}
+                    keyboardType="number-pad"
+                    className="w-12 h-8 bg-white border border-slate-300 rounded-lg text-center font-black text-slate-900"
+                  />
+                  <TouchableOpacity
+                    onPress={() => setSharingType(prev => Math.min(20, prev + 1))}
+                    className="w-8 h-8 rounded-lg bg-white border border-slate-300 items-center justify-center"
+                  >
+                    <Plus size={15} color="#334155" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
           </View>
 
           {/* AC Switch */}

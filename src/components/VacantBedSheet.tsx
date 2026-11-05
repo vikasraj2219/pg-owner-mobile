@@ -7,7 +7,7 @@ import {
   TouchableWithoutFeedback,
   ActivityIndicator,
 } from 'react-native';
-import { UserPlus, X } from 'lucide-react-native';
+import { UserPlus, X, Trash2, Wrench } from 'lucide-react-native';
 import { IMatrixBed, IMatrixRoom } from '../types/api';
 import { formatINR } from '../utils/currency';
 
@@ -18,6 +18,7 @@ interface VacantBedSheetProps {
   room: IMatrixRoom | null;
   onCheckIn: (bedId: string) => void;
   onMarkMaintenance: (bedId: string) => void;
+  onDeleteBed?: (bedId: string, bedNumber: string) => void;
   isLoading?: boolean;
 }
 
@@ -28,6 +29,7 @@ export const VacantBedSheet: React.FC<VacantBedSheetProps> = ({
   room,
   onCheckIn,
   onMarkMaintenance,
+  onDeleteBed,
   isLoading = false,
 }) => {
   if (!bed || !room) return null;
@@ -101,21 +103,38 @@ export const VacantBedSheet: React.FC<VacantBedSheetProps> = ({
                 <Text className="text-base font-extrabold text-white ml-2.5">Check in tenant</Text>
               </TouchableOpacity>
 
-              {/* Mark as under maintenance */}
-              <TouchableOpacity
-                activeOpacity={0.7}
-                disabled={isLoading}
-                onPress={() => onMarkMaintenance(bed._id)}
-                className="py-3 items-center justify-center"
-              >
-                {isLoading ? (
-                  <ActivityIndicator color="#64748B" size="small" />
-                ) : (
-                  <Text className="text-sm font-bold text-slate-700">
-                    Mark as under maintenance
-                  </Text>
+              {/* Actions row: Mark Maintenance & Delete Bed */}
+              <View className="flex-row items-center gap-2">
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  disabled={isLoading}
+                  onPress={() => onMarkMaintenance(bed._id)}
+                  className="flex-1 py-3 items-center justify-center bg-slate-100 rounded-xl flex-row"
+                >
+                  {isLoading ? (
+                    <ActivityIndicator color="#64748B" size="small" />
+                  ) : (
+                    <>
+                      <Wrench size={14} color="#64748B" />
+                      <Text className="text-xs font-bold text-slate-700 ml-1.5">
+                        Mark Maintenance
+                      </Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+
+                {onDeleteBed && (
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    disabled={isLoading}
+                    onPress={() => onDeleteBed(bed._id, bed.bedNumber)}
+                    className="px-4 py-3 items-center justify-center bg-rose-50 border border-rose-200 rounded-xl flex-row"
+                  >
+                    <Trash2 size={15} color="#BE123C" />
+                    <Text className="text-xs font-bold text-rose-700 ml-1.5">Delete</Text>
+                  </TouchableOpacity>
                 )}
-              </TouchableOpacity>
+              </View>
             </View>
           </TouchableWithoutFeedback>
         </View>
