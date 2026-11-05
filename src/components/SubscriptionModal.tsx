@@ -16,7 +16,7 @@ interface SubscriptionModalProps {
 
 export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, onClose }) => {
   const queryClient = useQueryClient();
-  const { subscription: authSub } = useAuth();
+  const { subscription: authSub, refreshAuthUser } = useAuth();
   const { properties } = useProperties();
   const [sub, setSub] = useState<ISubscriptionCurrent | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -145,7 +145,7 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
                     {isExpired
                       ? 'Expired (Read-only)'
                       : sub?.status === 'active'
-                        ? 'Active'
+                        ? `Active · ${sub?.daysLeft || 0}d left`
                         : `${sub?.daysLeft || 0}d Trial`}
                   </Text>
                 </View>
@@ -261,11 +261,22 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
             </View>
 
             {/* Pro Tier */}
-            <View className="bg-white rounded-2xl p-5 border border-purple-200 mb-6 shadow-xs">
+            <View
+              className={`bg-white rounded-2xl p-5 border mb-6 shadow-xs ${
+                sub?.plan === 'pro' && sub?.status === 'active'
+                  ? 'border-purple-400 bg-purple-50/20'
+                  : 'border-purple-200'
+              }`}
+            >
               <View className="flex-row justify-between items-center mb-2">
                 <View className="flex-row items-center">
                   <Sparkles size={16} color="#7E22CE" />
                   <Text className="text-lg font-black text-slate-900 ml-1.5">Pro Enterprise</Text>
+                  {sub?.plan === 'pro' && sub?.status === 'active' && (
+                    <View className="ml-2 bg-purple-100 border border-purple-200 px-2 py-0.5 rounded">
+                      <Text className="text-[10px] font-extrabold text-purple-800">ACTIVE</Text>
+                    </View>
+                  )}
                 </View>
                 <Text className="text-lg font-black text-purple-700">₹1,999 / mo</Text>
               </View>
@@ -289,7 +300,9 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
                 className="bg-purple-700 rounded-xl py-3 items-center justify-center"
               >
                 <Text className="text-white font-bold text-sm">
-                  {sub?.plan === 'pro' ? 'Renew Pro Plan' : 'Upgrade to Pro'}
+                  {sub?.plan === 'pro' && sub?.status === 'active'
+                    ? 'Extend Pro Plan (+30 Days)'
+                    : 'Upgrade to Pro'}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -309,11 +322,13 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
           visible={checkoutPlan !== null}
           plan={checkoutPlan}
           onClose={() => setCheckoutPlan(null)}
-          onSuccess={() => {
+          onSuccess={async () => {
             setCheckoutPlan(null);
-            loadSub();
+            await refreshAuthUser();
             queryClient.invalidateQueries({ queryKey: ['subscription'] });
             queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+            queryClient.invalidateQueries({ queryKey: ['properties'] });
+            await loadSub();
           }}
         />
       </View>

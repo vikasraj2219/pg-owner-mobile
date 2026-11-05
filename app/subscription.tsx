@@ -200,7 +200,7 @@ export default function SubscriptionScreen() {
               </Text>
               <Text className="text-xs text-slate-500 font-semibold text-center mb-4">
                 {sub?.status === 'active'
-                  ? `Your organization is unlocked on the ${getPlanTitle(sub?.plan || 'starter')} for 30 days.`
+                  ? `Your organization is unlocked on the ${getPlanTitle(sub?.plan || 'starter')} with ${sub?.daysLeft || 30} days of full active access.`
                   : `${sub?.daysLeft || 0} days remaining on your free starter trial.`}
               </Text>
 

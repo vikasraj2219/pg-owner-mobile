@@ -26,6 +26,8 @@ import { TenantsDirectoryModal } from '../../src/components/TenantsDirectoryModa
 import { PropertiesRoomsModal } from '../../src/components/PropertiesRoomsModal';
 import { DpdpKycComplianceModal } from '../../src/components/DpdpKycComplianceModal';
 import { calculateDaysRemaining } from '../../src/utils/date';
+import { useQuery } from '@tanstack/react-query';
+import { getCurrentSubscriptionApi } from '../../src/api/subscription';
 
 export default function MoreScreen() {
   const router = useRouter();
@@ -49,11 +51,34 @@ export default function MoreScreen() {
   const [showPropertiesRoomsModal, setShowPropertiesRoomsModal] = useState(false);
   const [showDpdpKycModal, setShowDpdpKycModal] = useState(false);
 
-  // Dynamic trial remaining days (accurately counts down each calendar day)
-  const trialDaysLeft = React.useMemo(() => {
-    if (!subscription?.trialEndsAt) return 14;
-    return calculateDaysRemaining(subscription.trialEndsAt);
-  }, [subscription]);
+  // Fresh subscription query to immediately reflect upgrades & active plan
+  const { data: subQuery } = useQuery({
+    queryKey: ['subscription'],
+    queryFn: getCurrentSubscriptionApi,
+    staleTime: 15 * 1000,
+  });
+
+  const activePlan = subQuery?.plan || (subscription?.plan as string) || 'starter';
+  const activeStatus = subQuery?.status || subscription?.status || 'trialing';
+  const isReadOnly = subQuery?.isReadOnly || activeStatus === 'expired';
+
+  // Dynamic remaining days (calculates exact calendar days left)
+  const daysRemaining = React.useMemo(() => {
+    if (subQuery?.daysLeft !== undefined) return subQuery.daysLeft;
+    if (activeStatus === 'active' && subscription?.currentPeriodEnd) {
+      return calculateDaysRemaining(subscription.currentPeriodEnd);
+    }
+    if (subscription?.trialEndsAt) {
+      return calculateDaysRemaining(subscription.trialEndsAt);
+    }
+    return 14;
+  }, [subQuery, activeStatus, subscription]);
+
+  const planLabel = React.useMemo(() => {
+    if (activePlan === 'pro') return 'Pro Enterprise';
+    if (activePlan === 'growth') return 'Growth';
+    return 'Starter';
+  }, [activePlan]);
 
   // Dynamic total beds
   const totalBeds = React.useMemo(() => {
@@ -171,7 +196,11 @@ export default function MoreScreen() {
         {
           icon: CreditCard,
           label: 'Subscription Plan',
-          detail: `14-Day Free Trial (${trialDaysLeft} days left)`,
+          detail: isReadOnly
+            ? 'Trial Expired (Read-only mode)'
+            : activeStatus === 'active'
+              ? `${planLabel} Plan · Active (${daysRemaining}d left)`
+              : `14-Day Free Trial (${daysRemaining} days left)`,
           onPress: () => setShowSubscriptionModal(true),
         },
         {
@@ -214,9 +243,29 @@ export default function MoreScreen() {
           </View>
           <TouchableOpacity
             onPress={() => setShowSubscriptionModal(true)}
-            className="bg-[#FEF9C3] border border-[#FDE047] px-2.5 py-1 rounded-full"
+            className={`border px-2.5 py-1 rounded-full ${
+              isReadOnly
+                ? 'bg-rose-50 border-rose-200'
+                : activeStatus === 'active'
+                  ? 'bg-purple-50 border-purple-200'
+                  : 'bg-[#FEF9C3] border-[#FDE047]'
+            }`}
           >
-            <Text className="text-[10px] font-bold text-[#854D0E]">{trialDaysLeft}d Trial</Text>
+            <Text
+              className={`text-[10px] font-bold ${
+                isReadOnly
+                  ? 'text-rose-700'
+                  : activeStatus === 'active'
+                    ? 'text-purple-700'
+                    : 'text-[#854D0E]'
+              }`}
+            >
+              {isReadOnly
+                ? 'Expired'
+                : activeStatus === 'active'
+                  ? `${activePlan.toUpperCase()} · ${daysRemaining}d left`
+                  : `${daysRemaining}d Trial`}
+            </Text>
           </TouchableOpacity>
         </View>
 

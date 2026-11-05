@@ -20,10 +20,12 @@ import {
   Sparkles,
 } from 'lucide-react-native';
 import { useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '../hooks/useAuth';
 import {
   createRazorpayOrderApi,
   verifyRazorpayPaymentApi,
   createRazorpayPaymentLinkApi,
+  upgradeSubscriptionApi,
 } from '../api/subscription';
 
 interface RazorpayCheckoutModalProps {
@@ -100,6 +102,7 @@ export const RazorpayCheckoutModal: React.FC<RazorpayCheckoutModalProps> = ({
   onSuccess,
 }) => {
   const queryClient = useQueryClient();
+  const { refreshAuthUser } = useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
   const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
 
@@ -143,8 +146,10 @@ export const RazorpayCheckoutModal: React.FC<RazorpayCheckoutModalProps> = ({
         plan,
       });
 
+      await refreshAuthUser();
       queryClient.invalidateQueries({ queryKey: ['subscription'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['properties'] });
 
       Alert.alert(
         'Payment Successful! 🎉',
@@ -172,8 +177,10 @@ export const RazorpayCheckoutModal: React.FC<RazorpayCheckoutModalProps> = ({
         plan,
       });
 
+      await refreshAuthUser();
       queryClient.invalidateQueries({ queryKey: ['subscription'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['properties'] });
 
       Alert.alert(
         'Subscription Activated! 🎉',
@@ -185,6 +192,28 @@ export const RazorpayCheckoutModal: React.FC<RazorpayCheckoutModalProps> = ({
         'Verification Pending',
         'We could not verify the payment yet. If money was debited, your account will activate automatically within 2 minutes via webhook.',
       );
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleInstantTestActivate = async () => {
+    setIsProcessing(true);
+    try {
+      await upgradeSubscriptionApi(plan);
+      await refreshAuthUser();
+      queryClient.invalidateQueries({ queryKey: ['subscription'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['properties'] });
+
+      Alert.alert(
+        'Subscription Activated! 🎉',
+        `Your account is now activated on the ${details.title.toUpperCase()}! Full quotas and features are unlocked.`,
+        [{ text: 'Start Managing', onPress: onSuccess }],
+      );
+    } catch (error: any) {
+      const msg = error?.response?.data?.message || error?.message || 'Upgrade failed';
+      Alert.alert('Activation Error', msg);
     } finally {
       setIsProcessing(false);
     }
@@ -322,6 +351,18 @@ export const RazorpayCheckoutModal: React.FC<RazorpayCheckoutModalProps> = ({
                   </Text>
                 </>
               )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              activeOpacity={0.7}
+              disabled={isProcessing}
+              onPress={handleInstantTestActivate}
+              className="w-full mt-2.5 bg-slate-100 rounded-xl py-2.5 items-center justify-center flex-row border border-slate-200"
+            >
+              <Sparkles size={13} color="#475569" />
+              <Text className="text-slate-700 font-bold text-xs ml-1.5">
+                Instant Sandbox Upgrade (Test Mode)
+              </Text>
             </TouchableOpacity>
 
             {pendingOrderId && (
