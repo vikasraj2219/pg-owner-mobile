@@ -50,7 +50,7 @@ export const EditRoomModal: React.FC<EditRoomModalProps> = ({
       setRoomNumber(room.roomNumber || '');
       setFloorNumber((room.floorNumber ?? 1).toString());
       setSharingType(room.sharingType || 3);
-      setShowCustomSharing((room.sharingType || 3) > 6);
+      setShowCustomSharing((room.sharingType || 3) > 4);
       setRentPerBed(
         room.baseRentPaisePerBed ? (room.baseRentPaisePerBed / 100).toString() : '7500',
       );
@@ -118,19 +118,34 @@ export const EditRoomModal: React.FC<EditRoomModalProps> = ({
   };
 
   const handleDelete = () => {
+    const occupiedCount =
+      'beds' in room && Array.isArray(room.beds)
+        ? room.beds.filter(b => b.status === 'occupied').length
+        : 0;
+
+    if (occupiedCount > 0) {
+      Alert.alert(
+        `Can't delete Room ${room.roomNumber}`,
+        `${occupiedCount} tenant${occupiedCount === 1 ? ' is' : 's are'} staying in this room. Move or check them out first.`,
+        [{ text: 'Cancel', style: 'cancel' }],
+      );
+      return;
+    }
+
     Alert.alert(
       `Delete Room ${room.roomNumber}?`,
-      'This will delete this room and all its vacant beds. If any bed is occupied, deletion will be blocked.',
+      `Its empty beds will be deleted too. This can't be undone.`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Delete Room',
+          text: 'Delete room',
           style: 'destructive',
           onPress: async () => {
             setIsDeleting(true);
             try {
               await deleteRoomApi(propertyId, room._id);
               await Promise.all([
+                queryClient.invalidateQueries({ queryKey: ['propertyMatrix', propertyId] }),
                 queryClient.invalidateQueries({ queryKey: ['matrix'] }),
                 queryClient.invalidateQueries({ queryKey: ['properties'] }),
                 queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
@@ -229,7 +244,7 @@ export const EditRoomModal: React.FC<EditRoomModalProps> = ({
               </Text>
             </View>
             <View className="flex-row flex-wrap gap-2">
-              {[1, 2, 3, 4, 5, 6].map(count => {
+              {[1, 2, 3, 4].map(count => {
                 const isSelected = sharingType === count && !showCustomSharing;
                 return (
                   <TouchableOpacity
@@ -239,7 +254,7 @@ export const EditRoomModal: React.FC<EditRoomModalProps> = ({
                       setSharingType(count);
                       setShowCustomSharing(false);
                     }}
-                    className={`min-w-[42px] flex-1 py-3 rounded-xl items-center justify-center border shadow-xs ${
+                    className={`min-w-[48px] flex-1 py-3 rounded-xl items-center justify-center border shadow-xs ${
                       isSelected ? 'bg-[#0A6C50] border-[#0A6C50]' : 'bg-white border-slate-300'
                     }`}
                   >
@@ -257,7 +272,7 @@ export const EditRoomModal: React.FC<EditRoomModalProps> = ({
                 activeOpacity={0.8}
                 onPress={() => {
                   setShowCustomSharing(true);
-                  if (sharingType <= 6) setSharingType(7);
+                  if (sharingType <= 4) setSharingType(5);
                 }}
                 className={`px-3 py-3 rounded-xl items-center justify-center border shadow-xs ${
                   showCustomSharing ? 'bg-[#0A6C50] border-[#0A6C50]' : 'bg-white border-slate-300'
@@ -268,10 +283,14 @@ export const EditRoomModal: React.FC<EditRoomModalProps> = ({
                     showCustomSharing ? 'text-white' : 'text-slate-800'
                   }`}
                 >
-                  {showCustomSharing && sharingType > 6 ? `${sharingType} Beds` : '+ More'}
+                  {showCustomSharing && sharingType > 4 ? `${sharingType} Beds` : '+ Custom'}
                 </Text>
               </TouchableOpacity>
             </View>
+            <Text className="text-2xs text-slate-500 font-medium mt-1.5">
+              Increasing sharing capacity automatically adds new beds. Decreasing requires vacant
+              beds.
+            </Text>
 
             {/* Custom Sharing Stepper */}
             {showCustomSharing && (
@@ -328,6 +347,9 @@ export const EditRoomModal: React.FC<EditRoomModalProps> = ({
                 className="bg-white border border-slate-300 rounded-xl pl-9 pr-4 py-3 font-extrabold text-slate-900 text-base shadow-xs"
               />
             </View>
+            <Text className="text-2xs text-slate-400 font-medium mt-1">
+              New rent applies to new tenants. Current tenants keep theirs.
+            </Text>
           </View>
 
           {/* Amenities Switches */}

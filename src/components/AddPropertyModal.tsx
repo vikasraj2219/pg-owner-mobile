@@ -86,6 +86,8 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
         name: name.trim(),
         type,
         address: fullAddress || undefined,
+        city: city.trim() || undefined,
+        pincode: pincode.trim() || undefined,
         upiVpa: upiVpa.trim().toLowerCase(),
         electricityRatePaisePerUnit: ratePaise,
       });

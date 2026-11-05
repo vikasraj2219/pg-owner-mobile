@@ -9,7 +9,10 @@ import {
   UpdatePropertyPayload,
   CreateRoomPayload,
   UpdateRoomPayload,
+  CreateFloorPayload,
+  UpdateFloorPayload,
   AddBedPayload,
+  UpdateBedPayload,
   UpdateBedStatusPayload,
 } from '../types/api';
 
@@ -132,6 +135,50 @@ export const addBedToRoomApi = async (
  */
 export const deleteBedApi = async (bedId: string): Promise<void> => {
   await apiClient.delete<ApiResponse<null>>(`/beds/${bedId}`);
+};
+
+/**
+ * Create a new floor in a property
+ */
+export const createFloorApi = async (
+  propertyId: string,
+  payload: CreateFloorPayload,
+): Promise<{ floorNumber: number; floorLabel?: string }> => {
+  const response = await apiClient.post<ApiResponse<{ floorNumber: number; floorLabel?: string }>>(
+    `/properties/${propertyId}/floors`,
+    payload,
+  );
+  return response.data.data;
+};
+
+/**
+ * Update a floor's number or label
+ */
+export const updateFloorApi = async (
+  propertyId: string,
+  floorNumber: number,
+  payload: UpdateFloorPayload,
+): Promise<{ floorNumber: number; floorLabel?: string }> => {
+  const response = await apiClient.put<ApiResponse<{ floorNumber: number; floorLabel?: string }>>(
+    `/properties/${propertyId}/floors/${floorNumber}`,
+    payload,
+  );
+  return response.data.data;
+};
+
+/**
+ * Delete a vacant floor
+ */
+export const deleteFloorApi = async (propertyId: string, floorNumber: number): Promise<void> => {
+  await apiClient.delete<ApiResponse<null>>(`/properties/${propertyId}/floors/${floorNumber}`);
+};
+
+/**
+ * Update bed details (bedNumber, status, maintenanceNote)
+ */
+export const updateBedApi = async (bedId: string, payload: UpdateBedPayload): Promise<IBed> => {
+  const response = await apiClient.put<ApiResponse<IBed>>(`/beds/${bedId}`, payload);
+  return response.data.data;
 };
 
 /**

@@ -36,10 +36,18 @@ export interface IProperty {
   name: string;
   type: PropertyType;
   address?: string;
+  city?: string;
+  pincode?: string;
   upiVpa: string;
   electricityRatePaisePerUnit: Paise;
   isActive?: boolean;
+  isArchived?: boolean;
+  floors?: Array<{
+    floorNumber: number;
+    floorLabel?: string;
+  }>;
   stats?: {
+    totalFloors?: number;
     totalRooms: number;
     totalBeds: number;
     occupiedBeds: number;
@@ -55,6 +63,7 @@ export interface IRoom {
   organization?: string;
   property: string;
   floorNumber: number;
+  floorLabel?: string;
   roomNumber: string;
   sharingType: number;
   baseRentPaisePerBed: Paise;
@@ -254,6 +263,8 @@ export interface CreatePropertyPayload {
   name: string;
   type: PropertyType;
   address?: string;
+  city?: string;
+  pincode?: string;
   upiVpa: string;
   electricityRatePaisePerUnit: Paise;
 }
@@ -262,12 +273,27 @@ export interface UpdatePropertyPayload {
   name?: string;
   type?: PropertyType;
   address?: string;
+  city?: string;
+  pincode?: string;
   upiVpa?: string;
   electricityRatePaisePerUnit?: Paise;
+  isActive?: boolean;
+  isArchived?: boolean;
+}
+
+export interface CreateFloorPayload {
+  floorNumber: number;
+  floorLabel?: string;
+}
+
+export interface UpdateFloorPayload {
+  floorNumber?: number;
+  floorLabel?: string;
 }
 
 export interface CreateRoomPayload {
   floorNumber: number;
+  floorLabel?: string;
   roomNumber: string;
   sharingType: number;
   baseRentPaisePerBed: Paise;
@@ -277,6 +303,7 @@ export interface CreateRoomPayload {
 export interface UpdateRoomPayload {
   roomNumber?: string;
   floorNumber?: number;
+  floorLabel?: string;
   sharingType?: number;
   baseRentPaisePerBed?: Paise;
   tags?: string[];
@@ -284,6 +311,13 @@ export interface UpdateRoomPayload {
 
 export interface AddBedPayload {
   bedNumber?: string;
+}
+
+export interface UpdateBedPayload {
+  bedNumber?: string;
+  status?: BedStatus;
+  maintenanceNote?: string;
+  noticeEndDate?: string;
 }
 
 export interface UpdateBedStatusPayload {
@@ -321,6 +355,7 @@ export interface IMatrixRoom {
   _id: string;
   roomNumber: string;
   floorNumber: number;
+  floorLabel?: string;
   sharingType: number;
   baseRentPaisePerBed: Paise;
   tags: string[];
@@ -329,7 +364,11 @@ export interface IMatrixRoom {
 
 export interface IMatrixFloor {
   floorNumber: number;
+  floorLabel?: string;
   rooms: IMatrixRoom[];
+  totalRooms?: number;
+  totalBeds?: number;
+  occupiedBeds?: number;
 }
 
 export interface IMatrixSummary {

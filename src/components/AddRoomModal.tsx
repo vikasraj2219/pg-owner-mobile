@@ -285,7 +285,7 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
               </Text>
             </View>
             <View className="flex-row flex-wrap gap-2">
-              {[1, 2, 3, 4, 5, 6].map(count => {
+              {[1, 2, 3, 4].map(count => {
                 const isSelected = sharingType === count && !showCustomSharing;
                 return (
                   <TouchableOpacity
@@ -295,7 +295,7 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
                       setSharingType(count);
                       setShowCustomSharing(false);
                     }}
-                    className={`min-w-[42px] flex-1 py-3 rounded-xl items-center justify-center border shadow-xs ${
+                    className={`min-w-[48px] flex-1 py-3 rounded-xl items-center justify-center border shadow-xs ${
                       isSelected ? 'bg-[#0A6C50] border-[#0A6C50]' : 'bg-white border-slate-300'
                     }`}
                   >
@@ -313,7 +313,7 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
                 activeOpacity={0.8}
                 onPress={() => {
                   setShowCustomSharing(true);
-                  if (sharingType <= 6) setSharingType(7);
+                  if (sharingType <= 4) setSharingType(5);
                 }}
                 className={`px-3 py-3 rounded-xl items-center justify-center border shadow-xs ${
                   showCustomSharing ? 'bg-[#0A6C50] border-[#0A6C50]' : 'bg-white border-slate-300'
@@ -324,7 +324,7 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
                     showCustomSharing ? 'text-white' : 'text-slate-800'
                   }`}
                 >
-                  {showCustomSharing && sharingType > 6 ? `${sharingType} Beds` : '+ More'}
+                  {showCustomSharing && sharingType > 4 ? `${sharingType} Beds` : '+ Custom'}
                 </Text>
               </TouchableOpacity>
             </View>

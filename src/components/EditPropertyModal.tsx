@@ -11,7 +11,16 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { X, Building2, Trash2, MapPin, QrCode, Zap } from 'lucide-react-native';
+import {
+  X,
+  Building2,
+  Trash2,
+  MapPin,
+  QrCode,
+  Zap,
+  Archive,
+  AlertCircle,
+} from 'lucide-react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import { IProperty, PropertyType } from '../types/api';
 import { updatePropertyApi, deletePropertyApi } from '../api/properties';
@@ -36,22 +45,31 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
   const [name, setName] = useState('');
   const [type, setType] = useState<PropertyType>('coliving');
   const [address, setAddress] = useState('');
+  const [city, setCity] = useState('');
+  const [pincode, setPincode] = useState('');
   const [upiVpa, setUpiVpa] = useState('');
   const [electricityRate, setElectricityRate] = useState('10');
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isArchiving, setIsArchiving] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [confirmNameInput, setConfirmNameInput] = useState('');
 
   useEffect(() => {
     if (property && visible) {
       setName(property.name || '');
       setType(property.type || 'coliving');
       setAddress(property.address || '');
+      setCity(property.city || '');
+      setPincode(property.pincode || '');
       setUpiVpa(property.upiVpa || '');
       setElectricityRate(
         property.electricityRatePaisePerUnit
           ? (property.electricityRatePaisePerUnit / 100).toString()
           : '10',
       );
+      setShowDeleteConfirm(false);
+      setConfirmNameInput('');
     }
   }, [property, visible]);
 
@@ -80,12 +98,15 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
         name: name.trim(),
         type,
         address: address.trim(),
+        city: city.trim(),
+        pincode: pincode.trim(),
         upiVpa: upiVpa.trim(),
         electricityRatePaisePerUnit: Math.round(rateNumeric * 100),
       });
 
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['properties'] }),
+        queryClient.invalidateQueries({ queryKey: ['propertyMatrix', property._id] }),
         queryClient.invalidateQueries({ queryKey: ['matrix'] }),
         queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
       ]);
@@ -103,53 +124,104 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
     }
   };
 
-  const handleDelete = () => {
-    const occupiedCount = property.stats?.occupiedBeds || 0;
-    if (occupiedCount > 0) {
-      Alert.alert(
-        'Cannot Delete Property',
-        `This property currently has ${occupiedCount} active/occupied bed(s). You must check out or relocate all tenants before deleting this property.`,
-      );
-      return;
-    }
+  const handleToggleArchive = async () => {
+    const isCurrentlyArchived = !!property.isArchived;
+    const actionLabel = isCurrentlyArchived ? 'Unarchive' : 'Archive';
 
     Alert.alert(
-      `Delete "${property.name}"?`,
-      'This will remove this property and its vacant rooms and beds. This action cannot be undone.',
+      `${actionLabel} Property?`,
+      isCurrentlyArchived
+        ? `Unarchiving "${property.name}" will make it visible in active property listings again.`
+        : `Archiving "${property.name}" preserves all tenant histories, invoices, and beds while hiding it from day-to-day operations.`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Delete Property',
-          style: 'destructive',
+          text: actionLabel,
           onPress: async () => {
-            setIsDeleting(true);
+            setIsArchiving(true);
             try {
-              await deletePropertyApi(property._id);
+              const updated = await updatePropertyApi(property._id, {
+                isArchived: !isCurrentlyArchived,
+              });
               await Promise.all([
                 queryClient.invalidateQueries({ queryKey: ['properties'] }),
+                queryClient.invalidateQueries({ queryKey: ['propertyMatrix', property._id] }),
                 queryClient.invalidateQueries({ queryKey: ['matrix'] }),
                 queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
               ]);
-
-              const other = properties.find(p => p._id !== property._id);
-              if (other) {
-                await setSelectedPropertyId(other._id);
-              }
-
-              Alert.alert('Deleted', `Property "${property.name}" has been deleted.`);
+              Alert.alert(
+                'Success',
+                `Property "${updated.name}" has been ${actionLabel.toLowerCase()}d.`,
+              );
+              onSuccess?.(updated);
               onClose();
             } catch (err: unknown) {
               const msg =
                 (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-                (err instanceof Error ? err.message : 'Failed to delete property');
-              Alert.alert('Delete Error', msg);
+                (err instanceof Error
+                  ? err.message
+                  : `Failed to ${actionLabel.toLowerCase()} property`);
+              Alert.alert('Error', msg);
             } finally {
-              setIsDeleting(false);
+              setIsArchiving(false);
             }
           },
         },
       ],
     );
+  };
+
+  const handleDeleteClick = () => {
+    const occupiedCount = property.stats?.occupiedBeds || 0;
+    if (occupiedCount > 0) {
+      Alert.alert(
+        "Can't delete this property",
+        `${occupiedCount} tenant(s) are staying at ${property.name}. Check them out first, or archive the property to hide it and keep its history.`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Archive property',
+            onPress: handleToggleArchive,
+          },
+        ],
+      );
+      return;
+    }
+
+    setShowDeleteConfirm(true);
+  };
+
+  const executeDelete = async () => {
+    if (confirmNameInput.trim().toLowerCase() !== property.name.trim().toLowerCase()) {
+      Alert.alert('Name Mismatch', 'Please type the exact property name to confirm deletion.');
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      await deletePropertyApi(property._id);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['properties'] }),
+        queryClient.invalidateQueries({ queryKey: ['matrix'] }),
+        queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
+      ]);
+
+      const other = properties.find(p => p._id !== property._id);
+      if (other) {
+        await setSelectedPropertyId(other._id);
+      }
+
+      Alert.alert('Deleted', `Property "${property.name}" has been deleted.`);
+      onClose();
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        (err instanceof Error ? err.message : 'Failed to delete property');
+      Alert.alert('Error', msg);
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteConfirm(false);
+    }
   };
 
   return (
@@ -161,18 +233,18 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        className="flex-1 bg-[#F8F9FA]"
+        className="flex-1 bg-white"
       >
         {/* Header */}
-        <View className="px-5 pt-4 pb-3 flex-row items-center justify-between border-b border-slate-200/80 bg-white">
-          <View className="flex-row items-center">
-            <View className="w-9 h-9 rounded-full bg-emerald-50 items-center justify-center mr-3">
+        <View className="px-5 pt-4 pb-3 flex-row items-center justify-between border-b border-slate-100 bg-white">
+          <View className="flex-row items-center gap-2.5">
+            <View className="w-9 h-9 rounded-xl bg-emerald-50 items-center justify-center">
               <Building2 size={20} color="#0A6C50" />
             </View>
             <View>
-              <Text className="text-lg font-extrabold text-slate-900">Edit Property</Text>
+              <Text className="text-xl font-extrabold text-slate-900">Edit Property</Text>
               <Text className="text-xs font-semibold text-slate-500">
-                Fix details, UPI VPA & electricity rate
+                Update branch details, UPI & EB rates
               </Text>
             </View>
           </View>
@@ -193,31 +265,31 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
             <TextInput
               value={name}
               onChangeText={setName}
-              placeholder="e.g. Sri Sai Luxury PG for Gents"
+              placeholder="e.g. Blossom Luxury PG"
+              placeholderTextColor="#94A3B8"
               className="bg-white border border-slate-300 rounded-xl px-4 py-3 font-semibold text-slate-900 text-base shadow-xs"
             />
           </View>
 
-          {/* Property Type Selector */}
+          {/* Property Type Pills */}
           <View className="mb-4">
-            <Text className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+            <Text className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
               Property Type *
             </Text>
             <View className="flex-row gap-2">
               {(['boys', 'girls', 'coliving'] as PropertyType[]).map(t => {
                 const isSelected = type === t;
-                const label = t === 'boys' ? 'Boys PG' : t === 'girls' ? 'Girls PG' : 'Co-Living';
+                const label = t === 'boys' ? 'Boys' : t === 'girls' ? 'Girls' : 'Coliving';
                 return (
                   <TouchableOpacity
                     key={t}
-                    activeOpacity={0.8}
                     onPress={() => setType(t)}
                     className={`flex-1 py-3 rounded-xl items-center justify-center border shadow-xs ${
                       isSelected ? 'bg-[#0A6C50] border-[#0A6C50]' : 'bg-white border-slate-300'
                     }`}
                   >
                     <Text
-                      className={`text-xs font-extrabold ${
+                      className={`text-sm font-extrabold ${
                         isSelected ? 'text-white' : 'text-slate-800'
                       }`}
                     >
@@ -229,103 +301,190 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
             </View>
           </View>
 
-          {/* UPI VPA for Rent Payments */}
+          {/* Street Address */}
           <View className="mb-4">
-            <View className="flex-row items-center justify-between mb-1.5">
+            <View className="flex-row items-center gap-1.5 mb-1.5">
+              <MapPin size={14} color="#64748B" />
               <Text className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                UPI ID (VPA) *
-              </Text>
-              <View className="flex-row items-center">
-                <QrCode size={12} color="#0A6C50" />
-                <Text className="text-[10px] text-[#0A6C50] font-bold ml-1">For dynamic QR</Text>
-              </View>
-            </View>
-            <TextInput
-              value={upiVpa}
-              onChangeText={setUpiVpa}
-              placeholder="e.g. owner@okaxis or 9876543210@paytm"
-              autoCapitalize="none"
-              className="bg-white border border-slate-300 rounded-xl px-4 py-3 font-semibold text-slate-900 text-base shadow-xs"
-            />
-          </View>
-
-          {/* Electricity Rate per unit */}
-          <View className="mb-4">
-            <View className="flex-row items-center justify-between mb-1.5">
-              <Text className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                Electricity Rate (₹ / Unit)
-              </Text>
-              <View className="flex-row items-center">
-                <Zap size={12} color="#EAB308" />
-                <Text className="text-[10px] text-amber-700 font-bold ml-1">
-                  For sub-meter split
-                </Text>
-              </View>
-            </View>
-            <TextInput
-              value={electricityRate}
-              onChangeText={setElectricityRate}
-              placeholder="10"
-              keyboardType="decimal-pad"
-              className="bg-white border border-slate-300 rounded-xl px-4 py-3 font-semibold text-slate-900 text-base shadow-xs"
-            />
-          </View>
-
-          {/* Address */}
-          <View className="mb-6">
-            <View className="flex-row items-center mb-1.5">
-              <MapPin size={13} color="#64748B" />
-              <Text className="text-xs font-bold text-slate-700 uppercase tracking-wider ml-1">
-                Property Address
+                Street Address
               </Text>
             </View>
             <TextInput
               value={address}
               onChangeText={setAddress}
-              placeholder="e.g. #42, 5th Cross, Koramangala 4th Block, Bengaluru"
+              placeholder="e.g. #42, 4th Cross, 5th Block, Koramangala"
+              placeholderTextColor="#94A3B8"
               multiline
-              numberOfLines={3}
-              textAlignVertical="top"
-              className="bg-white border border-slate-300 rounded-xl px-4 py-3 font-semibold text-slate-900 text-sm shadow-xs"
-              style={{ minHeight: 70 }}
+              numberOfLines={2}
+              className="bg-white border border-slate-300 rounded-xl px-4 py-2.5 font-medium text-slate-900 text-sm shadow-xs"
             />
           </View>
 
-          {/* Save Button */}
+          {/* City & Pincode Side by Side */}
+          <View className="flex-row gap-3 mb-4">
+            <View className="flex-1">
+              <Text className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                City
+              </Text>
+              <TextInput
+                value={city}
+                onChangeText={setCity}
+                placeholder="e.g. Bengaluru"
+                placeholderTextColor="#94A3B8"
+                className="bg-white border border-slate-300 rounded-xl px-4 py-3 font-semibold text-slate-900 text-sm shadow-xs"
+              />
+            </View>
+            <View className="w-36">
+              <Text className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                Pincode
+              </Text>
+              <TextInput
+                value={pincode}
+                onChangeText={setPincode}
+                placeholder="e.g. 560034"
+                placeholderTextColor="#94A3B8"
+                keyboardType="number-pad"
+                className="bg-white border border-slate-300 rounded-xl px-4 py-3 font-semibold text-slate-900 text-sm shadow-xs"
+              />
+            </View>
+          </View>
+
+          {/* UPI ID for Rent */}
+          <View className="mb-4">
+            <View className="flex-row items-center gap-1.5 mb-1.5">
+              <QrCode size={14} color="#0A6C50" />
+              <Text className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                UPI ID for Rent Collection *
+              </Text>
+            </View>
+            <TextInput
+              value={upiVpa}
+              onChangeText={setUpiVpa}
+              placeholder="e.g. blossompg@okaxis"
+              placeholderTextColor="#94A3B8"
+              autoCapitalize="none"
+              className="bg-white border border-slate-300 rounded-xl px-4 py-3 font-semibold text-slate-900 text-sm shadow-xs"
+            />
+            <Text className="text-2xs text-slate-500 font-medium mt-1">
+              Used to generate dynamic QR codes for rent receipts and invoices
+            </Text>
+          </View>
+
+          {/* Electricity Rate */}
+          <View className="mb-6">
+            <View className="flex-row items-center gap-1.5 mb-1.5">
+              <Zap size={14} color="#0A6C50" />
+              <Text className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                Electricity Rate (₹ / unit) *
+              </Text>
+            </View>
+            <TextInput
+              value={electricityRate}
+              onChangeText={setElectricityRate}
+              placeholder="12"
+              placeholderTextColor="#94A3B8"
+              keyboardType="decimal-pad"
+              className="bg-white border border-slate-300 rounded-xl px-4 py-3 font-semibold text-slate-900 text-sm shadow-xs"
+            />
+          </View>
+
+          {/* Destructive Actions Row: Archive & Delete */}
+          <View className="pt-2 pb-6 border-t border-slate-200">
+            <View className="flex-row items-center justify-between mb-4">
+              <TouchableOpacity
+                onPress={handleToggleArchive}
+                disabled={isArchiving}
+                className="flex-row items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 border border-slate-200"
+              >
+                <Archive size={14} color="#475569" />
+                <Text className="text-xs font-bold text-slate-700">
+                  {property.isArchived ? 'Unarchive property' : 'Archive property'}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleDeleteClick}
+                disabled={isDeleting}
+                className="flex-row items-center gap-1.5 px-3 py-2 rounded-xl bg-rose-50 border border-rose-200"
+              >
+                <Trash2 size={14} color="#BE123C" />
+                <Text className="text-xs font-bold text-[#BE123C]">Delete property</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+
+        {/* Delete Property Confirmation Sheet / Overlay */}
+        {showDeleteConfirm && (
+          <View className="absolute inset-0 bg-black/60 items-center justify-center p-5 z-50">
+            <View className="bg-white rounded-2xl p-5 w-full max-w-sm shadow-xl">
+              <View className="w-12 h-12 rounded-full bg-rose-100 items-center justify-center mx-auto mb-3">
+                <AlertCircle size={24} color="#BE123C" />
+              </View>
+              <Text className="text-lg font-black text-slate-900 text-center mb-1">
+                Delete &quot;{property.name}&quot;?
+              </Text>
+              <Text className="text-xs text-slate-600 text-center mb-4 leading-relaxed">
+                This removes all floors, rooms, and empty beds. No tenants currently live here. This
+                action cannot be undone. Type the property name to confirm:
+              </Text>
+
+              <TextInput
+                value={confirmNameInput}
+                onChangeText={setConfirmNameInput}
+                placeholder={property.name}
+                placeholderTextColor="#94A3B8"
+                className="bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 font-bold text-slate-900 text-sm mb-4"
+              />
+
+              <View className="flex-row gap-2">
+                <TouchableOpacity
+                  onPress={() => {
+                    setShowDeleteConfirm(false);
+                    setConfirmNameInput('');
+                  }}
+                  className="flex-1 py-3 rounded-xl border border-slate-300 items-center"
+                >
+                  <Text className="text-xs font-bold text-slate-700">Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={executeDelete}
+                  disabled={
+                    isDeleting ||
+                    confirmNameInput.trim().toLowerCase() !== property.name.trim().toLowerCase()
+                  }
+                  className={`flex-1 py-3 rounded-xl items-center ${
+                    confirmNameInput.trim().toLowerCase() === property.name.trim().toLowerCase()
+                      ? 'bg-rose-600'
+                      : 'bg-rose-300'
+                  }`}
+                >
+                  {isDeleting ? (
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  ) : (
+                    <Text className="text-xs font-bold text-white">Delete</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        )}
+
+        {/* Primary Save Button */}
+        <View className="p-4 border-t border-slate-200 bg-white shadow-lg">
           <TouchableOpacity
             activeOpacity={0.85}
-            disabled={isSaving}
             onPress={handleSave}
-            className="bg-[#0A6C50] rounded-xl py-3.5 items-center justify-center flex-row shadow-sm mb-4"
+            disabled={isSaving}
+            className="w-full bg-[#0A6C50] py-3.5 rounded-xl items-center justify-center shadow-xs"
           >
             {isSaving ? (
               <ActivityIndicator size="small" color="#FFFFFF" />
             ) : (
-              <Text className="text-white font-extrabold text-base">Save Property Changes</Text>
+              <Text className="text-white font-extrabold text-base">Save changes</Text>
             )}
           </TouchableOpacity>
-
-          {/* Danger Zone: Delete Property */}
-          <View className="border-t border-slate-200/80 pt-4 pb-8">
-            <TouchableOpacity
-              activeOpacity={0.7}
-              disabled={isDeleting}
-              onPress={handleDelete}
-              className="bg-rose-50 border border-rose-200 rounded-xl py-3 items-center justify-center flex-row"
-            >
-              {isDeleting ? (
-                <ActivityIndicator size="small" color="#BE123C" />
-              ) : (
-                <>
-                  <Trash2 size={16} color="#BE123C" />
-                  <Text className="text-rose-700 font-bold text-xs ml-2">
-                    Delete This Property (Only if Vacant)
-                  </Text>
-                </>
-              )}
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
+        </View>
       </KeyboardAvoidingView>
     </Modal>
   );
