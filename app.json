@@ -40,7 +40,8 @@
           "cameraPermission": "Allow Nilaaya to access your camera to capture tenant ID proofs."
         }
       ],
-      "expo-asset"
+      "expo-asset",
+      "expo-file-system"
     ],
     "experiments": {
       "typedRoutes": true
