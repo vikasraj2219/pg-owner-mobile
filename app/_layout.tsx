@@ -73,6 +73,7 @@ function NavigationGuard() {
           options={{ presentation: 'card', headerShown: false }}
         />
         <Stack.Screen name="tenants/add" options={{ presentation: 'card', headerShown: false }} />
+        <Stack.Screen name="subscription" options={{ presentation: 'card', headerShown: false }} />
       </Stack>
 
       {/* Biometric Lock Screen Overlay */}

@@ -34,6 +34,7 @@ interface AuthContextType {
   unlockWithBiometrics: () => Promise<boolean>;
   enableBiometrics: (enable: boolean) => Promise<boolean>;
   loginWithBiometrics: () => Promise<{ success: boolean; message?: string }>;
+  refreshAuthUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -320,6 +321,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const refreshAuthUser = useCallback(async () => {
+    try {
+      const freshData = await getMeApi();
+      setUser(freshData.user);
+      setOrganization(freshData.organization);
+      setSubscription(freshData.subscription);
+
+      const cachePayload = JSON.stringify({
+        user: freshData.user,
+        organization: freshData.organization,
+        subscription: freshData.subscription,
+      });
+      await safeStorage.setItem(USER_CACHE_KEY, cachePayload);
+    } catch (_err) {
+      // Offline fallback
+    }
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{
@@ -339,6 +358,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         unlockWithBiometrics,
         enableBiometrics,
         loginWithBiometrics,
+        refreshAuthUser,
       }}
     >
       {children}
