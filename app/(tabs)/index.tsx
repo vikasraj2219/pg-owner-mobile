@@ -22,7 +22,7 @@ import { PropertySwitcherModal } from '../../src/components/PropertySwitcherModa
 import { AddPropertyModal } from '../../src/components/AddPropertyModal';
 import { TenantsDirectoryModal } from '../../src/components/TenantsDirectoryModal';
 import { formatINR, formatINRCompact } from '../../src/utils/currency';
-import { formatSafeMonthYear } from '../../src/utils/date';
+import { formatSafeMonthYear, calculateDaysRemaining } from '../../src/utils/date';
 
 export default function PulseScreen() {
   const router = useRouter();
@@ -41,11 +41,10 @@ export default function PulseScreen() {
     return formatSafeMonthYear();
   }, []);
 
-  // Dynamic trial remaining days
+  // Dynamic trial remaining days (accurately counts down each calendar day)
   const trialDaysLeft = useMemo(() => {
     if (!subscription?.trialEndsAt) return 14;
-    const diffTime = new Date(subscription.trialEndsAt).getTime() - Date.now();
-    return Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+    return calculateDaysRemaining(subscription.trialEndsAt);
   }, [subscription]);
 
   const activePropertyName = selectedProperty?.name || organization?.name || 'My PG Property';

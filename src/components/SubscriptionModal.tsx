@@ -6,6 +6,7 @@ import { getCurrentSubscriptionApi } from '../api/subscription';
 import { useAuth } from '../hooks/useAuth';
 import { useProperties } from '../context/PropertyContext';
 import { ISubscriptionCurrent } from '../types/api';
+import { calculateDaysRemaining } from '../utils/date';
 import { RazorpayCheckoutModal } from './RazorpayCheckoutModal';
 
 interface SubscriptionModalProps {
@@ -29,14 +30,7 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
     } catch {
       // Fallback from auth context and properties
       const totalBedsInProps = properties.reduce((acc, p) => acc + (p.stats?.totalBeds || 0), 0);
-      const daysLeft = authSub?.trialEndsAt
-        ? Math.max(
-            0,
-            Math.ceil(
-              (new Date(authSub.trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24),
-            ),
-          )
-        : 14;
+      const daysLeft = authSub?.trialEndsAt ? calculateDaysRemaining(authSub.trialEndsAt) : 14;
 
       setSub({
         plan: (authSub?.plan as 'starter' | 'growth' | 'pro') || 'starter',

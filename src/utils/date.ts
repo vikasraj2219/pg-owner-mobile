@@ -73,3 +73,38 @@ export const formatDayMonth = (input: string | number | Date | undefined): strin
     return '';
   }
 };
+
+/**
+ * Accurately calculates calendar days remaining until an end date (e.g. trial or subscription period).
+ * Compares calendar day boundaries so:
+ * - On registration day (Day 1): returns 14
+ * - On the next calendar day (yesterday registration -> today): returns 13
+ * - On the final day: returns 1
+ * - On expiry day: returns 0
+ */
+export const calculateDaysRemaining = (
+  targetDateInput: string | number | Date | undefined,
+  currentDateInput: Date = new Date(),
+): number => {
+  if (!targetDateInput) return 0;
+  try {
+    const target = new Date(targetDateInput);
+    if (isNaN(target.getTime())) return 0;
+
+    const targetMidnight = new Date(
+      target.getFullYear(),
+      target.getMonth(),
+      target.getDate(),
+    ).getTime();
+    const currentMidnight = new Date(
+      currentDateInput.getFullYear(),
+      currentDateInput.getMonth(),
+      currentDateInput.getDate(),
+    ).getTime();
+
+    const diffDays = Math.round((targetMidnight - currentMidnight) / (1000 * 60 * 60 * 24));
+    return Math.max(0, diffDays);
+  } catch {
+    return 0;
+  }
+};

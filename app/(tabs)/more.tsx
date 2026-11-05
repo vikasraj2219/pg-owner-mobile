@@ -25,6 +25,7 @@ import { SubscriptionModal } from '../../src/components/SubscriptionModal';
 import { TenantsDirectoryModal } from '../../src/components/TenantsDirectoryModal';
 import { PropertiesRoomsModal } from '../../src/components/PropertiesRoomsModal';
 import { DpdpKycComplianceModal } from '../../src/components/DpdpKycComplianceModal';
+import { calculateDaysRemaining } from '../../src/utils/date';
 
 export default function MoreScreen() {
   const router = useRouter();
@@ -48,11 +49,10 @@ export default function MoreScreen() {
   const [showPropertiesRoomsModal, setShowPropertiesRoomsModal] = useState(false);
   const [showDpdpKycModal, setShowDpdpKycModal] = useState(false);
 
-  // Dynamic trial remaining days
+  // Dynamic trial remaining days (accurately counts down each calendar day)
   const trialDaysLeft = React.useMemo(() => {
     if (!subscription?.trialEndsAt) return 14;
-    const diffTime = new Date(subscription.trialEndsAt).getTime() - Date.now();
-    return Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+    return calculateDaysRemaining(subscription.trialEndsAt);
   }, [subscription]);
 
   // Dynamic total beds
