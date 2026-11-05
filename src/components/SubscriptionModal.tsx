@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Modal, View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
+import { useRouter } from 'expo-router';
 import { X, Sparkles, AlertCircle, ShieldCheck } from 'lucide-react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import { getCurrentSubscriptionApi } from '../api/subscription';
@@ -15,6 +16,7 @@ interface SubscriptionModalProps {
 }
 
 export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, onClose }) => {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const { subscription: authSub, refreshAuthUser } = useAuth();
   const { properties } = useProperties();
@@ -32,24 +34,27 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
       const totalBedsInProps = properties.reduce((acc, p) => acc + (p.stats?.totalBeds || 0), 0);
       const daysLeft = authSub?.trialEndsAt ? calculateDaysRemaining(authSub.trialEndsAt) : 14;
 
-      setSub({
-        plan: (authSub?.plan as 'starter' | 'growth' | 'pro') || 'starter',
-        status: authSub?.status || 'trialing',
-        isReadOnly: false,
-        daysLeft,
-        trialEndsAt: authSub?.trialEndsAt || new Date(Date.now() + 14 * 86400000).toISOString(),
-        currentPeriodEnd:
-          authSub?.currentPeriodEnd || new Date(Date.now() + 14 * 86400000).toISOString(),
-        maxProperties: authSub?.maxProperties || 1,
-        maxBeds: authSub?.maxBeds || 30,
-        propertiesUsed: properties.length || 1,
-        bedsUsed: totalBedsInProps,
-        upgradeUrl: '',
-      });
+      setSub(
+        prev =>
+          prev || {
+            plan: (authSub?.plan as 'starter' | 'growth' | 'pro') || 'starter',
+            status: authSub?.status || 'trialing',
+            isReadOnly: false,
+            daysLeft,
+            trialEndsAt: authSub?.trialEndsAt || new Date(Date.now() + 14 * 86400000).toISOString(),
+            currentPeriodEnd:
+              authSub?.currentPeriodEnd || new Date(Date.now() + 14 * 86400000).toISOString(),
+            maxProperties: authSub?.maxProperties || 1,
+            maxBeds: authSub?.maxBeds || 30,
+            propertiesUsed: properties.length || 1,
+            bedsUsed: totalBedsInProps,
+            upgradeUrl: '',
+          },
+      );
     } finally {
       setIsLoading(false);
     }
-  }, [authSub, properties]);
+  }, []);
 
   useEffect(() => {
     if (visible) {
@@ -322,13 +327,17 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
           visible={checkoutPlan !== null}
           plan={checkoutPlan}
           onClose={() => setCheckoutPlan(null)}
-          onSuccess={async () => {
+          onSuccess={async upgradedPlan => {
             setCheckoutPlan(null);
+            onClose(); // Close SubscriptionModal completely
             await refreshAuthUser();
             queryClient.invalidateQueries({ queryKey: ['subscription'] });
             queryClient.invalidateQueries({ queryKey: ['dashboard'] });
             queryClient.invalidateQueries({ queryKey: ['properties'] });
-            await loadSub();
+            router.push({
+              pathname: '/subscription' as any,
+              params: { status: 'success', plan: upgradedPlan || 'pro' },
+            });
           }}
         />
       </View>

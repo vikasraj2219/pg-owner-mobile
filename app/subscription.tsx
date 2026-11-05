@@ -48,53 +48,67 @@ export default function SubscriptionScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const isLoadedRef = React.useRef(false);
 
-  const loadSubscription = useCallback(async () => {
-    try {
-      // Invalidate queries so dashboard and properties get fresh quotas
-      queryClient.invalidateQueries({ queryKey: ['subscription'] });
-      queryClient.invalidateQueries({ queryKey: ['properties'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-      queryClient.invalidateQueries({ queryKey: ['tenants'] });
+  const loadSubscription = useCallback(
+    async (manual = false) => {
+      if (manual) {
+        setIsRefreshing(true);
+      } else if (!isLoadedRef.current) {
+        setIsLoading(true);
+      }
 
-      // Refresh auth user context
-      await refreshAuthUser();
+      try {
+        // Invalidate queries so dashboard and properties get fresh quotas
+        queryClient.invalidateQueries({ queryKey: ['subscription'] });
+        queryClient.invalidateQueries({ queryKey: ['properties'] });
+        queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+        queryClient.invalidateQueries({ queryKey: ['tenants'] });
 
-      // Fetch fresh subscription
-      const data = await getCurrentSubscriptionApi();
-      setSub(data);
-    } catch {
-      // Fallback state
-      const totalBedsInProps = properties.reduce((acc, p) => acc + (p.stats?.totalBeds || 0), 0);
-      const daysLeft = authSub?.trialEndsAt ? calculateDaysRemaining(authSub.trialEndsAt) : 14;
+        // Refresh auth user context
+        await refreshAuthUser();
 
-      setSub({
-        plan: (authSub?.plan as 'starter' | 'growth' | 'pro') || 'starter',
-        status: authSub?.status || 'trialing',
-        isReadOnly: false,
-        daysLeft,
-        trialEndsAt: authSub?.trialEndsAt || new Date(Date.now() + 14 * 86400000).toISOString(),
-        currentPeriodEnd:
-          authSub?.currentPeriodEnd || new Date(Date.now() + 30 * 86400000).toISOString(),
-        maxProperties: authSub?.maxProperties || 1,
-        maxBeds: authSub?.maxBeds || 30,
-        propertiesUsed: properties.length || 1,
-        bedsUsed: totalBedsInProps,
-        upgradeUrl: '',
-      });
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
-    }
-  }, [queryClient, refreshAuthUser, properties, authSub]);
+        // Fetch fresh subscription
+        const data = await getCurrentSubscriptionApi();
+        setSub(data);
+      } catch {
+        // Fallback state
+        const totalBedsInProps = properties.reduce((acc, p) => acc + (p.stats?.totalBeds || 0), 0);
+        const daysLeft = authSub?.trialEndsAt ? calculateDaysRemaining(authSub.trialEndsAt) : 14;
+
+        setSub(
+          prev =>
+            prev || {
+              plan: (authSub?.plan as 'starter' | 'growth' | 'pro') || 'starter',
+              status: authSub?.status || 'trialing',
+              isReadOnly: false,
+              daysLeft,
+              trialEndsAt:
+                authSub?.trialEndsAt || new Date(Date.now() + 14 * 86400000).toISOString(),
+              currentPeriodEnd:
+                authSub?.currentPeriodEnd || new Date(Date.now() + 30 * 86400000).toISOString(),
+              maxProperties: authSub?.maxProperties || 1,
+              maxBeds: authSub?.maxBeds || 30,
+              propertiesUsed: properties.length || 1,
+              bedsUsed: totalBedsInProps,
+              upgradeUrl: '',
+            },
+        );
+      } finally {
+        isLoadedRef.current = true;
+        setIsLoading(false);
+        setIsRefreshing(false);
+      }
+    },
+    [queryClient, refreshAuthUser],
+  );
 
   useEffect(() => {
     loadSubscription();
   }, [loadSubscription]);
 
   const handleRefresh = () => {
-    setIsRefreshing(true);
-    loadSubscription();
+    loadSubscription(true);
   };
 
   const handleNavigateHome = () => {
@@ -364,7 +378,7 @@ export default function SubscriptionScreen() {
         visible={showModal}
         onClose={() => {
           setShowModal(false);
-          loadSubscription();
+          loadSubscription(true);
         }}
       />
     </SafeAreaView>

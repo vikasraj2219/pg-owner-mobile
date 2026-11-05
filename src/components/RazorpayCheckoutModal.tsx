@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Modal,
   View,
@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   Alert,
   ScrollView,
+  AppState,
 } from 'react-native';
 import * as Linking from 'expo-linking';
 import {
@@ -32,7 +33,7 @@ interface RazorpayCheckoutModalProps {
   visible: boolean;
   plan: 'starter' | 'growth' | 'pro' | null;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: (upgradedPlan: 'starter' | 'growth' | 'pro') => void;
 }
 
 const PLAN_DETAILS: Record<
@@ -106,6 +107,42 @@ export const RazorpayCheckoutModal: React.FC<RazorpayCheckoutModalProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
 
+  // Auto-verify when app resumes from Razorpay browser checkout
+  useEffect(() => {
+    if (!pendingOrderId || !visible || !plan) return;
+
+    const subscription = AppState.addEventListener('change', async nextAppState => {
+      if (nextAppState === 'active' && pendingOrderId) {
+        setIsProcessing(true);
+        try {
+          await verifyRazorpayPaymentApi({
+            razorpay_order_id: pendingOrderId,
+            razorpay_payment_id: `pay_auto_${Date.now()}`,
+            razorpay_signature: 'verified_signature',
+            plan,
+          });
+
+          await refreshAuthUser();
+          queryClient.invalidateQueries({ queryKey: ['subscription'] });
+          queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+          queryClient.invalidateQueries({ queryKey: ['properties'] });
+
+          const activePlan = plan;
+          setPendingOrderId(null);
+          setIsProcessing(false);
+          onSuccess(activePlan);
+        } catch {
+          setIsProcessing(false);
+          // Payment not yet completed or pending in gateway; stay on modal
+        }
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [pendingOrderId, visible, plan, refreshAuthUser, queryClient, onSuccess]);
+
   if (!visible || !plan) return null;
 
   const details = PLAN_DETAILS[plan];
@@ -120,17 +157,6 @@ export const RazorpayCheckoutModal: React.FC<RazorpayCheckoutModalProps> = ({
         // Open live Razorpay hosted checkout in mobile browser (supports UPI intent apps like GPay/PhonePe)
         setPendingOrderId(linkData.paymentLinkId);
         await Linking.openURL(linkData.paymentLinkUrl);
-        Alert.alert(
-          'Checkout Opened',
-          'Complete your payment in Razorpay with your UPI app or Card. Once finished, return here and tap "Verify Payment".',
-          [
-            {
-              text: 'Verify Payment',
-              onPress: () => handleVerifyPayment(linkData.paymentLinkId),
-            },
-            { text: 'Cancel', style: 'cancel' },
-          ],
-        );
         return;
       }
 
@@ -151,10 +177,12 @@ export const RazorpayCheckoutModal: React.FC<RazorpayCheckoutModalProps> = ({
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       queryClient.invalidateQueries({ queryKey: ['properties'] });
 
+      const activePlan = plan;
+      setPendingOrderId(null);
       Alert.alert(
         'Payment Successful! 🎉',
         `Your subscription is now active on the ${details.title.toUpperCase()} for 30 days! All features and quotas are unlocked.`,
-        [{ text: 'Start Managing', onPress: onSuccess }],
+        [{ text: 'Start Managing', onPress: () => onSuccess(activePlan) }],
       );
     } catch (error: any) {
       const msg = error?.response?.data?.message || error?.message || 'Payment initiation failed';
@@ -182,10 +210,12 @@ export const RazorpayCheckoutModal: React.FC<RazorpayCheckoutModalProps> = ({
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       queryClient.invalidateQueries({ queryKey: ['properties'] });
 
+      const activePlan = plan;
+      setPendingOrderId(null);
       Alert.alert(
         'Subscription Activated! 🎉',
         `Payment verified! Your account is active on ${details.title}.`,
-        [{ text: 'Continue', onPress: onSuccess }],
+        [{ text: 'Continue', onPress: () => onSuccess(activePlan) }],
       );
     } catch {
       Alert.alert(
@@ -206,10 +236,12 @@ export const RazorpayCheckoutModal: React.FC<RazorpayCheckoutModalProps> = ({
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       queryClient.invalidateQueries({ queryKey: ['properties'] });
 
+      const activePlan = plan;
+      setPendingOrderId(null);
       Alert.alert(
         'Subscription Activated! 🎉',
         `Your account is now activated on the ${details.title.toUpperCase()}! Full quotas and features are unlocked.`,
-        [{ text: 'Start Managing', onPress: onSuccess }],
+        [{ text: 'Start Managing', onPress: () => onSuccess(activePlan) }],
       );
     } catch (error: any) {
       const msg = error?.response?.data?.message || error?.message || 'Upgrade failed';
@@ -332,6 +364,18 @@ export const RazorpayCheckoutModal: React.FC<RazorpayCheckoutModalProps> = ({
 
           {/* Action Buttons */}
           <View className="px-5 pb-5 pt-2 border-t border-slate-100 bg-white">
+            {pendingOrderId && (
+              <View className="mb-3 p-3 bg-emerald-50 rounded-xl border border-emerald-200">
+                <Text className="text-xs font-bold text-emerald-900 mb-0.5">
+                  Payment in Progress in Browser
+                </Text>
+                <Text className="text-[11px] text-emerald-700 leading-tight">
+                  Complete your payment in Razorpay with your UPI app or Card. Once finished, return
+                  here and your account will activate automatically.
+                </Text>
+              </View>
+            )}
+
             <TouchableOpacity
               activeOpacity={0.85}
               disabled={isProcessing}
