@@ -315,6 +315,13 @@ export const RazorpayCheckoutModal: React.FC<RazorpayCheckoutModalProps> = ({
                   </View>
                 ))}
               </View>
+
+              <View className="mt-3 pt-2.5 border-t border-slate-200/70 flex-row items-center">
+                <Sparkles size={13} color="#0A6C50" />
+                <Text className="text-[10px] text-slate-600 font-semibold ml-1.5 flex-1">
+                  Value-Based Credit: Remaining paid days convert into extra bonus days.
+                </Text>
+              </View>
             </View>
 
             {/* Supported Payment Methods */}

@@ -89,6 +89,29 @@ export const upgradeSubscriptionApi = async (
 };
 
 /**
+ * Schedule plan downgrade to take effect at the end of current billing period
+ */
+export const scheduleDowngradeApi = async (
+  plan: 'starter' | 'growth' | 'pro',
+): Promise<ISubscription> => {
+  const response = await apiClient.post<ApiResponse<ISubscription>>(
+    '/subscription/schedule-downgrade',
+    { plan },
+  );
+  return response.data.data;
+};
+
+/**
+ * Cancel a scheduled plan downgrade
+ */
+export const cancelDowngradeApi = async (): Promise<ISubscription> => {
+  const response = await apiClient.post<ApiResponse<ISubscription>>(
+    '/subscription/cancel-downgrade',
+  );
+  return response.data.data;
+};
+
+/**
  * Extend trial days
  */
 export const extendTrialApi = async (days: number): Promise<ISubscription> => {

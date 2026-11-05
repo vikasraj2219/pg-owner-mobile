@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   SafeAreaView,
   StatusBar,
+  Alert,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import {
@@ -19,9 +20,10 @@ import {
   BedDouble,
   RefreshCw,
   ArrowRight,
+  Clock,
 } from 'lucide-react-native';
 import { useQueryClient } from '@tanstack/react-query';
-import { getCurrentSubscriptionApi } from '../src/api/subscription';
+import { getCurrentSubscriptionApi, cancelDowngradeApi } from '../src/api/subscription';
 import { useAuth } from '../src/context/AuthContext';
 import { useProperties } from '../src/context/PropertyContext';
 import { ISubscriptionCurrent } from '../src/types/api';
@@ -47,6 +49,7 @@ export default function SubscriptionScreen() {
   const [sub, setSub] = useState<ISubscriptionCurrent | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isCancelingDowngrade, setIsCancelingDowngrade] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const isLoadedRef = React.useRef(false);
 
@@ -100,7 +103,7 @@ export default function SubscriptionScreen() {
         setIsRefreshing(false);
       }
     },
-    [queryClient, refreshAuthUser],
+    [queryClient, refreshAuthUser, properties, authSub],
   );
 
   useEffect(() => {
@@ -109,6 +112,25 @@ export default function SubscriptionScreen() {
 
   const handleRefresh = () => {
     loadSubscription(true);
+  };
+
+  const handleCancelDowngrade = async () => {
+    setIsCancelingDowngrade(true);
+    try {
+      await cancelDowngradeApi();
+      Alert.alert(
+        'Downgrade Canceled',
+        'Your scheduled downgrade has been canceled. Your current plan will renew normally.',
+      );
+      await loadSubscription(true);
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        (err instanceof Error ? err.message : 'Failed to cancel downgrade');
+      Alert.alert('Error', msg);
+    } finally {
+      setIsCancelingDowngrade(false);
+    }
   };
 
   const handleNavigateHome = () => {
@@ -228,6 +250,51 @@ export default function SubscriptionScreen() {
             </View>
           )}
 
+          {/* Scheduled Downgrade Notice Card */}
+          {sub?.scheduledPlan && (
+            <View className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-5 shadow-xs">
+              <View className="flex-row items-start">
+                <View className="w-8 h-8 rounded-full bg-amber-100 items-center justify-center mr-3 mt-0.5">
+                  <Clock size={18} color="#D97706" />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-sm font-extrabold text-amber-900 capitalize">
+                    Downgrade to {sub.scheduledPlan} Scheduled
+                  </Text>
+                  <Text className="text-xs text-amber-800 mt-1 leading-relaxed">
+                    Your tier will transition to{' '}
+                    <Text className="font-bold">{getPlanTitle(sub.scheduledPlan)}</Text> on{' '}
+                    <Text className="font-bold">
+                      {sub.scheduledPlanEffectiveAt
+                        ? new Date(sub.scheduledPlanEffectiveAt).toLocaleDateString('en-IN', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric',
+                          })
+                        : 'end of billing period'}
+                    </Text>
+                    .
+                  </Text>
+                  <Text className="text-[11px] text-amber-700 font-medium mt-1.5 leading-relaxed">
+                    ✓ All existing properties, rooms, beds, and tenant rent collections remain 100%
+                    active and protected.
+                  </Text>
+                  <TouchableOpacity
+                    onPress={handleCancelDowngrade}
+                    disabled={isCancelingDowngrade}
+                    className="mt-3 bg-amber-600 self-start px-3.5 py-1.5 rounded-lg active:opacity-85"
+                  >
+                    {isCancelingDowngrade ? (
+                      <ActivityIndicator size="small" color="#FFFFFF" />
+                    ) : (
+                      <Text className="text-white text-xs font-bold">Cancel Downgrade</Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          )}
+
           {/* Current Quotas Card */}
           <View className="bg-white rounded-2xl p-5 border border-slate-200 mb-5 shadow-xs">
             <View className="flex-row items-center justify-between mb-4 pb-3 border-b border-slate-100">
@@ -294,6 +361,21 @@ export default function SubscriptionScreen() {
                 />
               </View>
             </View>
+
+            {/* If Downgrade Scheduled, show future limit reassurance */}
+            {sub?.scheduledPlan && (
+              <View className="mt-3 pt-3 border-t border-slate-100">
+                <Text className="text-[11px] text-slate-500 font-medium">
+                  • After cycle end, future new additions will be capped at{' '}
+                  <Text className="font-bold text-slate-700">
+                    {sub.scheduledPlan === 'starter'
+                      ? '1 Property / 30 Beds'
+                      : '3 Properties / 100 Beds'}
+                  </Text>
+                  . Existing occupied beds will never be removed.
+                </Text>
+              </View>
+            )}
           </View>
 
           {/* Features Unlocked List */}

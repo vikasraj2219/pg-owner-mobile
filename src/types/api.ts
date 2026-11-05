@@ -24,6 +24,8 @@ export interface ISubscription {
   currentPeriodEnd: string;
   maxProperties: number;
   maxBeds: number;
+  scheduledPlan?: 'starter' | 'growth' | 'pro' | null;
+  scheduledPlanEffectiveAt?: string | null;
 }
 
 export type PropertyType = 'boys' | 'girls' | 'coliving';
@@ -638,6 +640,8 @@ export interface ISubscriptionCurrent {
   currentPeriodEnd: string;
   maxProperties: number;
   maxBeds: number;
+  scheduledPlan?: 'starter' | 'growth' | 'pro' | null;
+  scheduledPlanEffectiveAt?: string | null;
   propertiesUsed: number;
   bedsUsed: number;
   upgradeUrl: string;

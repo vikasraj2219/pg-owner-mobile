@@ -1,9 +1,21 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Modal, View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
+import {
+  Modal,
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  ActivityIndicator,
+  Alert,
+} from 'react-native';
 import { useRouter } from 'expo-router';
-import { X, Sparkles, AlertCircle, ShieldCheck } from 'lucide-react-native';
+import { X, Sparkles, AlertCircle, ShieldCheck, Clock, ArrowDownCircle } from 'lucide-react-native';
 import { useQueryClient } from '@tanstack/react-query';
-import { getCurrentSubscriptionApi } from '../api/subscription';
+import {
+  getCurrentSubscriptionApi,
+  scheduleDowngradeApi,
+  cancelDowngradeApi,
+} from '../api/subscription';
 import { useAuth } from '../hooks/useAuth';
 import { useProperties } from '../context/PropertyContext';
 import { ISubscriptionCurrent } from '../types/api';
@@ -15,6 +27,12 @@ interface SubscriptionModalProps {
   onClose: () => void;
 }
 
+const PLAN_TIER_RANK: Record<'starter' | 'growth' | 'pro', number> = {
+  starter: 1,
+  growth: 2,
+  pro: 3,
+};
+
 export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, onClose }) => {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -22,6 +40,8 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
   const { properties } = useProperties();
   const [sub, setSub] = useState<ISubscriptionCurrent | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isScheduling, setIsScheduling] = useState(false);
+  const [isCancelingDowngrade, setIsCancelingDowngrade] = useState(false);
   const [checkoutPlan, setCheckoutPlan] = useState<'starter' | 'growth' | 'pro' | null>(null);
 
   const loadSub = useCallback(async () => {
@@ -54,7 +74,7 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [properties, authSub]);
 
   useEffect(() => {
     if (visible) {
@@ -66,9 +86,78 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
     setCheckoutPlan(plan);
   };
 
+  const handleScheduleDowngrade = (targetPlan: 'starter' | 'growth' | 'pro') => {
+    const targetTitle =
+      targetPlan === 'starter' ? 'Starter' : targetPlan === 'growth' ? 'Growth' : 'Pro';
+    const effectiveDateStr = sub?.currentPeriodEnd
+      ? new Date(sub.currentPeriodEnd).toLocaleDateString('en-IN', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+        })
+      : 'the end of your current cycle';
+
+    Alert.alert(
+      `Schedule Downgrade to ${targetTitle}?`,
+      `Your account will transition to ${targetTitle} on ${effectiveDateStr}.\n\n• Full ${sub?.plan?.toUpperCase()} access remains active until then.\n• All existing properties, rooms, beds, and tenant data remain 100% intact.\n• You can continue collecting rent and managing tenants without disruption.\n• Only new additions beyond ${targetTitle} limits will be paused after cycle end.`,
+      [
+        { text: 'Keep Current Plan', style: 'cancel' },
+        {
+          text: 'Schedule Downgrade',
+          style: 'destructive',
+          onPress: async () => {
+            setIsScheduling(true);
+            try {
+              await scheduleDowngradeApi(targetPlan);
+              Alert.alert(
+                'Downgrade Scheduled',
+                `Your plan will switch to ${targetTitle} on ${effectiveDateStr}. All existing data and operations remain active.`,
+              );
+              await loadSub();
+              await refreshAuthUser();
+              queryClient.invalidateQueries({ queryKey: ['subscription'] });
+            } catch (err: unknown) {
+              const msg =
+                (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+                (err instanceof Error ? err.message : 'Failed to schedule downgrade');
+              Alert.alert('Downgrade Error', msg);
+            } finally {
+              setIsScheduling(false);
+            }
+          },
+        },
+      ],
+    );
+  };
+
+  const handleCancelDowngrade = async () => {
+    setIsCancelingDowngrade(true);
+    try {
+      await cancelDowngradeApi();
+      Alert.alert(
+        'Downgrade Canceled',
+        'Your scheduled downgrade has been canceled. Your current plan will continue normally.',
+      );
+      await loadSub();
+      await refreshAuthUser();
+      queryClient.invalidateQueries({ queryKey: ['subscription'] });
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        (err instanceof Error ? err.message : 'Failed to cancel downgrade');
+      Alert.alert('Error', msg);
+    } finally {
+      setIsCancelingDowngrade(false);
+    }
+  };
+
   if (!visible) return null;
 
   const isExpired = sub?.isReadOnly || sub?.status === 'expired';
+  const currentPlan = (sub?.plan || 'starter') as 'starter' | 'growth' | 'pro';
+  const currentRank = PLAN_TIER_RANK[currentPlan] || 1;
+  const isActivePaid = sub?.status === 'active';
+  const isTrialing = sub?.status === 'trialing';
 
   return (
     <Modal
@@ -83,7 +172,7 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
           <View>
             <Text className="text-xl font-extrabold text-slate-900">Subscription & Limits</Text>
             <Text className="text-xs font-semibold text-slate-500 mt-0.5">
-              Plan quotas and paywall status
+              Plan quotas, upgrades & billing cycles
             </Text>
           </View>
           <TouchableOpacity
@@ -111,9 +200,52 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
                   </Text>
                   <Text className="text-xs text-rose-700 mt-0.5">
                     Your account is currently in read-only mode. You can view all your properties
-                    and tenants. Upgrade below to resume check-ins, adding rooms, and recording
-                    payments.
+                    and tenants. Choose a plan below to resume check-ins, adding rooms, and
+                    recording payments.
                   </Text>
+                </View>
+              </View>
+            )}
+
+            {/* Scheduled Downgrade Banner if active */}
+            {sub?.scheduledPlan && (
+              <View className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-4">
+                <View className="flex-row items-start">
+                  <Clock size={20} color="#D97706" />
+                  <View className="ml-3 flex-1">
+                    <Text className="text-sm font-extrabold text-amber-900 capitalize">
+                      Downgrade to {sub.scheduledPlan} Scheduled
+                    </Text>
+                    <Text className="text-xs text-amber-800 mt-1 leading-relaxed">
+                      Takes effect on{' '}
+                      <Text className="font-bold">
+                        {sub.scheduledPlanEffectiveAt
+                          ? new Date(sub.scheduledPlanEffectiveAt).toLocaleDateString('en-IN', {
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric',
+                            })
+                          : 'end of billing period'}
+                      </Text>
+                      . Full {currentPlan.toUpperCase()} privileges and all existing beds remain
+                      active until then.
+                    </Text>
+                    <Text className="text-[11px] text-amber-700 font-medium mt-1">
+                      Zero disruption: All existing properties, tenants, and rent collection remain
+                      untouched.
+                    </Text>
+                    <TouchableOpacity
+                      onPress={handleCancelDowngrade}
+                      disabled={isCancelingDowngrade}
+                      className="mt-3 bg-amber-600 self-start px-3.5 py-1.5 rounded-lg active:opacity-85"
+                    >
+                      {isCancelingDowngrade ? (
+                        <ActivityIndicator size="small" color="#FFFFFF" />
+                      ) : (
+                        <Text className="text-white text-xs font-bold">Cancel Downgrade</Text>
+                      )}
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </View>
             )}
@@ -161,14 +293,20 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
                 <View className="flex-row justify-between mb-1.5">
                   <Text className="text-xs font-bold text-slate-700">Properties Registered</Text>
                   <Text className="text-xs font-bold text-slate-900">
-                    {sub?.propertiesUsed || 0} / {sub?.maxProperties || 1} allowed
+                    {sub?.propertiesUsed || 0} /{' '}
+                    {sub?.maxProperties && sub.maxProperties > 50
+                      ? 'Unlimited'
+                      : sub?.maxProperties || 1}
                   </Text>
                 </View>
                 <View className="h-2 bg-slate-100 rounded-full overflow-hidden mb-4">
                   <View
                     className="h-full bg-[#0A6C50] rounded-full"
                     style={{
-                      width: `${Math.min(100, ((sub?.propertiesUsed || 0) / (sub?.maxProperties || 1)) * 100)}%`,
+                      width: `${Math.min(
+                        100,
+                        ((sub?.propertiesUsed || 0) / (sub?.maxProperties || 1)) * 100,
+                      )}%`,
                     }}
                   />
                 </View>
@@ -176,7 +314,8 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
                 <View className="flex-row justify-between mb-1.5">
                   <Text className="text-xs font-bold text-slate-700">Total Bed Capacity</Text>
                   <Text className="text-xs font-bold text-slate-900">
-                    {sub?.bedsUsed || 0} / {sub?.maxBeds || 30} allowed
+                    {sub?.bedsUsed || 0} /{' '}
+                    {sub?.maxBeds && sub.maxBeds > 500 ? 'Unlimited' : sub?.maxBeds || 30}
                   </Text>
                 </View>
                 <View className="h-2 bg-slate-100 rounded-full overflow-hidden">
@@ -188,6 +327,16 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
                   />
                 </View>
               </View>
+            </View>
+
+            {/* Proration & Policy Note */}
+            <View className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5 mb-5 flex-row items-center">
+              <Sparkles size={16} color="#0A6C50" />
+              <Text className="text-[11px] text-slate-600 font-medium ml-2.5 flex-1 leading-relaxed">
+                <Text className="font-bold text-slate-800">Value-Based Proration:</Text> Upgrades
+                convert unused days into bonus days immediately. Downgrades take effect safely at
+                the end of the billing period without interrupting existing beds.
+              </Text>
             </View>
 
             {/* Upgrade Options */}
@@ -215,12 +364,66 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
                   • Visual Matrix Grid & Payment Ledger
                 </Text>
               </View>
-              {sub?.plan === 'starter' && sub?.status === 'trialing' ? (
-                <View className="bg-emerald-50 rounded-xl py-2.5 items-center justify-center border border-emerald-200">
-                  <Text className="text-[#0A6C50] font-black text-xs">
-                    CURRENTLY ON 14-DAY TRIAL
-                  </Text>
+
+              {/* Starter Action Button */}
+              {isTrialing && currentPlan === 'starter' ? (
+                <View className="space-y-2">
+                  <View className="bg-emerald-50 rounded-xl py-2 items-center justify-center border border-emerald-200">
+                    <Text className="text-[#0A6C50] font-black text-xs">
+                      14-DAY TRIAL ACTIVE ({sub?.daysLeft || 0} DAYS LEFT)
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    activeOpacity={0.85}
+                    onPress={() => handleUpgrade('starter')}
+                    className="bg-slate-800 rounded-xl py-2.5 items-center justify-center"
+                  >
+                    <Text className="text-white font-bold text-xs">
+                      Purchase Paid Starter (Preserves Trial + 30 Days)
+                    </Text>
+                  </TouchableOpacity>
                 </View>
+              ) : isActivePaid && currentPlan === 'starter' ? (
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  onPress={() => handleUpgrade('starter')}
+                  className="bg-slate-800 rounded-xl py-3 items-center justify-center"
+                >
+                  <Text className="text-white font-bold text-sm">
+                    Renew Starter Plan (+30 Days)
+                  </Text>
+                </TouchableOpacity>
+              ) : isActivePaid && currentRank > 1 ? (
+                // Current user is Growth or Pro -> Downgrade option
+                sub?.scheduledPlan === 'starter' ? (
+                  <View className="bg-amber-50 rounded-xl py-2.5 px-3 border border-amber-200 flex-row items-center justify-between">
+                    <Text className="text-amber-800 font-bold text-xs">
+                      Scheduled for Cycle End
+                    </Text>
+                    <TouchableOpacity
+                      onPress={handleCancelDowngrade}
+                      disabled={isCancelingDowngrade}
+                    >
+                      <Text className="text-amber-900 font-extrabold text-xs underline">
+                        Cancel
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <TouchableOpacity
+                    activeOpacity={0.85}
+                    onPress={() => handleScheduleDowngrade('starter')}
+                    disabled={isScheduling}
+                    className="bg-slate-100 border border-slate-300 rounded-xl py-3 items-center justify-center"
+                  >
+                    <View className="flex-row items-center">
+                      <ArrowDownCircle size={15} color="#475569" />
+                      <Text className="text-slate-700 font-bold text-sm ml-1.5">
+                        Schedule Downgrade (At Cycle End)
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                )
               ) : (
                 <TouchableOpacity
                   activeOpacity={0.85}
@@ -228,7 +431,7 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
                   className="bg-slate-800 rounded-xl py-3 items-center justify-center"
                 >
                   <Text className="text-white font-bold text-sm">
-                    {sub?.plan === 'starter' ? 'Renew Starter Plan' : 'Switch to Starter'}
+                    {isExpired ? 'Reactivate on Starter' : 'Switch to Starter'}
                   </Text>
                 </TouchableOpacity>
               )}
@@ -254,21 +457,64 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
                   • Sub-meter EB reading splits
                 </Text>
               </View>
-              <TouchableOpacity
-                activeOpacity={0.85}
-                onPress={() => handleUpgrade('growth')}
-                className="bg-[#0A6C50] rounded-xl py-3 items-center justify-center"
-              >
-                <Text className="text-white font-bold text-sm">
-                  {sub?.plan === 'growth' ? 'Renew Growth Plan' : 'Upgrade to Growth'}
-                </Text>
-              </TouchableOpacity>
+
+              {/* Growth Action Button */}
+              {isActivePaid && currentPlan === 'growth' ? (
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  onPress={() => handleUpgrade('growth')}
+                  className="bg-[#0A6C50] rounded-xl py-3 items-center justify-center"
+                >
+                  <Text className="text-white font-bold text-sm">Renew Growth Plan (+30 Days)</Text>
+                </TouchableOpacity>
+              ) : isActivePaid && currentRank > 2 ? (
+                // Current user is Pro -> Downgrade option
+                sub?.scheduledPlan === 'growth' ? (
+                  <View className="bg-amber-50 rounded-xl py-2.5 px-3 border border-amber-200 flex-row items-center justify-between">
+                    <Text className="text-amber-800 font-bold text-xs">
+                      Scheduled for Cycle End
+                    </Text>
+                    <TouchableOpacity
+                      onPress={handleCancelDowngrade}
+                      disabled={isCancelingDowngrade}
+                    >
+                      <Text className="text-amber-900 font-extrabold text-xs underline">
+                        Cancel
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <TouchableOpacity
+                    activeOpacity={0.85}
+                    onPress={() => handleScheduleDowngrade('growth')}
+                    disabled={isScheduling}
+                    className="bg-slate-100 border border-slate-300 rounded-xl py-3 items-center justify-center"
+                  >
+                    <View className="flex-row items-center">
+                      <ArrowDownCircle size={15} color="#475569" />
+                      <Text className="text-slate-700 font-bold text-sm ml-1.5">
+                        Schedule Downgrade (At Cycle End)
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                )
+              ) : (
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  onPress={() => handleUpgrade('growth')}
+                  className="bg-[#0A6C50] rounded-xl py-3 items-center justify-center"
+                >
+                  <Text className="text-white font-bold text-sm">
+                    {currentRank < 2 ? 'Upgrade to Growth (Prorated)' : 'Switch to Growth'}
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
 
             {/* Pro Tier */}
             <View
               className={`bg-white rounded-2xl p-5 border mb-6 shadow-xs ${
-                sub?.plan === 'pro' && sub?.status === 'active'
+                currentPlan === 'pro' && isActivePaid
                   ? 'border-purple-400 bg-purple-50/20'
                   : 'border-purple-200'
               }`}
@@ -277,7 +523,7 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
                 <View className="flex-row items-center">
                   <Sparkles size={16} color="#7E22CE" />
                   <Text className="text-lg font-black text-slate-900 ml-1.5">Pro Enterprise</Text>
-                  {sub?.plan === 'pro' && sub?.status === 'active' && (
+                  {currentPlan === 'pro' && isActivePaid && (
                     <View className="ml-2 bg-purple-100 border border-purple-200 px-2 py-0.5 rounded">
                       <Text className="text-[10px] font-extrabold text-purple-800">ACTIVE</Text>
                     </View>
@@ -299,15 +545,17 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
                   • Custom receipt branding & reports
                 </Text>
               </View>
+
+              {/* Pro Action Button */}
               <TouchableOpacity
                 activeOpacity={0.85}
                 onPress={() => handleUpgrade('pro')}
                 className="bg-purple-700 rounded-xl py-3 items-center justify-center"
               >
                 <Text className="text-white font-bold text-sm">
-                  {sub?.plan === 'pro' && sub?.status === 'active'
+                  {currentPlan === 'pro' && isActivePaid
                     ? 'Extend Pro Plan (+30 Days)'
-                    : 'Upgrade to Pro'}
+                    : 'Upgrade to Pro (Prorated)'}
                 </Text>
               </TouchableOpacity>
             </View>

@@ -371,11 +371,13 @@ export default function CheckinScreen() {
       }, 400);
     } catch (err: unknown) {
       setIsUploading(false);
+      const apiMsg = (err as { response?: { data?: { message?: string } } })?.response?.data
+        ?.message;
       const msg =
-        err instanceof Error
+        apiMsg ||
+        (err instanceof Error
           ? err.message
-          : (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-            'Check-in failed. Please check your signal and try again.';
+          : 'Check-in failed. Please check your signal and try again.');
       setUploadError(msg);
       setShowErrorModal(true);
     }
