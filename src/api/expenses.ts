@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import { ApiResponse, IExpense, IPnLSummary, Paise } from '../types/api';
+import { ApiResponse, IExpense, IPnLSummary, Paise, UpdateExpensePayload } from '../types/api';
 
 /**
  * Record a new operational expense in integer paise
@@ -38,6 +38,17 @@ export const getPnLSummaryApi = async (params?: {
   year?: number;
 }): Promise<IPnLSummary> => {
   const response = await apiClient.get<ApiResponse<IPnLSummary>>('/expenses/pnl', { params });
+  return response.data.data;
+};
+
+/**
+ * Update an existing operational expense
+ */
+export const updateExpenseApi = async (
+  id: string,
+  payload: UpdateExpensePayload,
+): Promise<IExpense> => {
+  const response = await apiClient.put<ApiResponse<IExpense>>(`/expenses/${id}`, payload);
   return response.data.data;
 };
 

@@ -626,6 +626,16 @@ export interface IMeterReading {
   }>;
 }
 
+export interface UpdateMeterReadingPayload {
+  previousReading?: number;
+  currentReading?: number;
+  ratePaisePerUnit?: Paise;
+  readingDate?: string;
+  splitMethod?: 'equal' | 'by_days_occupied';
+  photoUrl?: string;
+  meterIdentifier?: string;
+}
+
 export interface IExpense {
   _id: string;
   category:
@@ -649,6 +659,25 @@ export interface IExpense {
     name: string;
     code: string;
   };
+}
+
+export interface UpdateExpensePayload {
+  category?:
+    | 'maintenance'
+    | 'electricity'
+    | 'water'
+    | 'wifi'
+    | 'groceries_food'
+    | 'staff_salary'
+    | 'rent_lease'
+    | 'cleaning'
+    | 'other';
+  amountPaise?: Paise;
+  description?: string;
+  date?: string;
+  receiptUrl?: string;
+  paymentMethod?: 'cash' | 'upi' | 'bank_transfer';
+  paidTo?: string;
 }
 
 export interface IPnLSummary {
@@ -688,6 +717,16 @@ export interface ITeamMember {
     code: string;
   }>;
   createdAt: string;
+}
+
+export interface UpdateTeamMemberPayload {
+  name?: string;
+  phone?: string;
+  email?: string;
+  password?: string;
+  role?: 'manager' | 'staff';
+  status?: 'active' | 'inactive';
+  assignedProperties?: string[];
 }
 
 export interface ISubscriptionCurrent {

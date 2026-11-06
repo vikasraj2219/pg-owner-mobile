@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Modal,
   View,
@@ -9,12 +9,27 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { X, Plus, TrendingDown, TrendingUp, IndianRupee } from 'lucide-react-native';
+import {
+  X,
+  Plus,
+  TrendingDown,
+  TrendingUp,
+  IndianRupee,
+  Edit2,
+  Trash2,
+  Calendar,
+} from 'lucide-react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import { formatINR } from '../utils/currency';
 import { formatSafeDate } from '../utils/date';
-import { createExpenseApi, getExpensesApi, getPnLSummaryApi } from '../api/expenses';
-import { IExpense, IPnLSummary } from '../types/api';
+import {
+  createExpenseApi,
+  getExpensesApi,
+  getPnLSummaryApi,
+  updateExpenseApi,
+  deleteExpenseApi,
+} from '../api/expenses';
+import { IExpense, IPnLSummary, UpdateExpensePayload } from '../types/api';
 
 interface ExpensesModalProps {
   visible: boolean;
@@ -34,6 +49,8 @@ const CATEGORIES = [
   { id: 'other', label: 'Other Expense' },
 ];
 
+const getTodayString = () => new Date().toISOString().split('T')[0];
+
 export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, propertyId }) => {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<'pnl' | 'add'>('pnl');
@@ -48,8 +65,30 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, 
   const [amountRupees, setAmountRupees] = useState('');
   const [description, setDescription] = useState('');
   const [paidTo, setPaidTo] = useState('');
+  const [date, setDate] = useState(getTodayString());
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'upi' | 'bank_transfer'>('cash');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Edit Expense State
+  const [editingExpense, setEditingExpense] = useState<IExpense | null>(null);
+  const [editCategory, setEditCategory] = useState('maintenance');
+  const [editAmountRupees, setEditAmountRupees] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editPaidTo, setEditPaidTo] = useState('');
+  const [editDate, setEditDate] = useState(getTodayString());
+  const [editPaymentMethod, setEditPaymentMethod] = useState<'cash' | 'upi' | 'bank_transfer'>(
+    'cash',
+  );
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  const resetAddForm = useCallback(() => {
+    setCategory('maintenance'); // Reset category so previous tag does not stay sticky
+    setAmountRupees('');
+    setDescription('');
+    setPaidTo('');
+    setDate(getTodayString()); // Always clear and reset date to today
+    setPaymentMethod('cash');
+  }, []);
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
@@ -70,8 +109,43 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, 
   useEffect(() => {
     if (visible) {
       loadData();
+      resetAddForm();
     }
-  }, [visible, loadData]);
+  }, [visible, loadData, resetAddForm]);
+
+  // Group recent logged expenses monthly-wise
+  const monthlyGroupedExpenses = useMemo(() => {
+    const groups: {
+      [key: string]: {
+        monthKey: string;
+        monthLabel: string;
+        totalPaise: number;
+        items: IExpense[];
+      };
+    } = {};
+
+    expenses.forEach(exp => {
+      const parsed = new Date(exp.date);
+      const validDate = isNaN(parsed.getTime()) ? new Date() : parsed;
+      const monthKey = `${validDate.getFullYear()}-${String(validDate.getMonth() + 1).padStart(2, '0')}`;
+      const monthLabel = validDate.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+
+      if (!groups[monthKey]) {
+        groups[monthKey] = {
+          monthKey,
+          monthLabel,
+          totalPaise: 0,
+          items: [],
+        };
+      }
+      groups[monthKey].items.push(exp);
+      groups[monthKey].totalPaise += exp.amountPaise;
+    });
+
+    return Object.keys(groups)
+      .sort((a, b) => b.localeCompare(a))
+      .map(k => groups[k]);
+  }, [expenses]);
 
   const handleSaveExpense = async () => {
     const num = parseFloat(amountRupees.replace(/,/g, ''));
@@ -101,9 +175,7 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, 
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
 
       Alert.alert('Expense Recorded', `Logged ${formatINR(amountPaise)} under ${category}.`);
-      setAmountRupees('');
-      setDescription('');
-      setPaidTo('');
+      resetAddForm();
       setActiveTab('pnl');
       loadData();
     } catch {
@@ -111,6 +183,85 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, 
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleOpenEdit = (exp: IExpense) => {
+    setEditingExpense(exp);
+    setEditCategory(exp.category);
+    setEditAmountRupees((exp.amountPaise / 100).toString());
+    setEditDescription(exp.description);
+    setEditPaidTo(exp.paidTo || '');
+    setEditDate(exp.date ? exp.date.split('T')[0] : getTodayString());
+    setEditPaymentMethod(exp.paymentMethod || 'cash');
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingExpense) return;
+    const num = parseFloat(editAmountRupees.replace(/,/g, ''));
+    if (isNaN(num) || num <= 0) {
+      Alert.alert('Invalid Amount', 'Please enter a valid expense amount in ₹.');
+      return;
+    }
+
+    if (!editDescription.trim()) {
+      Alert.alert('Missing Description', 'Please provide a brief description of the expense.');
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      const amountPaise = Math.round(num * 100);
+      await updateExpenseApi(editingExpense._id, {
+        category: editCategory as UpdateExpensePayload['category'],
+        amountPaise,
+        description: editDescription.trim(),
+        paidTo: editPaidTo.trim() || undefined,
+        date: editDate.trim() || undefined,
+        paymentMethod: editPaymentMethod,
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['expenses'] });
+
+      Alert.alert('Updated', 'Expense record updated successfully.');
+      setEditingExpense(null);
+      loadData();
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        'Failed to update expense';
+      Alert.alert('Error', msg);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleDeleteExpense = (exp: IExpense) => {
+    Alert.alert(
+      'Delete Expense?',
+      `Are you sure you want to delete "${exp.description}" (${formatINR(exp.amountPaise)})?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteExpenseApi(exp._id);
+              queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+              queryClient.invalidateQueries({ queryKey: ['expenses'] });
+              Alert.alert('Deleted', 'Expense record deleted.');
+              loadData();
+            } catch (err: unknown) {
+              const msg =
+                (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+                'Failed to delete expense';
+              Alert.alert('Error', msg);
+            }
+          },
+        },
+      ],
+    );
   };
 
   if (!visible) return null;
@@ -128,7 +279,7 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, 
           <View>
             <Text className="text-xl font-extrabold text-slate-900">Expenses & Monthly P&L</Text>
             <Text className="text-xs font-semibold text-slate-500 mt-0.5">
-              Live cashflow tracking and ledger
+              Live cashflow tracking and monthly ledger
             </Text>
           </View>
           <TouchableOpacity
@@ -152,11 +303,14 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, 
                 activeTab === 'pnl' ? 'text-[#0A6C50]' : 'text-slate-600'
               }`}
             >
-              Live P&L & History
+              Live P&L & Monthly Ledger
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => setActiveTab('add')}
+            onPress={() => {
+              resetAddForm();
+              setActiveTab('add');
+            }}
             className={`flex-1 py-2.5 rounded-xl items-center justify-center border ${
               activeTab === 'add' ? 'bg-[#E6F4EA] border-[#0A6C50]' : 'bg-slate-50 border-slate-200'
             }`}
@@ -244,11 +398,12 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, 
               </View>
             )}
 
-            {/* Recent Expenses List */}
+            {/* Monthly-wise Expenses Grouping */}
             <Text className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2.5">
-              Recent Logged Expenses ({expenses.length})
+              Logged Expenses Monthly-wise ({expenses.length})
             </Text>
-            {expenses.length === 0 ? (
+
+            {monthlyGroupedExpenses.length === 0 ? (
               <View className="bg-white rounded-2xl p-6 items-center justify-center border border-slate-200 mb-6">
                 <Text className="text-sm font-semibold text-slate-500">
                   No expenses recorded yet.
@@ -258,23 +413,67 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, 
                 </Text>
               </View>
             ) : (
-              expenses.map(exp => (
-                <View
-                  key={exp._id}
-                  className="bg-white rounded-2xl p-4 border border-slate-200/80 mb-2.5 flex-row justify-between items-center"
-                >
-                  <View className="flex-1 mr-3">
-                    <Text className="text-sm font-bold text-slate-900 truncate">
-                      {exp.description}
-                    </Text>
-                    <Text className="text-xs font-medium text-slate-500 mt-0.5 capitalize">
-                      {exp.category.replace('_', ' ')} · {formatSafeDate(exp.date)}
-                      {exp.paidTo ? ` · ${exp.paidTo}` : ''}
+              monthlyGroupedExpenses.map(group => (
+                <View key={group.monthKey} className="mb-5">
+                  {/* Month Header Banner */}
+                  <View className="bg-slate-100/90 px-3.5 py-2 rounded-xl flex-row justify-between items-center mb-2.5 border border-slate-200/60">
+                    <View className="flex-row items-center">
+                      <Calendar size={13} color="#475569" />
+                      <Text className="text-xs font-extrabold text-slate-800 ml-1.5">
+                        {group.monthLabel}
+                      </Text>
+                      <View className="bg-slate-200/70 px-1.5 py-0.5 rounded ml-2">
+                        <Text className="text-[10px] font-bold text-slate-600">
+                          {group.items.length} {group.items.length === 1 ? 'item' : 'items'}
+                        </Text>
+                      </View>
+                    </View>
+                    <Text className="text-xs font-black text-rose-700">
+                      -{formatINR(group.totalPaise)}
                     </Text>
                   </View>
-                  <Text className="text-sm font-extrabold text-rose-600">
-                    -{formatINR(exp.amountPaise)}
-                  </Text>
+
+                  {/* Expenses in Month */}
+                  {group.items.map(exp => (
+                    <View
+                      key={exp._id}
+                      className="bg-white rounded-2xl p-4 border border-slate-200/80 mb-2.5 shadow-xs"
+                    >
+                      <View className="flex-row justify-between items-start mb-1">
+                        <View className="flex-1 mr-3">
+                          <Text className="text-sm font-extrabold text-slate-900 truncate">
+                            {exp.description}
+                          </Text>
+                          <Text className="text-xs font-medium text-slate-500 mt-0.5 capitalize">
+                            {exp.category.replace('_', ' ')} · {formatSafeDate(exp.date)}
+                            {exp.paidTo ? ` · ${exp.paidTo}` : ''}
+                            {exp.paymentMethod ? ` (${exp.paymentMethod.toUpperCase()})` : ''}
+                          </Text>
+                        </View>
+                        <Text className="text-sm font-black text-rose-600">
+                          -{formatINR(exp.amountPaise)}
+                        </Text>
+                      </View>
+
+                      {/* Actions: Edit & Delete */}
+                      <View className="flex-row justify-end gap-2 pt-2 border-t border-slate-100 mt-2">
+                        <TouchableOpacity
+                          onPress={() => handleOpenEdit(exp)}
+                          className="flex-row items-center px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200"
+                        >
+                          <Edit2 size={13} color="#0A6C50" />
+                          <Text className="text-xs font-bold text-[#0A6C50] ml-1.5">Edit</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          onPress={() => handleDeleteExpense(exp)}
+                          className="flex-row items-center px-3 py-1.5 rounded-lg bg-rose-50 border border-rose-200"
+                        >
+                          <Trash2 size={13} color="#BE123C" />
+                          <Text className="text-xs font-bold text-rose-700 ml-1.5">Delete</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  ))}
                 </View>
               ))
             )}
@@ -331,6 +530,20 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, 
                 onChangeText={setDescription}
               />
 
+              {/* Expense Date */}
+              <Text className="text-xs font-bold text-slate-700 uppercase mb-1.5">
+                Date (YYYY-MM-DD)
+              </Text>
+              <View className="flex-row items-center border border-slate-200 rounded-xl px-4 py-3 mb-4 bg-white shadow-xs">
+                <Calendar size={18} color="#64748B" />
+                <TextInput
+                  className="flex-1 ml-2 text-sm font-semibold text-slate-900"
+                  placeholder="YYYY-MM-DD"
+                  value={date}
+                  onChangeText={setDate}
+                />
+              </View>
+
               {/* Paid to Vendor / Person */}
               <Text className="text-xs font-bold text-slate-700 uppercase mb-1.5">
                 Paid To (Optional)
@@ -381,6 +594,147 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, 
               </TouchableOpacity>
             </View>
           </ScrollView>
+        )}
+
+        {/* Edit Expense Modal */}
+        {editingExpense && (
+          <Modal
+            visible={!!editingExpense}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setEditingExpense(null)}
+          >
+            <View className="flex-1 bg-black/50 justify-center items-center px-4">
+              <View className="bg-white rounded-2xl p-5 w-full max-w-sm border border-slate-200 shadow-xl max-h-[85%]">
+                <View className="flex-row justify-between items-center mb-3">
+                  <Text className="text-base font-extrabold text-slate-900">
+                    Edit Expense Record
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => setEditingExpense(null)}
+                    className="w-7 h-7 rounded-full bg-slate-100 items-center justify-center"
+                  >
+                    <X size={16} color="#64748B" />
+                  </TouchableOpacity>
+                </View>
+
+                <ScrollView showsVerticalScrollIndicator={false}>
+                  {/* Category */}
+                  <Text className="text-[10px] font-bold text-slate-700 uppercase mb-1.5">
+                    Category
+                  </Text>
+                  <View className="flex-row flex-wrap gap-1.5 mb-3">
+                    {CATEGORIES.map(cat => (
+                      <TouchableOpacity
+                        key={cat.id}
+                        onPress={() => setEditCategory(cat.id)}
+                        className={`px-2.5 py-1.5 rounded-lg border ${
+                          editCategory === cat.id
+                            ? 'bg-[#E6F4EA] border-[#0A6C50]'
+                            : 'bg-slate-50 border-slate-200'
+                        }`}
+                      >
+                        <Text
+                          className={`text-[11px] font-bold ${
+                            editCategory === cat.id ? 'text-[#0A6C50]' : 'text-slate-600'
+                          }`}
+                        >
+                          {cat.label}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+
+                  {/* Amount */}
+                  <Text className="text-[10px] font-bold text-slate-700 uppercase mb-1">
+                    Amount (₹)
+                  </Text>
+                  <TextInput
+                    className="border border-slate-200 rounded-xl px-3.5 py-2 mb-3 text-slate-900 bg-white font-bold text-sm"
+                    keyboardType="numeric"
+                    value={editAmountRupees}
+                    onChangeText={setEditAmountRupees}
+                  />
+
+                  {/* Description */}
+                  <Text className="text-[10px] font-bold text-slate-700 uppercase mb-1">
+                    Description
+                  </Text>
+                  <TextInput
+                    className="border border-slate-200 rounded-xl px-3.5 py-2 mb-3 text-slate-900 bg-white text-sm"
+                    value={editDescription}
+                    onChangeText={setEditDescription}
+                  />
+
+                  {/* Date */}
+                  <Text className="text-[10px] font-bold text-slate-700 uppercase mb-1">
+                    Date (YYYY-MM-DD)
+                  </Text>
+                  <TextInput
+                    className="border border-slate-200 rounded-xl px-3.5 py-2 mb-3 text-slate-900 bg-white text-sm font-semibold"
+                    value={editDate}
+                    onChangeText={setEditDate}
+                  />
+
+                  {/* Paid to */}
+                  <Text className="text-[10px] font-bold text-slate-700 uppercase mb-1">
+                    Paid To
+                  </Text>
+                  <TextInput
+                    className="border border-slate-200 rounded-xl px-3.5 py-2 mb-3 text-slate-900 bg-white text-sm"
+                    value={editPaidTo}
+                    onChangeText={setEditPaidTo}
+                  />
+
+                  {/* Payment Mode */}
+                  <Text className="text-[10px] font-bold text-slate-700 uppercase mb-1.5">
+                    Payment Mode
+                  </Text>
+                  <View className="flex-row gap-2 mb-4">
+                    {(['cash', 'upi', 'bank_transfer'] as const).map(mode => (
+                      <TouchableOpacity
+                        key={mode}
+                        onPress={() => setEditPaymentMethod(mode)}
+                        className={`flex-1 py-2 rounded-xl border items-center justify-center ${
+                          editPaymentMethod === mode
+                            ? 'bg-[#E6F4EA] border-[#0A6C50]'
+                            : 'bg-slate-50 border-slate-200'
+                        }`}
+                      >
+                        <Text
+                          className={`text-[10px] font-bold uppercase ${
+                            editPaymentMethod === mode ? 'text-[#0A6C50]' : 'text-slate-600'
+                          }`}
+                        >
+                          {mode === 'bank_transfer' ? 'Bank' : mode}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </ScrollView>
+
+                <View className="flex-row gap-2 pt-2 border-t border-slate-100">
+                  <TouchableOpacity
+                    onPress={() => setEditingExpense(null)}
+                    className="flex-1 py-3 rounded-xl bg-slate-100 items-center justify-center"
+                  >
+                    <Text className="text-xs font-bold text-slate-700">Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={handleSaveEdit}
+                    disabled={isUpdating}
+                    className="flex-1 py-3 rounded-xl bg-[#0A6C50] items-center justify-center"
+                  >
+                    {isUpdating ? (
+                      <ActivityIndicator size="small" color="#ffffff" />
+                    ) : (
+                      <Text className="text-xs font-bold text-white">Save Changes</Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </Modal>
         )}
       </View>
     </Modal>

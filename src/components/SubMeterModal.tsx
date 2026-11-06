@@ -9,11 +9,17 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { X, Zap } from 'lucide-react-native';
+import { X, Zap, Edit2, Trash2 } from 'lucide-react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import { formatINR } from '../utils/currency';
 import { formatSafeDate } from '../utils/date';
-import { recordMeterReadingApi, getMeterReadingsApi, getLatestRoomReadingApi } from '../api/meters';
+import {
+  recordMeterReadingApi,
+  getMeterReadingsApi,
+  getLatestRoomReadingApi,
+  updateMeterReadingApi,
+  deleteMeterReadingApi,
+} from '../api/meters';
 import { fetchPropertyRooms } from '../api/properties';
 import { IMeterReading, IRoom, IProperty } from '../types/api';
 
@@ -36,6 +42,14 @@ export const SubMeterModal: React.FC<SubMeterModalProps> = ({ visible, onClose, 
   const [currentReading, setCurrentReading] = useState('');
   const [ratePerUnit, setRatePerUnit] = useState('12');
   const [splitMethod, setSplitMethod] = useState<'equal' | 'by_days_occupied'>('equal');
+
+  // Edit Reading State
+  const [editingReading, setEditingReading] = useState<IMeterReading | null>(null);
+  const [editPrevReading, setEditPrevReading] = useState('');
+  const [editCurrReading, setEditCurrReading] = useState('');
+  const [editRate, setEditRate] = useState('12');
+  const [editSplitMethod, setEditSplitMethod] = useState<'equal' | 'by_days_occupied'>('equal');
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const loadRoomsAndReadings = useCallback(async () => {
     if (!property?._id) return;
@@ -134,6 +148,84 @@ export const SubMeterModal: React.FC<SubMeterModalProps> = ({ visible, onClose, 
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleOpenEdit = (reading: IMeterReading) => {
+    setEditingReading(reading);
+    setEditPrevReading(reading.previousReading.toString());
+    setEditCurrReading(reading.currentReading.toString());
+    setEditRate((reading.ratePaisePerUnit / 100).toString());
+    setEditSplitMethod(reading.splitMethod || 'equal');
+  };
+
+  const editPNum = parseFloat(editPrevReading) || 0;
+  const editCNum = parseFloat(editCurrReading) || 0;
+  const editRNum = parseFloat(editRate) || 12;
+  const editUnitsConsumed = Math.max(0, editCNum - editPNum);
+  const editTotalAmountPaise = Math.round(editUnitsConsumed * editRNum * 100);
+
+  const handleSaveEdit = async () => {
+    if (!editingReading) return;
+
+    if (editCNum < editPNum) {
+      Alert.alert(
+        'Invalid Reading',
+        `Current dial (${editCNum}) cannot be lower than previous dial (${editPNum}).`,
+      );
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      await updateMeterReadingApi(editingReading._id, {
+        previousReading: editPNum,
+        currentReading: editCNum,
+        ratePaisePerUnit: Math.round(editRNum * 100),
+        splitMethod: editSplitMethod,
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['matrix'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+
+      Alert.alert('Updated', 'Sub-meter reading corrected and bill splits recalculated.');
+      setEditingReading(null);
+      loadRoomsAndReadings();
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        'Failed to update meter reading';
+      Alert.alert('Error', msg);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleDeleteReading = (reading: IMeterReading) => {
+    Alert.alert(
+      'Delete Reading?',
+      `Are you sure you want to delete this reading for ${reading.meterIdentifier || 'Sub-meter'} (${reading.unitsConsumed} units, ${formatINR(reading.totalAmountPaise)})? This will remove tenant bill splits.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteMeterReadingApi(reading._id);
+              queryClient.invalidateQueries({ queryKey: ['matrix'] });
+              queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+              Alert.alert('Deleted', 'Meter reading removed successfully.');
+              loadRoomsAndReadings();
+            } catch (err: unknown) {
+              const msg =
+                (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+                'Failed to delete meter reading';
+              Alert.alert('Error', msg);
+            }
+          },
+        },
+      ],
+    );
   };
 
   if (!visible) return null;
@@ -300,22 +392,27 @@ export const SubMeterModal: React.FC<SubMeterModalProps> = ({ visible, onClose, 
               readings.map(reading => (
                 <View
                   key={reading._id}
-                  className="bg-white rounded-2xl p-4 border border-slate-200/80 mb-2.5"
+                  className="bg-white rounded-2xl p-4 border border-slate-200/80 mb-3 shadow-xs"
                 >
-                  <View className="flex-row justify-between items-center mb-1">
-                    <Text className="text-sm font-extrabold text-slate-900">
-                      {reading.meterIdentifier || 'Sub-meter'}
-                    </Text>
-                    <Text className="text-sm font-black text-[#0A6C50]">
+                  <View className="flex-row justify-between items-start mb-1">
+                    <View className="flex-1 mr-2">
+                      <Text className="text-sm font-extrabold text-slate-900">
+                        {reading.meterIdentifier || 'Sub-meter'}
+                      </Text>
+                      <Text className="text-xs font-medium text-slate-500 mt-0.5">
+                        {formatSafeDate(reading.readingDate)} · {reading.unitsConsumed} Units (
+                        {reading.previousReading} → {reading.currentReading}) @ ₹
+                        {(reading.ratePaisePerUnit / 100).toFixed(0)}/u
+                      </Text>
+                    </View>
+                    <Text className="text-base font-black text-[#0A6C50]">
                       {formatINR(reading.totalAmountPaise)}
                     </Text>
                   </View>
-                  <Text className="text-xs font-medium text-slate-500 mb-2">
-                    {formatSafeDate(reading.readingDate)} · {reading.unitsConsumed} Units (
-                    {reading.previousReading} → {reading.currentReading})
-                  </Text>
+
+                  {/* Tenant Splits */}
                   {reading.tenantSplits && reading.tenantSplits.length > 0 && (
-                    <View className="bg-slate-50 rounded-xl p-2.5 border border-slate-100">
+                    <View className="bg-slate-50 rounded-xl p-2.5 border border-slate-100 my-2">
                       {reading.tenantSplits.map((split, i) => (
                         <View key={i} className="flex-row justify-between py-0.5">
                           <Text className="text-xs text-slate-600 font-medium">
@@ -330,10 +427,147 @@ export const SubMeterModal: React.FC<SubMeterModalProps> = ({ visible, onClose, 
                       ))}
                     </View>
                   )}
+
+                  {/* Actions: Edit & Delete */}
+                  <View className="flex-row justify-end gap-2 pt-2 border-t border-slate-100 mt-1">
+                    <TouchableOpacity
+                      onPress={() => handleOpenEdit(reading)}
+                      className="flex-row items-center px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200"
+                    >
+                      <Edit2 size={13} color="#0A6C50" />
+                      <Text className="text-xs font-bold text-[#0A6C50] ml-1.5">Edit</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => handleDeleteReading(reading)}
+                      className="flex-row items-center px-3 py-1.5 rounded-lg bg-rose-50 border border-rose-200"
+                    >
+                      <Trash2 size={13} color="#BE123C" />
+                      <Text className="text-xs font-bold text-rose-700 ml-1.5">Delete</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               ))
             )}
           </ScrollView>
+        )}
+
+        {/* Edit Reading Modal */}
+        {editingReading && (
+          <Modal
+            visible={!!editingReading}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setEditingReading(null)}
+          >
+            <View className="flex-1 bg-black/50 justify-center items-center px-5">
+              <View className="bg-white rounded-2xl p-5 w-full max-w-sm border border-slate-200 shadow-lg">
+                <View className="flex-row justify-between items-center mb-3">
+                  <Text className="text-base font-extrabold text-slate-900">
+                    Edit Meter Reading
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => setEditingReading(null)}
+                    className="w-7 h-7 rounded-full bg-slate-100 items-center justify-center"
+                  >
+                    <X size={16} color="#64748B" />
+                  </TouchableOpacity>
+                </View>
+
+                <Text className="text-xs text-slate-500 font-medium mb-3">
+                  {editingReading.meterIdentifier || 'Sub-meter'}
+                </Text>
+
+                <View className="flex-row gap-2 mb-3">
+                  <View className="flex-1">
+                    <Text className="text-[10px] font-bold text-slate-500 uppercase mb-1">
+                      Previous Dial
+                    </Text>
+                    <TextInput
+                      className="border border-slate-200 rounded-xl px-3 py-2 text-slate-700 bg-slate-50 font-bold text-sm"
+                      keyboardType="numeric"
+                      value={editPrevReading}
+                      onChangeText={setEditPrevReading}
+                    />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-[10px] font-bold text-[#0A6C50] uppercase mb-1">
+                      Current Dial
+                    </Text>
+                    <TextInput
+                      className="border border-[#0A6C50] rounded-xl px-3 py-2 text-slate-900 bg-white font-black text-sm"
+                      keyboardType="numeric"
+                      value={editCurrReading}
+                      onChangeText={setEditCurrReading}
+                    />
+                  </View>
+                </View>
+
+                <View className="flex-row gap-2 mb-3">
+                  <View className="flex-1">
+                    <Text className="text-[10px] font-bold text-slate-500 uppercase mb-1">
+                      Rate / Unit (₹)
+                    </Text>
+                    <TextInput
+                      className="border border-slate-200 rounded-xl px-3 py-2 text-slate-900 bg-white font-bold text-sm"
+                      keyboardType="numeric"
+                      value={editRate}
+                      onChangeText={setEditRate}
+                    />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-[10px] font-bold text-slate-500 uppercase mb-1">
+                      Split Method
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() =>
+                        setEditSplitMethod(prev =>
+                          prev === 'equal' ? 'by_days_occupied' : 'equal',
+                        )
+                      }
+                      className="border border-slate-200 rounded-xl px-2.5 py-2 bg-slate-50 justify-center items-center"
+                    >
+                      <Text className="text-xs font-bold text-slate-800">
+                        {editSplitMethod === 'equal' ? 'Equal' : 'By Days'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                {/* Live Preview */}
+                <View className="bg-emerald-50 rounded-xl p-3 border border-emerald-200 mb-4 flex-row justify-between items-center">
+                  <View>
+                    <Text className="text-xs font-bold text-[#0A6C50]">
+                      {editUnitsConsumed} Units Consumed
+                    </Text>
+                    <Text className="text-lg font-black text-[#0A6C50]">
+                      {formatINR(editTotalAmountPaise)}
+                    </Text>
+                  </View>
+                  <Zap size={20} color="#0A6C50" />
+                </View>
+
+                <View className="flex-row gap-2">
+                  <TouchableOpacity
+                    onPress={() => setEditingReading(null)}
+                    className="flex-1 py-3 rounded-xl bg-slate-100 items-center justify-center"
+                  >
+                    <Text className="text-xs font-bold text-slate-700">Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={handleSaveEdit}
+                    disabled={isUpdating}
+                    className="flex-1 py-3 rounded-xl bg-[#0A6C50] items-center justify-center"
+                  >
+                    {isUpdating ? (
+                      <ActivityIndicator size="small" color="#ffffff" />
+                    ) : (
+                      <Text className="text-xs font-bold text-white">Save Changes</Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </Modal>
         )}
       </View>
     </Modal>

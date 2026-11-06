@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import { ApiResponse, ITeamMember } from '../types/api';
+import { ApiResponse, ITeamMember, UpdateTeamMemberPayload } from '../types/api';
 
 /**
  * Fetch all team members within the organization
@@ -25,11 +25,11 @@ export const createTeamMemberApi = async (payload: {
 };
 
 /**
- * Update role, status, or assigned properties
+ * Update role, status, credentials or assigned properties
  */
 export const updateTeamMemberApi = async (
   id: string,
-  payload: Partial<ITeamMember>,
+  payload: UpdateTeamMemberPayload,
 ): Promise<ITeamMember> => {
   const response = await apiClient.put<ApiResponse<ITeamMember>>(`/team/members/${id}`, payload);
   return response.data.data;

@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import { ApiResponse, IMeterReading, Paise } from '../types/api';
+import { ApiResponse, IMeterReading, Paise, UpdateMeterReadingPayload } from '../types/api';
 
 /**
  * Record a sub-meter reading and compute per-tenant split in integer paise
@@ -38,4 +38,25 @@ export const getLatestRoomReadingApi = async (roomId: string): Promise<IMeterRea
     `/meters/room/${roomId}/latest`,
   );
   return response.data.data;
+};
+
+/**
+ * Update a sub-meter reading
+ */
+export const updateMeterReadingApi = async (
+  id: string,
+  payload: UpdateMeterReadingPayload,
+): Promise<IMeterReading> => {
+  const response = await apiClient.put<ApiResponse<IMeterReading>>(
+    `/meters/reading/${id}`,
+    payload,
+  );
+  return response.data.data;
+};
+
+/**
+ * Delete a sub-meter reading
+ */
+export const deleteMeterReadingApi = async (id: string): Promise<void> => {
+  await apiClient.delete(`/meters/reading/${id}`);
 };

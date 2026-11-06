@@ -48,7 +48,7 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
   const [city, setCity] = useState('');
   const [pincode, setPincode] = useState('');
   const [upiVpa, setUpiVpa] = useState('');
-  const [electricityRate, setElectricityRate] = useState('10');
+  const [electricityRate, setElectricityRate] = useState('12');
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isArchiving, setIsArchiving] = useState(false);
@@ -59,14 +59,36 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
     if (property && visible) {
       setName(property.name || '');
       setType(property.type || 'coliving');
-      setAddress(property.address || '');
-      setCity(property.city || '');
-      setPincode(property.pincode || '');
+      const rawAddress = property.address || '';
+      setAddress(rawAddress);
+
+      // Extract city & pincode from explicit property fields or fall back to address parsing
+      let initialPincode = property.pincode || '';
+      if (!initialPincode && rawAddress) {
+        const pinMatch = rawAddress.match(/\b([1-9][0-9]{5})\b/);
+        if (pinMatch) {
+          initialPincode = pinMatch[1];
+        }
+      }
+
+      let initialCity = property.city || '';
+      if (!initialCity && rawAddress) {
+        const segments = rawAddress.split(',').map(s => s.trim());
+        const nonPinSegments = segments.filter(s => !/\b[1-9][0-9]{5}\b/.test(s) && s.length > 0);
+        if (nonPinSegments.length >= 2) {
+          initialCity = nonPinSegments[nonPinSegments.length - 1];
+        } else if (nonPinSegments.length === 1 && !/\d/.test(nonPinSegments[0])) {
+          initialCity = nonPinSegments[0];
+        }
+      }
+
+      setCity(initialCity);
+      setPincode(initialPincode);
       setUpiVpa(property.upiVpa || '');
       setElectricityRate(
         property.electricityRatePaisePerUnit
           ? (property.electricityRatePaisePerUnit / 100).toString()
-          : '10',
+          : '12',
       );
       setShowDeleteConfirm(false);
       setConfirmNameInput('');
