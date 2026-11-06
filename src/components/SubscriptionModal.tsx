@@ -21,6 +21,7 @@ import { useProperties } from '../context/PropertyContext';
 import { ISubscriptionCurrent } from '../types/api';
 import { calculateDaysRemaining } from '../utils/date';
 import { RazorpayCheckoutModal } from './RazorpayCheckoutModal';
+import { ConfirmActionModal } from './ConfirmDeleteModal';
 
 interface SubscriptionModalProps {
   visible: boolean;
@@ -43,6 +44,11 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
   const [isScheduling, setIsScheduling] = useState(false);
   const [isCancelingDowngrade, setIsCancelingDowngrade] = useState(false);
   const [checkoutPlan, setCheckoutPlan] = useState<'starter' | 'growth' | 'pro' | null>(null);
+  const [downgradeConfirmation, setDowngradeConfirmation] = useState<{
+    targetPlan: 'starter' | 'growth';
+    targetTitle: string;
+    effectiveDateStr: string;
+  } | null>(null);
 
   const loadSub = useCallback(async () => {
     setIsLoading(true);
@@ -87,8 +93,8 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
   };
 
   const handleScheduleDowngrade = (targetPlan: 'starter' | 'growth' | 'pro') => {
-    const targetTitle =
-      targetPlan === 'starter' ? 'Starter' : targetPlan === 'growth' ? 'Growth' : 'Pro';
+    if (targetPlan === 'pro') return;
+    const targetTitle = targetPlan === 'starter' ? 'Starter' : 'Growth';
     const effectiveDateStr = sub?.currentPeriodEnd
       ? new Date(sub.currentPeriodEnd).toLocaleDateString('en-IN', {
           day: 'numeric',
@@ -97,37 +103,35 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
         })
       : 'the end of your current cycle';
 
-    Alert.alert(
-      `Schedule Downgrade to ${targetTitle}?`,
-      `Your account will transition to ${targetTitle} on ${effectiveDateStr}.\n\n• Full ${sub?.plan?.toUpperCase()} access remains active until then.\n• All existing properties, rooms, beds, and tenant data remain 100% intact.\n• You can continue collecting rent and managing tenants without disruption.\n• Only new additions beyond ${targetTitle} limits will be paused after cycle end.`,
-      [
-        { text: 'Keep Current Plan', style: 'cancel' },
-        {
-          text: 'Schedule Downgrade',
-          style: 'destructive',
-          onPress: async () => {
-            setIsScheduling(true);
-            try {
-              await scheduleDowngradeApi(targetPlan);
-              Alert.alert(
-                'Downgrade Scheduled',
-                `Your plan will switch to ${targetTitle} on ${effectiveDateStr}. All existing data and operations remain active.`,
-              );
-              await loadSub();
-              await refreshAuthUser();
-              queryClient.invalidateQueries({ queryKey: ['subscription'] });
-            } catch (err: unknown) {
-              const msg =
-                (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-                (err instanceof Error ? err.message : 'Failed to schedule downgrade');
-              Alert.alert('Downgrade Error', msg);
-            } finally {
-              setIsScheduling(false);
-            }
-          },
-        },
-      ],
-    );
+    setDowngradeConfirmation({
+      targetPlan,
+      targetTitle,
+      effectiveDateStr,
+    });
+  };
+
+  const handleConfirmDowngrade = async () => {
+    if (!downgradeConfirmation) return;
+    const { targetPlan, targetTitle, effectiveDateStr } = downgradeConfirmation;
+    setIsScheduling(true);
+    try {
+      await scheduleDowngradeApi(targetPlan);
+      setDowngradeConfirmation(null);
+      Alert.alert(
+        'Downgrade Scheduled',
+        `Your plan will switch to ${targetTitle} on ${effectiveDateStr}. All existing data and operations remain active.`,
+      );
+      await loadSub();
+      await refreshAuthUser();
+      queryClient.invalidateQueries({ queryKey: ['subscription'] });
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        (err instanceof Error ? err.message : 'Failed to schedule downgrade');
+      Alert.alert('Downgrade Error', msg);
+    } finally {
+      setIsScheduling(false);
+    }
   };
 
   const handleCancelDowngrade = async () => {
@@ -587,6 +591,20 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
               params: { status: 'success', plan: upgradedPlan || 'pro' },
             });
           }}
+        />
+
+        {/* Downgrade Confirmation Modal */}
+        <ConfirmActionModal
+          visible={Boolean(downgradeConfirmation)}
+          onClose={() => setDowngradeConfirmation(null)}
+          onConfirm={handleConfirmDowngrade}
+          isLoading={isScheduling}
+          variant="warning"
+          icon={<Clock size={28} color="#D97706" strokeWidth={2.3} />}
+          title={`Schedule Downgrade to ${downgradeConfirmation?.targetTitle}?`}
+          message={`Your account will transition to ${downgradeConfirmation?.targetTitle} on ${downgradeConfirmation?.effectiveDateStr}. Full access remains active until then, and no existing data or properties will be deleted.`}
+          confirmLabel="Schedule Downgrade"
+          cancelLabel="Keep Current Plan"
         />
       </View>
     </Modal>

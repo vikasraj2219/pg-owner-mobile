@@ -25,6 +25,7 @@ import { SubscriptionModal } from '../../src/components/SubscriptionModal';
 import { TenantsDirectoryModal } from '../../src/components/TenantsDirectoryModal';
 import { PropertiesRoomsModal } from '../../src/components/PropertiesRoomsModal';
 import { DpdpKycComplianceModal } from '../../src/components/DpdpKycComplianceModal';
+import { ConfirmActionModal } from '../../src/components/ConfirmDeleteModal';
 import { calculateDaysRemaining } from '../../src/utils/date';
 import { useQuery } from '@tanstack/react-query';
 import { getCurrentSubscriptionApi } from '../../src/api/subscription';
@@ -50,6 +51,7 @@ export default function MoreScreen() {
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const [showPropertiesRoomsModal, setShowPropertiesRoomsModal] = useState(false);
   const [showDpdpKycModal, setShowDpdpKycModal] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   // Fresh subscription query to immediately reflect upgrades & active plan
   const { data: subQuery } = useQuery({
@@ -95,14 +97,7 @@ export default function MoreScreen() {
   };
 
   const handleLogout = () => {
-    Alert.alert('Sign Out', 'Are you sure you want to log out of Nilaaya?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Sign Out',
-        style: 'destructive',
-        onPress: () => void logout(),
-      },
-    ]);
+    setShowLogoutConfirm(true);
   };
 
   const menuSections = [
@@ -385,6 +380,21 @@ export default function MoreScreen() {
       <DpdpKycComplianceModal
         visible={showDpdpKycModal}
         onClose={() => setShowDpdpKycModal(false)}
+      />
+
+      {/* Logout Confirmation Modal */}
+      <ConfirmActionModal
+        visible={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={() => {
+          setShowLogoutConfirm(false);
+          void logout();
+        }}
+        variant="danger"
+        icon={<LogOut size={28} color="#BE123C" strokeWidth={2.3} />}
+        title="Sign Out"
+        message="Are you sure you want to log out of Nilaaya?"
+        confirmLabel="Sign Out"
       />
     </SafeAreaView>
   );

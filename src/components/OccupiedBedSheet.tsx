@@ -16,6 +16,7 @@ import { formatSafeDate } from '../utils/date';
 import { sendRentReminder } from '../utils/whatsapp';
 import { setTenantNoticeApi, cancelTenantNoticeApi } from '../api/notice';
 import { IdDocumentViewerModal } from './IdDocumentViewerModal';
+import { ConfirmActionModal } from './ConfirmDeleteModal';
 
 interface OccupiedBedSheetProps {
   visible: boolean;
@@ -38,6 +39,7 @@ export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
 }) => {
   const queryClient = useQueryClient();
   const [isUpdatingNotice, setIsUpdatingNotice] = useState(false);
+  const [showNoticeConfirm, setShowNoticeConfirm] = useState(false);
   const [showIdDocViewer, setShowIdDocViewer] = useState(false);
 
   if (!bed || !room || !bed.currentTenant) return null;
@@ -80,7 +82,7 @@ export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
         queryClient.invalidateQueries({ queryKey: ['tenants'] });
         queryClient.invalidateQueries({ queryKey: ['dashboard'] });
         queryClient.invalidateQueries({ queryKey: ['tenant', tenant._id] });
-        Alert.alert('Notice Canceled', `Notice period removed for ${tenant.fullName}.`);
+        setShowNoticeConfirm(false);
         onClose();
       } else {
         const vacateDate = new Date();
@@ -93,10 +95,7 @@ export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
         queryClient.invalidateQueries({ queryKey: ['tenants'] });
         queryClient.invalidateQueries({ queryKey: ['dashboard'] });
         queryClient.invalidateQueries({ queryKey: ['tenant', tenant._id] });
-        Alert.alert(
-          'Notice Period Active',
-          `${tenant.fullName} has been put on 30 days notice (Ends ${formatSafeDate(vacateDate)}).`,
-        );
+        setShowNoticeConfirm(false);
         onClose();
       }
     } catch (err: any) {
@@ -137,6 +136,7 @@ export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
                   <Text className="text-lg font-extrabold text-slate-900">{tenant.fullName}</Text>
                   <Text className="text-xs font-medium text-slate-500 mt-0.5">
                     Bed {bed.bedNumber} · Room {room.roomNumber} · Floor {room.floorNumber}
+                    {room.sharingType ? ` · ${room.sharingType} share` : ''}
                   </Text>
                 </View>
                 <View
@@ -220,7 +220,7 @@ export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
               <TouchableOpacity
                 activeOpacity={0.8}
                 disabled={isUpdatingNotice}
-                onPress={handleToggleNotice}
+                onPress={() => setShowNoticeConfirm(true)}
                 className={`w-full rounded-2xl py-3.5 flex-row items-center justify-center mb-2.5 border ${
                   isOnNotice ? 'bg-[#FEF3C7] border-[#FCD34D]' : 'bg-amber-50 border-amber-200'
                 }`}
@@ -268,6 +268,23 @@ export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
         tenantName={tenant.fullName}
         docType={tenant.kycDocType || 'Aadhaar'}
         maskedNumber={tenant.kycMaskedNumber}
+      />
+
+      {/* Notice Period Confirmation Modal */}
+      <ConfirmActionModal
+        visible={showNoticeConfirm}
+        onClose={() => setShowNoticeConfirm(false)}
+        onConfirm={handleToggleNotice}
+        isLoading={isUpdatingNotice}
+        variant="warning"
+        icon={<Clock size={28} color="#D97706" strokeWidth={2.3} />}
+        title={isOnNotice ? 'Cancel Notice Period?' : 'Start Notice Period?'}
+        message={
+          isOnNotice
+            ? `Remove notice period for ${tenant.fullName}? The bed status will return to occupied.`
+            : `Put ${tenant.fullName} on a 30-day notice period? Bed ${bed.bedNumber} will be marked on Notice.`
+        }
+        confirmLabel={isOnNotice ? 'Restore Bed' : 'Mark Notice (30 Days)'}
       />
     </Modal>
   );

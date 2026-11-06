@@ -47,6 +47,7 @@ export default function CheckinScreen() {
     bedNumber?: string;
     floorNumber?: string;
     roomNumber?: string;
+    sharingType?: string;
     baseRentPaise?: string;
     propertyId?: string;
   }>();
@@ -60,6 +61,8 @@ export default function CheckinScreen() {
   const effectivePropertyId = params.propertyId || selectedPropertyId || '';
   const displayBed = params.bedNumber || 'Bed';
   const displayFloor = params.floorNumber || '1';
+  const displayRoom = params.roomNumber ? `Room ${params.roomNumber}` : '';
+  const displaySharing = params.sharingType ? `${params.sharingType} share` : '';
 
   // Form State
   const [fullName, setFullName] = useState('');
@@ -428,8 +431,15 @@ export default function CheckinScreen() {
           </TouchableOpacity>
 
           <View className="ml-1 flex-1">
-            <Text className="text-xl font-black text-slate-900 tracking-tight">
-              Bed {displayBed}, Floor {displayFloor}
+            <Text
+              className="text-base font-extrabold text-slate-900 tracking-tight"
+              numberOfLines={1}
+            >
+              {displayRoom ? `${displayRoom} · ` : ''}Bed {displayBed}
+            </Text>
+            <Text className="text-xs font-semibold text-slate-500">
+              Floor {displayFloor}
+              {displaySharing ? ` · ${displaySharing}` : ''}
             </Text>
           </View>
 

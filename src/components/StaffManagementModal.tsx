@@ -19,6 +19,7 @@ import {
   removeTeamMemberApi,
 } from '../api/team';
 import { ITeamMember, IProperty } from '../types/api';
+import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 interface StaffManagementModalProps {
   visible: boolean;
@@ -58,6 +59,8 @@ export const StaffManagementModal: React.FC<StaffManagementModalProps> = ({
   const [editStatus, setEditStatus] = useState<'active' | 'inactive'>('active');
   const [editSelectedProps, setEditSelectedProps] = useState<string[]>([]);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [deletingMember, setDeletingMember] = useState<ITeamMember | null>(null);
+  const [isRemoving, setIsRemoving] = useState(false);
 
   const resetAddForm = useCallback(() => {
     setName('');
@@ -211,26 +214,22 @@ export const StaffManagementModal: React.FC<StaffManagementModalProps> = ({
       return;
     }
 
-    Alert.alert(
-      'Remove Team Member',
-      `Are you sure you want to remove ${member.name} (${member.role})?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Remove',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await removeTeamMemberApi(member._id);
-              loadMembers();
-              queryClient.invalidateQueries({ queryKey: ['team'] });
-            } catch {
-              Alert.alert('Error', 'Failed to remove team member.');
-            }
-          },
-        },
-      ],
-    );
+    setDeletingMember(member);
+  };
+
+  const handleConfirmRemoveMember = async () => {
+    if (!deletingMember) return;
+    setIsRemoving(true);
+    try {
+      await removeTeamMemberApi(deletingMember._id);
+      setDeletingMember(null);
+      loadMembers();
+      queryClient.invalidateQueries({ queryKey: ['team'] });
+    } catch {
+      Alert.alert('Error', 'Failed to remove team member.');
+    } finally {
+      setIsRemoving(false);
+    }
   };
 
   if (!visible) return null;
@@ -759,6 +758,16 @@ export const StaffManagementModal: React.FC<StaffManagementModalProps> = ({
             </View>
           </Modal>
         )}
+
+        <ConfirmDeleteModal
+          visible={Boolean(deletingMember)}
+          onClose={() => setDeletingMember(null)}
+          onConfirm={handleConfirmRemoveMember}
+          isLoading={isRemoving}
+          title="Remove Team Member?"
+          message={`Are you sure you want to remove ${deletingMember?.name} (${deletingMember?.role})? They will immediately lose access to your properties.`}
+          confirmLabel="Remove"
+        />
       </View>
     </Modal>
   );

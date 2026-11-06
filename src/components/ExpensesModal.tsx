@@ -30,6 +30,7 @@ import {
   deleteExpenseApi,
 } from '../api/expenses';
 import { IExpense, IPnLSummary, UpdateExpensePayload } from '../types/api';
+import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 interface ExpensesModalProps {
   visible: boolean;
@@ -80,6 +81,8 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, 
     'cash',
   );
   const [isUpdating, setIsUpdating] = useState(false);
+  const [deletingExpense, setDeletingExpense] = useState<IExpense | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const resetAddForm = useCallback(() => {
     setCategory('maintenance'); // Reset category so previous tag does not stay sticky
@@ -237,31 +240,26 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, 
   };
 
   const handleDeleteExpense = (exp: IExpense) => {
-    Alert.alert(
-      'Delete Expense?',
-      `Are you sure you want to delete "${exp.description}" (${formatINR(exp.amountPaise)})?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteExpenseApi(exp._id);
-              queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-              queryClient.invalidateQueries({ queryKey: ['expenses'] });
-              Alert.alert('Deleted', 'Expense record deleted.');
-              loadData();
-            } catch (err: unknown) {
-              const msg =
-                (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-                'Failed to delete expense';
-              Alert.alert('Error', msg);
-            }
-          },
-        },
-      ],
-    );
+    setDeletingExpense(exp);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deletingExpense) return;
+    setIsDeleting(true);
+    try {
+      await deleteExpenseApi(deletingExpense._id);
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['expenses'] });
+      setDeletingExpense(null);
+      loadData();
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        'Failed to delete expense';
+      Alert.alert('Error', msg);
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   if (!visible) return null;
@@ -736,6 +734,16 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, 
             </View>
           </Modal>
         )}
+
+        <ConfirmDeleteModal
+          visible={Boolean(deletingExpense)}
+          onClose={() => setDeletingExpense(null)}
+          onConfirm={handleConfirmDelete}
+          isLoading={isDeleting}
+          title="Delete Expense?"
+          message={`Are you sure you want to delete "${deletingExpense?.description}" (${formatINR(deletingExpense?.amountPaise || 0)})? This will adjust your net profit calculations.`}
+          confirmLabel="Delete"
+        />
       </View>
     </Modal>
   );

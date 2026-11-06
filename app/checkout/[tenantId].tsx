@@ -15,6 +15,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { formatINR } from '../../src/utils/currency';
 import { getCheckoutPreviewApi, confirmCheckoutApi } from '../../src/api/checkout';
 import { CheckoutPreviewData, ISettlementStatement } from '../../src/types/api';
+import { ConfirmActionModal } from '../../src/components/ConfirmDeleteModal';
 
 export default function CheckoutScreen() {
   const { tenantId } = useLocalSearchParams<{ tenantId: string }>();
@@ -30,6 +31,7 @@ export default function CheckoutScreen() {
   const [electricityDeductions, setElectricityDeductions] = useState('0');
   const [paymentMode, setPaymentMode] = useState<'cash' | 'upi' | 'bank_transfer'>('upi');
   const [settlementResult, setSettlementResult] = useState<ISettlementStatement | null>(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -76,52 +78,40 @@ export default function CheckoutScreen() {
 
   const handleConfirmVacate = () => {
     if (!tenantId) return;
+    setShowConfirmModal(true);
+  };
 
-    const tenantName = preview?.tenant.fullName || 'Tenant';
+  const executeConfirmVacate = async () => {
+    if (!tenantId) return;
+    setIsSubmitting(true);
+    try {
+      const res = await confirmCheckoutApi({
+        tenantId,
+        damageDeductionsPaise: damagePaise,
+        electricityDeductionsPaise: electricityPaise,
+        refundPaise: netRefundPaise,
+        paymentMethod: paymentMode,
+        notes: 'Guarded checkout settlement completed',
+      });
 
-    Alert.alert(
-      'Confirm Vacate & Settlement',
-      `Net refund of ${formatINR(netRefundPaise)} will be issued via ${paymentMode.toUpperCase()} for ${tenantName}. Complete checkout?`,
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Confirm Settlement',
-          onPress: async () => {
-            setIsSubmitting(true);
-            try {
-              const res = await confirmCheckoutApi({
-                tenantId,
-                damageDeductionsPaise: damagePaise,
-                electricityDeductionsPaise: electricityPaise,
-                refundPaise: netRefundPaise,
-                paymentMethod: paymentMode,
-                notes: 'Guarded checkout settlement completed',
-              });
+      setShowConfirmModal(false);
+      setSettlementResult(res.settlement);
 
-              setSettlementResult(res.settlement);
-
-              // Invalidate caches
-              queryClient.invalidateQueries({ queryKey: ['tenants'] });
-              queryClient.invalidateQueries({ queryKey: ['matrix'] });
-              queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-              queryClient.invalidateQueries({ queryKey: ['invoices'] });
-              queryClient.invalidateQueries({ queryKey: ['properties'] });
-              queryClient.invalidateQueries({ queryKey: ['tenant', tenantId] });
-            } catch (err: unknown) {
-              const msg =
-                (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-                'Failed to complete checkout. Please try again.';
-              Alert.alert('Checkout Error', msg);
-            } finally {
-              setIsSubmitting(false);
-            }
-          },
-        },
-      ],
-    );
+      // Invalidate caches
+      queryClient.invalidateQueries({ queryKey: ['tenants'] });
+      queryClient.invalidateQueries({ queryKey: ['matrix'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      queryClient.invalidateQueries({ queryKey: ['properties'] });
+      queryClient.invalidateQueries({ queryKey: ['tenant', tenantId] });
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        'Failed to complete checkout. Please try again.';
+      Alert.alert('Checkout Error', msg);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const bedLabel = preview?.tenant.currentBed?.bedNumber
@@ -314,6 +304,18 @@ export default function CheckoutScreen() {
           </View>
         </ScrollView>
       )}
+
+      {/* Vacate & Settlement Confirmation Modal */}
+      <ConfirmActionModal
+        visible={showConfirmModal}
+        onClose={() => setShowConfirmModal(false)}
+        onConfirm={executeConfirmVacate}
+        isLoading={isSubmitting}
+        variant="primary"
+        title="Confirm Vacate & Settlement"
+        message={`Net refund of ${formatINR(netRefundPaise)} will be issued via ${paymentMode.toUpperCase()} for ${preview?.tenant.fullName || 'Tenant'}. Complete checkout?`}
+        confirmLabel="Confirm Settlement"
+      />
     </SafeAreaView>
   );
 }

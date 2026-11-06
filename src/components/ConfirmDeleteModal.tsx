@@ -8,9 +8,11 @@ import {
   TextInput,
   ActivityIndicator,
 } from 'react-native';
-import { Trash2, X } from 'lucide-react-native';
+import { Trash2, AlertTriangle, CheckCircle2, X } from 'lucide-react-native';
 
-interface ConfirmDeleteModalProps {
+export type ConfirmVariant = 'danger' | 'warning' | 'primary' | 'success';
+
+export interface ConfirmDeleteModalProps {
   visible: boolean;
   onClose: () => void;
   onConfirm: () => void | Promise<void>;
@@ -21,6 +23,8 @@ interface ConfirmDeleteModalProps {
   isLoading?: boolean;
   requiresInput?: string; // If set, user must type this exact string to confirm
   inputPlaceholder?: string;
+  variant?: ConfirmVariant;
+  icon?: React.ReactNode;
 }
 
 export const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
@@ -34,6 +38,8 @@ export const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
   isLoading = false,
   requiresInput,
   inputPlaceholder,
+  variant = 'danger',
+  icon,
 }) => {
   const [typedInput, setTypedInput] = useState('');
 
@@ -47,6 +53,43 @@ export const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
 
   const isInputValid =
     !requiresInput || typedInput.trim().toLowerCase() === requiresInput.trim().toLowerCase();
+
+  // Style configurations based on variant
+  const getVariantStyles = () => {
+    switch (variant) {
+      case 'warning':
+        return {
+          badgeBg: 'bg-amber-100 border border-amber-200',
+          defaultIcon: <AlertTriangle size={28} color="#D97706" strokeWidth={2.3} />,
+          buttonBg: 'bg-amber-600',
+          buttonDisabledBg: 'bg-amber-300',
+        };
+      case 'primary':
+        return {
+          badgeBg: 'bg-[#E8F5EE] border border-[#A7F3D0]',
+          defaultIcon: <CheckCircle2 size={28} color="#0A6C50" strokeWidth={2.3} />,
+          buttonBg: 'bg-[#0A6C50]',
+          buttonDisabledBg: 'bg-[#0A6C50]/50',
+        };
+      case 'success':
+        return {
+          badgeBg: 'bg-emerald-100 border border-emerald-200',
+          defaultIcon: <CheckCircle2 size={28} color="#059669" strokeWidth={2.3} />,
+          buttonBg: 'bg-emerald-600',
+          buttonDisabledBg: 'bg-emerald-300',
+        };
+      case 'danger':
+      default:
+        return {
+          badgeBg: 'bg-rose-100 border border-rose-200',
+          defaultIcon: <Trash2 size={28} color="#BE123C" strokeWidth={2.3} />,
+          buttonBg: 'bg-rose-600',
+          buttonDisabledBg: 'bg-rose-300',
+        };
+    }
+  };
+
+  const currentVariant = getVariantStyles();
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
@@ -64,9 +107,11 @@ export const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
                 </TouchableOpacity>
               )}
 
-              {/* Red Danger Icon Badge */}
-              <View className="w-16 h-16 rounded-full bg-rose-100 border border-rose-200 items-center justify-center mx-auto mb-4">
-                <Trash2 size={28} color="#BE123C" strokeWidth={2.3} />
+              {/* Status / Action Icon Badge */}
+              <View
+                className={`w-16 h-16 rounded-full items-center justify-center mx-auto mb-4 ${currentVariant.badgeBg}`}
+              >
+                {icon || currentVariant.defaultIcon}
               </View>
 
               {/* Title */}
@@ -111,7 +156,7 @@ export const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
                   onPress={onConfirm}
                   disabled={isLoading || !isInputValid}
                   className={`flex-1 py-3.5 rounded-2xl items-center justify-center shadow-xs ${
-                    isInputValid ? 'bg-rose-600' : 'bg-rose-300'
+                    isInputValid ? currentVariant.buttonBg : currentVariant.buttonDisabledBg
                   }`}
                 >
                   {isLoading ? (
@@ -128,3 +173,5 @@ export const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
     </Modal>
   );
 };
+
+export const ConfirmActionModal = ConfirmDeleteModal;

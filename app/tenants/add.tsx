@@ -100,6 +100,7 @@ export default function PickVacantBedScreen() {
         bedNumber: bed.bedNumber,
         roomNumber: room.roomNumber,
         floorNumber: String(room.floorNumber),
+        sharingType: String(room.sharingType || 2),
         baseRentPaise: String(room.baseRentPaisePerBed || 0),
         propertyId: selectedPropertyId || '',
       },

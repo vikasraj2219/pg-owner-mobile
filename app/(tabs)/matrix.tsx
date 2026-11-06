@@ -712,6 +712,7 @@ export default function MatrixScreen() {
           const propertyId = selectedPropertyId || '';
           const roomNumber = activeVacantBed?.room.roomNumber || '';
           const floorNumber = String(activeVacantBed?.room.floorNumber || selectedFloor || 1);
+          const sharingType = String(activeVacantBed?.room.sharingType || 2);
           router.push({
             pathname: '/checkin/[bedId]',
             params: {
@@ -721,6 +722,7 @@ export default function MatrixScreen() {
               propertyId,
               roomNumber,
               floorNumber,
+              sharingType,
             },
           });
         }}

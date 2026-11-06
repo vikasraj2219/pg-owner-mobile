@@ -40,6 +40,7 @@ import { formatINR } from '../../src/utils/currency';
 import { formatSafeDate, formatDayMonth, formatSafeMonthYear } from '../../src/utils/date';
 import { openWhatsApp, sendRentReminder } from '../../src/utils/whatsapp';
 import { RecordPaymentModal } from '../../src/components/RecordPaymentModal';
+import { ConfirmDeleteModal } from '../../src/components/ConfirmDeleteModal';
 import { markInvoicePaidApi } from '../../src/api/invoices';
 import {
   deleteTenantApi,
@@ -1018,44 +1019,15 @@ export default function TenantDetailScreen() {
         </View>
       </Modal>
 
-      {/* Delete Confirmation Modal (Page 11) */}
-      <Modal
+      {/* Delete Confirmation Modal */}
+      <ConfirmDeleteModal
         visible={confirmDeleteModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setConfirmDeleteModal(false)}
-      >
-        <View className="flex-1 bg-black/60 items-center justify-center px-6">
-          <View className="bg-white rounded-3xl p-6 w-full max-w-sm items-center shadow-xl">
-            <View className="w-16 h-16 rounded-full bg-red-50 items-center justify-center mb-4">
-              <Trash2 size={32} color="#DC2626" />
-            </View>
-            <Text className="text-xl font-black text-slate-900 text-center mb-2">
-              Delete {tenant.fullName}?
-            </Text>
-            <Text className="text-sm text-slate-600 text-center leading-relaxed mb-6">
-              His profile, ID photo, invoices and receipts will be removed. You will have 10 seconds
-              to undo.
-            </Text>
-
-            <View className="flex-row items-center space-x-3 w-full">
-              <TouchableOpacity
-                onPress={() => setConfirmDeleteModal(false)}
-                className="flex-1 border border-slate-300 py-3.5 rounded-full items-center justify-center mr-2"
-              >
-                <Text className="text-slate-700 font-bold text-sm">Cancel</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={handleExecuteDelete}
-                className="flex-1 bg-[#DC2626] py-3.5 rounded-full items-center justify-center ml-2"
-              >
-                <Text className="text-white font-bold text-sm">Delete</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+        onClose={() => setConfirmDeleteModal(false)}
+        onConfirm={handleExecuteDelete}
+        title={`Delete ${tenant.fullName}?`}
+        message="His profile, ID photo, invoices and receipts will be removed. You will have 10 seconds to undo."
+        confirmLabel="Delete"
+      />
 
       {/* Notice Period Modal */}
       <Modal

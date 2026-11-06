@@ -42,9 +42,12 @@ export const VacantBedSheet: React.FC<VacantBedSheetProps> = ({
     )
     .map(tag => (tag.toLowerCase() === 'attached washroom' ? 'Washroom' : tag));
 
+  const sharingText = room.sharingType ? `${room.sharingType} share` : undefined;
+
   const detailsSubtitle = [
     `Room ${room.roomNumber}`,
     `Floor ${room.floorNumber}`,
+    ...(sharingText ? [sharingText] : []),
     ...filteredTags,
   ].join(' · ');
 

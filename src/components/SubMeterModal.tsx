@@ -22,6 +22,7 @@ import {
 } from '../api/meters';
 import { fetchPropertyRooms } from '../api/properties';
 import { IMeterReading, IRoom, IProperty } from '../types/api';
+import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 interface SubMeterModalProps {
   visible: boolean;
@@ -50,6 +51,8 @@ export const SubMeterModal: React.FC<SubMeterModalProps> = ({ visible, onClose, 
   const [editRate, setEditRate] = useState('0');
   const [editSplitMethod, setEditSplitMethod] = useState<'equal' | 'by_days_occupied'>('equal');
   const [isUpdating, setIsUpdating] = useState(false);
+  const [deletingReading, setDeletingReading] = useState<IMeterReading | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const loadRoomsAndReadings = useCallback(async () => {
     if (!property?._id) return;
@@ -201,31 +204,26 @@ export const SubMeterModal: React.FC<SubMeterModalProps> = ({ visible, onClose, 
   };
 
   const handleDeleteReading = (reading: IMeterReading) => {
-    Alert.alert(
-      'Delete Reading?',
-      `Are you sure you want to delete this reading for ${reading.meterIdentifier || 'Sub-meter'} (${reading.unitsConsumed} units, ${formatINR(reading.totalAmountPaise)})? This will remove tenant bill splits.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteMeterReadingApi(reading._id);
-              queryClient.invalidateQueries({ queryKey: ['matrix'] });
-              queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-              Alert.alert('Deleted', 'Meter reading removed successfully.');
-              loadRoomsAndReadings();
-            } catch (err: unknown) {
-              const msg =
-                (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-                'Failed to delete meter reading';
-              Alert.alert('Error', msg);
-            }
-          },
-        },
-      ],
-    );
+    setDeletingReading(reading);
+  };
+
+  const handleConfirmDeleteReading = async () => {
+    if (!deletingReading) return;
+    setIsDeleting(true);
+    try {
+      await deleteMeterReadingApi(deletingReading._id);
+      queryClient.invalidateQueries({ queryKey: ['matrix'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      setDeletingReading(null);
+      loadRoomsAndReadings();
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        'Failed to delete meter reading';
+      Alert.alert('Error', msg);
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   if (!visible) return null;
@@ -569,6 +567,16 @@ export const SubMeterModal: React.FC<SubMeterModalProps> = ({ visible, onClose, 
             </View>
           </Modal>
         )}
+
+        <ConfirmDeleteModal
+          visible={Boolean(deletingReading)}
+          onClose={() => setDeletingReading(null)}
+          onConfirm={handleConfirmDeleteReading}
+          isLoading={isDeleting}
+          title="Delete Reading?"
+          message={`Are you sure you want to delete this reading for ${deletingReading?.meterIdentifier || 'Sub-meter'} (${deletingReading?.unitsConsumed} units, ${formatINR(deletingReading?.totalAmountPaise || 0)})? This will remove tenant bill splits.`}
+          confirmLabel="Delete"
+        />
       </View>
     </Modal>
   );
