@@ -6,14 +6,14 @@
  * Example: 850000 paise -> "₹8,500"
  * Example: 850050 paise -> "₹8,500.50"
  */
-export const formatINR = (paise: number): string => {
+export const formatINR = (paise: number, forceDecimals = false): string => {
   try {
     const safePaise = typeof paise === 'number' && !isNaN(paise) ? paise : 0;
     const isNegative = safePaise < 0;
     const absPaise = Math.abs(safePaise);
     const rupees = absPaise / 100;
 
-    const parts = rupees.toFixed(absPaise % 100 === 0 ? 0 : 2).split('.');
+    const parts = rupees.toFixed(forceDecimals || absPaise % 100 !== 0 ? 2 : 0).split('.');
     let intPart = parts[0];
     const decPart = parts[1] ? `.${parts[1]}` : '';
 
