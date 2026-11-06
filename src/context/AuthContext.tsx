@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import axios from 'axios';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { safeStorage } from '../utils/storage';
 import {
@@ -108,15 +109,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await safeStorage.setItem(TOKEN_KEY, data.token);
       await safeStorage.setItem(USER_CACHE_KEY, cachePayload);
 
-      // Only persist biometric credentials if user has not explicitly disabled them
+      // Only persist biometric credentials if user has explicitly enabled them
       const currentPref = await safeStorage.getItem(BIOMETRIC_PREF_KEY);
-      if (currentPref !== 'false') {
+      if (currentPref === 'true') {
         await safeStorage.setItem(BIOMETRIC_TOKEN_KEY, data.token);
         await safeStorage.setItem(BIOMETRIC_CACHE_KEY, cachePayload);
-        if (currentPref === null) {
-          await safeStorage.setItem(BIOMETRIC_PREF_KEY, 'true');
-          setIsBiometricEnabled(true);
-        }
       }
     } catch (_err) {
       // Ignore storage persistence failure
@@ -132,7 +129,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const storedToken = await safeStorage.getItem(TOKEN_KEY);
         const cachedDataStr = await safeStorage.getItem(USER_CACHE_KEY);
         const biometricPref = await safeStorage.getItem(BIOMETRIC_PREF_KEY);
-        setIsBiometricEnabled(biometricPref === 'true');
+        const isBioEnabled = biometricPref === 'true';
+        setIsBiometricEnabled(isBioEnabled);
 
         if (storedToken) {
           let userLoaded = false;
@@ -170,35 +168,53 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   subscription: freshData.subscription,
                 }),
               );
-            } catch (_fetchErr) {
-              // Token expired or invalid
-              await safeStorage.deleteItem(TOKEN_KEY);
-              await safeStorage.deleteItem(USER_CACHE_KEY);
-              setToken(null);
-              setUser(null);
+            } catch (fetchErr: unknown) {
+              // Only invalidate token if backend explicitly returns 401 Unauthorized
+              if (axios.isAxiosError(fetchErr) && fetchErr.response?.status === 401) {
+                await safeStorage.deleteItem(TOKEN_KEY);
+                await safeStorage.deleteItem(USER_CACHE_KEY);
+                setToken(null);
+                setUser(null);
+              }
+              // If network error / timeout, keep storedToken in memory to remain logged in
             }
           }
 
           if (userLoaded) {
-            // Check if biometric unlock is required
-            if (biometricPref === 'true') {
+            // Check if biometric unlock is required (only if explicitly enabled)
+            if (isBioEnabled) {
               setIsUnlocked(false);
               const unlocked = await unlockWithBiometrics();
-              if (!unlocked) {
-                // Biometrics cancelled or failed; lock screen will show
+              if (unlocked) {
+                setIsUnlocked(true);
               }
             } else {
               setIsUnlocked(true);
             }
 
-            // Silent profile refresh in background
+            // Silent profile refresh in background (never blocks startup, never logs out on network error)
             getMeApi()
               .then(freshData => {
                 setUser(freshData.user);
                 setOrganization(freshData.organization);
                 setSubscription(freshData.subscription);
+                safeStorage
+                  .setItem(
+                    USER_CACHE_KEY,
+                    JSON.stringify({
+                      user: freshData.user,
+                      organization: freshData.organization,
+                      subscription: freshData.subscription,
+                    }),
+                  )
+                  .catch(() => {});
               })
-              .catch(() => {});
+              .catch((err: unknown) => {
+                // Only logout if token has expired on server
+                if (axios.isAxiosError(err) && err.response?.status === 401) {
+                  void logout();
+                }
+              });
           }
         }
       } catch (_err) {

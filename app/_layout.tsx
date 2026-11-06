@@ -1,5 +1,5 @@
 import '../global.css';
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { QueryClient } from '@tanstack/react-query';
@@ -11,7 +11,6 @@ import { View, StyleSheet } from 'react-native';
 import { AuthProvider, useAuth } from '../src/context/AuthContext';
 import { PropertyProvider } from '../src/context/PropertyContext';
 import { BiometricLockScreen } from '../src/components/BiometricLockScreen';
-import { SplashScreenView } from '../src/components/SplashScreenView';
 import { ErrorBoundary } from '../src/components/ErrorBoundary';
 
 const queryClient = new QueryClient({
@@ -29,41 +28,23 @@ const asyncStoragePersister = createAsyncStoragePersister({
 });
 
 function NavigationGuard() {
-  const { isLoading, isAuthenticated, isUnlocked } = useAuth();
+  const { isLoading, isAuthenticated, isUnlocked, isBiometricEnabled } = useAuth();
   const segments = useSegments();
   const router = useRouter();
-
-  // Hold splash screen for at least 1500ms so background routing & auth checks settle smoothly
-  const [minSplashDone, setMinSplashDone] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setMinSplashDone(true);
-    }, 1500);
-    return () => clearTimeout(timer);
-  }, []);
 
   const inAuthGroup = segments[0] === '(auth)';
 
   useEffect(() => {
     if (isLoading) return;
 
-    if (!isAuthenticated && !inAuthGroup) {
-      // Direct unauthenticated users straight to Login
+    if (!isAuthenticated && !inAuthGroup && segments[0] !== undefined) {
+      // Direct unauthenticated users to Login
       router.replace('/(auth)/login');
-    } else if (isAuthenticated && inAuthGroup && isUnlocked) {
-      // Direct authenticated & unlocked users away from Auth screens to Tabs
+    } else if (isAuthenticated && inAuthGroup) {
+      // Direct authenticated users away from Auth screens to Tabs
       router.replace('/(tabs)');
     }
-  }, [isLoading, isAuthenticated, isUnlocked, inAuthGroup, router]);
-
-  // Target screen is confirmed ready only when router has arrived at the correct destination
-  const isTargetScreenReady =
-    !isLoading &&
-    ((!isAuthenticated && inAuthGroup) || (isAuthenticated && !inAuthGroup && isUnlocked));
-
-  // Splash stays active for minimum time AND until target route has mounted
-  const showSplash = !minSplashDone || !isTargetScreenReady;
+  }, [isLoading, isAuthenticated, inAuthGroup, segments, router]);
 
   return (
     <View style={{ flex: 1, backgroundColor: '#0A6C50' }}>
@@ -72,8 +53,10 @@ function NavigationGuard() {
         screenOptions={{
           headerShown: false,
           contentStyle: { backgroundColor: '#0A6C50' },
+          animation: 'none',
         }}
       >
+        <Stack.Screen name="index" />
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="(auth)" />
         <Stack.Screen
@@ -93,17 +76,10 @@ function NavigationGuard() {
         <Stack.Screen name="subscription" options={{ presentation: 'card', headerShown: false }} />
       </Stack>
 
-      {/* Biometric Lock Screen Overlay */}
-      {isAuthenticated && !isUnlocked && !showSplash && (
+      {/* Biometric Lock Screen Overlay - only if explicitly enabled by user in Settings */}
+      {isAuthenticated && isBiometricEnabled && !isUnlocked && (
         <View style={StyleSheet.absoluteFill}>
           <BiometricLockScreen />
-        </View>
-      )}
-
-      {/* Brand Splash Screen Overlay during Initial Startup & Route Dispatch */}
-      {showSplash && (
-        <View style={StyleSheet.absoluteFill}>
-          <SplashScreenView showLoader={true} />
         </View>
       )}
     </View>

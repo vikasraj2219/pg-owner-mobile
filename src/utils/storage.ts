@@ -9,30 +9,31 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
  */
 export const safeStorage = {
   async getItem(key: string): Promise<string | null> {
-    if (Platform.OS === 'web') {
-      try {
-        return await AsyncStorage.getItem(key);
-      } catch (_err) {
-        return null;
-      }
-    }
-
-    // Try SecureStore first
+    // 1. Check AsyncStorage first - instant, resilient, no 2KB limit
     try {
-      const secureVal = await SecureStore.getItemAsync(key);
-      if (secureVal !== null && secureVal !== undefined) {
-        return secureVal;
+      const val = await AsyncStorage.getItem(key);
+      if (val !== null && val !== undefined) {
+        return val;
       }
     } catch (_err) {
-      // SecureStore failed or unavailable; fall through to AsyncStorage
+      // fallback
     }
 
-    // Fall back to AsyncStorage
-    try {
-      return await AsyncStorage.getItem(key);
-    } catch (_innerErr) {
-      return null;
+    // 2. Check SecureStore if native and not found in AsyncStorage (e.g. migration)
+    if (Platform.OS !== 'web') {
+      try {
+        const secureVal = await SecureStore.getItemAsync(key);
+        if (secureVal !== null && secureVal !== undefined) {
+          // Re-persist to AsyncStorage for instant subsequent reads
+          await AsyncStorage.setItem(key, secureVal).catch(() => {});
+          return secureVal;
+        }
+      } catch (_err) {
+        // ignore
+      }
     }
+
+    return null;
   },
 
   async setItem(key: string, value: string): Promise<void> {
