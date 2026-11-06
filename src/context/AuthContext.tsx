@@ -126,7 +126,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Initial Load & Session Recovery
   useEffect(() => {
     const initializeAuth = async () => {
-      const startTime = Date.now();
       try {
         await checkBiometrics();
 
@@ -135,48 +134,82 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const biometricPref = await safeStorage.getItem(BIOMETRIC_PREF_KEY);
         setIsBiometricEnabled(biometricPref === 'true');
 
-        if (storedToken && cachedDataStr) {
-          const cachedData = JSON.parse(cachedDataStr);
-          setToken(storedToken);
-          setUser(cachedData.user);
-          setOrganization(cachedData.organization);
-          setSubscription(cachedData.subscription);
+        if (storedToken) {
+          let userLoaded = false;
 
-          // If biometrics enabled and available, require unlock
-          if (biometricPref === 'true' && isBiometricEnrolled) {
-            setIsUnlocked(false);
-            const unlocked = await unlockWithBiometrics();
-            if (!unlocked) {
-              // Leave isUnlocked as false so lock screen shows
+          if (cachedDataStr) {
+            try {
+              const cachedData = JSON.parse(cachedDataStr);
+              if (cachedData && cachedData.user) {
+                setToken(storedToken);
+                setUser(cachedData.user);
+                setOrganization(cachedData.organization || null);
+                setSubscription(cachedData.subscription || null);
+                userLoaded = true;
+              }
+            } catch (_parseErr) {
+              // Ignore JSON parse error, fall through to fetch profile
             }
-          } else {
-            setIsUnlocked(true);
           }
 
-          // Silently refresh profile in background
-          try {
-            const freshData = await getMeApi();
-            setUser(freshData.user);
-            setOrganization(freshData.organization);
-            setSubscription(freshData.subscription);
-          } catch (_refreshErr) {
-            // Offline or token expired; cached state allows reading
+          if (!userLoaded) {
+            try {
+              setToken(storedToken);
+              const freshData = await getMeApi();
+              setUser(freshData.user);
+              setOrganization(freshData.organization);
+              setSubscription(freshData.subscription);
+              userLoaded = true;
+
+              // Update cache
+              await safeStorage.setItem(
+                USER_CACHE_KEY,
+                JSON.stringify({
+                  user: freshData.user,
+                  organization: freshData.organization,
+                  subscription: freshData.subscription,
+                }),
+              );
+            } catch (_fetchErr) {
+              // Token expired or invalid
+              await safeStorage.deleteItem(TOKEN_KEY);
+              await safeStorage.deleteItem(USER_CACHE_KEY);
+              setToken(null);
+              setUser(null);
+            }
+          }
+
+          if (userLoaded) {
+            // Check if biometric unlock is required
+            if (biometricPref === 'true') {
+              setIsUnlocked(false);
+              const unlocked = await unlockWithBiometrics();
+              if (!unlocked) {
+                // Biometrics cancelled or failed; lock screen will show
+              }
+            } else {
+              setIsUnlocked(true);
+            }
+
+            // Silent profile refresh in background
+            getMeApi()
+              .then(freshData => {
+                setUser(freshData.user);
+                setOrganization(freshData.organization);
+                setSubscription(freshData.subscription);
+              })
+              .catch(() => {});
           }
         }
       } catch (_err) {
         // Fallback on error
       } finally {
-        const elapsed = Date.now() - startTime;
-        const minSplashTime = 900;
-        if (elapsed < minSplashTime) {
-          await new Promise(resolve => setTimeout(resolve, minSplashTime - elapsed));
-        }
         setIsLoading(false);
       }
     };
 
     void initializeAuth();
-  }, [checkBiometrics, isBiometricEnrolled, unlockWithBiometrics]);
+  }, [checkBiometrics, unlockWithBiometrics]);
 
   const login = async (payload: LoginPayload) => {
     const data = await loginApi(payload);

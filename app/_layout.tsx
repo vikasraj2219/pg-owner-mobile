@@ -33,25 +33,28 @@ function NavigationGuard() {
   const segments = useSegments();
   const router = useRouter();
 
+  const inAuthGroup = segments[0] === '(auth)';
+
   useEffect(() => {
     if (isLoading) return;
 
-    const inAuthGroup = segments[0] === '(auth)';
-
     if (!isAuthenticated && !inAuthGroup) {
-      // Redirect unauthenticated users to Login
-      const timer = setTimeout(() => {
-        router.replace('/(auth)/login');
-      }, 10);
-      return () => clearTimeout(timer);
+      // Redirect unauthenticated users directly to Login
+      router.replace('/(auth)/login');
     } else if (isAuthenticated && inAuthGroup && isUnlocked) {
       // Redirect authenticated & unlocked users away from Auth screens to Tabs
-      const timer = setTimeout(() => {
-        router.replace('/(tabs)');
-      }, 10);
-      return () => clearTimeout(timer);
+      router.replace('/(tabs)');
     }
-  }, [isLoading, isAuthenticated, isUnlocked, segments, router]);
+  }, [isLoading, isAuthenticated, isUnlocked, inAuthGroup, router]);
+
+  // Keep the brand splash overlay visible until the router has completed navigating to the correct group.
+  // This completely eliminates any flash of the Dashboard for unauthenticated users,
+  // and eliminates any flash of the Login page for authenticated users.
+  const isNavigatingToTarget =
+    !isLoading &&
+    ((!isAuthenticated && !inAuthGroup) || (isAuthenticated && inAuthGroup && isUnlocked));
+
+  const showSplash = isLoading || isNavigatingToTarget;
 
   return (
     <View style={{ flex: 1 }}>
@@ -77,16 +80,16 @@ function NavigationGuard() {
       </Stack>
 
       {/* Biometric Lock Screen Overlay */}
-      {isAuthenticated && !isUnlocked && (
+      {isAuthenticated && !isUnlocked && !showSplash && (
         <View style={StyleSheet.absoluteFill}>
           <BiometricLockScreen />
         </View>
       )}
 
-      {/* Brand Splash Screen Overlay during Initial Startup / Session Recovery */}
-      {isLoading && (
+      {/* Brand Splash Screen Overlay during Initial Startup & Route Dispatch */}
+      {showSplash && (
         <View style={StyleSheet.absoluteFill}>
-          <SplashScreenView showLoader={true} />
+          <SplashScreenView showLoader={false} />
         </View>
       )}
     </View>
