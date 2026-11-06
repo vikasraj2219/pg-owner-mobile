@@ -276,9 +276,17 @@ export default function DuesScreen() {
                       <Text className="text-base font-extrabold text-slate-900" numberOfLines={1}>
                         {tenantName}
                       </Text>
-                      <Text className="text-xs font-medium text-slate-500 mt-0.5">
+                      <Text className="text-xs font-medium text-slate-500 mt-0.5" numberOfLines={1}>
                         {bedName} · {dueDateFormatted}
                       </Text>
+                      {item.items?.[0]?.description ? (
+                        <Text
+                          className="text-[11px] font-semibold text-emerald-700 mt-0.5"
+                          numberOfLines={1}
+                        >
+                          {item.items[0].description}
+                        </Text>
+                      ) : null}
                     </View>
                   </View>
 

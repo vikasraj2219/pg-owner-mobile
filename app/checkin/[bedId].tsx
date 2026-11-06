@@ -98,41 +98,52 @@ export default function CheckinScreen() {
   // Field validation touched states
   const [touched, setTouched] = useState<{ [key: string]: boolean }>({});
 
-  // Dynamic proration for mid-month joining matching Page 15, 18, 20
-  const { dayOfMonth, daysRemaining, proratedRent, totalAdvance, currentMonthName } =
-    useMemo(() => {
-      const today = new Date();
-      const d = today.getDate();
-      const totalDays = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
-      const remaining = totalDays - d + 1;
-      const rentNum = parseFloat(monthlyRent.replace(/,/g, '')) || 0;
-      const depositNum = parseFloat(deposit.replace(/,/g, '')) || 0;
-      const prorated = Math.round((rentNum * remaining) / totalDays);
-      const total = prorated + depositNum;
+  // Join-date anniversary billing cycle calculation
+  const {
+    dayOfMonth,
+    cycleDateRange,
+    nextDueDateFormatted,
+    monthlyRentAmount,
+    totalAdvance,
+    currentMonthName,
+  } = useMemo(() => {
+    const today = new Date();
+    const d = today.getDate();
+    const cycleEnd = new Date(today);
+    cycleEnd.setMonth(cycleEnd.getMonth() + 1);
+    cycleEnd.setDate(cycleEnd.getDate() - 1);
 
-      const MONTHS_SHORT = [
-        'Jan',
-        'Feb',
-        'Mar',
-        'Apr',
-        'May',
-        'Jun',
-        'Jul',
-        'Aug',
-        'Sep',
-        'Oct',
-        'Nov',
-        'Dec',
-      ];
+    const rentNum = parseFloat(monthlyRent.replace(/,/g, '')) || 0;
+    const depositNum = parseFloat(deposit.replace(/,/g, '')) || 0;
+    const total = rentNum + depositNum;
 
-      return {
-        dayOfMonth: d,
-        daysRemaining: remaining,
-        proratedRent: prorated,
-        totalAdvance: total,
-        currentMonthName: MONTHS_SHORT[today.getMonth()] || 'Month',
-      };
-    }, [monthlyRent, deposit]);
+    const MONTHS_SHORT = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+
+    const rangeStr = `${d} ${MONTHS_SHORT[today.getMonth()]} – ${cycleEnd.getDate()} ${MONTHS_SHORT[cycleEnd.getMonth()]}`;
+    const nextDue = `${cycleEnd.getDate() + 1} ${MONTHS_SHORT[cycleEnd.getMonth()]}`;
+
+    return {
+      dayOfMonth: d,
+      cycleDateRange: rangeStr,
+      nextDueDateFormatted: nextDue,
+      monthlyRentAmount: rentNum,
+      totalAdvance: total,
+      currentMonthName: MONTHS_SHORT[today.getMonth()] || 'Month',
+    };
+  }, [monthlyRent, deposit]);
 
   // Validation checks matching Page 16
   const nameValidation = useMemo(() => validateName(fullName, 'Tenant full name'), [fullName]);
@@ -388,7 +399,7 @@ export default function CheckinScreen() {
   const tenantFirstName = fullName.split(' ')[0] || 'there';
   const whatsappWelcomeText = `Welcome to ${propertyName}, ${tenantFirstName}! Your bed is ${displayBed}. Rent is ${formatINR(
     Math.round(parseFloat(monthlyRent || '0') * 100),
-  )}, due on the 1st of every month.`;
+  )}, due on the ${dayOfMonth}th of every month.`;
 
   const handleSendWhatsApp = async () => {
     const cleanPhone = phone.replace(/\D/g, '');
@@ -657,19 +668,25 @@ export default function CheckinScreen() {
               </Text>
             </View>
 
-            {/* Proration Calculation Card matching Page 15, 18, 20 */}
+            {/* Join-Date Billing Cycle Card */}
             <View className="bg-[#E8F5EE] border border-[#A7F3D0] rounded-2xl p-4 mb-4">
               <View className="flex-row items-center justify-between mb-1.5">
                 <Text className="text-xs font-extrabold text-[#0A6C50]">
-                  Joining on {dayOfMonth}th: {formatINR(proratedRent * 100)} for {daysRemaining}{' '}
-                  days
+                  Cycle: {cycleDateRange} (1 Full Month)
+                </Text>
+                <Text className="text-[11px] font-bold text-emerald-800 bg-emerald-100/90 px-2 py-0.5 rounded-full">
+                  Join-Date Billing
                 </Text>
               </View>
               <Text className="text-sm font-black text-slate-900">
                 Advance due now: {formatINR(totalAdvance * 100)}{' '}
                 <Text className="text-xs font-normal text-slate-500">
-                  (deposit + first prorated rent)
+                  (deposit + 1st month rent)
                 </Text>
+              </Text>
+              <Text className="text-[11px] font-semibold text-emerald-800/80 mt-1">
+                First rent: {formatINR(monthlyRentAmount * 100)} · Next rent due on{' '}
+                {nextDueDateFormatted}
               </Text>
             </View>
 
@@ -831,7 +848,7 @@ export default function CheckinScreen() {
           amountPaise={totalAdvance * 100}
           tenantName={fullName || 'Tenant'}
           depositPaise={parseFloat(deposit || '0') * 100}
-          rentPaise={proratedRent * 100}
+          rentPaise={monthlyRentAmount * 100}
           onMarkReceived={() => {
             setAdvanceCollected(true);
             setPaymentMode('upi');
@@ -1040,7 +1057,8 @@ export default function CheckinScreen() {
                 <Text className="text-xs font-bold text-[#0A6C50] mt-1">
                   Bed is now occupied · First invoice #
                   {successData?.invoice?.invoiceNumber || 'INV-001'} (
-                  {formatINR(successData?.invoice?.totalAmountPaise || proratedRent * 100)}) created
+                  {formatINR(successData?.invoice?.totalAmountPaise || monthlyRentAmount * 100)})
+                  created
                 </Text>
               </View>
 

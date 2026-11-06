@@ -214,6 +214,8 @@ export interface IInvoice {
   month: number;
   year: number;
   dueDate: string;
+  periodStart?: string;
+  periodEnd?: string;
   items: Array<{
     description: string;
     amountPaise: Paise;
@@ -484,6 +486,13 @@ export interface DueInvoiceItem {
   month: number;
   year: number;
   dueDate: string;
+  periodStart?: string;
+  periodEnd?: string;
+  items?: Array<{
+    description: string;
+    amountPaise: Paise;
+    category?: string;
+  }>;
   totalAmountPaise: Paise;
   amountPaidPaise: Paise;
   balanceDuePaise: Paise;
