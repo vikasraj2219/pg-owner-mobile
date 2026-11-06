@@ -153,9 +153,6 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
     const tags: string[] = [];
     if (hasAC) tags.push('AC');
     if (hasWashroom) tags.push('Washroom');
-    if (sharingType === 1) tags.push('Single');
-    else if (sharingType === 2) tags.push('Double');
-    else if (sharingType === 3) tags.push('Triple');
 
     try {
       await onSubmit({

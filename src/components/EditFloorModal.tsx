@@ -14,6 +14,7 @@ import { X, Layers, Trash2 } from 'lucide-react-native';
 import { updateFloorApi, deleteFloorApi } from '../api/properties';
 import { useQueryClient } from '@tanstack/react-query';
 import { IMatrixFloor } from '../types/api';
+import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 interface EditFloorModalProps {
   visible: boolean;
@@ -37,6 +38,7 @@ export const EditFloorModal: React.FC<EditFloorModalProps> = ({
   const [floorLabel, setFloorLabel] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Compute occupied beds count on this floor
   const occupiedBedsCount = React.useMemo(() => {
@@ -108,37 +110,29 @@ export const EditFloorModal: React.FC<EditFloorModalProps> = ({
       return;
     }
 
-    Alert.alert(
-      `Delete Floor ${floor.floorNumber}?`,
-      `This removes Floor ${floor.floorNumber} and its ${floor.rooms.length} vacant room(s). No tenants currently live here. This can't be undone.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete floor',
-          style: 'destructive',
-          onPress: async () => {
-            setIsDeleting(true);
-            try {
-              await deleteFloorApi(propertyId, floor.floorNumber);
-              await Promise.all([
-                queryClient.invalidateQueries({ queryKey: ['propertyMatrix', propertyId] }),
-                queryClient.invalidateQueries({ queryKey: ['properties'] }),
-              ]);
-              Alert.alert('Deleted', `Floor ${floor.floorNumber} deleted successfully.`);
-              onSuccess?.();
-              onClose();
-            } catch (err: unknown) {
-              const msg =
-                (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-                (err instanceof Error ? err.message : 'Failed to delete floor');
-              Alert.alert('Error', msg);
-            } finally {
-              setIsDeleting(false);
-            }
-          },
-        },
-      ],
-    );
+    setShowDeleteConfirm(true);
+  };
+
+  const executeDeleteFloor = async () => {
+    if (!floor) return;
+    setIsDeleting(true);
+    try {
+      await deleteFloorApi(propertyId, floor.floorNumber);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['propertyMatrix', propertyId] }),
+        queryClient.invalidateQueries({ queryKey: ['properties'] }),
+      ]);
+      setShowDeleteConfirm(false);
+      onSuccess?.();
+      onClose();
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        (err instanceof Error ? err.message : 'Failed to delete floor');
+      Alert.alert('Error', msg);
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -237,6 +231,17 @@ export const EditFloorModal: React.FC<EditFloorModalProps> = ({
             </TouchableOpacity>
           </View>
         </View>
+
+        {/* Beautiful Confirm Delete Modal */}
+        <ConfirmDeleteModal
+          visible={showDeleteConfirm}
+          onClose={() => setShowDeleteConfirm(false)}
+          onConfirm={executeDeleteFloor}
+          title={`Delete Floor ${floor?.floorNumber}?`}
+          message={`This removes Floor ${floor?.floorNumber} and its vacant rooms permanently. This action cannot be undone.`}
+          confirmLabel="Delete Floor"
+          isLoading={isDeleting}
+        />
       </KeyboardAvoidingView>
     </Modal>
   );

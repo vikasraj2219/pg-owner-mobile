@@ -25,6 +25,7 @@ import { VacantBedSheet } from '../../src/components/VacantBedSheet';
 import { OccupiedBedSheet } from '../../src/components/OccupiedBedSheet';
 import { MaintenanceBedSheet } from '../../src/components/MaintenanceBedSheet';
 import { MatrixEmptyState } from '../../src/components/MatrixEmptyState';
+import { ConfirmDeleteModal } from '../../src/components/ConfirmDeleteModal';
 import { addBedToRoomApi, deleteBedApi } from '../../src/api/properties';
 
 export default function MatrixScreen() {
@@ -53,17 +54,19 @@ export default function MatrixScreen() {
     isUpdatingBedStatus,
   } = useMatrix(selectedPropertyId);
 
-  // Automatically refresh bed matrix when screen comes into focus
+  // Automatically refresh bed matrix & properties when screen comes into focus
   useFocusEffect(
     useCallback(() => {
+      void refetchProperties();
       if (selectedPropertyId) {
         void refetchMatrix();
       }
-    }, [selectedPropertyId, refetchMatrix]),
+    }, [selectedPropertyId, refetchMatrix, refetchProperties]),
   );
 
   const isDataLoading =
     isPropertiesLoading ||
+    (properties.length === 0 && isPropertiesLoading) ||
     (!selectedPropertyId && properties.length > 0) ||
     (Boolean(selectedPropertyId) &&
       (isMatrixLoading || isMatrixPending || isMatrixFetching) &&
@@ -80,6 +83,8 @@ export default function MatrixScreen() {
   const [isAddRoomOpen, setIsAddRoomOpen] = useState(false);
   const [roomToEdit, setRoomToEdit] = useState<IMatrixRoom | null>(null);
   const [isAddingBedRoomId, setIsAddingBedRoomId] = useState<string | null>(null);
+  const [bedToDelete, setBedToDelete] = useState<{ id: string; number: string } | null>(null);
+  const [isDeletingBed, setIsDeletingBed] = useState(false);
 
   // Selected bed sheets state
   const [activeVacantBed, setActiveVacantBed] = useState<{
@@ -217,31 +222,26 @@ export default function MatrixScreen() {
   };
 
   const handleDeleteBed = (bedId: string, bedNumber: string) => {
-    Alert.alert(
-      `Delete Bed ${bedNumber}?`,
-      'Are you sure you want to delete this vacant bed? This action cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete Bed',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteBedApi(bedId);
-              setActiveVacantBed(null);
-              setActiveMaintenanceBed(null);
-              await Promise.all([refetchMatrix(), refetchProperties()]);
-              Alert.alert('Deleted', `Bed ${bedNumber} has been removed.`);
-            } catch (err: unknown) {
-              const msg =
-                (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-                (err instanceof Error ? err.message : 'Failed to delete bed');
-              Alert.alert('Cannot Delete', msg);
-            }
-          },
-        },
-      ],
-    );
+    setBedToDelete({ id: bedId, number: bedNumber });
+  };
+
+  const executeDeleteBed = async () => {
+    if (!bedToDelete) return;
+    setIsDeletingBed(true);
+    try {
+      await deleteBedApi(bedToDelete.id);
+      setActiveVacantBed(null);
+      setActiveMaintenanceBed(null);
+      await Promise.all([refetchMatrix(), refetchProperties()]);
+      setBedToDelete(null);
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        (err instanceof Error ? err.message : 'Failed to delete bed');
+      Alert.alert('Cannot Delete', msg);
+    } finally {
+      setIsDeletingBed(false);
+    }
   };
 
   const handleRefresh = async () => {
@@ -434,14 +434,26 @@ export default function MatrixScreen() {
                       </TouchableOpacity>
                     </View>
                     <View className="flex-row items-center gap-1.5 flex-wrap">
-                      {(room.tags || []).map(tag => (
-                        <View
-                          key={tag}
-                          className="px-2 py-0.5 rounded-md border border-slate-200 bg-white"
-                        >
-                          <Text className="text-xs font-semibold text-slate-600">{tag}</Text>
-                        </View>
-                      ))}
+                      {(room.tags || [])
+                        .filter(
+                          tag =>
+                            !['single', 'double', 'triple'].includes(tag.toLowerCase()) &&
+                            !tag.toLowerCase().includes('sharing'),
+                        )
+                        .map(tag => {
+                          const displayTag =
+                            tag.toLowerCase() === 'attached washroom' ? 'Washroom' : tag;
+                          return (
+                            <View
+                              key={tag}
+                              className="px-2 py-0.5 rounded-md border border-slate-200 bg-white"
+                            >
+                              <Text className="text-xs font-semibold text-slate-600">
+                                {displayTag}
+                              </Text>
+                            </View>
+                          );
+                        })}
                     </View>
                   </View>
 
@@ -766,6 +778,17 @@ export default function MatrixScreen() {
           refetchMatrix();
           refetchProperties();
         }}
+      />
+
+      {/* Beautiful Bed Deletion Confirmation Dialog */}
+      <ConfirmDeleteModal
+        visible={!!bedToDelete}
+        onClose={() => setBedToDelete(null)}
+        onConfirm={executeDeleteBed}
+        title={`Delete Bed ${bedToDelete?.number}?`}
+        message="Are you sure you want to delete this vacant bed? This action cannot be undone."
+        confirmLabel="Delete Bed"
+        isLoading={isDeletingBed}
       />
     </SafeAreaView>
   );

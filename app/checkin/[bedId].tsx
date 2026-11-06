@@ -25,6 +25,7 @@ import {
   ShieldCheck,
   Eye,
   ImageIcon,
+  Calendar,
 } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
@@ -37,6 +38,7 @@ import { useProperties } from '../../src/context/PropertyContext';
 import { QuickCheckinPayload, QuickCheckinResponseData } from '../../src/types/api';
 import { DynamicUpiQrModal } from '../../src/components/DynamicUpiQrModal';
 import { IdDocumentViewerModal } from '../../src/components/IdDocumentViewerModal';
+import { DatePickerModal } from '../../src/components/DatePickerModal';
 import { formatINR } from '../../src/utils/currency';
 
 export default function CheckinScreen() {
@@ -67,11 +69,9 @@ export default function CheckinScreen() {
   const [monthlyRent, setMonthlyRent] = useState(
     params.baseRentPaise ? String(Math.round(parseInt(params.baseRentPaise, 10) / 100)) : '8500',
   );
-  const [deposit, setDeposit] = useState(
-    params.baseRentPaise
-      ? String(Math.round((parseInt(params.baseRentPaise, 10) / 100) * 1.5))
-      : '12000',
-  );
+  const [deposit, setDeposit] = useState('1000');
+  const [joinDate, setJoinDate] = useState<Date>(new Date());
+  const [showCalendarModal, setShowCalendarModal] = useState(false);
 
   // ID & KYC State
   const [idImageUri, setIdImageUri] = useState<string | null>(null);
@@ -107,9 +107,8 @@ export default function CheckinScreen() {
     totalAdvance,
     currentMonthName,
   } = useMemo(() => {
-    const today = new Date();
-    const d = today.getDate();
-    const cycleEnd = new Date(today);
+    const d = joinDate.getDate();
+    const cycleEnd = new Date(joinDate);
     cycleEnd.setMonth(cycleEnd.getMonth() + 1);
     cycleEnd.setDate(cycleEnd.getDate() - 1);
 
@@ -132,7 +131,7 @@ export default function CheckinScreen() {
       'Dec',
     ];
 
-    const rangeStr = `${d} ${MONTHS_SHORT[today.getMonth()]} – ${cycleEnd.getDate()} ${MONTHS_SHORT[cycleEnd.getMonth()]}`;
+    const rangeStr = `${d} ${MONTHS_SHORT[joinDate.getMonth()]} – ${cycleEnd.getDate()} ${MONTHS_SHORT[cycleEnd.getMonth()]}`;
     const nextDue = `${cycleEnd.getDate() + 1} ${MONTHS_SHORT[cycleEnd.getMonth()]}`;
 
     return {
@@ -141,9 +140,9 @@ export default function CheckinScreen() {
       nextDueDateFormatted: nextDue,
       monthlyRentAmount: rentNum,
       totalAdvance: total,
-      currentMonthName: MONTHS_SHORT[today.getMonth()] || 'Month',
+      currentMonthName: MONTHS_SHORT[joinDate.getMonth()] || 'Month',
     };
-  }, [monthlyRent, deposit]);
+  }, [joinDate, monthlyRent, deposit]);
 
   // Validation checks matching Page 16
   const nameValidation = useMemo(() => validateName(fullName, 'Tenant full name'), [fullName]);
@@ -352,7 +351,7 @@ export default function CheckinScreen() {
         fullName: fullName.trim(),
         phone: phone.trim(),
         emergencyPhone: emergencyPhone.trim() || undefined,
-        joinDate: new Date().toISOString(),
+        joinDate: joinDate.toISOString(),
         monthlyRentPaise: rentPaise,
         depositPaise,
         depositPaidPaise,
@@ -660,13 +659,30 @@ export default function CheckinScreen() {
               </View>
             </View>
 
-            {/* Joining Date indicator */}
-            <View className="bg-slate-100 rounded-xl px-4 py-3 flex-row items-center justify-between mb-3.5">
-              <Text className="text-xs font-bold text-slate-600">Joining date</Text>
-              <Text className="text-xs font-extrabold text-slate-900">
-                Today ({dayOfMonth} {currentMonthName})
-              </Text>
-            </View>
+            {/* Joining Date indicator & calendar picker */}
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => setShowCalendarModal(true)}
+              className="bg-white border border-slate-200 rounded-2xl px-4 py-3.5 flex-row items-center justify-between mb-3.5 shadow-xs"
+            >
+              <View className="flex-row items-center flex-1 mr-2">
+                <View className="w-9 h-9 rounded-full bg-emerald-50 items-center justify-center mr-3">
+                  <Calendar size={18} color="#0A6C50" />
+                </View>
+                <View>
+                  <Text className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                    Joining date (Tap to change)
+                  </Text>
+                  <Text className="text-sm font-black text-slate-900 mt-0.5">
+                    {dayOfMonth} {currentMonthName} {joinDate.getFullYear()}
+                  </Text>
+                </View>
+              </View>
+              <View className="bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 flex-row items-center">
+                <Calendar size={13} color="#475569" />
+                <Text className="text-xs font-bold text-slate-700 ml-1.5">Choose</Text>
+              </View>
+            </TouchableOpacity>
 
             {/* Join-Date Billing Cycle Card */}
             <View className="bg-[#E8F5EE] border border-[#A7F3D0] rounded-2xl p-4 mb-4">
@@ -1103,6 +1119,15 @@ export default function CheckinScreen() {
           documentUrl={uploadedCloudinaryUrl || idImageUri}
           tenantName={fullName || 'New Tenant'}
           docType="Aadhaar / ID Card"
+        />
+
+        {/* Joining Date Calendar Modal */}
+        <DatePickerModal
+          visible={showCalendarModal}
+          onClose={() => setShowCalendarModal(false)}
+          selectedDate={joinDate}
+          onSelectDate={setJoinDate}
+          title="Choose Joining Date"
         />
       </KeyboardAvoidingView>
     </SafeAreaView>

@@ -14,6 +14,7 @@ import { X, Bed as BedIcon, Trash2, CheckCircle2, Wrench, User } from 'lucide-re
 import { updateBedApi, deleteBedApi } from '../api/properties';
 import { useQueryClient } from '@tanstack/react-query';
 import { IMatrixBed, IMatrixRoom, BedStatus } from '../types/api';
+import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 interface EditBedModalProps {
   visible: boolean;
@@ -28,7 +29,7 @@ interface EditBedModalProps {
 export const EditBedModal: React.FC<EditBedModalProps> = ({
   visible,
   propertyId,
-  room,
+  room: _room,
   bed,
   onClose,
   onSuccess,
@@ -40,6 +41,7 @@ export const EditBedModal: React.FC<EditBedModalProps> = ({
   const [reason, setReason] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const isOccupied = bed?.status === 'occupied' || !!bed?.currentTenant;
   const tenantName = bed?.currentTenant?.fullName;
@@ -110,42 +112,31 @@ export const EditBedModal: React.FC<EditBedModalProps> = ({
       return;
     }
 
-    const currentSharing = room?.beds?.length || 1;
-    const newSharing = Math.max(1, currentSharing - 1);
+    setShowDeleteConfirm(true);
+  };
 
-    Alert.alert(
-      `Delete bed ${bed.bedNumber}?`,
-      `Room ${room?.roomNumber || ''} becomes a ${newSharing}-sharing room. This can't be undone.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            setIsDeleting(true);
-            try {
-              await deleteBedApi(bed._id);
-              await Promise.all([
-                queryClient.invalidateQueries({ queryKey: ['propertyMatrix', propertyId] }),
-                queryClient.invalidateQueries({ queryKey: ['properties'] }),
-                queryClient.invalidateQueries({ queryKey: ['matrix'] }),
-                queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
-              ]);
-              Alert.alert('Deleted', `Bed ${bed.bedNumber} has been deleted.`);
-              onSuccess?.();
-              onClose();
-            } catch (err: unknown) {
-              const msg =
-                (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-                (err instanceof Error ? err.message : 'Failed to delete bed');
-              Alert.alert('Error', msg);
-            } finally {
-              setIsDeleting(false);
-            }
-          },
-        },
-      ],
-    );
+  const executeDeleteBed = async () => {
+    if (!bed) return;
+    setIsDeleting(true);
+    try {
+      await deleteBedApi(bed._id);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['propertyMatrix', propertyId] }),
+        queryClient.invalidateQueries({ queryKey: ['properties'] }),
+        queryClient.invalidateQueries({ queryKey: ['matrix'] }),
+        queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
+      ]);
+      setShowDeleteConfirm(false);
+      onSuccess?.();
+      onClose();
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        (err instanceof Error ? err.message : 'Failed to delete bed');
+      Alert.alert('Error', msg);
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -299,6 +290,17 @@ export const EditBedModal: React.FC<EditBedModalProps> = ({
             </TouchableOpacity>
           </View>
         </View>
+
+        {/* Beautiful Confirm Delete Modal */}
+        <ConfirmDeleteModal
+          visible={showDeleteConfirm}
+          onClose={() => setShowDeleteConfirm(false)}
+          onConfirm={executeDeleteBed}
+          title={`Delete Bed ${bed?.bedNumber}?`}
+          message="This empty bed will be removed permanently. This action cannot be undone."
+          confirmLabel="Delete Bed"
+          isLoading={isDeleting}
+        />
       </KeyboardAvoidingView>
     </Modal>
   );

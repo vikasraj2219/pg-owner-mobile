@@ -16,6 +16,7 @@ import { X, DoorOpen, Trash2, Plus, Minus, AlertCircle, BedDouble } from 'lucide
 import { useQueryClient } from '@tanstack/react-query';
 import { IMatrixRoom, IRoom } from '../types/api';
 import { updateRoomApi, deleteRoomApi } from '../api/properties';
+import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { formatINR } from '../utils/currency';
 
 interface EditRoomModalProps {
@@ -44,6 +45,7 @@ export const EditRoomModal: React.FC<EditRoomModalProps> = ({
   const [hasWashroom, setHasWashroom] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     if (room && visible) {
@@ -56,7 +58,7 @@ export const EditRoomModal: React.FC<EditRoomModalProps> = ({
       );
       const tags = room.tags || [];
       setHasAC(tags.includes('AC'));
-      setHasWashroom(tags.includes('Attached Washroom'));
+      setHasWashroom(tags.includes('Attached Washroom') || tags.includes('Washroom'));
     }
   }, [room, visible]);
 
@@ -82,11 +84,7 @@ export const EditRoomModal: React.FC<EditRoomModalProps> = ({
 
     const tags: string[] = [];
     if (hasAC) tags.push('AC');
-    if (hasWashroom) tags.push('Attached Washroom');
-    if (sharingType === 1) tags.push('Single');
-    else if (sharingType === 2) tags.push('Double');
-    else if (sharingType === 3) tags.push('Triple');
-    else tags.push(`${sharingType}-sharing`);
+    if (hasWashroom) tags.push('Washroom');
 
     setIsSaving(true);
     try {
@@ -132,40 +130,31 @@ export const EditRoomModal: React.FC<EditRoomModalProps> = ({
       return;
     }
 
-    Alert.alert(
-      `Delete Room ${room.roomNumber}?`,
-      `Its empty beds will be deleted too. This can't be undone.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete room',
-          style: 'destructive',
-          onPress: async () => {
-            setIsDeleting(true);
-            try {
-              await deleteRoomApi(propertyId, room._id);
-              await Promise.all([
-                queryClient.invalidateQueries({ queryKey: ['propertyMatrix', propertyId] }),
-                queryClient.invalidateQueries({ queryKey: ['matrix'] }),
-                queryClient.invalidateQueries({ queryKey: ['properties'] }),
-                queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
-              ]);
+    setShowDeleteConfirm(true);
+  };
 
-              Alert.alert('Deleted', `Room ${room.roomNumber} has been deleted.`);
-              onSuccess?.();
-              onClose();
-            } catch (err: unknown) {
-              const msg =
-                (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-                (err instanceof Error ? err.message : 'Failed to delete room');
-              Alert.alert('Delete Blocked', msg);
-            } finally {
-              setIsDeleting(false);
-            }
-          },
-        },
-      ],
-    );
+  const executeDeleteRoom = async () => {
+    setIsDeleting(true);
+    try {
+      await deleteRoomApi(propertyId, room._id);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['propertyMatrix', propertyId] }),
+        queryClient.invalidateQueries({ queryKey: ['matrix'] }),
+        queryClient.invalidateQueries({ queryKey: ['properties'] }),
+        queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
+      ]);
+
+      setShowDeleteConfirm(false);
+      onSuccess?.();
+      onClose();
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        (err instanceof Error ? err.message : 'Failed to delete room');
+      Alert.alert('Delete Blocked', msg);
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const rentNumeric = parseFloat(rentPerBed) || 0;
@@ -419,6 +408,17 @@ export const EditRoomModal: React.FC<EditRoomModalProps> = ({
             </TouchableOpacity>
           </View>
         </ScrollView>
+
+        {/* Beautiful Confirm Delete Modal */}
+        <ConfirmDeleteModal
+          visible={showDeleteConfirm}
+          onClose={() => setShowDeleteConfirm(false)}
+          onConfirm={executeDeleteRoom}
+          title={`Delete Room ${room.roomNumber}?`}
+          message="Its empty beds will be removed permanently. This action cannot be undone."
+          confirmLabel="Delete Room"
+          isLoading={isDeleting}
+        />
       </KeyboardAvoidingView>
     </Modal>
   );

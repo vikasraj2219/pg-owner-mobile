@@ -34,20 +34,18 @@ export const VacantBedSheet: React.FC<VacantBedSheetProps> = ({
 }) => {
   if (!bed || !room) return null;
 
-  const sharingText =
-    room.sharingType === 1
-      ? 'Single'
-      : room.sharingType === 2
-        ? 'Double'
-        : room.sharingType === 3
-          ? 'Triple'
-          : `${room.sharingType}-sharing`;
+  const filteredTags = (room.tags || [])
+    .filter(
+      tag =>
+        !['single', 'double', 'triple'].includes(tag.toLowerCase()) &&
+        !tag.toLowerCase().includes('sharing'),
+    )
+    .map(tag => (tag.toLowerCase() === 'attached washroom' ? 'Washroom' : tag));
 
   const detailsSubtitle = [
     `Room ${room.roomNumber}`,
     `Floor ${room.floorNumber}`,
-    sharingText,
-    ...(room.tags || []),
+    ...filteredTags,
   ].join(' · ');
 
   return (
@@ -56,18 +54,18 @@ export const VacantBedSheet: React.FC<VacantBedSheetProps> = ({
         <View className="flex-1 bg-black/40 justify-end">
           <TouchableWithoutFeedback onPress={e => e.stopPropagation()}>
             <View className="bg-white rounded-t-3xl p-5 pt-3 pb-8">
-              {/* Handle */}
-              <View className="items-center mb-4">
+              {/* Top Handle and Cancel/Close Header */}
+              <View className="flex-row items-center justify-between mb-4">
+                <View className="w-8" />
                 <View className="w-12 h-1.5 rounded-full bg-slate-300" />
+                <TouchableOpacity
+                  onPress={onClose}
+                  activeOpacity={0.7}
+                  className="w-8 h-8 rounded-full bg-slate-100 items-center justify-center"
+                >
+                  <X size={18} color="#64748B" />
+                </TouchableOpacity>
               </View>
-
-              {/* Close Button at top right */}
-              <TouchableOpacity
-                onPress={onClose}
-                className="absolute top-4 right-5 w-8 h-8 rounded-full bg-slate-100 items-center justify-center"
-              >
-                <X size={18} color="#64748B" />
-              </TouchableOpacity>
 
               {/* Bed Info Header */}
               <View className="flex-row items-center mb-6">

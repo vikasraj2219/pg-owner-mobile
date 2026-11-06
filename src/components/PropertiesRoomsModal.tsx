@@ -603,25 +603,27 @@ export const PropertiesRoomsModal: React.FC<PropertiesRoomsModalProps> = ({ visi
                         </View>
 
                         {/* Room Tags */}
-                        <View className="flex-row flex-wrap gap-1.5 pt-2 border-t border-slate-100">
-                          <View className="bg-emerald-50 px-2 py-0.5 rounded-md">
-                            <Text className="text-2xs font-extrabold text-emerald-800">
-                              {room.sharingType === 1
-                                ? 'Single'
-                                : room.sharingType === 2
-                                  ? 'Double'
-                                  : room.sharingType === 3
-                                    ? 'Triple'
-                                    : `${room.sharingType} Sharing`}
-                            </Text>
+                        {room.tags && room.tags.length > 0 && (
+                          <View className="flex-row flex-wrap gap-1.5 pt-2 border-t border-slate-100">
+                            {room.tags
+                              .filter(
+                                t =>
+                                  !['single', 'double', 'triple'].includes(t.toLowerCase()) &&
+                                  !t.toLowerCase().includes('sharing'),
+                              )
+                              .map((tag, idx) => {
+                                const displayTag =
+                                  tag.toLowerCase() === 'attached washroom' ? 'Washroom' : tag;
+                                return (
+                                  <View key={idx} className="bg-slate-100 px-2 py-0.5 rounded-md">
+                                    <Text className="text-2xs font-semibold text-slate-600">
+                                      {displayTag}
+                                    </Text>
+                                  </View>
+                                );
+                              })}
                           </View>
-                          {room.tags &&
-                            room.tags.map((tag, idx) => (
-                              <View key={idx} className="bg-slate-100 px-2 py-0.5 rounded-md">
-                                <Text className="text-2xs font-medium text-slate-600">{tag}</Text>
-                              </View>
-                            ))}
-                        </View>
+                        )}
                       </TouchableOpacity>
                     );
                   })}
@@ -688,25 +690,25 @@ export const PropertiesRoomsModal: React.FC<PropertiesRoomsModalProps> = ({ visi
 
             <ScrollView className="flex-1 px-5 pt-4" showsVerticalScrollIndicator={false}>
               {/* Tags Row */}
-              <View className="flex-row flex-wrap gap-1.5 mb-3.5">
-                <View className="bg-emerald-50 px-2.5 py-1 rounded-lg">
-                  <Text className="text-xs font-extrabold text-emerald-800">
-                    {activeRoom.sharingType === 1
-                      ? 'Single'
-                      : activeRoom.sharingType === 2
-                        ? 'Double'
-                        : activeRoom.sharingType === 3
-                          ? 'Triple'
-                          : `${activeRoom.sharingType} Sharing`}
-                  </Text>
+              {activeRoom.tags && activeRoom.tags.length > 0 && (
+                <View className="flex-row flex-wrap gap-1.5 mb-3.5">
+                  {activeRoom.tags
+                    .filter(
+                      t =>
+                        !['single', 'double', 'triple'].includes(t.toLowerCase()) &&
+                        !t.toLowerCase().includes('sharing'),
+                    )
+                    .map((tag, idx) => {
+                      const displayTag =
+                        tag.toLowerCase() === 'attached washroom' ? 'Washroom' : tag;
+                      return (
+                        <View key={idx} className="bg-slate-100 px-2.5 py-1 rounded-lg">
+                          <Text className="text-xs font-semibold text-slate-600">{displayTag}</Text>
+                        </View>
+                      );
+                    })}
                 </View>
-                {activeRoom.tags &&
-                  activeRoom.tags.map((tag, idx) => (
-                    <View key={idx} className="bg-slate-100 px-2.5 py-1 rounded-lg">
-                      <Text className="text-xs font-semibold text-slate-600">{tag}</Text>
-                    </View>
-                  ))}
-              </View>
+              )}
 
               {/* 2 Stat Boxes */}
               <View className="flex-row gap-3 mb-5">

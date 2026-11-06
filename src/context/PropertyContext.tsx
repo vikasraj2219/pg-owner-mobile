@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { safeStorage } from '../utils/storage';
 import { fetchProperties, createProperty as createPropertyApi } from '../api/properties';
 import { IProperty, CreatePropertyPayload } from '../types/api';
+import { useAuth } from './AuthContext';
 
 const SELECTED_PROPERTY_KEY = 'selected_property_id';
 
@@ -22,21 +23,32 @@ const PropertyContext = createContext<PropertyContextType | undefined>(undefined
 
 export const PropertyProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const queryClient = useQueryClient();
+  const { isAuthenticated, token } = useAuth();
   const [selectedPropertyId, setSelectedPropertyIdState] = useState<string | null>(null);
 
   const {
     data: rawProperties = [],
     isLoading,
+    isFetching,
+    isPending,
     isError,
     refetch: refetchProperties,
   } = useQuery({
-    queryKey: ['properties'],
+    queryKey: ['properties', token],
     queryFn: fetchProperties,
+    enabled: Boolean(token && isAuthenticated),
     staleTime: 1000 * 60 * 2, // 2 minutes
     refetchOnMount: 'always',
   });
 
   const properties = Array.isArray(rawProperties) ? rawProperties : [];
+
+  // When auth changes to authenticated, immediately trigger properties fetch
+  useEffect(() => {
+    if (isAuthenticated && token) {
+      void refetchProperties();
+    }
+  }, [isAuthenticated, token, refetchProperties]);
 
   // Restore stored selected property id on load
   useEffect(() => {
@@ -94,7 +106,10 @@ export const PropertyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         selectedProperty,
         selectedPropertyId: selectedProperty?._id || selectedPropertyId,
         setSelectedPropertyId,
-        isLoading,
+        isLoading:
+          isLoading ||
+          isFetching ||
+          (Boolean(isAuthenticated && token) && rawProperties.length === 0 && isPending),
         isError,
         refetchProperties,
         createPropertyMutation: createMutation.mutateAsync,

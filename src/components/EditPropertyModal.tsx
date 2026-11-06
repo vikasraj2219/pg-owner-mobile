@@ -11,20 +11,12 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import {
-  X,
-  Building2,
-  Trash2,
-  MapPin,
-  QrCode,
-  Zap,
-  Archive,
-  AlertCircle,
-} from 'lucide-react-native';
+import { X, Building2, Trash2, MapPin, QrCode, Zap } from 'lucide-react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import { IProperty, PropertyType } from '../types/api';
 import { updatePropertyApi, deletePropertyApi } from '../api/properties';
 import { useProperties } from '../context/PropertyContext';
+import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 
 interface EditPropertyModalProps {
   visible: boolean;
@@ -48,12 +40,10 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
   const [city, setCity] = useState('');
   const [pincode, setPincode] = useState('');
   const [upiVpa, setUpiVpa] = useState('');
-  const [electricityRate, setElectricityRate] = useState('12');
+  const [electricityRate, setElectricityRate] = useState('0');
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isArchiving, setIsArchiving] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [confirmNameInput, setConfirmNameInput] = useState('');
 
   useEffect(() => {
     if (property && visible) {
@@ -88,10 +78,9 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
       setElectricityRate(
         property.electricityRatePaisePerUnit
           ? (property.electricityRatePaisePerUnit / 100).toString()
-          : '12',
+          : '0',
       );
       setShowDeleteConfirm(false);
-      setConfirmNameInput('');
     }
   }, [property, visible]);
 
@@ -146,66 +135,12 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
     }
   };
 
-  const handleToggleArchive = async () => {
-    const isCurrentlyArchived = !!property.isArchived;
-    const actionLabel = isCurrentlyArchived ? 'Unarchive' : 'Archive';
-
-    Alert.alert(
-      `${actionLabel} Property?`,
-      isCurrentlyArchived
-        ? `Unarchiving "${property.name}" will make it visible in active property listings again.`
-        : `Archiving "${property.name}" preserves all tenant histories, invoices, and beds while hiding it from day-to-day operations.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: actionLabel,
-          onPress: async () => {
-            setIsArchiving(true);
-            try {
-              const updated = await updatePropertyApi(property._id, {
-                isArchived: !isCurrentlyArchived,
-              });
-              await Promise.all([
-                queryClient.invalidateQueries({ queryKey: ['properties'] }),
-                queryClient.invalidateQueries({ queryKey: ['propertyMatrix', property._id] }),
-                queryClient.invalidateQueries({ queryKey: ['matrix'] }),
-                queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
-              ]);
-              Alert.alert(
-                'Success',
-                `Property "${updated.name}" has been ${actionLabel.toLowerCase()}d.`,
-              );
-              onSuccess?.(updated);
-              onClose();
-            } catch (err: unknown) {
-              const msg =
-                (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-                (err instanceof Error
-                  ? err.message
-                  : `Failed to ${actionLabel.toLowerCase()} property`);
-              Alert.alert('Error', msg);
-            } finally {
-              setIsArchiving(false);
-            }
-          },
-        },
-      ],
-    );
-  };
-
   const handleDeleteClick = () => {
     const occupiedCount = property.stats?.occupiedBeds || 0;
     if (occupiedCount > 0) {
       Alert.alert(
         "Can't delete this property",
-        `${occupiedCount} tenant(s) are staying at ${property.name}. Check them out first, or archive the property to hide it and keep its history.`,
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Archive property',
-            onPress: handleToggleArchive,
-          },
-        ],
+        `${occupiedCount} tenant(s) are staying at ${property.name}. Please check them out first before deleting this property.`,
       );
       return;
     }
@@ -214,11 +149,6 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
   };
 
   const executeDelete = async () => {
-    if (confirmNameInput.trim().toLowerCase() !== property.name.trim().toLowerCase()) {
-      Alert.alert('Name Mismatch', 'Please type the exact property name to confirm deletion.');
-      return;
-    }
-
     setIsDeleting(true);
     try {
       await deletePropertyApi(property._id);
@@ -403,94 +333,37 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
             <TextInput
               value={electricityRate}
               onChangeText={setElectricityRate}
-              placeholder="12"
+              placeholder="0"
               placeholderTextColor="#94A3B8"
               keyboardType="decimal-pad"
               className="bg-white border border-slate-300 rounded-xl px-4 py-3 font-semibold text-slate-900 text-sm shadow-xs"
             />
           </View>
 
-          {/* Destructive Actions Row: Archive & Delete */}
+          {/* Destructive Actions Row: Delete Property */}
           <View className="pt-2 pb-6 border-t border-slate-200">
-            <View className="flex-row items-center justify-between mb-4">
-              <TouchableOpacity
-                onPress={handleToggleArchive}
-                disabled={isArchiving}
-                className="flex-row items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 border border-slate-200"
-              >
-                <Archive size={14} color="#475569" />
-                <Text className="text-xs font-bold text-slate-700">
-                  {property.isArchived ? 'Unarchive property' : 'Archive property'}
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={handleDeleteClick}
-                disabled={isDeleting}
-                className="flex-row items-center gap-1.5 px-3 py-2 rounded-xl bg-rose-50 border border-rose-200"
-              >
-                <Trash2 size={14} color="#BE123C" />
-                <Text className="text-xs font-bold text-[#BE123C]">Delete property</Text>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity
+              onPress={handleDeleteClick}
+              disabled={isDeleting}
+              className="flex-row items-center justify-center gap-2 py-3.5 rounded-xl bg-rose-50 border border-rose-200"
+            >
+              <Trash2 size={16} color="#BE123C" />
+              <Text className="text-xs font-bold text-[#BE123C]">Delete property</Text>
+            </TouchableOpacity>
           </View>
         </ScrollView>
 
-        {/* Delete Property Confirmation Sheet / Overlay */}
-        {showDeleteConfirm && (
-          <View className="absolute inset-0 bg-black/60 items-center justify-center p-5 z-50">
-            <View className="bg-white rounded-2xl p-5 w-full max-w-sm shadow-xl">
-              <View className="w-12 h-12 rounded-full bg-rose-100 items-center justify-center mx-auto mb-3">
-                <AlertCircle size={24} color="#BE123C" />
-              </View>
-              <Text className="text-lg font-black text-slate-900 text-center mb-1">
-                Delete &quot;{property.name}&quot;?
-              </Text>
-              <Text className="text-xs text-slate-600 text-center mb-4 leading-relaxed">
-                This removes all floors, rooms, and empty beds. No tenants currently live here. This
-                action cannot be undone. Type the property name to confirm:
-              </Text>
-
-              <TextInput
-                value={confirmNameInput}
-                onChangeText={setConfirmNameInput}
-                placeholder={property.name}
-                placeholderTextColor="#94A3B8"
-                className="bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 font-bold text-slate-900 text-sm mb-4"
-              />
-
-              <View className="flex-row gap-2">
-                <TouchableOpacity
-                  onPress={() => {
-                    setShowDeleteConfirm(false);
-                    setConfirmNameInput('');
-                  }}
-                  className="flex-1 py-3 rounded-xl border border-slate-300 items-center"
-                >
-                  <Text className="text-xs font-bold text-slate-700">Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={executeDelete}
-                  disabled={
-                    isDeleting ||
-                    confirmNameInput.trim().toLowerCase() !== property.name.trim().toLowerCase()
-                  }
-                  className={`flex-1 py-3 rounded-xl items-center ${
-                    confirmNameInput.trim().toLowerCase() === property.name.trim().toLowerCase()
-                      ? 'bg-rose-600'
-                      : 'bg-rose-300'
-                  }`}
-                >
-                  {isDeleting ? (
-                    <ActivityIndicator size="small" color="#FFFFFF" />
-                  ) : (
-                    <Text className="text-xs font-bold text-white">Delete</Text>
-                  )}
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        )}
+        {/* Beautiful Delete Property Confirmation Modal */}
+        <ConfirmDeleteModal
+          visible={showDeleteConfirm}
+          onClose={() => setShowDeleteConfirm(false)}
+          onConfirm={executeDelete}
+          title={`Delete "${property.name}"?`}
+          message="This removes all floors, rooms, and empty beds. No tenants currently live here. This action cannot be undone."
+          confirmLabel="Delete Property"
+          isLoading={isDeleting}
+          requiresInput={property.name}
+        />
 
         {/* Primary Save Button */}
         <View className="p-4 border-t border-slate-200 bg-white shadow-lg">

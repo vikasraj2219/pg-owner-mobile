@@ -40,7 +40,7 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
   const [city, setCity] = useState('Hyderabad');
   const [pincode, setPincode] = useState('500081');
   const [upiVpa, setUpiVpa] = useState('');
-  const [electricityRate, setElectricityRate] = useState('12');
+  const [electricityRate, setElectricityRate] = useState('0');
 
   const handleSave = async () => {
     const nameResult = validateName(name, 'Property name');
@@ -251,7 +251,7 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
               <TextInput
                 value={electricityRate}
                 onChangeText={setElectricityRate}
-                placeholder="12"
+                placeholder="0"
                 placeholderTextColor="#94A3B8"
                 keyboardType="numeric"
                 className="flex-1 text-base text-slate-900 p-0"

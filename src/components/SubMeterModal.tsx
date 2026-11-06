@@ -40,14 +40,14 @@ export const SubMeterModal: React.FC<SubMeterModalProps> = ({ visible, onClose, 
   // Form
   const [previousReading, setPreviousReading] = useState('0');
   const [currentReading, setCurrentReading] = useState('');
-  const [ratePerUnit, setRatePerUnit] = useState('12');
+  const [ratePerUnit, setRatePerUnit] = useState('0');
   const [splitMethod, setSplitMethod] = useState<'equal' | 'by_days_occupied'>('equal');
 
   // Edit Reading State
   const [editingReading, setEditingReading] = useState<IMeterReading | null>(null);
   const [editPrevReading, setEditPrevReading] = useState('');
   const [editCurrReading, setEditCurrReading] = useState('');
-  const [editRate, setEditRate] = useState('12');
+  const [editRate, setEditRate] = useState('0');
   const [editSplitMethod, setEditSplitMethod] = useState<'equal' | 'by_days_occupied'>('equal');
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -100,7 +100,7 @@ export const SubMeterModal: React.FC<SubMeterModalProps> = ({ visible, onClose, 
 
   const prevNum = parseFloat(previousReading) || 0;
   const currNum = parseFloat(currentReading) || 0;
-  const rateNum = parseFloat(ratePerUnit) || 12;
+  const rateNum = isNaN(parseFloat(ratePerUnit)) ? 0 : parseFloat(ratePerUnit);
 
   const unitsConsumed = Math.max(0, currNum - prevNum);
   const totalAmountPaise = Math.round(unitsConsumed * rateNum * 100);
@@ -160,7 +160,7 @@ export const SubMeterModal: React.FC<SubMeterModalProps> = ({ visible, onClose, 
 
   const editPNum = parseFloat(editPrevReading) || 0;
   const editCNum = parseFloat(editCurrReading) || 0;
-  const editRNum = parseFloat(editRate) || 12;
+  const editRNum = isNaN(parseFloat(editRate)) ? 0 : parseFloat(editRate);
   const editUnitsConsumed = Math.max(0, editCNum - editPNum);
   const editTotalAmountPaise = Math.round(editUnitsConsumed * editRNum * 100);
 
