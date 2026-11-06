@@ -287,14 +287,6 @@ export default function DuesScreen() {
                           {item.items[0].description}
                         </Text>
                       ) : null}
-                      {item.items?.[0]?.description ? (
-                        <Text
-                          className="text-[11px] font-semibold text-emerald-700 mt-0.5"
-                          numberOfLines={1}
-                        >
-                          {item.items[0].description}
-                        </Text>
-                      ) : null}
                     </View>
                   </View>
 
