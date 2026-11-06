@@ -2,7 +2,6 @@ import React, { useState, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import Svg, { Circle, G } from 'react-native-svg';
 import {
   ChevronDown,
   Bell,
@@ -13,6 +12,7 @@ import {
   Clock,
   Receipt,
   UserPlus,
+  CircleCheck,
 } from 'lucide-react-native';
 import { useAuth } from '../../src/hooks/useAuth';
 import { useProperties } from '../../src/context/PropertyContext';
@@ -69,22 +69,30 @@ export default function PulseScreen() {
     activePropertyStats?.occupancyRate ||
     (displayTotalBeds > 0 ? Math.round((displayOccupiedBeds / displayTotalBeds) * 1000) / 10 : 0);
 
-  // Donut chart calculations
-  const circumference = 2 * Math.PI * 36; // 226.195
-  const safeTotal = displayTotalBeds > 0 ? displayTotalBeds : 1;
-
-  const vacantStroke =
-    displayTotalBeds > 0 ? (displayAvailableBeds / safeTotal) * circumference : 0;
-  const occupiedStroke =
-    displayTotalBeds > 0 ? (displayOccupiedBeds / safeTotal) * circumference : 0;
-  const noticeStroke = displayTotalBeds > 0 ? (displayNoticeBeds / safeTotal) * circumference : 0;
-  const maintStroke =
-    displayTotalBeds > 0 ? (displayMaintenanceBeds / safeTotal) * circumference : 0;
-
-  const occupiedOffset = 0;
-  const noticeOffset = -occupiedStroke;
-  const maintOffset = -(occupiedStroke + noticeStroke);
-  const vacantOffset = -(occupiedStroke + noticeStroke + maintStroke);
+  // Progress bar calculations for bed inventory status cards
+  const safeTotal = Math.max(1, displayTotalBeds);
+  const vacantPct = Math.min(
+    100,
+    Math.max(
+      displayAvailableBeds > 0 ? 5 : 0,
+      Math.round((displayAvailableBeds / safeTotal) * 100),
+    ),
+  );
+  const occupiedPct = Math.min(
+    100,
+    Math.max(displayOccupiedBeds > 0 ? 5 : 0, Math.round((displayOccupiedBeds / safeTotal) * 100)),
+  );
+  const noticePct = Math.min(
+    100,
+    Math.max(displayNoticeBeds > 0 ? 5 : 0, Math.round((displayNoticeBeds / safeTotal) * 100)),
+  );
+  const maintPct = Math.min(
+    100,
+    Math.max(
+      displayMaintenanceBeds > 0 ? 5 : 0,
+      Math.round((displayMaintenanceBeds / safeTotal) * 100),
+    ),
+  );
 
   // Format relative timestamp
   const formatTime = (ts: string) => {
@@ -296,168 +304,160 @@ export default function PulseScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* Bed Inventory Breakdown Card with Donut Chart */}
-            <View className="bg-white border border-slate-100 rounded-3xl p-5 mb-4 shadow-xs">
-              <Text className="text-base font-black text-slate-900 mb-4">Bed inventory</Text>
-
-              {/* Donut Chart & Legend Row */}
-              <View className="flex-row items-center justify-between px-2">
-                {/* Left: Donut SVG Chart */}
-                <View className="relative w-[100px] h-[100px] items-center justify-center">
-                  <Svg width={100} height={100} viewBox="0 0 100 100">
-                    <G rotation="-90" origin="50, 50">
-                      {/* Background Track */}
-                      <Circle
-                        cx="50"
-                        cy="50"
-                        r="36"
-                        stroke="#E2E8F0"
-                        strokeWidth="13"
-                        fill="none"
-                      />
-                      {/* Vacant Segment (Green) */}
-                      {vacantStroke > 0 && (
-                        <Circle
-                          cx="50"
-                          cy="50"
-                          r="36"
-                          stroke="#0A6C50"
-                          strokeWidth="13"
-                          strokeDasharray={`${vacantStroke} ${circumference}`}
-                          strokeDashoffset={vacantOffset}
-                          fill="none"
-                        />
-                      )}
-                      {/* Notice Segment (Amber) */}
-                      {noticeStroke > 0 && (
-                        <Circle
-                          cx="50"
-                          cy="50"
-                          r="36"
-                          stroke="#F59E0B"
-                          strokeWidth="13"
-                          strokeDasharray={`${noticeStroke} ${circumference}`}
-                          strokeDashoffset={noticeOffset}
-                          fill="none"
-                        />
-                      )}
-                      {/* Maintenance Segment (Slate) */}
-                      {maintStroke > 0 && (
-                        <Circle
-                          cx="50"
-                          cy="50"
-                          r="36"
-                          stroke="#94A3B8"
-                          strokeWidth="13"
-                          strokeDasharray={`${maintStroke} ${circumference}`}
-                          strokeDashoffset={maintOffset}
-                          fill="none"
-                        />
-                      )}
-                      {/* Occupied Segment (Red) */}
-                      {occupiedStroke > 0 && (
-                        <Circle
-                          cx="50"
-                          cy="50"
-                          r="36"
-                          stroke="#E11D48"
-                          strokeWidth="13"
-                          strokeDasharray={`${occupiedStroke} ${circumference}`}
-                          strokeDashoffset={occupiedOffset}
-                          fill="none"
-                        />
-                      )}
-                    </G>
-                  </Svg>
-                  {/* Center Number */}
-                  <View className="absolute inset-0 items-center justify-center">
-                    <Text className="text-2xl font-black text-slate-900">{displayTotalBeds}</Text>
-                  </View>
-                </View>
-
-                {/* Right: Legend Breakdown */}
-                <View className="flex-1 ml-6 gap-2">
-                  <View className="flex-row items-center justify-between">
-                    <View className="flex-row items-center gap-2">
-                      <View className="w-2.5 h-2.5 rounded-full bg-[#0A6C50]" />
-                      <Text className="text-xs font-semibold text-slate-600">Vacant</Text>
-                    </View>
-                    <Text className="text-sm font-black text-slate-900">
-                      {displayAvailableBeds}
-                    </Text>
-                  </View>
-
-                  <View className="flex-row items-center justify-between">
-                    <View className="flex-row items-center gap-2">
-                      <View className="w-2.5 h-2.5 rounded-full bg-[#E11D48]" />
-                      <Text className="text-xs font-semibold text-slate-600">Occupied</Text>
-                    </View>
-                    <Text className="text-sm font-black text-slate-900">{displayOccupiedBeds}</Text>
-                  </View>
-
-                  <View className="flex-row items-center justify-between">
-                    <View className="flex-row items-center gap-2">
-                      <View className="w-2.5 h-2.5 rounded-full bg-[#F59E0B]" />
-                      <Text className="text-xs font-semibold text-slate-600">Notice</Text>
-                    </View>
-                    <Text className="text-sm font-black text-slate-900">{displayNoticeBeds}</Text>
-                  </View>
-
-                  <View className="flex-row items-center justify-between">
-                    <View className="flex-row items-center gap-2">
-                      <View className="w-2.5 h-2.5 rounded-full bg-[#94A3B8]" />
-                      <Text className="text-xs font-semibold text-slate-600">Maint.</Text>
-                    </View>
-                    <Text className="text-sm font-black text-slate-900">
-                      {displayMaintenanceBeds}
-                    </Text>
-                  </View>
+            {/* Bed Inventory Breakdown Card with 4 Status Cards */}
+            <View className="bg-white border border-slate-100 rounded-3xl p-4.5 mb-4 shadow-xs">
+              <View className="flex-row items-center justify-between mb-4">
+                <Text className="text-base font-black text-slate-900">Bed inventory</Text>
+                {/* Segmented Pill Navigation */}
+                <View className="flex-row items-center bg-[#F1F5F9] p-1 rounded-full">
+                  <TouchableOpacity
+                    activeOpacity={0.85}
+                    onPress={() => router.push('/(tabs)/tenants' as any)}
+                    className="bg-[#0A6C50] px-3.5 py-1.5 rounded-full shadow-xs"
+                  >
+                    <Text className="text-xs font-bold text-white">Tenants list</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    activeOpacity={0.85}
+                    onPress={() => router.push('/(tabs)/matrix')}
+                    className="px-3.5 py-1.5 rounded-full"
+                  >
+                    <Text className="text-xs font-bold text-slate-600">Grid view</Text>
+                  </TouchableOpacity>
                 </View>
               </View>
 
-              {/* Bottom Two Action Buttons */}
-              <View className="flex-row gap-3 mt-5">
+              {/* 4 Status Cards Row */}
+              <View className="flex-row items-center justify-between gap-2">
+                {/* Vacant Card */}
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => router.push('/(tabs)/matrix')}
+                  className="flex-1 bg-[#EAF7EE] border border-[#BBF7D0] rounded-2xl p-2.5"
+                >
+                  <View className="flex-row items-center gap-1.5 mb-1">
+                    <View className="w-2 h-2 rounded-full bg-[#10B981]" />
+                    <Text className="text-[11px] font-black text-[#065F46]" numberOfLines={1}>
+                      Vacant
+                    </Text>
+                  </View>
+                  <Text className="text-2xl font-black text-[#064E3B] my-0.5">
+                    {displayAvailableBeds}
+                  </Text>
+                  <View className="h-1.5 w-full bg-[#D1FAE5] rounded-full overflow-hidden mt-1">
+                    <View
+                      className="h-full bg-[#10B981] rounded-full"
+                      style={{ width: `${vacantPct}%` }}
+                    />
+                  </View>
+                </TouchableOpacity>
+
+                {/* Occupied Card */}
                 <TouchableOpacity
                   activeOpacity={0.8}
                   onPress={() => router.push('/(tabs)/tenants' as any)}
-                  className="flex-1 bg-white border border-slate-300 py-3.5 rounded-xl items-center justify-center shadow-xs"
+                  className="flex-1 bg-[#FFF1F2] border border-[#FECDD3] rounded-2xl p-2.5"
                 >
-                  <Text className="text-xs font-bold text-slate-800">Tenants list</Text>
+                  <View className="flex-row items-center gap-1.5 mb-1">
+                    <View className="w-1 h-2.5 rounded-full bg-[#E11D48]" />
+                    <Text className="text-[11px] font-black text-[#9F1239]" numberOfLines={1}>
+                      Occupied
+                    </Text>
+                  </View>
+                  <Text className="text-2xl font-black text-[#881337] my-0.5">
+                    {displayOccupiedBeds}
+                  </Text>
+                  <View className="h-1.5 w-full bg-[#FFE4E6] rounded-full overflow-hidden mt-1">
+                    <View
+                      className="h-full bg-[#E11D48] rounded-full"
+                      style={{ width: `${occupiedPct}%` }}
+                    />
+                  </View>
                 </TouchableOpacity>
 
+                {/* Notice Card */}
                 <TouchableOpacity
-                  activeOpacity={0.85}
-                  onPress={() => router.push('/(tabs)/matrix')}
-                  className="flex-1 bg-[#0F223D] py-3.5 rounded-xl items-center justify-center shadow-xs"
+                  activeOpacity={0.8}
+                  onPress={() => router.push('/(tabs)/tenants' as any)}
+                  className="flex-1 bg-[#FEF9ED] border border-[#FDE68A] rounded-2xl p-2.5"
                 >
-                  <Text className="text-xs font-bold text-white">View grid →</Text>
+                  <View className="flex-row items-center gap-1.5 mb-1">
+                    <View className="w-2 h-2 rounded-full bg-[#D97706]" />
+                    <Text className="text-[11px] font-black text-[#92400E]" numberOfLines={1}>
+                      Notice
+                    </Text>
+                  </View>
+                  <Text className="text-2xl font-black text-[#78350F] my-0.5">
+                    {displayNoticeBeds}
+                  </Text>
+                  <View className="h-1.5 w-full bg-[#FEF3C7] rounded-full overflow-hidden mt-1">
+                    <View
+                      className="h-full bg-[#D97706] rounded-full"
+                      style={{ width: `${noticePct}%` }}
+                    />
+                  </View>
+                </TouchableOpacity>
+
+                {/* Maintenance Card */}
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => router.push('/(tabs)/matrix')}
+                  className="flex-1 bg-[#F1F5F9] border border-[#E2E8F0] rounded-2xl p-2.5"
+                >
+                  <View className="flex-row items-center gap-1.5 mb-1">
+                    <View className="w-2 h-2 rounded-full bg-[#64748B]" />
+                    <Text className="text-[11px] font-black text-[#334155]" numberOfLines={1}>
+                      Maint.
+                    </Text>
+                  </View>
+                  <Text className="text-2xl font-black text-[#1E293B] my-0.5">
+                    {displayMaintenanceBeds}
+                  </Text>
+                  <View className="h-1.5 w-full bg-[#E2E8F0] rounded-full overflow-hidden mt-1">
+                    <View
+                      className="h-full bg-[#64748B] rounded-full"
+                      style={{ width: `${maintPct}%` }}
+                    />
+                  </View>
                 </TouchableOpacity>
               </View>
             </View>
 
-            {/* Overdue / Dues Status Banner with colored left accent */}
+            {/* Overdue / Dues Status Banner */}
             {overdueCount > 0 ? (
               <TouchableOpacity
                 activeOpacity={0.85}
                 onPress={() => router.push('/(tabs)/dues')}
-                className="bg-white border-l-[5px] border-l-[#BE123C] border border-slate-200/80 rounded-2xl p-4 mb-4 flex-row items-center justify-between shadow-xs"
+                className="bg-[#FFF1F2] border border-[#FECDD3] rounded-2xl p-3.5 mb-4 flex-row items-center justify-between shadow-xs"
               >
-                <View className="flex-1 mr-3">
-                  <Text className="text-sm font-bold text-[#BE123C]">
-                    ⚠️ {overdueCount} tenant{overdueCount === 1 ? '' : 's'} overdue &gt; 5d
-                  </Text>
-                  <Text className="text-xs text-slate-500 mt-0.5">
-                    {formatINR(overdueAmountPaise)} pending collection
-                  </Text>
+                <View className="flex-row items-center flex-1 mr-3">
+                  <View className="w-11 h-11 rounded-full bg-[#BE123C] items-center justify-center mr-3.5">
+                    <CircleCheck size={22} color="#FFFFFF" strokeWidth={2.5} />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-sm font-black text-[#9F1239]">
+                      {overdueCount} tenant{overdueCount === 1 ? '' : 's'} overdue &gt; 5d
+                    </Text>
+                    <Text className="text-xs font-semibold text-[#BE123C] mt-0.5">
+                      {formatINR(overdueAmountPaise)} pending collection
+                    </Text>
+                  </View>
                 </View>
                 <ChevronRight size={18} color="#BE123C" />
               </TouchableOpacity>
             ) : (
-              <View className="bg-white border-l-[5px] border-l-[#0A6C50] border border-slate-200/80 rounded-2xl p-4 mb-4 shadow-xs">
-                <Text className="text-sm font-bold text-slate-900">
-                  ✓ All rents collected on time
-                </Text>
-                <Text className="text-xs text-slate-500 mt-0.5">Zero overdue accounts pending</Text>
+              <View className="bg-[#EAF7EE] border border-[#A7F3D0] rounded-2xl p-3.5 mb-4 flex-row items-center shadow-xs">
+                <View className="w-11 h-11 rounded-full bg-[#0A6C50] items-center justify-center mr-3.5">
+                  <CircleCheck size={24} color="#FFFFFF" strokeWidth={2.5} />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-sm font-black text-[#064E3B]">
+                    All rents collected on time
+                  </Text>
+                  <Text className="text-xs font-semibold text-[#065F46] mt-0.5">
+                    Zero overdue accounts pending
+                  </Text>
+                </View>
               </View>
             )}
 
@@ -514,20 +514,21 @@ export default function PulseScreen() {
           </View>
         </ScrollView>
 
-        {/* Floating Action Button (FAB) matching the design */}
+        {/* Floating Action Button (+ Add) */}
         <TouchableOpacity
           activeOpacity={0.85}
-          onPress={() => router.push('/(tabs)/matrix')}
-          className="absolute bottom-6 right-6 w-14 h-14 bg-[#0F223D] rounded-full items-center justify-center shadow-lg"
+          onPress={() => router.push('/tenants/add' as any)}
+          className="absolute bottom-6 right-6 flex-row items-center bg-[#0A6C50] px-5 py-3.5 rounded-full shadow-lg"
           style={{
-            shadowColor: '#0F223D',
+            shadowColor: '#0A6C50',
             shadowOffset: { width: 0, height: 4 },
             shadowOpacity: 0.35,
             shadowRadius: 8,
             elevation: 6,
           }}
         >
-          <Plus size={26} color="#FFFFFF" strokeWidth={2.5} />
+          <Plus size={20} color="#FFFFFF" strokeWidth={3} />
+          <Text className="text-base font-bold text-white ml-1.5">Add</Text>
         </TouchableOpacity>
       </View>
 
