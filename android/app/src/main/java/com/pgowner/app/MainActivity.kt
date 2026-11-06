@@ -39,7 +39,7 @@ class MainActivity : ReactActivity() {
               mainComponentName,
               fabricEnabled
           ){
-            override fun createRootView(): ReactRootView {
+            override fun createRootView(): ReactRootView? {
               val view = super.createRootView()
               view?.setBackgroundColor(Color.parseColor("#0A6C50"))
               return view
