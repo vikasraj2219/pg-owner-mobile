@@ -1,5 +1,5 @@
 import '../global.css';
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { QueryClient } from '@tanstack/react-query';
@@ -33,33 +33,47 @@ function NavigationGuard() {
   const segments = useSegments();
   const router = useRouter();
 
+  // Hold splash screen for at least 1500ms so background routing & auth checks settle smoothly
+  const [minSplashDone, setMinSplashDone] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setMinSplashDone(true);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
   const inAuthGroup = segments[0] === '(auth)';
 
   useEffect(() => {
     if (isLoading) return;
 
     if (!isAuthenticated && !inAuthGroup) {
-      // Redirect unauthenticated users directly to Login
+      // Direct unauthenticated users straight to Login
       router.replace('/(auth)/login');
     } else if (isAuthenticated && inAuthGroup && isUnlocked) {
-      // Redirect authenticated & unlocked users away from Auth screens to Tabs
+      // Direct authenticated & unlocked users away from Auth screens to Tabs
       router.replace('/(tabs)');
     }
   }, [isLoading, isAuthenticated, isUnlocked, inAuthGroup, router]);
 
-  // Keep the brand splash overlay visible until the router has completed navigating to the correct group.
-  // This completely eliminates any flash of the Dashboard for unauthenticated users,
-  // and eliminates any flash of the Login page for authenticated users.
-  const isNavigatingToTarget =
+  // Target screen is confirmed ready only when router has arrived at the correct destination
+  const isTargetScreenReady =
     !isLoading &&
-    ((!isAuthenticated && !inAuthGroup) || (isAuthenticated && inAuthGroup && isUnlocked));
+    ((!isAuthenticated && inAuthGroup) || (isAuthenticated && !inAuthGroup && isUnlocked));
 
-  const showSplash = isLoading || isNavigatingToTarget;
+  // Splash stays active for minimum time AND until target route has mounted
+  const showSplash = !minSplashDone || !isTargetScreenReady;
 
   return (
-    <View style={{ flex: 1 }}>
-      {/* Root Navigator is ALWAYS mounted to preserve navigation state */}
-      <Stack screenOptions={{ headerShown: false }}>
+    <View style={{ flex: 1, backgroundColor: '#0A6C50' }}>
+      {/* Root Navigator is ALWAYS mounted with brand green background */}
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: '#0A6C50' },
+        }}
+      >
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="(auth)" />
         <Stack.Screen
@@ -89,7 +103,7 @@ function NavigationGuard() {
       {/* Brand Splash Screen Overlay during Initial Startup & Route Dispatch */}
       {showSplash && (
         <View style={StyleSheet.absoluteFill}>
-          <SplashScreenView showLoader={false} />
+          <SplashScreenView showLoader={true} />
         </View>
       )}
     </View>
@@ -106,7 +120,7 @@ export default function RootLayout() {
         >
           <AuthProvider>
             <PropertyProvider>
-              <StatusBar style="dark" />
+              <StatusBar style="light" />
               <NavigationGuard />
             </PropertyProvider>
           </AuthProvider>
