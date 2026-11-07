@@ -33,6 +33,7 @@ export const AddBedModal: React.FC<AddBedModalProps> = ({
 }) => {
   const queryClient = useQueryClient();
   const [bedLabel, setBedLabel] = useState('');
+  const [rent, setRent] = useState('');
   const [status, setStatus] = useState<BedStatus>('available');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -44,6 +45,9 @@ export const AddBedModal: React.FC<AddBedModalProps> = ({
       const nextIdx = existingBeds.length;
       const suffix = letters[nextIdx] || `${nextIdx + 1}`;
       setBedLabel(`${room.roomNumber}-${suffix}`);
+      setRent(
+        room.baseRentPaisePerBed ? String(Math.round(room.baseRentPaisePerBed / 100)) : '8500',
+      );
       setStatus('available');
     }
   }, [room, visible]);
@@ -56,15 +60,21 @@ export const AddBedModal: React.FC<AddBedModalProps> = ({
       return;
     }
 
+    const rentNum = parseFloat(rent.trim());
+    const rentPaise =
+      !isNaN(rentNum) && rentNum >= 0 ? Math.round(rentNum * 100) : room.baseRentPaisePerBed;
+
     setIsSubmitting(true);
     try {
       const newBed = await addBedToRoomApi(propertyId, room._id, {
         bedNumber: bedLabel.trim(),
+        baseRentPaise: rentPaise,
       });
 
       if (status !== 'available' && newBed?._id) {
         await updateBedApi(newBed._id, {
           status,
+          baseRentPaise: rentPaise,
           maintenanceNote: status === 'maintenance' ? 'Under maintenance' : undefined,
         });
       }
@@ -132,6 +142,38 @@ export const AddBedModal: React.FC<AddBedModalProps> = ({
               />
               <Text className="text-2xs text-slate-400 font-medium mt-1">
                 Next free label. You can customize it if needed.
+              </Text>
+            </View>
+
+            {/* Monthly Base Rent */}
+            <View className="mb-4">
+              <View className="flex-row items-center justify-between mb-1.5">
+                <Text className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  Monthly Rent (₹) *
+                </Text>
+                {room.baseRentPaisePerBed ? (
+                  <Text className="text-2xs font-semibold text-slate-400">
+                    Room default: {formatINR(room.baseRentPaisePerBed)}
+                  </Text>
+                ) : null}
+              </View>
+              <View className="flex-row items-center bg-white border border-slate-300 rounded-xl px-4 py-3 shadow-xs">
+                <Text className="text-slate-400 font-extrabold mr-2 text-base">₹</Text>
+                <TextInput
+                  value={rent}
+                  onChangeText={setRent}
+                  placeholder={
+                    room.baseRentPaisePerBed
+                      ? String(Math.round(room.baseRentPaisePerBed / 100))
+                      : '8500'
+                  }
+                  placeholderTextColor="#94A3B8"
+                  keyboardType="numeric"
+                  className="flex-1 font-bold text-slate-900 text-base p-0"
+                />
+              </View>
+              <Text className="text-2xs text-slate-400 mt-1">
+                Set price for this specific bed (e.g. lower bunk or window side).
               </Text>
             </View>
 

@@ -313,10 +313,12 @@ export interface UpdateRoomPayload {
 
 export interface AddBedPayload {
   bedNumber?: string;
+  baseRentPaise?: Paise;
 }
 
 export interface UpdateBedPayload {
   bedNumber?: string;
+  baseRentPaise?: Paise;
   status?: BedStatus;
   maintenanceNote?: string;
   noticeEndDate?: string;

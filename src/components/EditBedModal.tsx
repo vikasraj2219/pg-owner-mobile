@@ -15,6 +15,7 @@ import { updateBedApi, deleteBedApi } from '../api/properties';
 import { useQueryClient } from '@tanstack/react-query';
 import { IMatrixBed, IMatrixRoom, BedStatus } from '../types/api';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
+import { formatINR } from '../utils/currency';
 
 interface EditBedModalProps {
   visible: boolean;
@@ -37,6 +38,7 @@ export const EditBedModal: React.FC<EditBedModalProps> = ({
 }) => {
   const queryClient = useQueryClient();
   const [bedLabel, setBedLabel] = useState('');
+  const [rent, setRent] = useState('');
   const [status, setStatus] = useState<BedStatus>('available');
   const [reason, setReason] = useState('');
   const [isSaving, setIsSaving] = useState(false);
@@ -51,8 +53,11 @@ export const EditBedModal: React.FC<EditBedModalProps> = ({
       setBedLabel(bed.bedNumber || '');
       setStatus(bed.status || 'available');
       setReason(bed.maintenanceNote || '');
+      const defaultRentPaise =
+        bed.baseRentPaise || bed.currentTenant?.monthlyRentPaise || _room?.baseRentPaisePerBed || 0;
+      setRent(defaultRentPaise ? String(Math.round(defaultRentPaise / 100)) : '');
     }
-  }, [bed, visible]);
+  }, [bed, visible, _room]);
 
   if (!visible || !bed) return null;
 
@@ -62,10 +67,14 @@ export const EditBedModal: React.FC<EditBedModalProps> = ({
       return;
     }
 
+    const rentNum = parseFloat(rent.trim());
+    const rentPaise = !isNaN(rentNum) && rentNum >= 0 ? Math.round(rentNum * 100) : undefined;
+
     setIsSaving(true);
     try {
       await updateBedApi(bed._id, {
         bedNumber: bedLabel.trim(),
+        baseRentPaise: rentPaise,
         status: isOccupied ? undefined : status,
         maintenanceNote:
           status === 'maintenance' ? reason.trim() || 'Under maintenance' : undefined,
@@ -176,6 +185,38 @@ export const EditBedModal: React.FC<EditBedModalProps> = ({
                 placeholderTextColor="#94A3B8"
                 className="bg-white border border-slate-300 rounded-xl px-4 py-3 font-bold text-slate-900 text-base shadow-xs"
               />
+            </View>
+
+            {/* Monthly Base Rent */}
+            <View className="mb-4">
+              <View className="flex-row items-center justify-between mb-1.5">
+                <Text className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  Monthly Rent (₹) *
+                </Text>
+                {_room?.baseRentPaisePerBed ? (
+                  <Text className="text-2xs font-semibold text-slate-400">
+                    Room default: {formatINR(_room.baseRentPaisePerBed)}
+                  </Text>
+                ) : null}
+              </View>
+              <View className="flex-row items-center bg-white border border-slate-300 rounded-xl px-4 py-3 shadow-xs">
+                <Text className="text-slate-400 font-extrabold mr-2 text-base">₹</Text>
+                <TextInput
+                  value={rent}
+                  onChangeText={setRent}
+                  placeholder={
+                    _room?.baseRentPaisePerBed
+                      ? String(Math.round(_room.baseRentPaisePerBed / 100))
+                      : '8500'
+                  }
+                  placeholderTextColor="#94A3B8"
+                  keyboardType="numeric"
+                  className="flex-1 font-bold text-slate-900 text-base p-0"
+                />
+              </View>
+              <Text className="text-2xs text-slate-400 mt-1">
+                Customize the price for this specific bed (e.g. lower bunk, window side).
+              </Text>
             </View>
 
             {/* If Occupied Banner */}

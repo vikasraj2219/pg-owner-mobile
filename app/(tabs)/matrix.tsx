@@ -522,13 +522,22 @@ export default function MatrixScreen() {
                               >
                                 {firstName}
                               </Text>
-                              <Text
-                                className={`text-xs font-bold mt-0.5 ${
-                                  isDue ? 'text-rose-600' : 'text-emerald-700'
-                                }`}
-                              >
-                                {isDue ? 'DUE' : 'PAID'}
-                              </Text>
+                              <View className="flex-row items-center justify-between mt-0.5">
+                                <Text className="text-xs font-semibold text-slate-500">
+                                  {formatINR(
+                                    bed.currentTenant?.monthlyRentPaise ||
+                                      bed.baseRentPaise ||
+                                      room.baseRentPaisePerBed,
+                                  )}
+                                </Text>
+                                <Text
+                                  className={`text-2xs font-extrabold ${
+                                    isDue ? 'text-rose-600' : 'text-emerald-700'
+                                  }`}
+                                >
+                                  {isDue ? 'DUE' : 'PAID'}
+                                </Text>
+                              </View>
                             </View>
                           </TouchableOpacity>
                         );
@@ -586,9 +595,18 @@ export default function MatrixScreen() {
                               >
                                 {firstName}
                               </Text>
-                              <Text className="text-[11px] font-bold text-amber-700 mt-0.5">
-                                {noticeText}
-                              </Text>
+                              <View className="flex-row items-center justify-between mt-0.5">
+                                <Text className="text-xs font-semibold text-amber-800">
+                                  {formatINR(
+                                    bed.currentTenant?.monthlyRentPaise ||
+                                      bed.baseRentPaise ||
+                                      room.baseRentPaisePerBed,
+                                  )}
+                                </Text>
+                                <Text className="text-[10px] font-bold text-amber-700">
+                                  {noticeText}
+                                </Text>
+                              </View>
                             </View>
                           </TouchableOpacity>
                         );
