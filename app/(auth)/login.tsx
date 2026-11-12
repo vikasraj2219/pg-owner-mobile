@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import * as SplashScreen from 'expo-splash-screen';
 import { Eye, EyeOff, Fingerprint, AlertCircle } from 'lucide-react-native';
 import { AppLogo } from '../../src/components/AppLogo';
 import { useAuth } from '../../src/hooks/useAuth';
@@ -24,6 +25,24 @@ import {
 export default function LoginScreen() {
   const router = useRouter();
   const { login, loginWithBiometrics, isBiometricEnabled } = useAuth();
+
+  // Instagram-style smooth splash transition: wait for initial screen layout pass + comfortable hold
+  const mountTimeRef = useRef(Date.now());
+  const splashDismissedRef = useRef(false);
+
+  const handleLayout = useCallback(() => {
+    if (splashDismissedRef.current) return;
+    const elapsed = Date.now() - mountTimeRef.current;
+    const minHold = 500;
+    const remaining = Math.max(0, minHold - elapsed);
+
+    setTimeout(() => {
+      if (!splashDismissedRef.current) {
+        splashDismissedRef.current = true;
+        SplashScreen.hideAsync().catch(() => {});
+      }
+    }, remaining);
+  }, []);
 
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
@@ -101,7 +120,7 @@ export default function LoginScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-[#F8F9FA]">
+    <SafeAreaView className="flex-1 bg-[#F8F9FA]" onLayout={handleLayout}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         className="flex-1"

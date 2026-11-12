@@ -1,9 +1,17 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text } from 'react-native';
 import { Tabs } from 'expo-router';
 import { Activity, LayoutGrid, Menu } from 'lucide-react-native';
+import * as SplashScreen from 'expo-splash-screen';
 
 export default function TabsLayout() {
+  useEffect(() => {
+    // Safety fallback: if screen layout takes unusually long, ensure splash is dismissed
+    const timer = setTimeout(() => {
+      SplashScreen.hideAsync().catch(() => {});
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, []);
   return (
     <Tabs
       screenOptions={{

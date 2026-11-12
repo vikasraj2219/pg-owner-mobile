@@ -1,0 +1,2094 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-[#0C0E14] text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nilaaya PG Owner Mobile — Exact Implemented App Design & Screen Showcase</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            brand: {
+              DEFAULT: '#0A6C50',
+              50: '#E8F5EE',
+              100: '#C7E7D4',
+              200: '#A7F3D0',
+              500: '#0A6C50',
+              600: '#085841',
+              700: '#064432',
+              800: '#043024',
+              900: '#03251B',
+            },
+            nilaaya: {
+              bg: '#F8F9FA',
+              darkbg: '#0F1117',
+              surface: '#FFFFFF',
+              border: '#E2E8F0',
+              text: '#0F172A',
+              muted: '#64748B',
+              danger: '#BE123C',
+              warning: '#D97706',
+              success: '#0A6C50',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom scrollbars */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #272F43; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #384360; }
+
+    /* iPhone 16 Pro Device Frame */
+    .phone-mockup {
+      width: 380px;
+      height: 790px;
+      border-radius: 52px;
+      box-shadow: 0 0 0 12px #181C26, 0 0 0 14px #262D3D, 0 35px 70px -15px rgba(0, 0, 0, 0.85);
+      position: relative;
+      overflow: hidden;
+      background: #F8F9FA;
+      display: flex;
+      flex-direction: column;
+    }
+    .phone-screen {
+      width: 100%;
+      height: 100%;
+      overflow-y: auto;
+      color: #0F172A;
+      font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    .dynamic-island {
+      width: 116px;
+      height: 28px;
+      background: #000000;
+      border-radius: 20px;
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 60;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    }
+    @media print {
+      body { background: white !important; color: black !important; }
+      .no-print { display: none !important; }
+      .print-page { break-after: page; page-break-after: always; }
+      .phone-mockup { box-shadow: none !important; border: 1px solid #ddd !important; }
+    }
+  </style>
+</head>
+<body class="h-full flex overflow-hidden font-sans antialiased text-slate-100 bg-[#0C0E14]">
+
+  <!-- ========================================================================= -->
+  <!-- LEFT SIDEBAR NAVIGATION (Claude Artifact Multi-Page Architecture)          -->
+  <!-- ========================================================================= -->
+  <aside id="sidebar" class="w-80 bg-[#12151F] border-r border-[#202636] flex flex-col shrink-0 transition-all duration-300 z-40 relative no-print">
+    
+    <!-- Sidebar Header & Logo -->
+    <div class="p-4 border-b border-[#202636] flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <!-- Exact Nilaaya App Logo Squircle -->
+        <div class="w-10 h-10 rounded-[12px] bg-[#0A6C50] flex items-center justify-center shadow-lg shadow-emerald-950/40">
+          <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-1.5">
+            <span class="text-xs font-black tracking-wider text-emerald-400 uppercase">NILAAYA</span>
+            <span class="px-1.5 py-0.2 rounded text-[10px] font-extrabold bg-emerald-950 text-emerald-300 border border-emerald-800">PRO v2.4</span>
+          </div>
+          <h1 class="text-sm font-extrabold text-white tracking-tight">PG Owner Mobile</h1>
+        </div>
+      </div>
+      <button onclick="toggleSidebar()" class="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800">
+        ✕
+      </button>
+    </div>
+
+    <!-- Screen Filter Search Bar -->
+    <div class="p-3 border-b border-[#202636]/60">
+      <div class="relative">
+        <svg class="w-4 h-4 text-slate-500 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <input 
+          id="pageSearch" 
+          type="text" 
+          placeholder="Filter exact screens (Cmd+K)..." 
+          oninput="filterPages(this.value)"
+          class="w-full bg-[#171B26] border border-[#252C3D] rounded-xl pl-9 pr-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition-colors"
+        >
+      </div>
+    </div>
+
+    <!-- Navigation Page List (Hash-routed) -->
+    <nav class="flex-1 overflow-y-auto p-3 space-y-5" id="navSections">
+
+      <!-- Group 1: Bottom Bar Primary Tabs -->
+      <div>
+        <div class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 px-3 mb-2 flex items-center justify-between">
+          <span>Active Bottom Tabs (4)</span>
+          <code class="text-[9px] font-mono text-emerald-500">app/(tabs)/</code>
+        </div>
+        <div class="space-y-1">
+          
+          <!-- 1. Pulse Tab -->
+          <a href="#page-pulse" onclick="navTo('page-pulse')" data-page="page-pulse" class="nav-item flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-[#1A202E] transition-all">
+            <span class="w-6 h-6 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-mono text-[11px] font-bold">01</span>
+            <div class="flex-1 truncate">
+              <div class="flex items-center gap-1.5">
+                <span class="truncate font-extrabold">Pulse Dashboard</span>
+              </div>
+              <div class="text-[10px] text-slate-500 truncate">P&L Collections • Trial Pill • FAB</div>
+            </div>
+          </a>
+
+          <!-- 2. Matrix Tab -->
+          <a href="#page-matrix" onclick="navTo('page-matrix')" data-page="page-matrix" class="nav-item active flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-white bg-emerald-950/40 border border-emerald-500/30 transition-all">
+            <span class="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-300 flex items-center justify-center font-mono text-[11px] font-bold">02</span>
+            <div class="flex-1 truncate">
+              <div class="flex items-center gap-1.5">
+                <span class="truncate font-extrabold">Bed Matrix</span>
+                <span class="px-1 py-0.2 rounded text-[9px] font-bold bg-emerald-900 text-emerald-300">LIVE</span>
+              </div>
+              <div class="text-[10px] text-slate-400 truncate">Per-Bed Rates • Sharing Chips</div>
+            </div>
+          </a>
+
+          <!-- 3. Dues Tab -->
+          <a href="#page-dues" onclick="navTo('page-dues')" data-page="page-dues" class="nav-item flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-[#1A202E] transition-all">
+            <span class="w-6 h-6 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center font-mono text-[11px] font-bold">03</span>
+            <div class="flex-1 truncate">
+              <div class="flex items-center gap-1.5">
+                <span class="truncate font-extrabold">Dues & Collections</span>
+              </div>
+              <div class="text-[10px] text-slate-500 truncate">UPI QR • WhatsApp Ping • Invoices</div>
+            </div>
+          </a>
+
+          <!-- 4. More Tab -->
+          <a href="#page-more" onclick="navTo('page-more')" data-page="page-more" class="nav-item flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-[#1A202E] transition-all">
+            <span class="w-6 h-6 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-mono text-[11px] font-bold">04</span>
+            <div class="flex-1 truncate">
+              <div class="flex items-center gap-1.5">
+                <span class="truncate font-extrabold">More (Operations Hub)</span>
+              </div>
+              <div class="text-[10px] text-slate-500 truncate">Submeter ₹0 • Biometrics • P&L</div>
+            </div>
+          </a>
+
+        </div>
+      </div>
+
+      <!-- Group 2: Operational Flow Screens -->
+      <div>
+        <div class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 px-3 mb-2 flex items-center justify-between">
+          <span>Flow Screens</span>
+          <span class="text-[9px] font-normal text-slate-600">Routes</span>
+        </div>
+        <div class="space-y-1">
+
+          <!-- Check-in Flow -->
+          <a href="#page-checkin" onclick="navTo('page-checkin')" data-page="page-checkin" class="nav-item flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-[#1A202E] transition-all">
+            <span class="w-6 h-6 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center font-mono text-[11px] font-bold">05</span>
+            <div class="flex-1 truncate">
+              <div class="flex items-center gap-1.5">
+                <span class="truncate font-extrabold">Guarded Check-in</span>
+                <span class="px-1 py-0.2 rounded text-[9px] font-bold bg-blue-900 text-blue-300">₹1000 DEP</span>
+              </div>
+              <div class="text-[10px] text-slate-500 truncate">ID · Tenant · Money Steps</div>
+            </div>
+          </a>
+
+          <!-- Tenants Directory -->
+          <a href="#page-tenants" onclick="navTo('page-tenants')" data-page="page-tenants" class="nav-item flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-[#1A202E] transition-all">
+            <span class="w-6 h-6 rounded-lg bg-teal-500/10 text-teal-400 flex items-center justify-center font-mono text-[11px] font-bold">06</span>
+            <div class="flex-1 truncate">
+              <div class="truncate font-extrabold">Tenants Directory</div>
+              <div class="text-[10px] text-slate-500 truncate">Search • Filter Chips • Actions</div>
+            </div>
+          </a>
+
+          <!-- Tenant Detail & Ledger -->
+          <a href="#page-tenant-detail" onclick="navTo('page-tenant-detail')" data-page="page-tenant-detail" class="nav-item flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-[#1A202E] transition-all">
+            <span class="w-6 h-6 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center font-mono text-[11px] font-bold">07</span>
+            <div class="flex-1 truncate">
+              <div class="truncate font-extrabold">Tenant Detail & Ledger</div>
+              <div class="text-[10px] text-slate-500 truncate">Overview • Invoices • KYC Photo</div>
+            </div>
+          </a>
+
+          <!-- Guarded Checkout -->
+          <a href="#page-checkout" onclick="navTo('page-checkout')" data-page="page-checkout" class="nav-item flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-[#1A202E] transition-all">
+            <span class="w-6 h-6 rounded-lg bg-rose-500/10 text-rose-400 flex items-center justify-center font-mono text-[11px] font-bold">08</span>
+            <div class="flex-1 truncate">
+              <div class="truncate font-extrabold">Guarded Checkout</div>
+              <div class="text-[10px] text-slate-500 truncate">Settlement Ledger • Net Refund</div>
+            </div>
+          </a>
+
+          <!-- Auth / Login -->
+          <a href="#page-login" onclick="navTo('page-login')" data-page="page-login" class="nav-item flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-[#1A202E] transition-all">
+            <span class="w-6 h-6 rounded-lg bg-slate-500/10 text-slate-400 flex items-center justify-center font-mono text-[11px] font-bold">09</span>
+            <div class="flex-1 truncate">
+              <div class="truncate font-extrabold">Auth: Login & Biometrics</div>
+              <div class="text-[10px] text-slate-500 truncate">Nilaaya AppLogo • Fingerprint</div>
+            </div>
+          </a>
+
+        </div>
+      </div>
+
+      <!-- Group 3: Modals & Design System -->
+      <div>
+        <div class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 px-3 mb-2 flex items-center justify-between">
+          <span>Sheets & Modals</span>
+          <span class="text-[9px] font-normal text-slate-600">Exact Code</span>
+        </div>
+        <div class="space-y-1">
+          
+          <a href="#page-modals" onclick="navTo('page-modals')" data-page="page-modals" class="nav-item flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-[#1A202E] transition-all">
+            <span class="w-6 h-6 rounded-lg bg-rose-500/10 text-rose-400 flex items-center justify-center font-mono text-[11px] font-bold">10</span>
+            <div class="flex-1 truncate">
+              <div class="flex items-center gap-1.5">
+                <span class="truncate font-extrabold">Universal Modals Suite</span>
+                <span class="px-1 py-0.2 rounded text-[9px] font-bold bg-rose-900 text-rose-300">REDESIGNED</span>
+              </div>
+              <div class="text-[10px] text-slate-500 truncate">ConfirmDelete • EditBed • Calendar</div>
+            </div>
+          </a>
+
+          <a href="#page-tokens" onclick="navTo('page-tokens')" data-page="page-tokens" class="nav-item flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-[#1A202E] transition-all">
+            <span class="w-6 h-6 rounded-lg bg-yellow-500/10 text-yellow-400 flex items-center justify-center font-mono text-[11px] font-bold">11</span>
+            <div class="flex-1 truncate">
+              <div class="truncate font-extrabold">Exact Design Tokens</div>
+              <div class="text-[10px] text-slate-500 truncate">Colors • Radii • Typography</div>
+            </div>
+          </a>
+
+          <a href="#page-gallery" onclick="navTo('page-gallery')" data-page="page-gallery" class="nav-item flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-[#1A202E] transition-all">
+            <span class="w-6 h-6 rounded-lg bg-sky-500/10 text-sky-400 flex items-center justify-center font-mono text-[11px] font-bold">12</span>
+            <div class="flex-1 truncate">
+              <div class="truncate font-extrabold">Continuous Gallery / Print</div>
+              <div class="text-[10px] text-slate-500 truncate">All screens stacked for PDF</div>
+            </div>
+          </a>
+
+        </div>
+      </div>
+
+    </nav>
+
+    <!-- Sidebar Footer / Build Info -->
+    <div class="p-3.5 border-t border-[#202636] bg-[#0E1118]">
+      <div class="flex items-center justify-between text-[11px] mb-2">
+        <span class="text-slate-400 font-medium">Production APK</span>
+        <span class="text-emerald-400 font-bold flex items-center gap-1">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          Ready to Install
+        </span>
+      </div>
+      <a 
+        href="file:///Users/zdofice02/Documents/GitHub/pg-owner-mobile/pg-owner-mobile-release.apk" 
+        download="pg-owner-mobile.apk" 
+        class="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+        </svg>
+        Download Android APK
+      </a>
+      <div class="mt-2 text-[10px] text-center text-slate-500">
+        Saved in: <code class="text-slate-400">~/Downloads/pg-owner-mobile.apk</code>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ========================================================================= -->
+  <!-- MAIN WORKSPACE & EXACT SCREEN VIEWER                                      -->
+  <!-- ========================================================================= -->
+  <div class="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#0F1117]">
+
+    <!-- Top Command Header -->
+    <header class="h-14 border-b border-[#202636] bg-[#131622] px-4 md:px-6 flex items-center justify-between shrink-0 z-30 no-print">
+      
+      <!-- Left: Mobile Menu & Breadcrumbs -->
+      <div class="flex items-center gap-3">
+        <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+
+        <!-- Dynamic Breadcrumb -->
+        <div class="flex items-center gap-2 text-xs">
+          <span class="text-slate-500 font-bold uppercase tracking-wider text-[10px]">Nilaaya PG</span>
+          <span class="text-slate-600">/</span>
+          <span id="breadcrumbCategory" class="text-slate-400 font-medium">Bottom Tabs</span>
+          <span class="text-slate-600">/</span>
+          <span id="breadcrumbTitle" class="text-emerald-400 font-bold">Bed Matrix</span>
+        </div>
+      </div>
+
+      <!-- Right: Viewport Controls & PDF Export -->
+      <div class="flex items-center gap-2">
+        <div class="hidden sm:flex items-center bg-[#1D2230] p-0.5 rounded-xl border border-[#2B3347]">
+          <button onclick="setViewMode('split')" id="btnViewSplit" class="px-2.5 py-1 rounded-lg text-xs font-semibold text-white bg-slate-700/80 shadow-xs transition-all">
+            Split (Phone + Spec)
+          </button>
+          <button onclick="setViewMode('phone')" id="btnViewPhone" class="px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition-all">
+            Phone Only
+          </button>
+          <button onclick="setViewMode('spec')" id="btnViewSpec" class="px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition-all">
+            Spec Only
+          </button>
+        </div>
+
+        <button onclick="window.print()" class="px-3 py-1.5 rounded-xl bg-[#1E2435] hover:bg-[#283148] border border-[#2B344B] text-xs font-bold text-slate-200 hover:text-white flex items-center gap-1.5 transition-all">
+          <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+          </svg>
+          <span>Export PDF</span>
+        </button>
+      </div>
+
+    </header>
+
+    <!-- Scrollable Screen Content Container -->
+    <main class="flex-1 overflow-y-auto p-4 md:p-8" id="mainContainer">
+
+      <!-- ===================================================================== -->
+      <!-- SCREEN 01: BED MATRIX (Exact Match: app/(tabs)/matrix.tsx)            -->
+      <!-- ===================================================================== -->
+      <section id="page-matrix" class="page-content space-y-6 max-w-6xl mx-auto">
+
+        <!-- Top Header & Route Banner -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#202636]">
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                Active Tab 2: Matrix
+              </span>
+              <code class="text-xs font-mono text-slate-400">app/(tabs)/matrix.tsx</code>
+            </div>
+            <h2 class="text-xl md:text-2xl font-black text-white">Bed Matrix — Visual Floor & Per-Bed Rates</h2>
+            <p class="text-xs text-slate-400 mt-0.5">
+              Exact implementation: Per-bed individual rental rates, floor pills, room edit & quick add bed, and status legend.
+            </p>
+          </div>
+          <span class="px-3 py-1 rounded-full text-xs font-bold bg-[#1A2131] text-emerald-400 border border-emerald-500/30">
+            Auto Focus-Refreshed
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+          <!-- PHONE MOCKUP (Exact Matrix Screen) -->
+          <div class="lg:col-span-5 flex justify-center phone-pane">
+            <div class="phone-mockup">
+              <div class="dynamic-island"></div>
+              
+              <div class="phone-screen bg-[#F8F9FA] flex flex-col">
+                
+                <!-- iOS Status Bar -->
+                <div class="pt-3 px-6 pb-2 flex justify-between items-center text-xs font-bold text-slate-800 shrink-0 select-none">
+                  <span>9:41</span>
+                  <div class="flex items-center gap-1.5 text-[11px]">
+                    <span class="font-extrabold text-[10px]">5G</span>
+                    <div class="w-5 h-2.5 border border-slate-700 rounded-sm p-0.5 flex items-center">
+                      <div class="w-full h-full bg-slate-900 rounded-2xs"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Matrix Scroll Body -->
+                <div class="flex-1 overflow-y-auto px-5 pt-3 pb-6">
+                  
+                  <!-- Screen Title & Property Switcher Pill Header (Lines 240-270 of matrix.tsx) -->
+                  <div class="flex flex-row items-start justify-between mb-4">
+                    <div class="flex-1 mr-3">
+                      <div class="text-3xl font-extrabold text-slate-900 tracking-tight">
+                        Bed matrix
+                      </div>
+
+                      <!-- Clickable Property Selector Pill matching Page 2 -->
+                      <div class="flex flex-row items-center bg-[#E8F5EE] border border-[#A7F3D0] rounded-full px-3.5 py-1.5 mt-2 self-start cursor-pointer">
+                        <span class="text-xs font-bold text-[#0A6C50]">
+                          6 beds vacant · Sunrise PG
+                        </span>
+                        <svg class="w-3.5 h-3.5 text-[#0A6C50] ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+                      </div>
+                    </div>
+
+                    <!-- Top Right Quick Actions: Edit Property & Add Room Buttons -->
+                    <div class="flex flex-row items-center gap-2 mt-1">
+                      <div class="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center shadow-2xs">
+                        <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                      </div>
+                      <div class="w-10 h-10 rounded-full bg-[#0A6C50] flex items-center justify-center shadow-sm">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Floor Filter Pills Row (Lines 370-400 of matrix.tsx) -->
+                  <div class="flex flex-row items-center gap-2 mb-5 flex-wrap">
+                    <div class="px-5 py-2.5 rounded-full bg-[#0A6C50] text-white text-sm font-bold shadow-xs">
+                      Floor 1
+                    </div>
+                    <div class="px-5 py-2.5 rounded-full bg-white border border-slate-200 text-slate-800 text-sm font-bold">
+                      Floor 2
+                    </div>
+                    <div class="px-5 py-2.5 rounded-full ml-auto bg-white border border-slate-200 text-slate-800 text-sm font-bold">
+                      Vacant only
+                    </div>
+                  </div>
+
+                  <!-- Room 101 Card (Lines 415-495 of matrix.tsx) -->
+                  <div class="bg-white border border-slate-200/80 rounded-2xl p-4 mb-4 shadow-xs">
+                    
+                    <!-- Room Header with Edit & Quick Add Bed -->
+                    <div class="flex flex-row items-center justify-between mb-3.5">
+                      <div class="flex flex-row items-center">
+                        <span class="text-lg font-extrabold text-slate-900 mr-2">Room 101</span>
+                        <div class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center border border-slate-200 mr-1.5">
+                          <svg class="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                        </div>
+                        <div class="bg-emerald-50 border border-emerald-200 px-2 py-1 rounded-lg flex flex-row items-center">
+                          <svg class="w-2.5 h-2.5 text-[#0A6C50]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                          <span class="text-[10px] font-extrabold text-[#0A6C50] ml-0.5">Add Bed</span>
+                        </div>
+                      </div>
+
+                      <!-- Room Amenities Tags: Only Washroom and AC -->
+                      <div class="flex flex-row items-center gap-1.5 flex-wrap">
+                        <div class="px-2 py-0.5 rounded-md border border-slate-200 bg-white text-xs font-semibold text-slate-600">
+                          Washroom
+                        </div>
+                        <div class="px-2 py-0.5 rounded-md border border-slate-200 bg-white text-xs font-semibold text-slate-600">
+                          AC
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Bed Chips Grid in Room 101 -->
+                    <div class="flex flex-row gap-2.5 flex-wrap">
+                      
+                      <!-- Bed A: Occupied (🔴) with Individual Rate ₹8,500 and PAID badge -->
+                      <div class="flex-1 min-w-[95px] bg-[#FFF1F2] border border-[#FECDD3] rounded-xl p-3 flex flex-col justify-between" style="min-height: 88px;">
+                        <div class="flex flex-row items-center justify-between">
+                          <span class="text-xs font-semibold text-rose-500">101-A</span>
+                          <div class="w-5 h-5 rounded-full bg-rose-100 flex items-center justify-center">
+                            <span class="text-[10px] font-extrabold text-rose-700">RS</span>
+                          </div>
+                        </div>
+                        <div>
+                          <div class="text-sm font-bold text-slate-900 truncate">Rahul</div>
+                          <div class="flex flex-row items-center justify-between mt-0.5">
+                            <span class="text-xs font-semibold text-slate-500">₹8,500</span>
+                            <span class="text-[10px] font-extrabold text-emerald-700">PAID</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Bed B: Vacant (🟢) with Custom Rate ₹8,000 -->
+                      <div class="flex-1 min-w-[95px] bg-[#F0FDF4] border border-[#86EFAC] rounded-xl p-3 flex flex-col justify-between cursor-pointer" style="min-height: 88px;" onclick="navTo('page-checkin')">
+                        <span class="text-xs font-semibold text-[#0A6C50]">101-B</span>
+                        <div>
+                          <div class="text-sm font-bold text-slate-900">Vacant</div>
+                          <div class="text-xs font-bold text-[#0A6C50] mt-0.5">₹8,000</div>
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+
+                  <!-- Room 102 Card with 3 Beds -->
+                  <div class="bg-white border border-slate-200/80 rounded-2xl p-4 mb-4 shadow-xs">
+                    
+                    <div class="flex flex-row items-center justify-between mb-3.5">
+                      <div class="flex flex-row items-center">
+                        <span class="text-lg font-extrabold text-slate-900 mr-2">Room 102</span>
+                        <div class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center border border-slate-200 mr-1.5">
+                          <svg class="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                        </div>
+                        <div class="bg-emerald-50 border border-emerald-200 px-2 py-1 rounded-lg flex flex-row items-center">
+                          <svg class="w-2.5 h-2.5 text-[#0A6C50]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                          <span class="text-[10px] font-extrabold text-[#0A6C50] ml-0.5">Add Bed</span>
+                        </div>
+                      </div>
+
+                      <div class="flex flex-row items-center gap-1.5 flex-wrap">
+                        <div class="px-2 py-0.5 rounded-md border border-slate-200 bg-white text-xs font-semibold text-slate-600">
+                          Washroom
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="flex flex-row gap-2.5 flex-wrap">
+                      
+                      <!-- Bed A: Occupied with DUE status -->
+                      <div class="flex-1 min-w-[95px] bg-[#FFF1F2] border border-[#FECDD3] rounded-xl p-3 flex flex-col justify-between" style="min-height: 88px;">
+                        <div class="flex flex-row items-center justify-between">
+                          <span class="text-xs font-semibold text-rose-500">102-A</span>
+                          <div class="w-5 h-5 rounded-full bg-rose-100 flex items-center justify-center">
+                            <span class="text-[10px] font-extrabold text-rose-700">VV</span>
+                          </div>
+                        </div>
+                        <div>
+                          <div class="text-sm font-bold text-slate-900 truncate">Vikram</div>
+                          <div class="flex flex-row items-center justify-between mt-0.5">
+                            <span class="text-xs font-semibold text-slate-500">₹7,000</span>
+                            <span class="text-[10px] font-extrabold text-rose-600">DUE</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Bed B: Notice Period (🟡) with 15d left and rate ₹7,500 -->
+                      <div class="flex-1 min-w-[95px] bg-[#FFFBEB] border border-[#FDE68A] rounded-xl p-3 flex flex-col justify-between" style="min-height: 88px;">
+                        <div class="flex flex-row items-center justify-between">
+                          <span class="text-xs font-semibold text-amber-700">102-B</span>
+                          <div class="w-5 h-5 rounded-full bg-amber-100 flex items-center justify-center">
+                            <span class="text-[10px] font-extrabold text-amber-800">KN</span>
+                          </div>
+                        </div>
+                        <div>
+                          <div class="text-sm font-bold text-slate-900 truncate">Kavya</div>
+                          <div class="flex flex-row items-center justify-between mt-0.5">
+                            <span class="text-xs font-semibold text-amber-800">₹7,500</span>
+                            <span class="text-[10px] font-bold text-amber-700">15d left</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Bed C: Vacant (🟢) rate ₹7,000 -->
+                      <div class="flex-1 min-w-[95px] bg-[#F0FDF4] border border-[#86EFAC] rounded-xl p-3 flex flex-col justify-between cursor-pointer" style="min-height: 88px;">
+                        <span class="text-xs font-semibold text-[#0A6C50]">102-C</span>
+                        <div>
+                          <div class="text-sm font-bold text-slate-900">Vacant</div>
+                          <div class="text-xs font-bold text-[#0A6C50] mt-0.5">₹7,000</div>
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+
+                  <!-- Status Legend Row (Lines 630-660 of matrix.tsx) -->
+                  <div class="flex flex-row items-center justify-between pt-2 px-1 text-xs">
+                    <div class="flex flex-row items-center">
+                      <div class="w-3.5 h-3.5 rounded-sm bg-[#F0FDF4] border border-[#86EFAC] mr-1.5"></div>
+                      <span class="font-semibold text-slate-700 text-[11px]">Vacant</span>
+                    </div>
+                    <div class="flex flex-row items-center">
+                      <div class="w-3.5 h-3.5 rounded-sm bg-[#FFF1F2] border border-[#FECDD3] mr-1.5"></div>
+                      <span class="font-semibold text-slate-700 text-[11px]">Occupied</span>
+                    </div>
+                    <div class="flex flex-row items-center">
+                      <div class="w-3.5 h-3.5 rounded-sm bg-[#FFFBEB] border border-[#FDE68A] mr-1.5"></div>
+                      <span class="font-semibold text-slate-700 text-[11px]">Notice</span>
+                    </div>
+                    <div class="flex flex-row items-center">
+                      <div class="w-3.5 h-3.5 rounded-sm bg-[#F8FAFC] border border-[#CBD5E1] mr-1.5"></div>
+                      <span class="font-semibold text-slate-700 text-[11px]">Maint.</span>
+                    </div>
+                  </div>
+
+                </div>
+
+                <!-- Exact 4-Tab Bottom Bar (app/(tabs)/_layout.tsx) -->
+                <div class="h-16 bg-white border-t border-[#F0F0F0] flex items-center justify-around shrink-0 px-2 shadow-lg">
+                  <!-- Tab 1: Pulse -->
+                  <div class="flex flex-col items-center gap-0.5 text-[#64748B] cursor-pointer" onclick="navTo('page-pulse')">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                    <span class="text-[11px] font-semibold mt-[-2px]">Pulse</span>
+                  </div>
+
+                  <!-- Tab 2: Matrix (ACTIVE) -->
+                  <div class="flex flex-col items-center gap-0.5 text-[#0A6C50] cursor-pointer">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                    <span class="text-[11px] font-bold mt-[-2px]">Matrix</span>
+                  </div>
+
+                  <!-- Tab 3: Dues -->
+                  <div class="flex flex-col items-center gap-0.5 text-[#64748B] cursor-pointer" onclick="navTo('page-dues')">
+                    <div class="w-5 h-5 flex items-center justify-center text-[18px] font-extrabold leading-none text-[#64748B]">₹</div>
+                    <span class="text-[11px] font-semibold mt-[-2px]">Dues</span>
+                  </div>
+
+                  <!-- Tab 4: More -->
+                  <div class="flex flex-col items-center gap-0.5 text-[#64748B] cursor-pointer" onclick="navTo('page-more')">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                    <span class="text-[11px] font-semibold mt-[-2px]">More</span>
+                  </div>
+                </div>
+
+                <!-- Home Bar Indicator -->
+                <div class="h-4 bg-white flex justify-center items-center shrink-0">
+                  <div class="w-32 h-1 bg-slate-300 rounded-full"></div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <!-- SPECIFICATION & ARCHITECTURE (Col 7) -->
+          <div class="lg:col-span-7 space-y-6 spec-pane">
+            
+            <div class="bg-[#151924] border border-[#232A3B] rounded-2xl p-5 space-y-4">
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <span>📋</span> Exact Code Implementation: Bed Matrix
+              </h3>
+              
+              <div class="grid grid-cols-2 gap-3 text-xs">
+                <div>
+                  <span class="text-slate-500 block text-[11px]">Component File</span>
+                  <code class="text-emerald-400 font-mono">app/(tabs)/matrix.tsx</code>
+                </div>
+                <div>
+                  <span class="text-slate-500 block text-[11px]">Data Hook</span>
+                  <code class="text-blue-400 font-mono">useMatrix(selectedPropertyId)</code>
+                </div>
+                <div>
+                  <span class="text-slate-500 block text-[11px]">Cache Auto-Sync</span>
+                  <span class="text-slate-200">useFocusEffect() + memoized activeProperty</span>
+                </div>
+                <div>
+                  <span class="text-slate-500 block text-[11px]">Backend Controller</span>
+                  <code class="text-amber-400 font-mono">property.controller.ts -> getPropertyMatrix</code>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-[#151924] border border-[#232A3B] rounded-2xl p-5 space-y-3">
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <span>⚡</span> Upgrades Applied to this Screen
+              </h3>
+              <ul class="space-y-2 text-xs text-slate-300">
+                <li class="flex items-start gap-2">
+                  <span class="text-emerald-400 font-bold shrink-0">✔</span>
+                  <span><strong>Per-Bed Pricing Visibility:</strong> Bed cards explicitly display their individual rate (`bed.baseRentPaise || room.baseRentPaisePerBed`). Vacant beds show distinct rates (e.g. ₹8,000) allowing owners to price premium window beds higher.</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-emerald-400 font-bold shrink-0">✔</span>
+                  <span><strong>Clean Amenities Chips:</strong> Stripped out legacy "double/triple/sharing" text; cards now cleanly render "Washroom" and "AC" tags.</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="text-emerald-400 font-bold shrink-0">✔</span>
+                  <span><strong>Instant Auto-Refresh:</strong> Switching to the Matrix tab triggers <code>useFocusEffect</code> to revalidate without requiring manual pull-to-refresh.</span>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Interactive Jumps -->
+            <div class="flex items-center gap-3">
+              <button onclick="navTo('page-checkin')" class="px-4 py-2.5 rounded-xl bg-[#0A6C50] hover:bg-[#085841] text-white font-bold text-xs flex items-center gap-2 shadow-md">
+                <span>Explore Check-in Sheet →</span>
+              </button>
+              <button onclick="navTo('page-modals')" class="px-4 py-2.5 rounded-xl bg-[#1C2232] hover:bg-[#252E44] border border-[#2A344A] text-slate-200 font-bold text-xs">
+                <span>Inspect Edit Bed Modal</span>
+              </button>
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ===================================================================== -->
+      <!-- SCREEN 02: GUARDED CHECK-IN (Exact: app/checkin/[bedId].tsx)          -->
+      <!-- ===================================================================== -->
+      <section id="page-checkin" class="page-content space-y-6 max-w-6xl mx-auto hidden">
+
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#202636]">
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                Tenant Onboarding Route
+              </span>
+              <code class="text-xs font-mono text-slate-400">app/checkin/[bedId].tsx</code>
+            </div>
+            <h2 class="text-xl md:text-2xl font-black text-white">Guarded Check-in & Join-Date Billing</h2>
+            <p class="text-xs text-slate-400 mt-0.5">
+              Exact 3-step progress pill, prefilled ₹1,000 security deposit, calendar join date, and anniversary billing cycle card.
+            </p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          
+          <div class="lg:col-span-5 flex justify-center phone-pane">
+            <div class="phone-mockup">
+              <div class="dynamic-island"></div>
+              
+              <div class="phone-screen bg-[#F8F9FA] flex flex-col">
+                <div class="pt-3 px-6 pb-2 flex justify-between items-center text-xs font-bold text-slate-800 shrink-0 select-none">
+                  <span>9:42</span>
+                  <div class="flex items-center gap-1.5 text-[11px]">
+                    <span class="font-extrabold text-[10px]">5G</span>
+                    <div class="w-5 h-2.5 border border-slate-700 rounded-sm p-0.5"><div class="w-full h-full bg-slate-900 rounded-2xs"></div></div>
+                  </div>
+                </div>
+
+                <!-- Top Header matching Page 15: Bed 101-B, Floor 1 · 2 share -->
+                <div class="px-4 py-3 flex flex-row items-center border-b border-slate-200/80 bg-white shrink-0">
+                  <div class="w-10 h-10 items-center justify-center -ml-2 rounded-full flex cursor-pointer" onclick="navTo('page-matrix')">
+                    <svg class="w-6 h-6 text-slate-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+                  </div>
+
+                  <div class="ml-1 flex-1">
+                    <div class="text-base font-extrabold text-slate-900 tracking-tight">
+                      Room 101 · Bed 101-B
+                    </div>
+                    <div class="text-xs font-semibold text-slate-500">
+                      Floor 1 · 2 share
+                    </div>
+                  </div>
+
+                  <!-- Exact 3 Steps Progress Pill (Lines 450-475 of checkin/[bedId].tsx) -->
+                  <div class="flex flex-row items-center bg-slate-100 px-3 py-1.5 rounded-full gap-2">
+                    <span class="text-xs font-black text-[#0A6C50]">ID ✓</span>
+                    <span class="text-slate-300 font-bold">·</span>
+                    <span class="text-xs font-black text-[#0A6C50]">Tenant ✓</span>
+                    <span class="text-slate-300 font-bold">·</span>
+                    <span class="text-xs font-black text-[#0A6C50]">Money ✓</span>
+                  </div>
+                </div>
+
+                <!-- Form Scroll -->
+                <div class="flex-1 overflow-y-auto px-5 pt-4 pb-20 space-y-6">
+                  
+                  <!-- 1 · ID PROOF -->
+                  <div>
+                    <div class="text-xs font-black text-[#0A6C50] tracking-wider mb-2.5">
+                      1 · ID PROOF
+                    </div>
+
+                    <!-- Captured State Card (Lines 500-530) -->
+                    <div class="border border-[#A7F3D0] bg-[#F0FDF4] rounded-2xl p-4 flex flex-row items-center justify-between shadow-xs">
+                      <div class="flex flex-row items-center flex-1 mr-2">
+                        <div class="w-14 h-14 rounded-xl bg-[#E8F5EE] flex items-center justify-center mr-3.5 border border-[#A7F3D0]">
+                          <svg class="w-7 h-7 text-[#0A6C50]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                        </div>
+                        <div class="flex-1">
+                          <div class="flex flex-row items-center">
+                            <span class="text-base font-black text-slate-900 mr-1.5">ID captured</span>
+                            <svg class="w-4 h-4 text-[#0A6C50]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                          </div>
+                          <span class="text-xs font-bold text-[#0A6C50] mt-0.5 block">148 KB · Tap to view</span>
+                        </div>
+                      </div>
+
+                      <div class="bg-white border border-slate-200 px-3.5 py-2 rounded-xl text-xs font-bold text-slate-700">
+                        Retake
+                      </div>
+                    </div>
+
+                    <!-- DPDP Checkbox -->
+                    <div class="flex flex-row items-center mt-3.5 px-1 py-1">
+                      <div class="w-5 h-5 rounded-md bg-[#0A6C50] flex items-center justify-center mr-2.5">
+                        <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                      </div>
+                      <span class="text-xs font-medium text-slate-600 flex-1">
+                        Tenant agrees to ID storage · <strong class="font-bold text-slate-800">required</strong>
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- 2 · TENANT -->
+                  <div>
+                    <div class="text-xs font-black text-[#0A6C50] tracking-wider mb-2.5">
+                      2 · TENANT
+                    </div>
+
+                    <div class="mb-3.5">
+                      <label class="text-xs font-bold text-slate-700 mb-1.5 block">Full name</label>
+                      <input type="text" value="Ananya Deshmukh" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3.5 text-base text-slate-900 font-semibold shadow-xs">
+                    </div>
+
+                    <div class="flex flex-row gap-3">
+                      <div class="flex-1">
+                        <label class="text-xs font-bold text-slate-700 mb-1.5 block">Phone</label>
+                        <input type="text" value="9876543210" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3.5 text-base text-slate-900 font-semibold shadow-xs">
+                      </div>
+                      <div class="flex-1">
+                        <label class="text-xs font-bold text-slate-700 mb-1.5 block">Emergency phone</label>
+                        <input type="text" placeholder="Optional" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3.5 text-base text-slate-900 shadow-xs">
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 3 · MONEY -->
+                  <div>
+                    <div class="text-xs font-black text-[#0A6C50] tracking-wider mb-2.5">
+                      3 · MONEY
+                    </div>
+
+                    <!-- Monthly Rent & Deposit (Prefilled with 1000) -->
+                    <div class="flex flex-row gap-3 mb-3.5">
+                      <div class="flex-1">
+                        <label class="text-xs font-bold text-slate-700 mb-1.5 block">Monthly rent (₹)</label>
+                        <input type="text" value="8000" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3.5 text-base font-bold text-slate-900 shadow-xs">
+                      </div>
+                      <div class="flex-1">
+                        <label class="text-xs font-bold text-slate-700 mb-1.5 block">Deposit (₹)</label>
+                        <input type="text" value="1000" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3.5 text-base font-bold text-slate-900 shadow-xs">
+                      </div>
+                    </div>
+
+                    <!-- Joining Date Selector Card -->
+                    <div class="bg-white border border-slate-200 rounded-2xl px-4 py-3.5 flex flex-row items-center justify-between mb-3.5 shadow-xs cursor-pointer">
+                      <div class="flex flex-row items-center flex-1 mr-2">
+                        <div class="w-9 h-9 rounded-full bg-emerald-50 flex items-center justify-center mr-3">
+                          <svg class="w-4 h-4 text-[#0A6C50]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        </div>
+                        <div>
+                          <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Joining date (Tap to change)</div>
+                          <div class="text-sm font-black text-slate-900 mt-0.5">7 Nov 2026</div>
+                        </div>
+                      </div>
+                      <div class="bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 flex flex-row items-center">
+                        <span class="text-xs font-bold text-slate-700">Choose</span>
+                      </div>
+                    </div>
+
+                    <!-- Join-Date Billing Cycle Card (Lines 690-715 of checkin/[bedId].tsx) -->
+                    <div class="bg-[#E8F5EE] border border-[#A7F3D0] rounded-2xl p-4 mb-4">
+                      <div class="flex flex-row items-center justify-between mb-1.5">
+                        <span class="text-xs font-extrabold text-[#0A6C50]">Cycle: 7 Nov – 6 Dec (1 Full Month)</span>
+                        <span class="text-[11px] font-bold text-emerald-800 bg-emerald-100/90 px-2 py-0.5 rounded-full">Join-Date Billing</span>
+                      </div>
+                      <div class="text-sm font-black text-slate-900">
+                        Advance due now: ₹9,000 <span class="text-xs font-normal text-slate-500">(deposit + 1st month rent)</span>
+                      </div>
+                      <div class="text-[11px] font-semibold text-emerald-800/80 mt-1">
+                        First rent: ₹8,000 · Next rent due on 7 Dec
+                      </div>
+                    </div>
+
+                    <!-- Payment Action Row -->
+                    <div class="flex flex-row gap-3">
+                      <div class="flex-1 bg-white border border-slate-200 py-3.5 rounded-xl flex flex-row items-center justify-center shadow-xs cursor-pointer">
+                        <svg class="w-4 h-4 text-[#0A6C50]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+                        <span class="text-xs font-extrabold text-[#0A6C50] ml-2">Show UPI QR</span>
+                      </div>
+                      <div class="flex-1 py-3.5 rounded-xl flex flex-row items-center justify-center border shadow-xs bg-[#0A6C50] border-[#0A6C50] text-white">
+                        <svg class="w-4 h-4 text-white mr-1.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                        <span class="text-xs font-extrabold">Cash received</span>
+                      </div>
+                    </div>
+
+                  </div>
+
+                </div>
+
+                <!-- Fixed Bottom CTA Bar (Lines 740-760 of checkin/[bedId].tsx) -->
+                <div class="px-5 py-3.5 bg-white border-t border-slate-200/80 shadow-lg shrink-0">
+                  <div class="w-full py-4 rounded-2xl items-center justify-center bg-[#0A6C50] shadow-sm flex cursor-pointer">
+                    <span class="text-base font-extrabold text-white">Check in tenant</span>
+                  </div>
+                </div>
+
+                <div class="h-4 bg-white flex justify-center items-center shrink-0">
+                  <div class="w-32 h-1 bg-slate-300 rounded-full"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="lg:col-span-7 space-y-6 spec-pane">
+            <div class="bg-[#151924] border border-[#232A3B] rounded-2xl p-5 space-y-4">
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <span>📋</span> Exact Check-in Implementation
+              </h3>
+              <div class="grid grid-cols-2 gap-3 text-xs">
+                <div>
+                  <span class="text-slate-500 block text-[11px]">Component File</span>
+                  <code class="text-blue-400 font-mono">app/checkin/[bedId].tsx</code>
+                </div>
+                <div>
+                  <span class="text-slate-500 block text-[11px]">Pre-filled Security Deposit</span>
+                  <span class="text-emerald-400 font-bold">₹1,000 (Defaults accurately)</span>
+                </div>
+                <div>
+                  <span class="text-slate-500 block text-[11px]">Room Sharing Tag</span>
+                  <span class="text-slate-200 font-bold">2 share / 3 share badge in header</span>
+                </div>
+                <div>
+                  <span class="text-slate-500 block text-[11px]">Date Component</span>
+                  <code class="text-amber-400 font-mono">DatePickerModal.tsx</code>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ===================================================================== -->
+      <!-- SCREEN 03: PULSE DASHBOARD (Exact: app/(tabs)/index.tsx)              -->
+      <!-- ===================================================================== -->
+      <section id="page-pulse" class="page-content space-y-6 max-w-6xl mx-auto hidden">
+
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#202636]">
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                Active Tab 1: Pulse
+              </span>
+              <code class="text-xs font-mono text-slate-400">app/(tabs)/index.tsx</code>
+            </div>
+            <h2 class="text-xl md:text-2xl font-black text-white">Pulse Operations Dashboard</h2>
+            <p class="text-xs text-slate-400 mt-0.5">
+              Exact implementation: Property switcher, trial countdown pill, collections card, 3-action pilot bar, bed inventory tiles, and overdue banner.
+            </p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          
+          <div class="lg:col-span-5 flex justify-center phone-pane">
+            <div class="phone-mockup">
+              <div class="dynamic-island"></div>
+              
+              <div class="phone-screen bg-[#F8F9FA] flex flex-col">
+                <div class="pt-3 px-6 pb-2 flex justify-between items-center text-xs font-bold text-slate-800 shrink-0 select-none">
+                  <span>9:40</span>
+                  <div class="flex items-center gap-1.5 text-[11px]">
+                    <span class="font-extrabold text-[10px]">5G</span>
+                    <div class="w-5 h-2.5 border border-slate-700 rounded-sm p-0.5"><div class="w-full h-full bg-slate-900 rounded-2xs"></div></div>
+                  </div>
+                </div>
+
+                <!-- Pulse Scroll Body -->
+                <div class="flex-1 overflow-y-auto px-5 pt-3 pb-6 space-y-4">
+                  
+                  <!-- Top PG Selector & Notification Bell (Lines 105-135 of index.tsx) -->
+                  <div class="flex flex-row items-center justify-between gap-3">
+                    <div class="flex-1 bg-white border border-slate-200/80 rounded-2xl px-4 py-3.5 flex flex-row items-center justify-between shadow-xs">
+                      <span class="text-base font-extrabold text-slate-900 flex-1 mr-2 truncate">
+                        Sunrise Luxury PG
+                      </span>
+                      <svg class="w-4 h-4 text-slate-800" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
+
+                    <div class="w-13 h-13 bg-white border border-slate-200/80 rounded-2xl flex items-center justify-center p-3 shadow-xs relative">
+                      <svg class="w-5 h-5 text-slate-800" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                      <!-- Red Dot Overdue indicator -->
+                      <div class="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-rose-500"></div>
+                    </div>
+                  </div>
+
+                  <!-- Month & Trial Header Pill (Lines 138-148) -->
+                  <div class="flex flex-row items-center justify-between">
+                    <span class="text-base font-medium text-slate-600">November 2026</span>
+                    <div class="bg-[#FEF9C3] border border-[#FDE047] px-3 py-1 rounded-full flex flex-row items-center gap-1">
+                      <svg class="w-3 h-3 text-[#854D0E]" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                      <span class="text-xs font-bold text-[#854D0E]">14 days trial left</span>
+                    </div>
+                  </div>
+
+                  <!-- Collected This Month Card (Lines 150-176) -->
+                  <div class="bg-white border border-slate-200/80 rounded-3xl p-5 shadow-xs">
+                    <div class="text-sm font-semibold text-slate-700 mb-2">Collected this month</div>
+                    <div class="flex flex-row items-baseline mb-3">
+                      <span class="text-3xl font-extrabold text-slate-900 tracking-tight">₹2,45,000</span>
+                      <span class="text-base font-medium text-slate-500 ml-2">of ₹2,80,000</span>
+                    </div>
+
+                    <!-- Dark green progress bar -->
+                    <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden mb-2.5">
+                      <div class="h-full bg-[#0A6C50] rounded-full" style="width: 87.5%;"></div>
+                    </div>
+
+                    <div class="text-xs font-medium text-slate-500">
+                      87.5% collected · ₹35,000 pending
+                    </div>
+                  </div>
+
+                  <!-- Pilot Quick-Access Bar: 3 Action Columns (Lines 180-215) -->
+                  <div class="flex flex-row gap-2.5">
+                    <div class="flex-1 bg-white border border-slate-200/80 rounded-2xl p-3 flex flex-col items-center justify-center shadow-xs cursor-pointer" onclick="navTo('page-matrix')">
+                      <div class="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center mb-1.5">
+                        <svg class="w-5 h-5 text-[#0A6C50]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+                      </div>
+                      <span class="text-xs font-extrabold text-slate-800 text-center">Check-in</span>
+                    </div>
+
+                    <div class="flex-1 bg-white border border-slate-200/80 rounded-2xl p-3 flex flex-col items-center justify-center shadow-xs cursor-pointer" onclick="navTo('page-dues')">
+                      <div class="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center mb-1.5">
+                        <svg class="w-5 h-5 text-[#D97706]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/></svg>
+                      </div>
+                      <span class="text-xs font-extrabold text-slate-800 text-center">Dues</span>
+                    </div>
+
+                    <div class="flex-1 bg-white border border-slate-200/80 rounded-2xl p-3 flex flex-col items-center justify-center shadow-xs cursor-pointer">
+                      <div class="w-10 h-10 rounded-full bg-sky-50 flex items-center justify-center mb-1.5">
+                        <svg class="w-5 h-5 text-[#0284C7]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                      </div>
+                      <span class="text-xs font-extrabold text-slate-800 text-center">+ Property</span>
+                    </div>
+                  </div>
+
+                  <!-- Two-Column Stats: Occupancy & Net Profit (Lines 220-255) -->
+                  <div class="flex flex-row gap-3.5">
+                    <div class="flex-1 bg-white border border-slate-200/80 rounded-2xl p-4 shadow-xs flex flex-col justify-between" style="min-height: 120px;">
+                      <div>
+                        <div class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Occupancy</div>
+                        <div class="text-2xl font-extrabold text-slate-900">42 / 50</div>
+                      </div>
+                      <div class="flex flex-row items-center justify-between mt-3 pt-2 border-t border-slate-100">
+                        <span class="text-xs font-bold text-[#0A6C50]">84% full</span>
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                      </div>
+                    </div>
+
+                    <div class="flex-1 bg-white border border-slate-200/80 rounded-2xl p-4 shadow-xs flex flex-col justify-between" style="min-height: 120px;">
+                      <div>
+                        <div class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Net profit</div>
+                        <div class="text-2xl font-extrabold text-slate-900">₹1.8L</div>
+                      </div>
+                      <div class="flex flex-row items-center justify-between mt-3 pt-2 border-t border-slate-100">
+                        <span class="text-xs font-semibold text-slate-500">42 active beds</span>
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Bed Inventory Breakdown: 4 Tiles (Lines 260-310) -->
+                  <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-xs">
+                    <div class="flex flex-row items-center justify-between mb-3">
+                      <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">Bed Inventory</span>
+                      <div class="flex flex-row items-center gap-3">
+                        <span class="text-xs font-bold text-slate-700 cursor-pointer" onclick="navTo('page-tenants')">Tenants List</span>
+                        <span class="text-slate-300">·</span>
+                        <span class="text-xs font-bold text-[#0A6C50] cursor-pointer" onclick="navTo('page-matrix')">View Grid →</span>
+                      </div>
+                    </div>
+
+                    <div class="flex flex-row gap-2">
+                      <div class="flex-1 bg-emerald-50 border border-emerald-200 rounded-xl p-2.5 flex flex-col items-center">
+                        <span class="text-xs font-bold text-emerald-800">🟢 Vacant</span>
+                        <span class="text-base font-black text-emerald-900 mt-0.5">6</span>
+                      </div>
+                      <div class="flex-1 bg-rose-50 border border-rose-200 rounded-xl p-2.5 flex flex-col items-center">
+                        <span class="text-xs font-bold text-rose-800">🔴 Occupied</span>
+                        <span class="text-base font-black text-rose-900 mt-0.5">42</span>
+                      </div>
+                      <div class="flex-1 bg-amber-50 border border-amber-200 rounded-xl p-2.5 flex flex-col items-center">
+                        <span class="text-xs font-bold text-amber-800">🟡 Notice</span>
+                        <span class="text-base font-black text-amber-900 mt-0.5">2</span>
+                      </div>
+                      <div class="flex-1 bg-slate-100 border border-slate-200 rounded-xl p-2.5 flex flex-col items-center">
+                        <span class="text-xs font-bold text-slate-700">⚪ Maint.</span>
+                        <span class="text-base font-black text-slate-800 mt-0.5">0</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Overdue Status Banner (Lines 325-345) -->
+                  <div class="bg-[#FFF1F2] border border-[#FECDD3] rounded-2xl p-4 flex flex-row items-center justify-between shadow-xs cursor-pointer" onclick="navTo('page-dues')">
+                    <div class="flex flex-row items-center flex-1 mr-3">
+                      <div class="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center mr-3">
+                        <svg class="w-5 h-5 text-[#BE123C]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                      </div>
+                      <div class="flex-1">
+                        <div class="text-sm font-bold text-[#991B1B]">4 tenants overdue &gt; 5d</div>
+                        <div class="text-xs text-rose-700 mt-0.5">₹35,000 pending collection</div>
+                      </div>
+                    </div>
+                    <svg class="w-5 h-5 text-[#BE123C]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                  </div>
+
+                </div>
+
+                <!-- Exact 4-Tab Bottom Bar (app/(tabs)/_layout.tsx) -->
+                <div class="h-16 bg-white border-t border-[#F0F0F0] flex items-center justify-around shrink-0 px-2 shadow-lg">
+                  <div class="flex flex-col items-center gap-0.5 text-[#0A6C50] cursor-pointer">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                    <span class="text-[11px] font-bold mt-[-2px]">Pulse</span>
+                  </div>
+                  <div class="flex flex-col items-center gap-0.5 text-[#64748B] cursor-pointer" onclick="navTo('page-matrix')">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                    <span class="text-[11px] font-semibold mt-[-2px]">Matrix</span>
+                  </div>
+                  <div class="flex flex-col items-center gap-0.5 text-[#64748B] cursor-pointer" onclick="navTo('page-dues')">
+                    <div class="w-5 h-5 flex items-center justify-center text-[18px] font-extrabold leading-none text-[#64748B]">₹</div>
+                    <span class="text-[11px] font-semibold mt-[-2px]">Dues</span>
+                  </div>
+                  <div class="flex flex-col items-center gap-0.5 text-[#64748B] cursor-pointer" onclick="navTo('page-more')">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                    <span class="text-[11px] font-semibold mt-[-2px]">More</span>
+                  </div>
+                </div>
+
+                <!-- Floating Action Button (FAB) (Lines 400-415 of index.tsx) -->
+                <div class="absolute bottom-20 right-5 w-14 h-14 bg-[#0A6C50] rounded-full flex items-center justify-center shadow-xl cursor-pointer" onclick="navTo('page-matrix')">
+                  <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                </div>
+
+                <div class="h-4 bg-white flex justify-center items-center shrink-0">
+                  <div class="w-32 h-1 bg-slate-300 rounded-full"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="lg:col-span-7 space-y-6 spec-pane">
+            <div class="bg-[#151924] border border-[#232A3B] rounded-2xl p-5 space-y-4">
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <span>📋</span> Exact Pulse Architecture
+              </h3>
+              <div class="grid grid-cols-2 gap-3 text-xs">
+                <div>
+                  <span class="text-slate-500 block text-[11px]">Component File</span>
+                  <code class="text-purple-400 font-mono">app/(tabs)/index.tsx</code>
+                </div>
+                <div>
+                  <span class="text-slate-500 block text-[11px]">Bottom Tab Label</span>
+                  <span class="text-emerald-400 font-bold">"Pulse" (Activity icon)</span>
+                </div>
+                <div>
+                  <span class="text-slate-500 block text-[11px]">Overdue Alert</span>
+                  <span class="text-rose-400 font-bold">Auto-counts tenants overdue &gt; 5d</span>
+                </div>
+                <div>
+                  <span class="text-slate-500 block text-[11px]">Pilot Access Bar</span>
+                  <span class="text-slate-200">Check-in, Dues, + Property</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ===================================================================== -->
+      <!-- SCREEN 04: DUES & COLLECTIONS (Exact: app/(tabs)/dues.tsx)             -->
+      <!-- ===================================================================== -->
+      <section id="page-dues" class="page-content space-y-6 max-w-6xl mx-auto hidden">
+
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#202636]">
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                Active Tab 3: Dues
+              </span>
+              <code class="text-xs font-mono text-slate-400">app/(tabs)/dues.tsx</code>
+            </div>
+            <h2 class="text-xl md:text-2xl font-black text-white">Dues & Monthly Collections</h2>
+            <p class="text-xs text-slate-400 mt-0.5">
+              Exact implementation: Total outstanding card, filter chips (Overdue, Unpaid, Paid, All), 1-tap WhatsApp reminder, Dynamic UPI QR trigger, and Mark received.
+            </p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          
+          <div class="lg:col-span-5 flex justify-center phone-pane">
+            <div class="phone-mockup">
+              <div class="dynamic-island"></div>
+              
+              <div class="phone-screen bg-[#F8F9FA] flex flex-col">
+                <div class="pt-3 px-6 pb-2 flex justify-between items-center text-xs font-bold text-slate-800 shrink-0 select-none">
+                  <span>9:43</span>
+                  <div class="flex items-center gap-1.5 text-[11px]">
+                    <span class="font-extrabold text-[10px]">5G</span>
+                    <div class="w-5 h-2.5 border border-slate-700 rounded-sm p-0.5"><div class="w-full h-full bg-slate-900 rounded-2xs"></div></div>
+                  </div>
+                </div>
+
+                <div class="flex-1 overflow-y-auto px-5 pt-3 pb-6 space-y-4">
+                  
+                  <!-- Header Title & Month (Lines 110-120 of dues.tsx) -->
+                  <div>
+                    <div class="text-3xl font-extrabold text-slate-900 tracking-tight">Dues</div>
+                    <div class="text-sm font-medium text-slate-600 mt-1">November 2026</div>
+                  </div>
+
+                  <!-- Total Outstanding Card (Lines 123-132) -->
+                  <div class="bg-white border border-slate-200/80 rounded-2xl p-4 flex flex-row items-center justify-between shadow-xs">
+                    <span class="text-sm font-semibold text-slate-700">Total outstanding · 4 tenants</span>
+                    <span class="text-2xl font-extrabold text-[#BE123C]">₹35,000</span>
+                  </div>
+
+                  <!-- Filter Pills Row: Overdue, Unpaid, Paid, All -->
+                  <div class="flex flex-row items-center gap-2 overflow-x-auto pb-1">
+                    <div class="px-4 py-2 rounded-full bg-[#0A6C50] text-white text-xs font-bold shrink-0">
+                      Overdue (4)
+                    </div>
+                    <div class="px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-700 text-xs font-bold shrink-0">
+                      Unpaid (4)
+                    </div>
+                    <div class="px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-700 text-xs font-bold shrink-0">
+                      Paid (38)
+                    </div>
+                    <div class="px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-700 text-xs font-bold shrink-0">
+                      All
+                    </div>
+                  </div>
+
+                  <!-- Search Bar -->
+                  <div class="bg-white border border-slate-200 rounded-xl px-3 py-2 flex flex-row items-center shadow-2xs">
+                    <svg class="w-4 h-4 text-slate-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    <span class="text-xs text-slate-400 font-medium">Search tenant or bed...</span>
+                  </div>
+
+                  <!-- Invoice 1: Vikram Verma Overdue -->
+                  <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-xs">
+                    <div class="flex flex-row items-center justify-between">
+                      <div class="flex flex-row items-center flex-1 mr-3">
+                        <div class="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center mr-3">
+                          <span class="text-sm font-bold text-slate-700">VV</span>
+                        </div>
+                        <div class="flex-1">
+                          <div class="text-base font-extrabold text-slate-900">Vikram Verma</div>
+                          <div class="text-xs font-medium text-slate-500 mt-0.5">Bed 102-A · Due 05 Nov</div>
+                          <div class="text-[11px] font-semibold text-emerald-700 mt-0.5">November 2026 Rent</div>
+                        </div>
+                      </div>
+                      <div class="text-right">
+                        <div class="text-lg font-extrabold text-slate-900">₹7,000</div>
+                        <div class="text-xs font-bold mt-0.5 text-[#BE123C]">2d overdue</div>
+                      </div>
+                    </div>
+
+                    <!-- Actions: WhatsApp + QR Code + Mark received -->
+                    <div class="flex flex-row items-center gap-2 mt-3.5">
+                      <!-- WhatsApp 1-tap reminder -->
+                      <div class="w-11 h-11 bg-[#F0FDF4] border border-[#86EFAC] rounded-xl flex items-center justify-center cursor-pointer">
+                        <svg class="w-5 h-5 text-[#0A6C50]" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                      </div>
+
+                      <!-- Dynamic UPI QR Code -->
+                      <div class="w-11 h-11 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-center cursor-pointer">
+                        <svg class="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+                      </div>
+
+                      <!-- Mark Received Button -->
+                      <div class="flex-1 h-11 bg-[#0A6C50] rounded-xl flex items-center justify-center shadow-xs cursor-pointer">
+                        <span class="text-white font-bold text-sm">Mark received</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Invoice 2: Pooja Hegde -->
+                  <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-xs">
+                    <div class="flex flex-row items-center justify-between">
+                      <div class="flex flex-row items-center flex-1 mr-3">
+                        <div class="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center mr-3">
+                          <span class="text-sm font-bold text-slate-700">PH</span>
+                        </div>
+                        <div class="flex-1">
+                          <div class="text-base font-extrabold text-slate-900">Pooja Hegde</div>
+                          <div class="text-xs font-medium text-slate-500 mt-0.5">Bed 204-A · Due 01 Nov</div>
+                          <div class="text-[11px] font-semibold text-emerald-700 mt-0.5">November 2026 Rent</div>
+                        </div>
+                      </div>
+                      <div class="text-right">
+                        <div class="text-lg font-extrabold text-slate-900">₹8,000</div>
+                        <div class="text-xs font-bold mt-0.5 text-[#BE123C]">6d overdue</div>
+                      </div>
+                    </div>
+
+                    <div class="flex flex-row items-center gap-2 mt-3.5">
+                      <div class="w-11 h-11 bg-[#F0FDF4] border border-[#86EFAC] rounded-xl flex items-center justify-center">
+                        <svg class="w-5 h-5 text-[#0A6C50]" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                      </div>
+                      <div class="w-11 h-11 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-center">
+                        <svg class="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+                      </div>
+                      <div class="flex-1 h-11 bg-[#0A6C50] rounded-xl flex items-center justify-center shadow-xs">
+                        <span class="text-white font-bold text-sm">Mark received</span>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+
+                <!-- 4-Tab Bottom Bar -->
+                <div class="h-16 bg-white border-t border-[#F0F0F0] flex items-center justify-around shrink-0 px-2 shadow-lg">
+                  <div class="flex flex-col items-center gap-0.5 text-[#64748B] cursor-pointer" onclick="navTo('page-pulse')">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                    <span class="text-[11px] font-semibold mt-[-2px]">Pulse</span>
+                  </div>
+                  <div class="flex flex-col items-center gap-0.5 text-[#64748B] cursor-pointer" onclick="navTo('page-matrix')">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                    <span class="text-[11px] font-semibold mt-[-2px]">Matrix</span>
+                  </div>
+                  <div class="flex flex-col items-center gap-0.5 text-[#0A6C50] cursor-pointer">
+                    <div class="w-5 h-5 flex items-center justify-center text-[18px] font-extrabold leading-none text-[#0A6C50]">₹</div>
+                    <span class="text-[11px] font-bold mt-[-2px]">Dues</span>
+                  </div>
+                  <div class="flex flex-col items-center gap-0.5 text-[#64748B] cursor-pointer" onclick="navTo('page-more')">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                    <span class="text-[11px] font-semibold mt-[-2px]">More</span>
+                  </div>
+                </div>
+
+                <div class="h-4 bg-white flex justify-center items-center shrink-0">
+                  <div class="w-32 h-1 bg-slate-300 rounded-full"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="lg:col-span-7 space-y-6 spec-pane">
+            <div class="bg-[#151924] border border-[#232A3B] rounded-2xl p-5 space-y-4">
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <span>📋</span> Dues Tab Specifications
+              </h3>
+              <div class="grid grid-cols-2 gap-3 text-xs">
+                <div>
+                  <span class="text-slate-500 block text-[11px]">Component File</span>
+                  <code class="text-amber-400 font-mono">app/(tabs)/dues.tsx</code>
+                </div>
+                <div>
+                  <span class="text-slate-500 block text-[11px]">Query Hook</span>
+                  <code class="text-emerald-400 font-mono">useInvoices(propertyId, filter)</code>
+                </div>
+                <div>
+                  <span class="text-slate-500 block text-[11px]">Receipt Generator</span>
+                  <span class="text-slate-200">pdfReceipt.ts via Expo Print</span>
+                </div>
+                <div>
+                  <span class="text-slate-500 block text-[11px]">Payment Mutation</span>
+                  <code class="text-blue-400 font-mono">markInvoicePaidApi()</code>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ===================================================================== -->
+      <!-- SCREEN 05: MORE / OPERATIONS (Exact: app/(tabs)/more.tsx)             -->
+      <!-- ===================================================================== -->
+      <section id="page-more" class="page-content space-y-6 max-w-6xl mx-auto hidden">
+
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#202636]">
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                Active Tab 4: More
+              </span>
+              <code class="text-xs font-mono text-slate-400">app/(tabs)/more.tsx</code>
+            </div>
+            <h2 class="text-xl md:text-2xl font-black text-white">More — Operations, Staff & Settings</h2>
+            <p class="text-xs text-slate-400 mt-0.5">
+              Exact implementation: User profile card, Growth plan banner, Sub-meter Electricity log (default ₹0 rate), and Log out of Nilaaya.
+            </p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          
+          <div class="lg:col-span-5 flex justify-center phone-pane">
+            <div class="phone-mockup">
+              <div class="dynamic-island"></div>
+              
+              <div class="phone-screen bg-[#F8F9FA] flex flex-col">
+                <div class="pt-3 px-6 pb-2 flex justify-between items-center text-xs font-bold text-slate-800 shrink-0 select-none">
+                  <span>9:44</span>
+                  <div class="flex items-center gap-1.5 text-[11px]">
+                    <span class="font-extrabold text-[10px]">5G</span>
+                    <div class="w-5 h-2.5 border border-slate-700 rounded-sm p-0.5"><div class="w-full h-full bg-slate-900 rounded-2xs"></div></div>
+                  </div>
+                </div>
+
+                <div class="flex-1 overflow-y-auto px-5 pt-3 pb-6 space-y-4">
+                  
+                  <!-- Screen Title (Lines 160-165 of more.tsx) -->
+                  <div class="text-3xl font-extrabold text-slate-900 tracking-tight">More</div>
+
+                  <!-- Profile Card (Lines 167-185) -->
+                  <div class="bg-white border border-slate-200/80 rounded-2xl p-4 flex flex-row items-center shadow-xs">
+                    <div class="w-14 h-14 rounded-full bg-emerald-100 flex items-center justify-center mr-3.5">
+                      <span class="text-lg font-black text-[#0A6C50]">AV</span>
+                    </div>
+                    <div class="flex-1">
+                      <div class="text-base font-extrabold text-slate-900">Anand Verma</div>
+                      <div class="text-xs text-slate-500 mt-0.5">+91 98765 43210</div>
+                      <div class="bg-emerald-50 self-start px-2 py-0.5 rounded text-[11px] font-bold text-emerald-800 mt-1 inline-block">
+                        Sunrise Luxury PG
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Subscription / Trial Banner (Lines 188-210) -->
+                  <div class="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-4 flex flex-row items-center justify-between shadow-xs">
+                    <div class="flex flex-row items-center flex-1 mr-3">
+                      <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center mr-3">
+                        <svg class="w-5 h-5 text-amber-700" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                      </div>
+                      <div>
+                        <div class="text-sm font-extrabold text-amber-950">Growth Plan · 14 days trial left</div>
+                        <div class="text-xs text-amber-800 mt-0.5">Managing 50 total beds</div>
+                      </div>
+                    </div>
+                    <div class="bg-[#0A6C50] text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-xs">
+                      Upgrade →
+                    </div>
+                  </div>
+
+                  <!-- Menu Section 1: Operations -->
+                  <div>
+                    <div class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2.5 ml-1">Operations</div>
+                    <div class="bg-white border border-slate-200/80 rounded-2xl overflow-hidden shadow-xs">
+                      
+                      <div class="p-4 flex flex-row items-center justify-between border-b border-slate-100 cursor-pointer" onclick="navTo('page-tenants')">
+                        <div class="flex flex-row items-center flex-1 mr-2">
+                          <div class="w-9 h-9 rounded-xl bg-[#F0FDF4] flex items-center justify-center mr-3">
+                            <svg class="w-4 h-4 text-[#0A6C50]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                          </div>
+                          <div>
+                            <div class="text-sm font-bold text-slate-900">Tenants Directory</div>
+                            <div class="text-xs text-slate-500 mt-0.5 font-medium">Search all tenants, room details & contacts</div>
+                          </div>
+                        </div>
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                      </div>
+
+                      <div class="p-4 flex flex-row items-center justify-between border-b border-slate-100 cursor-pointer">
+                        <div class="flex flex-row items-center flex-1 mr-2">
+                          <div class="w-9 h-9 rounded-xl bg-[#F0FDF4] flex items-center justify-center mr-3">
+                            <svg class="w-4 h-4 text-[#0A6C50]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                          </div>
+                          <div>
+                            <div class="text-sm font-bold text-slate-900">Sub-meter Electricity Log</div>
+                            <div class="text-xs text-slate-500 mt-0.5 font-medium">Default rate ₹0 / unit · automatic splits</div>
+                          </div>
+                        </div>
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                      </div>
+
+                      <div class="p-4 flex flex-row items-center justify-between cursor-pointer">
+                        <div class="flex flex-row items-center flex-1 mr-2">
+                          <div class="w-9 h-9 rounded-xl bg-[#F0FDF4] flex items-center justify-center mr-3">
+                            <svg class="w-4 h-4 text-[#0A6C50]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                          </div>
+                          <div>
+                            <div class="text-sm font-bold text-slate-900">Properties & Rooms</div>
+                            <div class="text-xs text-slate-500 mt-0.5 font-medium">Floors, rooms, and bed configurations</div>
+                          </div>
+                        </div>
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                      </div>
+
+                    </div>
+                  </div>
+
+                  <!-- Menu Section 2: Security & Compliance -->
+                  <div>
+                    <div class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2.5 ml-1">Security & Compliance</div>
+                    <div class="bg-white border border-slate-200/80 rounded-2xl overflow-hidden shadow-xs">
+                      
+                      <div class="p-4 flex flex-row items-center justify-between border-b border-slate-100">
+                        <div class="flex flex-row items-center flex-1 mr-2">
+                          <div class="w-9 h-9 rounded-xl bg-[#F0FDF4] flex items-center justify-center mr-3">
+                            <svg class="w-4 h-4 text-[#0A6C50]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                          </div>
+                          <div>
+                            <div class="text-sm font-bold text-slate-900">DPDP & KYC Compliance</div>
+                            <div class="text-xs text-slate-500 mt-0.5 font-medium">Statutory tenant documentation & Aadhaar log</div>
+                          </div>
+                        </div>
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                      </div>
+
+                      <div class="p-4 flex flex-row items-center justify-between">
+                        <div class="flex flex-row items-center flex-1 mr-2">
+                          <div class="w-9 h-9 rounded-xl bg-[#F0FDF4] flex items-center justify-center mr-3">
+                            <svg class="w-4 h-4 text-[#0A6C50]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 004 11a7.96 7.96 0 002.327 5.657"/></svg>
+                          </div>
+                          <div>
+                            <div class="text-sm font-bold text-slate-900">Biometric App Lock</div>
+                            <div class="text-xs text-slate-500 mt-0.5 font-medium">Face ID / Fingerprint protection</div>
+                          </div>
+                        </div>
+                        <!-- iOS Switch -->
+                        <div class="w-11 h-6 bg-[#0A6C50] rounded-full p-0.5 flex justify-end items-center">
+                          <div class="w-5 h-5 rounded-full bg-white shadow-md"></div>
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+
+                  <!-- Sign Out Button (Lines 265-275 of more.tsx) -->
+                  <div class="bg-white border border-rose-200 rounded-2xl p-4 flex flex-row items-center justify-center shadow-xs mt-1 cursor-pointer">
+                    <svg class="w-4 h-4 text-[#BE123C]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    <span class="text-sm font-bold text-[#BE123C] ml-2">Log out of Nilaaya</span>
+                  </div>
+
+                </div>
+
+                <!-- 4-Tab Bottom Bar -->
+                <div class="h-16 bg-white border-t border-[#F0F0F0] flex items-center justify-around shrink-0 px-2 shadow-lg">
+                  <div class="flex flex-col items-center gap-0.5 text-[#64748B] cursor-pointer" onclick="navTo('page-pulse')">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                    <span class="text-[11px] font-semibold mt-[-2px]">Pulse</span>
+                  </div>
+                  <div class="flex flex-col items-center gap-0.5 text-[#64748B] cursor-pointer" onclick="navTo('page-matrix')">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                    <span class="text-[11px] font-semibold mt-[-2px]">Matrix</span>
+                  </div>
+                  <div class="flex flex-col items-center gap-0.5 text-[#64748B] cursor-pointer" onclick="navTo('page-dues')">
+                    <div class="w-5 h-5 flex items-center justify-center text-[18px] font-extrabold leading-none text-[#64748B]">₹</div>
+                    <span class="text-[11px] font-semibold mt-[-2px]">Dues</span>
+                  </div>
+                  <div class="flex flex-col items-center gap-0.5 text-[#0A6C50] cursor-pointer">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                    <span class="text-[11px] font-bold mt-[-2px]">More</span>
+                  </div>
+                </div>
+
+                <div class="h-4 bg-white flex justify-center items-center shrink-0">
+                  <div class="w-32 h-1 bg-slate-300 rounded-full"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="lg:col-span-7 space-y-6 spec-pane">
+            <div class="bg-[#151924] border border-[#232A3B] rounded-2xl p-5 space-y-4">
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <span>📋</span> Operations & Settings Spec
+              </h3>
+              <div class="grid grid-cols-2 gap-3 text-xs">
+                <div>
+                  <span class="text-slate-500 block text-[11px]">Component File</span>
+                  <code class="text-indigo-400 font-mono">app/(tabs)/more.tsx</code>
+                </div>
+                <div>
+                  <span class="text-slate-500 block text-[11px]">Submeter Default Rate</span>
+                  <span class="text-emerald-400 font-bold">₹0 / unit (DISCOM specific)</span>
+                </div>
+                <div>
+                  <span class="text-slate-500 block text-[11px]">Brand Name</span>
+                  <span class="text-slate-200 font-bold">Nilaaya PG Living</span>
+                </div>
+                <div>
+                  <span class="text-slate-500 block text-[11px]">Biometrics</span>
+                  <span class="text-slate-200">LocalAuthentication + Keyring</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ===================================================================== -->
+      <!-- SCREEN 06: TENANTS DIRECTORY (Exact: app/(tabs)/tenants.tsx)          -->
+      <!-- ===================================================================== -->
+      <section id="page-tenants" class="page-content space-y-6 max-w-6xl mx-auto hidden">
+
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#202636]">
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-teal-500/20 text-teal-300 border border-teal-500/30">
+                Directory Screen
+              </span>
+              <code class="text-xs font-mono text-slate-400">app/(tabs)/tenants.tsx</code>
+            </div>
+            <h2 class="text-xl md:text-2xl font-black text-white">Tenants Directory & CRM</h2>
+            <p class="text-xs text-slate-400 mt-0.5">
+              Exact implementation: Search bar, filter chips (All · 42, Active · 40, Notice · 2, Checked out · 12), and 1-tap WhatsApp action.
+            </p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          <div class="lg:col-span-5 flex justify-center phone-pane">
+            <div class="phone-mockup">
+              <div class="dynamic-island"></div>
+              
+              <div class="phone-screen bg-[#F8FAFC] flex flex-col">
+                <div class="pt-3 px-6 pb-2 flex justify-between items-center text-xs font-bold text-slate-800 shrink-0 select-none">
+                  <span>9:45</span>
+                  <div class="flex items-center gap-1.5 text-[11px]">
+                    <span class="font-extrabold text-[10px]">5G</span>
+                    <div class="w-5 h-2.5 border border-slate-700 rounded-sm p-0.5"><div class="w-full h-full bg-slate-900 rounded-2xs"></div></div>
+                  </div>
+                </div>
+
+                <!-- Header (Lines 330-380 of tenants.tsx) -->
+                <div class="px-5 pt-4 pb-3 bg-white border-b border-slate-100 shrink-0">
+                  <div class="text-3xl font-black text-slate-900 tracking-tight">Tenants</div>
+                  <div class="flex flex-row items-center mt-1">
+                    <span class="text-sm font-bold text-slate-600">Sunrise Luxury PG</span>
+                    <svg class="w-3.5 h-3.5 text-slate-500 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                  </div>
+
+                  <!-- Search Bar -->
+                  <div class="flex flex-row items-center bg-slate-50 border border-slate-200 rounded-2xl px-3.5 py-2.5 mt-3">
+                    <svg class="w-4 h-4 text-slate-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    <span class="text-sm font-medium text-slate-400">Search name, phone or bed</span>
+                  </div>
+
+                  <!-- Status Filter Chips -->
+                  <div class="flex flex-row mt-3 gap-2 overflow-x-auto pb-1">
+                    <div class="px-4 py-2 rounded-full border bg-[#0B6645] border-[#0B6645] text-white text-xs font-bold shrink-0">
+                      All · 42
+                    </div>
+                    <div class="px-4 py-2 rounded-full border bg-white border-slate-200 text-slate-700 text-xs font-bold shrink-0">
+                      Active · 40
+                    </div>
+                    <div class="px-4 py-2 rounded-full border bg-white border-slate-200 text-slate-700 text-xs font-bold shrink-0">
+                      Notice · 2
+                    </div>
+                    <div class="px-4 py-2 rounded-full border bg-white border-slate-200 text-slate-700 text-xs font-bold shrink-0">
+                      Checked out · 12
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Tenant Cards List -->
+                <div class="flex-1 overflow-y-auto px-5 pt-3 pb-6 space-y-2.5">
+                  
+                  <div class="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-row items-center justify-between cursor-pointer" onclick="navTo('page-tenant-detail')">
+                    <div class="flex flex-row items-center gap-3">
+                      <div class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-xs font-bold text-emerald-800">
+                        RS
+                      </div>
+                      <div>
+                        <div class="text-sm font-bold text-slate-900">Rahul Sharma</div>
+                        <div class="text-xs text-slate-500">Bed 101-A · Room 101</div>
+                      </div>
+                    </div>
+                    <div class="text-right">
+                      <div class="text-sm font-black text-slate-900">₹8,500</div>
+                      <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#E6F4EA] text-[#0D652D]">PAID</span>
+                    </div>
+                  </div>
+
+                  <div class="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-row items-center justify-between cursor-pointer" onclick="navTo('page-tenant-detail')">
+                    <div class="flex flex-row items-center gap-3">
+                      <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-xs font-bold text-blue-800">
+                        VV
+                      </div>
+                      <div>
+                        <div class="text-sm font-bold text-slate-900">Vikram Verma</div>
+                        <div class="text-xs text-slate-500">Bed 102-A · Room 102</div>
+                      </div>
+                    </div>
+                    <div class="text-right">
+                      <div class="text-sm font-black text-slate-900">₹7,000</div>
+                      <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#FEE2E2] text-[#991B1B]">DUE</span>
+                    </div>
+                  </div>
+
+                  <div class="bg-white p-3.5 rounded-2xl border border-amber-200 shadow-xs flex flex-row items-center justify-between cursor-pointer" onclick="navTo('page-tenant-detail')">
+                    <div class="flex flex-row items-center gap-3">
+                      <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-xs font-bold text-amber-800">
+                        KN
+                      </div>
+                      <div>
+                        <div class="text-sm font-bold text-slate-900">Kavya Nair</div>
+                        <div class="text-xs text-slate-500">Bed 102-B · Notice 15d</div>
+                      </div>
+                    </div>
+                    <div class="text-right">
+                      <div class="text-sm font-black text-amber-800">₹7,500</div>
+                      <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#FEF3C7] text-[#B45309]">NOTICE</span>
+                    </div>
+                  </div>
+
+                </div>
+
+                <div class="h-4 bg-white flex justify-center items-center shrink-0">
+                  <div class="w-32 h-1 bg-slate-300 rounded-full"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="lg:col-span-7 space-y-6 spec-pane">
+            <div class="bg-[#151924] border border-[#232A3B] rounded-2xl p-5 space-y-4">
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <span>📋</span> Directory Details
+              </h3>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                The Directory is reached directly from Pulse or More. It supports real-time multi-term search (name, phone, room, bed) and filters by active, notice period, and archived checked-out tenants.
+              </p>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ===================================================================== -->
+      <!-- SCREEN 07: UNIVERSAL MODALS SUITE (Exact Redesigned Confirmation)     -->
+      <!-- ===================================================================== -->
+      <section id="page-modals" class="page-content space-y-6 max-w-6xl mx-auto hidden">
+
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#202636]">
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                Universal Dialogs
+              </span>
+              <code class="text-xs font-mono text-slate-400">src/components/ConfirmDeleteModal.tsx</code>
+            </div>
+            <h2 class="text-xl md:text-2xl font-black text-white">Universal Confirmation & Edit Modals</h2>
+            <p class="text-xs text-slate-400 mt-0.5">
+              Exact implementation: Centered 3xl card, circular icon halo (Trash2 / AlertTriangle), EditBed per-bed pricing modal, and DatePickerModal calendar.
+            </p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+          <!-- 1. Exact ConfirmDeleteModal (Danger Variant) -->
+          <div class="bg-[#151924] border border-[#232A3B] rounded-3xl p-5 space-y-4">
+            <div class="text-xs font-extrabold text-rose-400 uppercase tracking-wider">
+              1. Redesigned ConfirmDeleteModal
+            </div>
+
+            <!-- Exact Rendered Modal Card -->
+            <div class="bg-white rounded-3xl p-6 shadow-2xl relative text-center">
+              <!-- Close (X) button at top right -->
+              <div class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
+                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+              </div>
+
+              <!-- Status Icon Badge: w-16 h-16 rounded-full bg-rose-100 border border-rose-200 -->
+              <div class="w-16 h-16 rounded-full bg-rose-100 border border-rose-200 flex items-center justify-center mx-auto mb-4">
+                <svg class="w-7 h-7 text-[#BE123C]" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              </div>
+
+              <!-- Title -->
+              <div class="text-xl font-black text-slate-900 mb-2">
+                Delete Bed 101-B?
+              </div>
+
+              <!-- Message -->
+              <div class="text-sm font-medium text-slate-600 mb-5 leading-relaxed">
+                Are you sure you want to delete this vacant bed? This action cannot be undone.
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="flex flex-row items-center gap-3">
+                <div class="flex-1 py-3.5 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center font-bold text-sm text-slate-700 cursor-pointer">
+                  Cancel
+                </div>
+                <div class="flex-1 py-3.5 rounded-2xl bg-rose-600 flex items-center justify-center font-extrabold text-sm text-white shadow-xs cursor-pointer">
+                  Delete Bed
+                </div>
+              </div>
+            </div>
+
+            <p class="text-xs text-slate-400">
+              Matches <code>ConfirmDeleteModal.tsx</code> lines 105-180 exactly.
+            </p>
+          </div>
+
+          <!-- 2. Exact EditBedModal (With Per-Bed Pricing) -->
+          <div class="bg-[#151924] border border-[#232A3B] rounded-3xl p-5 space-y-4">
+            <div class="text-xs font-extrabold text-emerald-400 uppercase tracking-wider">
+              2. EditBedModal (Per-Bed Pricing)
+            </div>
+
+            <div class="bg-white rounded-3xl p-6 shadow-2xl relative text-left">
+              <div class="flex flex-row items-center justify-between mb-4 pb-3 border-b border-slate-100">
+                <span class="text-lg font-black text-slate-900">Edit Bed 101-B</span>
+                <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
+                  <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </div>
+              </div>
+
+              <div class="mb-4">
+                <label class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 block">Bed Label *</label>
+                <input type="text" value="101-B" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 font-bold text-slate-900 text-sm">
+              </div>
+
+              <!-- Monthly Rent with Room Base Helper -->
+              <div class="mb-4">
+                <div class="flex flex-row items-center justify-between mb-1.5">
+                  <label class="text-xs font-bold text-slate-700 uppercase tracking-wider">Monthly Rent (₹)</label>
+                  <span class="text-2xs font-extrabold text-[#0A6C50] bg-emerald-50 border border-[#A7F3D0] px-2 py-0.5 rounded-md">
+                    Room base: ₹8,000
+                  </span>
+                </div>
+                <div class="relative">
+                  <span class="absolute left-3.5 top-2.5 font-black text-slate-400 text-sm">₹</span>
+                  <input type="number" value="8500" class="w-full bg-white border border-[#0A6C50] rounded-xl pl-8 pr-4 py-2.5 font-black text-slate-900 text-base">
+                </div>
+                <span class="text-2xs text-slate-500 mt-1 block">Set custom rate for this bed, or leave blank to use room base rent.</span>
+              </div>
+
+              <div class="w-full bg-[#0A6C50] py-3.5 rounded-xl items-center justify-center flex font-extrabold text-white text-base shadow-xs mb-2 cursor-pointer">
+                Save bed
+              </div>
+            </div>
+
+            <p class="text-xs text-slate-400">
+              Matches <code>EditBedModal.tsx</code> lines 120-180 with granular pricing.
+            </p>
+          </div>
+
+          <!-- 3. Exact VacantBedSheet Bottom Card -->
+          <div class="bg-[#151924] border border-[#232A3B] rounded-3xl p-5 space-y-4">
+            <div class="text-xs font-extrabold text-blue-400 uppercase tracking-wider">
+              3. VacantBedSheet (Aligned (X) Close)
+            </div>
+
+            <div class="bg-white rounded-3xl p-6 shadow-2xl relative text-left">
+              <div class="flex flex-row items-center justify-between mb-4">
+                <div class="w-8"></div>
+                <div class="w-12 h-1.5 rounded-full bg-slate-300"></div>
+                <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
+                  <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </div>
+              </div>
+
+              <!-- Bed Info Header -->
+              <div class="flex flex-row items-center mb-5">
+                <div class="bg-[#E8F5EE] border border-[#A7F3D0] rounded-xl px-3 py-2 mr-3.5 flex items-center justify-center">
+                  <span class="text-sm font-extrabold text-[#0A6C50]">101-B</span>
+                </div>
+                <div class="flex-1 mr-2">
+                  <div class="text-base font-extrabold text-slate-900">Bed 101-B · Vacant</div>
+                  <div class="text-xs font-medium text-slate-500 mt-0.5">Room 101 · Floor 1 · 2 share · Washroom · AC</div>
+                </div>
+                <div class="text-right">
+                  <div class="text-base font-extrabold text-[#0A6C50]">₹8,000</div>
+                  <div class="text-xs text-slate-400 font-medium">per month</div>
+                </div>
+              </div>
+
+              <div class="w-full bg-[#0A6C50] rounded-2xl py-3.5 flex flex-row items-center justify-center mb-3 shadow-sm cursor-pointer">
+                <span class="text-sm font-extrabold text-white">Check in tenant</span>
+              </div>
+
+              <div class="flex flex-row items-center gap-2">
+                <div class="flex-1 py-2.5 bg-slate-100 rounded-xl text-center text-xs font-bold text-slate-700">Mark Maint.</div>
+                <div class="px-3 py-2.5 bg-rose-50 border border-rose-200 rounded-xl text-center text-xs font-bold text-rose-700">Delete</div>
+              </div>
+            </div>
+
+            <p class="text-xs text-slate-400">
+              Matches <code>VacantBedSheet.tsx</code> with aligned top handle and X button.
+            </p>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ===================================================================== -->
+      <!-- SCREEN 08: CONTINUOUS GALLERY & PRINT VIEW                            -->
+      <!-- ===================================================================== -->
+      <section id="page-gallery" class="page-content space-y-8 max-w-6xl mx-auto hidden">
+        <div class="flex items-center justify-between pb-4 border-b border-[#202636]">
+          <div>
+            <h2 class="text-2xl font-black text-white">Complete Continuous Screen Gallery</h2>
+            <p class="text-xs text-slate-400 mt-1">
+              Scroll through all implemented screens side by side or export directly to a print-ready design catalog.
+            </p>
+          </div>
+          <button onclick="window.print()" class="px-4 py-2 rounded-xl bg-white text-slate-900 font-extrabold text-xs shadow-md">
+            Save as Multi-Page PDF 🖨️
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div class="text-center space-y-2">
+            <div class="text-xs font-black text-slate-300">1. Pulse Dashboard</div>
+            <div class="phone-mockup mx-auto scale-90 origin-top">
+              <div class="dynamic-island"></div>
+              <div class="phone-screen bg-[#F8F9FA] p-4 text-slate-800">
+                <div class="text-base font-extrabold mb-2">Pulse Dashboard</div>
+                <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-xs mb-2">
+                  <div class="text-xs text-slate-500">Collected this month</div>
+                  <div class="text-xl font-black text-slate-900">₹2,45,000</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="text-center space-y-2">
+            <div class="text-xs font-black text-slate-300">2. Bed Matrix</div>
+            <div class="phone-mockup mx-auto scale-90 origin-top">
+              <div class="dynamic-island"></div>
+              <div class="phone-screen bg-[#F8F9FA] p-4 text-slate-800">
+                <div class="text-base font-extrabold mb-2">Bed Matrix</div>
+                <div class="bg-[#E8F5EE] p-3 rounded-2xl border border-[#A7F3D0] text-center font-bold text-[#0A6C50]">
+                  6 beds vacant · Sunrise PG
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="text-center space-y-2">
+            <div class="text-xs font-black text-slate-300">3. Guarded Check-in</div>
+            <div class="phone-mockup mx-auto scale-90 origin-top">
+              <div class="dynamic-island"></div>
+              <div class="phone-screen bg-[#F8F9FA] p-4 text-slate-800">
+                <div class="text-base font-extrabold mb-2">Check-in Tenant</div>
+                <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-xs text-xs">
+                  Prefilled Deposit: <strong>₹1,000</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- CLIENT JAVASCRIPT: EXACT HASH ROUTER & INTERACTIVE NAVIGATION             -->
+  <!-- ========================================================================= -->
+  <script>
+    const pages = [
+      { id: 'page-matrix', title: 'Bed Matrix & Per-Bed Rates', category: 'Bottom Tabs', hashAlias: ['page-dcb81aee8d83', 'matrix', ''] },
+      { id: 'page-checkin', title: 'Guarded Check-in Sheet', category: 'Flow Screens', hashAlias: ['checkin', 'onboarding'] },
+      { id: 'page-pulse', title: 'Pulse Operations Dashboard', category: 'Bottom Tabs', hashAlias: ['pulse', 'dashboard', 'home'] },
+      { id: 'page-dues', title: 'Dues & Rent Collections', category: 'Bottom Tabs', hashAlias: ['dues', 'invoices'] },
+      { id: 'page-more', title: 'More (Operations & Settings)', category: 'Bottom Tabs', hashAlias: ['more', 'settings', 'operations'] },
+      { id: 'page-tenants', title: 'Tenants Directory & CRM', category: 'Flow Screens', hashAlias: ['tenants', 'directory'] },
+      { id: 'page-tenant-detail', title: 'Tenant Detail & Ledger', category: 'Flow Screens', hashAlias: ['tenant-detail', 'ledger'] },
+      { id: 'page-checkout', title: 'Guarded Checkout Settlement', category: 'Flow Screens', hashAlias: ['checkout', 'settlement'] },
+      { id: 'page-login', title: 'Auth: Login & Biometrics', category: 'Flow Screens', hashAlias: ['login', 'auth'] },
+      { id: 'page-modals', title: 'Universal Modals Suite', category: 'Sheets & Modals', hashAlias: ['modals', 'popups'] },
+      { id: 'page-tokens', title: 'Design Tokens & Colors', category: 'Design System', hashAlias: ['tokens', 'theme'] },
+      { id: 'page-gallery', title: 'Continuous Gallery / Print', category: 'Continuous View', hashAlias: ['gallery', 'all', 'print'] }
+    ];
+
+    let currentPageId = 'page-matrix';
+
+    function handleRouting() {
+      let rawHash = window.location.hash.replace(/^#/, '').trim();
+      let matchedPage = pages.find(p => p.id === rawHash || (p.hashAlias && p.hashAlias.includes(rawHash)));
+
+      if (!matchedPage) {
+        matchedPage = pages.find(p => p.id === 'page-matrix');
+      }
+
+      showPage(matchedPage.id);
+    }
+
+    function navTo(pageId) {
+      window.location.hash = pageId;
+    }
+
+    function showPage(pageId) {
+      const targetPage = pages.find(p => p.id === pageId) || pages[0];
+      currentPageId = targetPage.id;
+
+      // 1. Hide all page contents
+      document.querySelectorAll('.page-content').forEach(el => el.classList.add('hidden'));
+
+      // 2. Show active page
+      const activeEl = document.getElementById(targetPage.id);
+      if (activeEl) activeEl.classList.remove('hidden');
+
+      // 3. Update breadcrumbs
+      const catEl = document.getElementById('breadcrumbCategory');
+      const titleEl = document.getElementById('breadcrumbTitle');
+      if (catEl) catEl.textContent = targetPage.category;
+      if (titleEl) titleEl.textContent = targetPage.title;
+
+      // 4. Update sidebar active styles
+      document.querySelectorAll('.nav-item').forEach(el => {
+        el.classList.remove('active', 'text-white', 'bg-emerald-950/40', 'border-emerald-500/30');
+        el.classList.add('text-slate-300');
+        if (el.getAttribute('data-page') === targetPage.id) {
+          el.classList.add('active', 'text-white', 'bg-emerald-950/40', 'border-emerald-500/30');
+          el.classList.remove('text-slate-300');
+        }
+      });
+
+      // 5. Scroll container to top
+      const container = document.getElementById('mainContainer');
+      if (container) container.scrollTop = 0;
+    }
+
+    function setViewMode(mode) {
+      const phonePanes = document.querySelectorAll('.phone-pane');
+      const specPanes = document.querySelectorAll('.spec-pane');
+      
+      document.getElementById('btnViewSplit')?.classList.remove('text-white', 'bg-slate-700/80');
+      document.getElementById('btnViewPhone')?.classList.remove('text-white', 'bg-slate-700/80');
+      document.getElementById('btnViewSpec')?.classList.remove('text-white', 'bg-slate-700/80');
+      
+      if (mode === 'split') {
+        phonePanes.forEach(el => el.style.display = 'flex');
+        specPanes.forEach(el => el.style.display = 'block');
+        document.getElementById('btnViewSplit')?.classList.add('text-white', 'bg-slate-700/80');
+      } else if (mode === 'phone') {
+        phonePanes.forEach(el => el.style.display = 'flex');
+        specPanes.forEach(el => el.style.display = 'none');
+        document.getElementById('btnViewPhone')?.classList.add('text-white', 'bg-slate-700/80');
+      } else if (mode === 'spec') {
+        phonePanes.forEach(el => el.style.display = 'none');
+        specPanes.forEach(el => el.style.display = 'block');
+        document.getElementById('btnViewSpec')?.classList.add('text-white', 'bg-slate-700/80');
+      }
+    }
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      sidebar.classList.toggle('-translate-x-full');
+    }
+
+    function filterPages(query) {
+      const q = query.toLowerCase();
+      document.querySelectorAll('.nav-item').forEach(item => {
+        const text = item.textContent.toLowerCase();
+        item.style.display = text.includes(q) ? 'flex' : 'none';
+      });
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        document.getElementById('pageSearch')?.focus();
+      }
+      if (e.target.tagName === 'INPUT') return;
+
+      const currentIndex = pages.findIndex(p => p.id === currentPageId);
+      if (e.key === 'ArrowRight' || e.key === ']') {
+        const next = pages[(currentIndex + 1) % pages.length];
+        navTo(next.id);
+      } else if (e.key === 'ArrowLeft' || e.key === '[') {
+        const prev = pages[(currentIndex - 1 + pages.length) % pages.length];
+        navTo(prev.id);
+      }
+    });
+
+    window.addEventListener('hashchange', handleRouting);
+    window.addEventListener('DOMContentLoaded', handleRouting);
+  </script>
+</body>
+</html>

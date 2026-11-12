@@ -10,9 +10,9 @@ export default function Index() {
     return <View style={{ flex: 1, backgroundColor: '#0A6C50' }} />;
   }
 
-  if (isAuthenticated) {
-    return <Redirect href="/(tabs)" />;
-  }
-
-  return <Redirect href="/(auth)/login" />;
+  return (
+    <View style={{ flex: 1, backgroundColor: '#0A6C50' }}>
+      <Redirect href={isAuthenticated ? '/(tabs)' : '/(auth)/login'} />
+    </View>
+  );
 }

@@ -11,12 +11,21 @@ import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnable
 import com.facebook.react.defaults.DefaultReactActivityDelegate
 
 import expo.modules.ReactActivityDelegateWrapper
+import expo.modules.splashscreen.SplashScreenManager
 
 class MainActivity : ReactActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
-    // Set AppTheme and ensure decorView stays brand green (#0A6C50)
-    setTheme(R.style.AppTheme)
-    window.decorView.setBackgroundColor(Color.parseColor("#0A6C50"))
+    // Register official Android 12+ SplashScreen with Theme.SplashScreen
+    SplashScreenManager.registerOnActivity(this)
+    SplashScreenManager.preventAutoHideCalled = true
+
+    // Disable exit animation to eliminate the 1-frame dashboard flash/blink
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+      splashScreen.setOnExitAnimationListener { splashScreenView ->
+        splashScreenView.remove()
+      }
+    }
+
     super.onCreate(null)
   }
 

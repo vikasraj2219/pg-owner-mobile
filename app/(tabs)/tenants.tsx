@@ -40,7 +40,7 @@ import {
 } from '../../src/api/tenants';
 import { formatINR } from '../../src/utils/currency';
 import { formatDayMonth } from '../../src/utils/date';
-import { openWhatsApp, sendRentReminder } from '../../src/utils/whatsapp';
+import { openWhatsApp } from '../../src/utils/whatsapp';
 import { PropertySwitcherModal } from '../../src/components/PropertySwitcherModal';
 import { ConfirmDeleteModal } from '../../src/components/ConfirmDeleteModal';
 
@@ -312,13 +312,17 @@ export default function TenantsScreen() {
     const bedStr =
       typeof tenant.currentBed === 'object' ? tenant.currentBed?.bedNumber : 'assigned bed';
     if ((tenant.balanceDuePaise ?? 0) > 0) {
-      void sendRentReminder(
-        tenant.phone,
-        tenant.fullName,
-        bedStr,
-        tenant.balanceDuePaise!,
-        (typeof tenant.property === 'object' && tenant.property?.upiVpa) || '',
-      );
+      router.push({
+        pathname: `/reminder/${tenant._id}`,
+        params: {
+          tenantName: tenant.fullName,
+          phone: tenant.phone,
+          bedNo: `Bed ${bedStr}`,
+          amountPaise: tenant.balanceDuePaise!.toString(),
+          overdueDays: (tenant.overdueDays || 0).toString(),
+          upiVpa: (typeof tenant.property === 'object' && tenant.property?.upiVpa) || '',
+        },
+      } as any);
     } else {
       void openWhatsApp(tenant.phone, `Hello ${tenant.fullName}!`);
     }
@@ -715,20 +719,6 @@ export default function TenantsScreen() {
               >
                 <Clock size={20} color="#334155" />
                 <Text className="text-sm font-bold text-slate-800 ml-3.5">Start notice period</Text>
-              </TouchableOpacity>
-            )}
-
-            {actionSheetTenant?.status !== 'checked_out' && (
-              <TouchableOpacity
-                onPress={() => {
-                  const id = actionSheetTenant?._id;
-                  setActionSheetTenant(null);
-                  if (id) router.push(`/checkout/${id}`);
-                }}
-                className="flex-row items-center py-3.5 border-b border-slate-50"
-              >
-                <LogOut size={20} color="#BE123C" />
-                <Text className="text-sm font-bold text-[#BE123C] ml-3.5">Checkout tenant</Text>
               </TouchableOpacity>
             )}
 

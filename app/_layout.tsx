@@ -1,7 +1,11 @@
 import '../global.css';
 import React, { useEffect } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
+
+// Prevent native splash screen from hiding until app is ready (Instagram-style)
+SplashScreen.preventAutoHideAsync().catch(() => {});
 import { QueryClient } from '@tanstack/react-query';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister';
@@ -34,6 +38,14 @@ function NavigationGuard() {
 
   const inAuthGroup = segments[0] === '(auth)';
 
+  // Global safety fallback: ensures splash screen is always dismissed even in unexpected error states
+  useEffect(() => {
+    const safetyTimer = setTimeout(() => {
+      SplashScreen.hideAsync().catch(() => {});
+    }, 3500);
+    return () => clearTimeout(safetyTimer);
+  }, []);
+
   useEffect(() => {
     if (isLoading) return;
 
@@ -48,7 +60,7 @@ function NavigationGuard() {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#0A6C50' }}>
-      {/* Root Navigator is ALWAYS mounted with brand green background */}
+      {/* Root Navigator */}
       <Stack
         screenOptions={{
           headerShown: false,
@@ -56,9 +68,9 @@ function NavigationGuard() {
           animation: 'none',
         }}
       >
-        <Stack.Screen name="index" />
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="(auth)" />
+        <Stack.Screen name="index" options={{ contentStyle: { backgroundColor: '#0A6C50' } }} />
+        <Stack.Screen name="(tabs)" options={{ contentStyle: { backgroundColor: '#0A6C50' } }} />
+        <Stack.Screen name="(auth)" options={{ contentStyle: { backgroundColor: '#0A6C50' } }} />
         <Stack.Screen
           name="checkin/[bedId]"
           options={{ presentation: 'card', headerShown: false }}
@@ -74,6 +86,8 @@ function NavigationGuard() {
         />
         <Stack.Screen name="tenants/add" options={{ presentation: 'card', headerShown: false }} />
         <Stack.Screen name="subscription" options={{ presentation: 'card', headerShown: false }} />
+        <Stack.Screen name="receipt/[id]" options={{ presentation: 'card', headerShown: false }} />
+        <Stack.Screen name="reminder/[id]" options={{ presentation: 'card', headerShown: false }} />
       </Stack>
 
       {/* Biometric Lock Screen Overlay - only if explicitly enabled by user in Settings */}

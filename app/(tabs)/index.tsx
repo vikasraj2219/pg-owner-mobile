@@ -1,7 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import {
   ChevronDown,
   Bell,
@@ -35,6 +36,24 @@ export default function PulseScreen() {
   const [showPropertyPicker, setShowPropertyPicker] = useState(false);
   const [showAddProperty, setShowAddProperty] = useState(false);
   const [showTenantsModal, setShowTenantsModal] = useState(false);
+
+  // Instagram-style smooth splash transition: wait for initial screen layout pass + comfortable hold
+  const mountTimeRef = useRef(Date.now());
+  const splashDismissedRef = useRef(false);
+
+  const handleLayout = useCallback(() => {
+    if (splashDismissedRef.current) return;
+    const elapsed = Date.now() - mountTimeRef.current;
+    const minHold = 600;
+    const remaining = Math.max(0, minHold - elapsed);
+
+    setTimeout(() => {
+      if (!splashDismissedRef.current) {
+        splashDismissedRef.current = true;
+        SplashScreen.hideAsync().catch(() => {});
+      }
+    }, remaining);
+  }, []);
 
   // Dynamic month & year display
   const currentMonthYear = useMemo(() => {
@@ -86,7 +105,7 @@ export default function PulseScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-[#F8F9FA]" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-[#F8F9FA]" edges={['top']} onLayout={handleLayout}>
       <View className="flex-1 relative">
         <ScrollView
           className="flex-1 px-5 pt-3"

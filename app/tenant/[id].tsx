@@ -36,9 +36,11 @@ import { useQueryClient } from '@tanstack/react-query';
 import { uploadKycDocumentApi } from '../../src/api/upload';
 import { IdDocumentViewerModal } from '../../src/components/IdDocumentViewerModal';
 import { useTenantDetail } from '../../src/hooks/useTenants';
+import { useMatrix } from '../../src/hooks/useMatrix';
 import { formatINR } from '../../src/utils/currency';
 import { formatSafeDate, formatDayMonth, formatSafeMonthYear } from '../../src/utils/date';
-import { openWhatsApp, sendRentReminder } from '../../src/utils/whatsapp';
+import { openWhatsApp } from '../../src/utils/whatsapp';
+import { resolveRoomAndBed } from '../../src/utils/bedResolution';
 import { RecordPaymentModal } from '../../src/components/RecordPaymentModal';
 import { ConfirmDeleteModal } from '../../src/components/ConfirmDeleteModal';
 import { markInvoicePaidApi } from '../../src/api/invoices';
@@ -86,6 +88,12 @@ export default function TenantDetailScreen() {
   const { tenant, invoices, deposits, payments, balanceDuePaise, isLoading, refetch } =
     useTenantDetail(id);
 
+  const propertyId =
+    typeof tenant?.property === 'object' && tenant?.property
+      ? (tenant.property as any)._id
+      : tenant?.property;
+  const { matrixData } = useMatrix(propertyId || null);
+
   // Initials generator
   const getInitials = (name?: string) => {
     if (!name) return 'TN';
@@ -97,18 +105,23 @@ export default function TenantDetailScreen() {
   };
 
   const bedInfo = useMemo(() => {
-    if (!tenant?.currentBed || typeof tenant.currentBed !== 'object') {
-      return { bedNumber: 'N/A', roomNumber: 'N/A', floorNumber: 'N/A' };
-    }
+    const resolved = resolveRoomAndBed({
+      tenantId: tenant?._id,
+      tenantName: tenant?.fullName,
+      currentBed: tenant?.currentBed,
+      matrixData,
+    });
     return {
-      bedNumber: tenant.currentBed.bedNumber || 'N/A',
-      roomNumber: tenant.currentBed.room?.roomNumber || 'N/A',
+      bedNumber: resolved.bedNumber,
+      roomNumber: resolved.roomNumber,
+      formattedLabel: resolved.formattedLabel,
       floorNumber:
-        tenant.currentBed.room?.floorNumber !== undefined
+        typeof tenant?.currentBed === 'object' &&
+        tenant?.currentBed?.room?.floorNumber !== undefined
           ? String(tenant.currentBed.room.floorNumber)
           : 'N/A',
     };
-  }, [tenant]);
+  }, [tenant, matrixData]);
 
   // Find overdue / pending invoice
   const overdueInvoice = useMemo(() => {
@@ -179,13 +192,17 @@ export default function TenantDetailScreen() {
   const handleWhatsApp = () => {
     if (!tenant?.phone) return;
     if (balanceDuePaise > 0) {
-      void sendRentReminder(
-        tenant.phone,
-        tenant.fullName,
-        bedInfo.bedNumber,
-        balanceDuePaise,
-        (typeof tenant.property === 'object' && tenant.property?.upiVpa) || '',
-      );
+      router.push({
+        pathname: `/reminder/${tenant._id}`,
+        params: {
+          tenantName: tenant.fullName,
+          phone: tenant.phone,
+          bedNo: `Bed ${bedInfo.bedNumber}`,
+          amountPaise: balanceDuePaise.toString(),
+          overdueDays: (overdueDays > 0 ? overdueDays : 0).toString(),
+          upiVpa: (typeof tenant.property === 'object' && tenant.property?.upiVpa) || '',
+        },
+      } as any);
     } else {
       void openWhatsApp(tenant.phone, `Hello ${tenant.fullName}!`);
     }
@@ -419,8 +436,31 @@ export default function TenantDetailScreen() {
     }
   };
 
+  // View Receipt on Screen
+  const handleViewReceipt = (item: {
+    receiptNumber: string;
+    amountPaise: number;
+    date: string;
+    mode: string;
+  }) => {
+    if (!tenant) return;
+    router.push({
+      pathname: `/receipt/${item.receiptNumber}`,
+      params: {
+        receiptNo: item.receiptNumber,
+        tenantName: tenant.fullName,
+        bedNo: bedInfo.formattedLabel,
+        propertyName: (typeof tenant.property === 'object' && tenant.property?.name) || 'PG',
+        propertyAddress: (typeof tenant.property === 'object' && tenant.property?.address) || '',
+        amountPaise: item.amountPaise.toString(),
+        date: item.date,
+        method: item.mode,
+      },
+    } as any);
+  };
+
   // Share Receipt
-  const handleShareReceipt = async (item: {
+  const _handleShareReceipt = async (item: {
     receiptNumber: string;
     amountPaise: number;
     date: string;
@@ -431,7 +471,7 @@ export default function TenantDetailScreen() {
       await generateAndShareReceipt({
         receiptNo: item.receiptNumber,
         tenantName: tenant.fullName,
-        bedNo: bedInfo.bedNumber,
+        bedNo: bedInfo.formattedLabel,
         property: (typeof tenant.property === 'object' && tenant.property?.name) || 'PG',
         amountPaise: item.amountPaise,
         date: formatSafeDate(item.date),
@@ -718,7 +758,7 @@ export default function TenantDetailScreen() {
                 {ledgerItems.map(item => (
                   <TouchableOpacity
                     key={item.id}
-                    onPress={() => handleShareReceipt(item)}
+                    onPress={() => handleViewReceipt(item)}
                     activeOpacity={0.7}
                     className="p-4 flex-row items-center justify-between"
                   >

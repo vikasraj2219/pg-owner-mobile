@@ -10,18 +10,21 @@ import {
   RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MessageCircle, QrCode, CheckCircle2, Share2, Search, X } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
+import { MessageCircle, QrCode, CheckCircle2, Share2, Search, X, Eye } from 'lucide-react-native';
 import { useProperties } from '../../src/context/PropertyContext';
 import { useInvoices } from '../../src/hooks/useInvoices';
+import { useMatrix } from '../../src/hooks/useMatrix';
 import { formatINR } from '../../src/utils/currency';
 import { formatSafeMonthYear, formatSafeDate } from '../../src/utils/date';
-import { sendRentReminder } from '../../src/utils/whatsapp';
 import { generateAndShareReceipt } from '../../src/utils/pdfReceipt';
+import { resolveRoomAndBed } from '../../src/utils/bedResolution';
 import { RecordPaymentModal } from '../../src/components/RecordPaymentModal';
 import { DynamicUpiQrModal } from '../../src/components/DynamicUpiQrModal';
 import { DueInvoiceItem } from '../../src/types/api';
 
 export default function DuesScreen() {
+  const router = useRouter();
   const { selectedProperty, selectedPropertyId } = useProperties();
   const [filter, setFilter] = useState<'all' | 'overdue' | 'unpaid' | 'paid'>('overdue');
   const [searchQuery, setSearchQuery] = useState('');
@@ -35,6 +38,7 @@ export default function DuesScreen() {
     filter,
     searchQuery,
   );
+  const { matrixData } = useMatrix(selectedProperty?._id || null);
 
   const currentMonthYear = useMemo(() => {
     return formatSafeMonthYear();
@@ -51,12 +55,13 @@ export default function DuesScreen() {
     return invoices.filter(item => item.status !== 'paid' && item.status !== 'canceled').length;
   }, [invoices]);
 
-  const getBedLabel = (item: DueInvoiceItem) => {
-    const bedObj = item.tenant?.currentBed;
-    if (typeof bedObj === 'object' && bedObj && 'bedNumber' in bedObj) {
-      return `Bed ${bedObj.bedNumber}`;
-    }
-    return 'Bed';
+  const getBedInfo = (item: DueInvoiceItem) => {
+    return resolveRoomAndBed({
+      tenantId: item.tenant?._id,
+      tenantName: item.tenant?.fullName,
+      currentBed: item.tenant?.currentBed,
+      matrixData,
+    });
   };
 
   const getInitials = (fullName?: string) => {
@@ -71,30 +76,85 @@ export default function DuesScreen() {
   };
 
   const handleSendWhatsApp = (item: DueInvoiceItem) => {
-    const tenantPhone = item.tenant?.phone;
+    const tenantPhone = item.tenant?.phone || '';
     const tenantName = item.tenant?.fullName || 'Tenant';
-    const bedName = getBedLabel(item);
-    const amountPaise = item.balanceDuePaise || item.totalAmountPaise;
+    const bedInfo = getBedInfo(item);
+    const amountPaise = String(item.balanceDuePaise || item.totalAmountPaise || 850000);
+    const overdueDays = String(item.overdueDays ?? 0);
     const upiVpa = selectedProperty?.upiVpa || '';
 
-    if (!tenantPhone) {
-      Alert.alert('Phone Missing', `No phone number available for ${tenantName}.`);
-      return;
-    }
+    const daysUntilDue = item.dueDate
+      ? Math.round(
+          (new Date(item.dueDate).setHours(0, 0, 0, 0) - new Date().setHours(0, 0, 0, 0)) /
+            (1000 * 60 * 60 * 24),
+        )
+      : 0;
 
-    sendRentReminder(tenantPhone, tenantName, bedName, amountPaise, upiVpa);
+    const reminderType =
+      daysUntilDue > 0 ? 'pre_reminder' : daysUntilDue === 0 ? 'due_today' : 'overdue';
+
+    router.push({
+      pathname: '/reminder/[id]' as any,
+      params: {
+        id: item._id,
+        tenantName,
+        phone: tenantPhone,
+        bedNo: bedInfo.bedLabel,
+        amountPaise,
+        overdueDays,
+        upiVpa,
+        dueDate: item.dueDate,
+        daysRemaining: String(daysUntilDue),
+        type: reminderType,
+      },
+    });
+  };
+
+  const handleViewReceipt = (item: DueInvoiceItem) => {
+    const receiptNo = item.invoiceNumber.replace('INV-', 'RCP-');
+    const tenantName = item.tenant?.fullName || 'Tenant';
+    const bedInfo = getBedInfo(item);
+    const amountPaise = String(item.amountPaidPaise || item.totalAmountPaise || 850000);
+    const date = item.paidAt || item.dueDate || new Date().toISOString();
+    const propertyName = item.property?.name || selectedProperty?.name || 'Sri Sai Boys PG';
+    const propertyAddress = selectedProperty?.address || 'Madhapur, Hyderabad';
+    const forMonth =
+      item.items?.[0]?.description ||
+      (item.dueDate ? `${formatSafeMonthYear(new Date(item.dueDate))} rent` : 'October 2026 rent');
+    const method = item.paymentMethod?.toUpperCase() || 'UPI';
+
+    router.push({
+      pathname: '/receipt/[id]' as any,
+      params: {
+        id: item._id,
+        receiptNo,
+        tenantName,
+        bedNo: bedInfo.formattedLabel,
+        amountPaise,
+        date,
+        propertyName,
+        propertyAddress,
+        forMonth,
+        method,
+      },
+    });
   };
 
   const handleSharePaidReceipt = async (item: DueInvoiceItem) => {
     try {
+      const bedInfo = getBedInfo(item);
       await generateAndShareReceipt({
         receiptNo: item.invoiceNumber.replace('INV-', 'RCP-'),
         tenantName: item.tenant?.fullName || 'Tenant',
-        bedNo: getBedLabel(item),
+        bedNo: bedInfo.formattedLabel,
         amountPaise: item.amountPaidPaise || item.totalAmountPaise,
-        date: formatSafeDate(item.dueDate),
-        property: item.property?.name || selectedProperty?.name || 'PG Living',
-        paymentMethod: 'UPI',
+        date: formatSafeDate(item.paidAt || item.dueDate),
+        property: item.property?.name || selectedProperty?.name || 'Sri Sai Boys PG',
+        propertyAddress: selectedProperty?.address || 'Madhapur, Hyderabad',
+        forMonth:
+          item.items?.[0]?.description ||
+          (item.dueDate ? `${formatSafeMonthYear(new Date(item.dueDate))} rent` : 'Rent Payment'),
+        paymentMethod: item.paymentMethod || 'UPI',
       });
     } catch (_err) {
       Alert.alert('Error', 'Unable to generate receipt PDF.');
@@ -245,7 +305,8 @@ export default function DuesScreen() {
           invoices.map(item => {
             const tenantName = item.tenant?.fullName || 'Tenant';
             const initials = getInitials(tenantName);
-            const bedName = getBedLabel(item);
+            const bedInfo = getBedInfo(item);
+            const bedName = bedInfo.formattedLabel;
             const dueDateFormatted = item.dueDate
               ? `Due ${formatSafeDate(item.dueDate)}`
               : 'Due Date';
@@ -253,13 +314,34 @@ export default function DuesScreen() {
 
             const isPaid = item.status === 'paid';
             const overdueDays = item.overdueDays ?? 0;
-            const overdueLabel = isPaid
+            const daysUntilDue = item.dueDate
+              ? Math.round(
+                  (new Date(item.dueDate).setHours(0, 0, 0, 0) - new Date().setHours(0, 0, 0, 0)) /
+                    (1000 * 60 * 60 * 24),
+                )
+              : 0;
+
+            const statusLabel = isPaid
               ? 'Paid'
               : overdueDays > 0
                 ? `${overdueDays} days overdue`
-                : overdueDays === 0
+                : daysUntilDue === 0
                   ? 'Due today'
-                  : 'Upcoming';
+                  : daysUntilDue === 2
+                    ? '2 days left (Pre-reminder)'
+                    : daysUntilDue === 1
+                      ? '1 day left'
+                      : daysUntilDue > 2
+                        ? `${daysUntilDue} days left`
+                        : 'Upcoming';
+
+            const statusColor = isPaid
+              ? 'text-[#0A6C50]'
+              : overdueDays > 0
+                ? 'text-[#BE123C]'
+                : daysUntilDue === 0
+                  ? 'text-amber-700'
+                  : 'text-emerald-700';
 
             return (
               <View
@@ -292,13 +374,7 @@ export default function DuesScreen() {
 
                   <View className="items-end">
                     <Text className="text-lg font-extrabold text-slate-900">{amountFormatted}</Text>
-                    <Text
-                      className={`text-xs font-bold mt-0.5 ${
-                        isPaid ? 'text-[#0A6C50]' : 'text-[#BE123C]'
-                      }`}
-                    >
-                      {overdueLabel}
-                    </Text>
+                    <Text className={`text-xs font-bold mt-0.5 ${statusColor}`}>{statusLabel}</Text>
                   </View>
                 </View>
 
@@ -338,11 +414,20 @@ export default function DuesScreen() {
                     </TouchableOpacity>
                   </View>
                 ) : (
-                  <View className="flex-row items-center justify-end mt-3 pt-3 border-t border-slate-100">
+                  <View className="flex-row items-center justify-end mt-3 pt-3 border-t border-slate-100 gap-2">
+                    <TouchableOpacity
+                      activeOpacity={0.8}
+                      onPress={() => handleViewReceipt(item)}
+                      className="flex-row items-center gap-1.5 py-1.5 px-3 bg-slate-100 rounded-lg border border-slate-200"
+                    >
+                      <Eye size={14} color="#334155" />
+                      <Text className="text-xs font-bold text-slate-700">View Receipt</Text>
+                    </TouchableOpacity>
+
                     <TouchableOpacity
                       activeOpacity={0.8}
                       onPress={() => handleSharePaidReceipt(item)}
-                      className="flex-row items-center gap-1.5 py-1.5 px-3 bg-emerald-50 rounded-lg"
+                      className="flex-row items-center gap-1.5 py-1.5 px-3 bg-emerald-50 rounded-lg border border-[#A7F3D0]"
                     >
                       <Share2 size={14} color="#0A6C50" />
                       <Text className="text-xs font-bold text-[#0A6C50]">Share Receipt PDF</Text>

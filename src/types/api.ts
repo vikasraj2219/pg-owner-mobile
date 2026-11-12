@@ -138,6 +138,7 @@ export interface ITenantListItem {
   depositPaidPaise: Paise;
   balanceDuePaise?: Paise;
   hasOverdue?: boolean;
+  overdueDays?: number;
   kycDocType?: 'aadhaar' | 'pan' | 'passport' | 'voter_id';
   kycMaskedNumber?: string;
   kycDocUrl?: string;
@@ -500,6 +501,8 @@ export interface DueInvoiceItem {
   balanceDuePaise: Paise;
   status: 'unpaid' | 'partially_paid' | 'paid' | 'canceled';
   overdueDays?: number;
+  paidAt?: string;
+  paymentMethod?: string;
   tenant: {
     _id: string;
     fullName: string;
@@ -508,6 +511,10 @@ export interface DueInvoiceItem {
       | {
           _id: string;
           bedNumber: string;
+          room?: {
+            _id?: string;
+            roomNumber?: string;
+          };
         }
       | string;
     status?: string;
