@@ -1,12 +1,10 @@
 package com.pgowner.app
 
-import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
-import com.facebook.react.ReactRootView
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
 import com.facebook.react.defaults.DefaultReactActivityDelegate
 
@@ -17,15 +15,6 @@ class MainActivity : ReactActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     // Register official Android 12+ SplashScreen with Theme.SplashScreen
     SplashScreenManager.registerOnActivity(this)
-    SplashScreenManager.preventAutoHideCalled = true
-
-    // Disable exit animation to eliminate the 1-frame dashboard flash/blink
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-      splashScreen.setOnExitAnimationListener { splashScreenView ->
-        splashScreenView.remove()
-      }
-    }
-
     super.onCreate(null)
   }
 
@@ -47,13 +36,7 @@ class MainActivity : ReactActivity() {
               this,
               mainComponentName,
               fabricEnabled
-          ){
-            override fun createRootView(): ReactRootView? {
-              val view = super.createRootView()
-              view?.setBackgroundColor(Color.parseColor("#0A6C50"))
-              return view
-            }
-          })
+          ){})
   }
 
   /**
