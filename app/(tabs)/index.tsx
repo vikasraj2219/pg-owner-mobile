@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useRef, useCallback } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
+import React, { useState, useMemo, useRef, useCallback, useEffect } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, RefreshControl, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -40,7 +40,39 @@ export default function PulseScreen() {
 
   const { stats, isLoading: isDashboardLoading, refetch } = useDashboard(selectedPropertyId);
 
-  const isInitialLoading = !stats && (isDashboardLoading || isPropertiesLoading);
+  const [initialSkeletonActive, setInitialSkeletonActive] = useState(true);
+  const contentFadeAnim = useRef(new Animated.Value(0)).current;
+
+  // Instagram-style smooth transition: dismiss native splash immediately on paint and show pulsing skeleton
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      SplashScreen.hideAsync().catch(() => {});
+    });
+
+    // Display high-fidelity skeleton for 750ms so user clearly sees the smooth loading state
+    const timer = setTimeout(() => {
+      setInitialSkeletonActive(false);
+    }, 750);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      clearTimeout(timer);
+    };
+  }, []);
+
+  const showSkeleton =
+    initialSkeletonActive || (!stats && (isDashboardLoading || isPropertiesLoading));
+
+  useEffect(() => {
+    if (!showSkeleton) {
+      Animated.timing(contentFadeAnim, {
+        toValue: 1,
+        duration: 220,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [showSkeleton, contentFadeAnim]);
+
   const [isPullRefreshing, setIsPullRefreshing] = useState(false);
 
   const handlePullRefresh = useCallback(async () => {
@@ -57,24 +89,6 @@ export default function PulseScreen() {
   const [showPropertyPicker, setShowPropertyPicker] = useState(false);
   const [showAddProperty, setShowAddProperty] = useState(false);
   const [showTenantsModal, setShowTenantsModal] = useState(false);
-
-  // Instagram-style smooth splash transition: wait for initial screen layout pass + comfortable hold
-  const mountTimeRef = useRef(Date.now());
-  const splashDismissedRef = useRef(false);
-
-  const handleLayout = useCallback(() => {
-    if (splashDismissedRef.current) return;
-    const elapsed = Date.now() - mountTimeRef.current;
-    const minHold = 600;
-    const remaining = Math.max(0, minHold - elapsed);
-
-    setTimeout(() => {
-      if (!splashDismissedRef.current) {
-        splashDismissedRef.current = true;
-        SplashScreen.hideAsync().catch(() => {});
-      }
-    }, remaining);
-  }, []);
 
   // Dynamic month & year display
   const currentMonthYear = useMemo(() => {
@@ -126,7 +140,7 @@ export default function PulseScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-[#F8F9FA]" edges={['top']} onLayout={handleLayout}>
+    <SafeAreaView className="flex-1 bg-[#F8F9FA]" edges={['top']}>
       <View className="flex-1 relative">
         <ScrollView
           className="flex-1"
@@ -141,10 +155,10 @@ export default function PulseScreen() {
             />
           }
         >
-          {isInitialLoading ? (
+          {showSkeleton ? (
             <DashboardSkeleton />
           ) : (
-            <View className="px-5 pt-3">
+            <Animated.View style={{ opacity: contentFadeAnim }} className="px-5 pt-3">
               {/* Top PG Selector and Notification Bell */}
               <View className="flex-row items-center justify-between gap-3 mb-4">
                 <TouchableOpacity
@@ -465,7 +479,7 @@ export default function PulseScreen() {
                   ))}
                 </View>
               )}
-            </View>
+            </Animated.View>
           )}
         </ScrollView>
 

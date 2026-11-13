@@ -59,18 +59,18 @@ function NavigationGuard() {
   }, [isLoading, isAuthenticated, inAuthGroup, segments, router]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#0A6C50' }}>
+    <View style={{ flex: 1, backgroundColor: '#F8F9FA' }}>
       {/* Root Navigator */}
       <Stack
         screenOptions={{
           headerShown: false,
-          contentStyle: { backgroundColor: '#0A6C50' },
+          contentStyle: { backgroundColor: '#F8F9FA' },
           animation: 'none',
         }}
       >
-        <Stack.Screen name="index" options={{ contentStyle: { backgroundColor: '#0A6C50' } }} />
-        <Stack.Screen name="(tabs)" options={{ contentStyle: { backgroundColor: '#0A6C50' } }} />
-        <Stack.Screen name="(auth)" options={{ contentStyle: { backgroundColor: '#0A6C50' } }} />
+        <Stack.Screen name="index" options={{ contentStyle: { backgroundColor: '#F8F9FA' } }} />
+        <Stack.Screen name="(tabs)" options={{ contentStyle: { backgroundColor: '#F8F9FA' } }} />
+        <Stack.Screen name="(auth)" options={{ contentStyle: { backgroundColor: '#F8F9FA' } }} />
         <Stack.Screen
           name="checkin/[bedId]"
           options={{ presentation: 'card', headerShown: false }}

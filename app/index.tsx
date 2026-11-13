@@ -7,11 +7,11 @@ export default function Index() {
   const { isLoading, isAuthenticated } = useAuth();
 
   if (isLoading) {
-    return <View style={{ flex: 1, backgroundColor: '#0A6C50' }} />;
+    return <View style={{ flex: 1, backgroundColor: '#F8F9FA' }} />;
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#0A6C50' }}>
+    <View style={{ flex: 1, backgroundColor: '#F8F9FA' }}>
       <Redirect href={isAuthenticated ? '/(tabs)' : '/(auth)/login'} />
     </View>
   );
