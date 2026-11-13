@@ -6,8 +6,7 @@ export function useDashboard(propertyId?: string | null) {
   const query = useQuery<DashboardStats>({
     queryKey: ['dashboard', propertyId || 'all'],
     queryFn: () => fetchDashboardStatsApi(propertyId || undefined),
-    staleTime: 1000 * 30, // 30 seconds
-    refetchOnMount: 'always',
+    staleTime: 1000 * 60 * 2, // 2 minutes cache validity
   });
 
   return {

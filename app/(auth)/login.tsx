@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
 import { Eye, EyeOff, Fingerprint, AlertCircle } from 'lucide-react-native';
 import { AppLogo } from '../../src/components/AppLogo';
+import { LoginSkeleton } from '../../src/components/Skeleton';
 import { useAuth } from '../../src/hooks/useAuth';
 import {
   validateIdentifier,
@@ -24,7 +25,7 @@ import {
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { login, loginWithBiometrics, isBiometricEnabled } = useAuth();
+  const { login, loginWithBiometrics, isBiometricEnabled, isLoading: isAuthLoading } = useAuth();
 
   // Instagram-style smooth splash transition: wait for initial screen layout pass + comfortable hold
   const mountTimeRef = useRef(Date.now());
@@ -121,173 +122,178 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-[#F8F9FA]" onLayout={handleLayout}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        className="flex-1"
-      >
-        <ScrollView
-          contentContainerStyle={{ flexGrow: 1, justifyContent: 'space-between' }}
-          className="px-6 py-8"
-          keyboardShouldPersistTaps="handled"
+      {isAuthLoading ? (
+        <LoginSkeleton />
+      ) : (
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          className="flex-1"
         >
-          <View>
-            {/* Top Logo */}
-            <View className="mb-6">
-              <AppLogo size={46} />
-            </View>
-
-            {/* Title & Subtitle */}
-            <Text className="text-3xl font-extrabold text-slate-900 tracking-tight mb-1">
-              Welcome back
-            </Text>
-            <Text className="text-base text-slate-500 font-medium mb-6">
-              Log in to manage your PG
-            </Text>
-
-            {/* Global Error Banner */}
-            {errorMessage && (
-              <View className="flex-row items-center bg-[#FFF1F2] border border-[#FECDD3] px-3.5 py-3 rounded-2xl mb-5">
-                <AlertCircle size={18} color="#BE123C" />
-                <Text className="text-sm font-semibold text-[#991B1B] ml-2.5 flex-1">
-                  {errorMessage}
-                </Text>
+          <ScrollView
+            contentContainerStyle={{ flexGrow: 1, justifyContent: 'space-between' }}
+            className="px-6 py-8"
+            keyboardShouldPersistTaps="handled"
+          >
+            <View>
+              {/* Top Logo */}
+              <View className="mb-6">
+                <AppLogo size={46} />
               </View>
-            )}
 
-            {/* Form Field: Identifier */}
-            <View className="mb-4">
-              <Text className="text-sm font-semibold text-slate-700 mb-1.5">
-                Phone number or email
+              {/* Title & Subtitle */}
+              <Text className="text-3xl font-extrabold text-slate-900 tracking-tight mb-1">
+                Welcome back
               </Text>
-              <TextInput
-                className={`bg-white border rounded-xl px-4 py-3.5 text-base text-slate-900 shadow-sm ${
-                  fieldErrors.identifier ? 'border-[#BE123C] bg-rose-50/20' : 'border-slate-200'
-                }`}
-                placeholder="e.g. 9876543210 or owner@example.com"
-                placeholderTextColor="#94A3B8"
-                value={identifier}
-                onChangeText={text => {
-                  setIdentifier(text);
-                  if (fieldErrors.identifier || errorMessage) {
-                    setFieldErrors(prev => ({ ...prev, identifier: undefined }));
-                    setErrorMessage(null);
-                  }
-                }}
-                autoCapitalize="none"
-                autoCorrect={false}
-                keyboardType="email-address"
-              />
-              {fieldErrors.identifier && fieldErrors.identifier !== ' ' && (
-                <Text className="text-xs font-semibold text-[#BE123C] mt-1 ml-1">
-                  {fieldErrors.identifier}
-                </Text>
-              )}
-            </View>
+              <Text className="text-base text-slate-500 font-medium mb-6">
+                Log in to manage your PG
+              </Text>
 
-            {/* Form Field: Password */}
-            <View className="mb-2">
-              <Text className="text-sm font-semibold text-slate-700 mb-1.5">Password</Text>
-              <View
-                className={`bg-white border rounded-xl flex-row items-center px-4 py-1 shadow-sm ${
-                  fieldErrors.password ? 'border-[#BE123C] bg-rose-50/20' : 'border-slate-200'
-                }`}
-              >
+              {/* Global Error Banner */}
+              {errorMessage && (
+                <View className="flex-row items-center bg-[#FFF1F2] border border-[#FECDD3] px-3.5 py-3 rounded-2xl mb-5">
+                  <AlertCircle size={18} color="#BE123C" />
+                  <Text className="text-sm font-semibold text-[#991B1B] ml-2.5 flex-1">
+                    {errorMessage}
+                  </Text>
+                </View>
+              )}
+
+              {/* Form Field: Identifier */}
+              <View className="mb-4">
+                <Text className="text-sm font-semibold text-slate-700 mb-1.5">
+                  Phone number or email
+                </Text>
                 <TextInput
-                  className="flex-1 py-2.5 text-base text-slate-900"
-                  placeholder="Enter your password"
+                  className={`bg-white border rounded-xl px-4 py-3.5 text-base text-slate-900 shadow-sm ${
+                    fieldErrors.identifier ? 'border-[#BE123C] bg-rose-50/20' : 'border-slate-200'
+                  }`}
+                  placeholder="e.g. 9876543210 or owner@example.com"
                   placeholderTextColor="#94A3B8"
-                  secureTextEntry={!showPassword}
-                  value={password}
+                  value={identifier}
                   onChangeText={text => {
-                    setPassword(text);
-                    if (fieldErrors.password || errorMessage) {
-                      setFieldErrors(prev => ({ ...prev, password: undefined }));
+                    setIdentifier(text);
+                    if (fieldErrors.identifier || errorMessage) {
+                      setFieldErrors(prev => ({ ...prev, identifier: undefined }));
                       setErrorMessage(null);
                     }
                   }}
                   autoCapitalize="none"
                   autoCorrect={false}
+                  keyboardType="email-address"
                 />
-                <TouchableOpacity
-                  onPress={() => setShowPassword(!showPassword)}
-                  className="p-1"
-                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                {fieldErrors.identifier && fieldErrors.identifier !== ' ' && (
+                  <Text className="text-xs font-semibold text-[#BE123C] mt-1 ml-1">
+                    {fieldErrors.identifier}
+                  </Text>
+                )}
+              </View>
+
+              {/* Form Field: Password */}
+              <View className="mb-2">
+                <Text className="text-sm font-semibold text-slate-700 mb-1.5">Password</Text>
+                <View
+                  className={`bg-white border rounded-xl flex-row items-center px-4 py-1 shadow-sm ${
+                    fieldErrors.password ? 'border-[#BE123C] bg-rose-50/20' : 'border-slate-200'
+                  }`}
                 >
-                  {showPassword ? (
-                    <EyeOff size={20} color="#64748B" />
-                  ) : (
-                    <Eye size={20} color="#64748B" />
-                  )}
+                  <TextInput
+                    className="flex-1 py-2.5 text-base text-slate-900"
+                    placeholder="Enter your password"
+                    placeholderTextColor="#94A3B8"
+                    secureTextEntry={!showPassword}
+                    value={password}
+                    onChangeText={text => {
+                      setPassword(text);
+                      if (fieldErrors.password || errorMessage) {
+                        setFieldErrors(prev => ({ ...prev, password: undefined }));
+                        setErrorMessage(null);
+                      }
+                    }}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
+                  <TouchableOpacity
+                    onPress={() => setShowPassword(!showPassword)}
+                    className="p-1"
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  >
+                    {showPassword ? (
+                      <EyeOff size={20} color="#64748B" />
+                    ) : (
+                      <Eye size={20} color="#64748B" />
+                    )}
+                  </TouchableOpacity>
+                </View>
+                {fieldErrors.password && fieldErrors.password !== ' ' && (
+                  <Text className="text-xs font-semibold text-[#BE123C] mt-1 ml-1">
+                    {fieldErrors.password}
+                  </Text>
+                )}
+              </View>
+
+              {/* Forgot password */}
+              <View className="items-end mb-6">
+                <TouchableOpacity onPress={handleForgotPassword}>
+                  <Text className="text-blue-600 font-bold text-sm">Forgot password?</Text>
                 </TouchableOpacity>
               </View>
-              {fieldErrors.password && fieldErrors.password !== ' ' && (
-                <Text className="text-xs font-semibold text-[#BE123C] mt-1 ml-1">
-                  {fieldErrors.password}
-                </Text>
-              )}
-            </View>
 
-            {/* Forgot password */}
-            <View className="items-end mb-6">
-              <TouchableOpacity onPress={handleForgotPassword}>
-                <Text className="text-blue-600 font-bold text-sm">Forgot password?</Text>
+              {/* Log in CTA */}
+              <TouchableOpacity
+                activeOpacity={0.85}
+                className="bg-[#0A6C50] rounded-xl py-3.5 items-center justify-center flex-row shadow-sm"
+                onPress={handleLogin}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <ActivityIndicator color="#ffffff" size="small" />
+                    <Text className="text-white font-bold text-base ml-2">Logging in…</Text>
+                  </>
+                ) : (
+                  <Text className="text-white font-bold text-base">Log in</Text>
+                )}
+              </TouchableOpacity>
+
+              {/* Divider */}
+              <View className="flex-row items-center my-6">
+                <View className="flex-1 h-[1px] bg-slate-200" />
+                <Text className="mx-4 text-xs text-slate-400 font-medium">or</Text>
+                <View className="flex-1 h-[1px] bg-slate-200" />
+              </View>
+
+              {/* Fingerprint unlock */}
+              <TouchableOpacity
+                activeOpacity={0.8}
+                className={`border py-3.5 rounded-xl items-center justify-center flex-row shadow-sm ${
+                  isBiometricEnabled ? 'bg-white border-[#0A6C50]' : 'bg-slate-50 border-slate-200'
+                }`}
+                onPress={handleBiometricAuth}
+                disabled={isSubmitting}
+              >
+                <Fingerprint size={22} color={isBiometricEnabled ? '#0A6C50' : '#94A3B8'} />
+                <Text
+                  className={`font-bold text-base ml-2.5 ${
+                    isBiometricEnabled ? 'text-[#0A6C50]' : 'text-slate-400'
+                  }`}
+                >
+                  {isBiometricEnabled ? 'Unlock with biometrics' : 'Biometrics disabled'}
+                </Text>
               </TouchableOpacity>
             </View>
 
-            {/* Log in CTA */}
-            <TouchableOpacity
-              activeOpacity={0.85}
-              className="bg-[#0A6C50] rounded-xl py-3.5 items-center justify-center flex-row shadow-sm"
-              onPress={handleLogin}
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? (
-                <>
-                  <ActivityIndicator color="#ffffff" size="small" />
-                  <Text className="text-white font-bold text-base ml-2">Logging in…</Text>
-                </>
-              ) : (
-                <Text className="text-white font-bold text-base">Log in</Text>
-              )}
-            </TouchableOpacity>
-
-            {/* Divider */}
-            <View className="flex-row items-center my-6">
-              <View className="flex-1 h-[1px] bg-slate-200" />
-              <Text className="mx-4 text-xs text-slate-400 font-medium">or</Text>
-              <View className="flex-1 h-[1px] bg-slate-200" />
+            {/* Bottom Register Link */}
+            <View className="items-center py-4 mt-6">
+              <TouchableOpacity onPress={() => router.push('/(auth)/register')} className="py-2">
+                <Text className="text-sm font-medium text-slate-700">
+                  New to Nilaaya?{' '}
+                  <Text className="text-blue-600 font-bold underline">Register</Text>
+                </Text>
+              </TouchableOpacity>
             </View>
-
-            {/* Fingerprint unlock */}
-            <TouchableOpacity
-              activeOpacity={0.8}
-              className={`border py-3.5 rounded-xl items-center justify-center flex-row shadow-sm ${
-                isBiometricEnabled ? 'bg-white border-[#0A6C50]' : 'bg-slate-50 border-slate-200'
-              }`}
-              onPress={handleBiometricAuth}
-              disabled={isSubmitting}
-            >
-              <Fingerprint size={22} color={isBiometricEnabled ? '#0A6C50' : '#94A3B8'} />
-              <Text
-                className={`font-bold text-base ml-2.5 ${
-                  isBiometricEnabled ? 'text-[#0A6C50]' : 'text-slate-400'
-                }`}
-              >
-                {isBiometricEnabled ? 'Unlock with biometrics' : 'Biometrics disabled'}
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Bottom Register Link */}
-          <View className="items-center py-4 mt-6">
-            <TouchableOpacity onPress={() => router.push('/(auth)/register')} className="py-2">
-              <Text className="text-sm font-medium text-slate-700">
-                New to Nilaaya? <Text className="text-blue-600 font-bold underline">Register</Text>
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      )}
     </SafeAreaView>
   );
 }
