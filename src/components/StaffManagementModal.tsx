@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Modal,
   View,
@@ -38,8 +38,18 @@ export const StaffManagementModal: React.FC<StaffManagementModalProps> = ({
 
   const [activeTab, setActiveTab] = useState<'list' | 'add'>('list');
   const [members, setMembers] = useState<ITeamMember[]>([]);
+  const [filterPropertyId, setFilterPropertyId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Property-scoped members list
+  const filteredMembers = useMemo(() => {
+    if (!filterPropertyId) return members;
+    return members.filter(
+      member =>
+        member.role === 'owner' || member.assignedProperties?.some(p => p._id === filterPropertyId),
+    );
+  }, [members, filterPropertyId]);
 
   // Add Form state
   const [name, setName] = useState('');
@@ -308,6 +318,63 @@ export const StaffManagementModal: React.FC<StaffManagementModalProps> = ({
           )}
         </View>
 
+        {/* Property Filter Bar */}
+        {properties.length > 0 && activeTab === 'list' && (
+          <View className="bg-white px-5 py-2.5 border-b border-slate-200/60">
+            <Text className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">
+              Filter By Assigned Property
+            </Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ gap: 8 }}
+            >
+              <TouchableOpacity
+                onPress={() => setFilterPropertyId(null)}
+                className={`flex-row items-center px-3 py-1.5 rounded-xl border ${
+                  filterPropertyId === null
+                    ? 'bg-[#0A6C50] border-[#0A6C50]'
+                    : 'bg-slate-50 border-slate-200'
+                }`}
+              >
+                <Building size={12} color={filterPropertyId === null ? '#ffffff' : '#64748B'} />
+                <Text
+                  className={`text-xs font-bold ml-1.5 ${
+                    filterPropertyId === null ? 'text-white' : 'text-slate-700'
+                  }`}
+                >
+                  All Staff ({members.length})
+                </Text>
+              </TouchableOpacity>
+
+              {properties.map(p => {
+                const count = members.filter(
+                  m => m.role === 'owner' || m.assignedProperties?.some(ap => ap._id === p._id),
+                ).length;
+                const isSelected = filterPropertyId === p._id;
+                return (
+                  <TouchableOpacity
+                    key={p._id}
+                    onPress={() => setFilterPropertyId(p._id)}
+                    className={`flex-row items-center px-3 py-1.5 rounded-xl border ${
+                      isSelected ? 'bg-[#0A6C50] border-[#0A6C50]' : 'bg-slate-50 border-slate-200'
+                    }`}
+                  >
+                    <Building size={12} color={isSelected ? '#ffffff' : '#64748B'} />
+                    <Text
+                      className={`text-xs font-bold ml-1.5 ${
+                        isSelected ? 'text-white' : 'text-slate-700'
+                      }`}
+                    >
+                      {p.name} ({count})
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        )}
+
         {isLoading ? (
           <View className="flex-1 items-center justify-center">
             <ActivityIndicator size="large" color="#0A6C50" />
@@ -324,101 +391,130 @@ export const StaffManagementModal: React.FC<StaffManagementModalProps> = ({
               </View>
             )}
 
-            {members.map(member => {
-              const isMemberOwner = member.role === 'owner';
-              const isManager = member.role === 'manager';
-              return (
-                <View
-                  key={member._id}
-                  className="bg-white rounded-2xl p-4 border border-slate-200 mb-3 shadow-xs"
-                >
-                  <View className="flex-row justify-between items-start mb-2">
-                    <View className="flex-row items-center flex-1 mr-2">
+            {filteredMembers.length === 0 ? (
+              <View className="bg-white rounded-2xl p-6 items-center justify-center border border-slate-200 mb-6">
+                <Building size={32} color="#94A3B8" />
+                <Text className="text-sm font-bold text-slate-700 mt-2">
+                  No staff assigned to this property
+                </Text>
+                <Text className="text-xs text-slate-400 mt-1 text-center">
+                  Edit an existing staff member or tap 'Add Staff Member' to assign access.
+                </Text>
+              </View>
+            ) : (
+              filteredMembers.map(member => {
+                const isMemberOwner = member.role === 'owner';
+                const isManager = member.role === 'manager';
+                return (
+                  <View
+                    key={member._id}
+                    className="bg-white rounded-2xl p-4 border border-slate-200 mb-3 shadow-xs"
+                  >
+                    <View className="flex-row justify-between items-start mb-2">
+                      <View className="flex-row items-center flex-1 mr-2">
+                        <View
+                          className={`w-10 h-10 rounded-full items-center justify-center mr-3 ${
+                            isMemberOwner
+                              ? 'bg-purple-100'
+                              : isManager
+                                ? 'bg-emerald-100'
+                                : 'bg-blue-100'
+                          }`}
+                        >
+                          <Shield
+                            size={18}
+                            color={isMemberOwner ? '#7E22CE' : isManager ? '#0A6C50' : '#1D4ED8'}
+                          />
+                        </View>
+                        <View className="flex-1">
+                          <Text className="text-base font-extrabold text-slate-900 truncate">
+                            {member.name}
+                          </Text>
+                          <Text className="text-xs text-slate-500 font-medium">
+                            {member.phone} · {member.email}
+                          </Text>
+                        </View>
+                      </View>
+
+                      {/* Role badge */}
                       <View
-                        className={`w-10 h-10 rounded-full items-center justify-center mr-3 ${
+                        className={`px-2.5 py-1 rounded-md ${
                           isMemberOwner
-                            ? 'bg-purple-100'
+                            ? 'bg-purple-50 border border-purple-200'
                             : isManager
-                              ? 'bg-emerald-100'
-                              : 'bg-blue-100'
+                              ? 'bg-emerald-50 border border-emerald-200'
+                              : 'bg-blue-50 border border-blue-200'
                         }`}
                       >
-                        <Shield
-                          size={18}
-                          color={isMemberOwner ? '#7E22CE' : isManager ? '#0A6C50' : '#1D4ED8'}
-                        />
-                      </View>
-                      <View className="flex-1">
-                        <Text className="text-base font-extrabold text-slate-900 truncate">
-                          {member.name}
-                        </Text>
-                        <Text className="text-xs text-slate-500 font-medium">
-                          {member.phone} · {member.email}
+                        <Text
+                          className={`text-[10px] font-black uppercase ${
+                            isMemberOwner
+                              ? 'text-purple-700'
+                              : isManager
+                                ? 'text-[#0A6C50]'
+                                : 'text-blue-700'
+                          }`}
+                        >
+                          {member.role}
                         </Text>
                       </View>
                     </View>
 
-                    {/* Role badge */}
-                    <View
-                      className={`px-2.5 py-1 rounded-md ${
-                        isMemberOwner
-                          ? 'bg-purple-50 border border-purple-200'
-                          : isManager
-                            ? 'bg-emerald-50 border border-emerald-200'
-                            : 'bg-blue-50 border border-blue-200'
-                      }`}
-                    >
-                      <Text
-                        className={`text-[10px] font-black uppercase ${
-                          isMemberOwner
-                            ? 'text-purple-700'
-                            : isManager
-                              ? 'text-[#0A6C50]'
-                              : 'text-blue-700'
-                        }`}
-                      >
-                        {member.role}
-                      </Text>
-                    </View>
-                  </View>
-
-                  {/* Assigned Properties */}
-                  {member.assignedProperties && member.assignedProperties.length > 0 && (
+                    {/* Assigned Properties */}
                     <View className="pt-2 border-t border-slate-100 flex-row flex-wrap items-center gap-1.5 mt-1">
                       <Building size={12} color="#64748B" />
-                      {member.assignedProperties.map(p => (
-                        <View key={p._id} className="bg-slate-100 px-2 py-0.5 rounded-md">
-                          <Text className="text-[11px] font-semibold text-slate-700">{p.name}</Text>
+                      {isMemberOwner ? (
+                        <View className="bg-purple-50 px-2 py-0.5 rounded-md border border-purple-200/60">
+                          <Text className="text-[11px] font-semibold text-purple-700">
+                            All Properties (Owner Access)
+                          </Text>
                         </View>
-                      ))}
+                      ) : member.assignedProperties && member.assignedProperties.length > 0 ? (
+                        member.assignedProperties.map(p => (
+                          <View
+                            key={p._id}
+                            className="bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/60"
+                          >
+                            <Text className="text-[11px] font-semibold text-[#0A6C50]">
+                              {p.name}
+                            </Text>
+                          </View>
+                        ))
+                      ) : (
+                        <View className="bg-slate-100 px-2 py-0.5 rounded-md">
+                          <Text className="text-[11px] font-semibold text-slate-500">
+                            No properties assigned (Restricted)
+                          </Text>
+                        </View>
+                      )}
                     </View>
-                  )}
 
-                  {/* Admin Actions: Edit Credentials & Remove */}
-                  {isOwner && !isMemberOwner && (
-                    <View className="pt-3 border-t border-slate-100 mt-2 flex-row justify-end gap-2">
-                      <TouchableOpacity
-                        onPress={() => handleOpenEdit(member)}
-                        className="flex-row items-center px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200"
-                      >
-                        <Edit2 size={13} color="#0A6C50" />
-                        <Text className="text-xs font-bold text-[#0A6C50] ml-1.5">
-                          Edit & Password
-                        </Text>
-                      </TouchableOpacity>
+                    {/* Admin Actions: Edit Credentials & Remove */}
+                    {isOwner && !isMemberOwner && (
+                      <View className="pt-3 border-t border-slate-100 mt-2 flex-row justify-end gap-2">
+                        <TouchableOpacity
+                          onPress={() => handleOpenEdit(member)}
+                          className="flex-row items-center px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200"
+                        >
+                          <Edit2 size={13} color="#0A6C50" />
+                          <Text className="text-xs font-bold text-[#0A6C50] ml-1.5">
+                            Edit & Password
+                          </Text>
+                        </TouchableOpacity>
 
-                      <TouchableOpacity
-                        onPress={() => handleRemoveMember(member)}
-                        className="flex-row items-center px-3 py-1.5 rounded-lg bg-rose-50 border border-rose-200"
-                      >
-                        <Trash2 size={13} color="#BE123C" />
-                        <Text className="text-xs font-bold text-rose-700 ml-1.5">Remove</Text>
-                      </TouchableOpacity>
-                    </View>
-                  )}
-                </View>
-              );
-            })}
+                        <TouchableOpacity
+                          onPress={() => handleRemoveMember(member)}
+                          className="flex-row items-center px-3 py-1.5 rounded-lg bg-rose-50 border border-rose-200"
+                        >
+                          <Trash2 size={13} color="#BE123C" />
+                          <Text className="text-xs font-bold text-rose-700 ml-1.5">Remove</Text>
+                        </TouchableOpacity>
+                      </View>
+                    )}
+                  </View>
+                );
+              })
+            )}
           </ScrollView>
         ) : (
           /* Add Team Member Form (Owner only) */

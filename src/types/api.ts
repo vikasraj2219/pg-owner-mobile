@@ -696,6 +696,7 @@ export interface UpdateExpensePayload {
   receiptUrl?: string;
   paymentMethod?: 'cash' | 'upi' | 'bank_transfer';
   paidTo?: string;
+  propertyId?: string;
 }
 
 export interface IPnLSummary {

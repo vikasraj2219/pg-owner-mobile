@@ -18,6 +18,8 @@ import {
   Edit2,
   Trash2,
   Calendar,
+  Building,
+  Bed as BedIcon,
 } from 'lucide-react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import { formatINR } from '../utils/currency';
@@ -31,6 +33,7 @@ import {
 } from '../api/expenses';
 import { IExpense, IPnLSummary, UpdateExpensePayload } from '../types/api';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
+import { useProperties } from '../context/PropertyContext';
 
 interface ExpensesModalProps {
   visible: boolean;
@@ -54,14 +57,23 @@ const getTodayString = () => new Date().toISOString().split('T')[0];
 
 export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, propertyId }) => {
   const queryClient = useQueryClient();
+  const { properties } = useProperties();
   const [activeTab, setActiveTab] = useState<'pnl' | 'add'>('pnl');
+
+  // Property filtering state: null = All properties (consolidated)
+  const [selectedFilterPropertyId, setSelectedFilterPropertyId] = useState<string | null>(
+    propertyId || null,
+  );
 
   // P&L and expenses list state
   const [isLoading, setIsLoading] = useState(false);
   const [pnl, setPnl] = useState<IPnLSummary | null>(null);
   const [expenses, setExpenses] = useState<IExpense[]>([]);
 
-  // Form state
+  // Form state for adding an expense
+  const [formPropertyId, setFormPropertyId] = useState<string | null>(
+    propertyId || (properties.length === 1 ? properties[0]._id : null),
+  );
   const [category, setCategory] = useState('maintenance');
   const [amountRupees, setAmountRupees] = useState('');
   const [description, setDescription] = useState('');
@@ -72,6 +84,7 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, 
 
   // Edit Expense State
   const [editingExpense, setEditingExpense] = useState<IExpense | null>(null);
+  const [editPropertyId, setEditPropertyId] = useState<string | null>(null);
   const [editCategory, setEditCategory] = useState('maintenance');
   const [editAmountRupees, setEditAmountRupees] = useState('');
   const [editDescription, setEditDescription] = useState('');
@@ -84,21 +97,33 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, 
   const [deletingExpense, setDeletingExpense] = useState<IExpense | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Sync initial propertyId when opening modal
+  useEffect(() => {
+    if (visible) {
+      const initialId = propertyId || null;
+      setSelectedFilterPropertyId(initialId);
+      setFormPropertyId(initialId || (properties.length === 1 ? properties[0]._id : null));
+    }
+  }, [visible, propertyId, properties]);
+
   const resetAddForm = useCallback(() => {
-    setCategory('maintenance'); // Reset category so previous tag does not stay sticky
+    setCategory('maintenance');
     setAmountRupees('');
     setDescription('');
     setPaidTo('');
-    setDate(getTodayString()); // Always clear and reset date to today
+    setDate(getTodayString());
     setPaymentMethod('cash');
-  }, []);
+    setFormPropertyId(
+      selectedFilterPropertyId || (properties.length === 1 ? properties[0]._id : null),
+    );
+  }, [selectedFilterPropertyId, properties]);
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
     try {
       const [pnlData, expensesData] = await Promise.all([
-        getPnLSummaryApi({ propertyId }),
-        getExpensesApi({ propertyId }),
+        getPnLSummaryApi({ propertyId: selectedFilterPropertyId || undefined }),
+        getExpensesApi({ propertyId: selectedFilterPropertyId || undefined }),
       ]);
       setPnl(pnlData);
       setExpenses(expensesData.expenses);
@@ -107,14 +132,66 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, 
     } finally {
       setIsLoading(false);
     }
-  }, [propertyId]);
+  }, [selectedFilterPropertyId]);
 
   useEffect(() => {
     if (visible) {
       loadData();
-      resetAddForm();
     }
-  }, [visible, loadData, resetAddForm]);
+  }, [visible, loadData]);
+
+  // Active property object for unit economics
+  const activeProperty = useMemo(() => {
+    if (!selectedFilterPropertyId) return null;
+    return properties.find(p => p._id === selectedFilterPropertyId) || null;
+  }, [selectedFilterPropertyId, properties]);
+
+  // Unit economics computations
+  const unitEconomics = useMemo(() => {
+    if (activeProperty) {
+      const totalBeds = activeProperty.stats?.totalBeds || 0;
+      const occupiedBeds = activeProperty.stats?.occupiedBeds || 0;
+      const occupancyRate = totalBeds > 0 ? Math.round((occupiedBeds / totalBeds) * 100) : 0;
+      const costPerOccupiedBed =
+        occupiedBeds > 0 ? Math.round((pnl?.expensesPaise || 0) / occupiedBeds) : 0;
+      const collectionsPerBed =
+        occupiedBeds > 0 ? Math.round((pnl?.collectionsPaise || 0) / occupiedBeds) : 0;
+      const netPerBed =
+        occupiedBeds > 0 ? Math.round((pnl?.netCashflowPaise || 0) / occupiedBeds) : 0;
+
+      return {
+        isSpecificProperty: true,
+        propertyName: activeProperty.name,
+        totalBeds,
+        occupiedBeds,
+        occupancyRate,
+        costPerOccupiedBed,
+        collectionsPerBed,
+        netPerBed,
+      };
+    } else {
+      const totalBeds = properties.reduce((sum, p) => sum + (p.stats?.totalBeds || 0), 0);
+      const occupiedBeds = properties.reduce((sum, p) => sum + (p.stats?.occupiedBeds || 0), 0);
+      const occupancyRate = totalBeds > 0 ? Math.round((occupiedBeds / totalBeds) * 100) : 0;
+      const costPerOccupiedBed =
+        occupiedBeds > 0 ? Math.round((pnl?.expensesPaise || 0) / occupiedBeds) : 0;
+      const collectionsPerBed =
+        occupiedBeds > 0 ? Math.round((pnl?.collectionsPaise || 0) / occupiedBeds) : 0;
+      const netPerBed =
+        occupiedBeds > 0 ? Math.round((pnl?.netCashflowPaise || 0) / occupiedBeds) : 0;
+
+      return {
+        isSpecificProperty: false,
+        propertyName: 'All Properties',
+        totalBeds,
+        occupiedBeds,
+        occupancyRate,
+        costPerOccupiedBed,
+        collectionsPerBed,
+        netPerBed,
+      };
+    }
+  }, [activeProperty, properties, pnl]);
 
   // Group recent logged expenses monthly-wise
   const monthlyGroupedExpenses = useMemo(() => {
@@ -166,7 +243,7 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, 
     try {
       const amountPaise = Math.round(num * 100);
       await createExpenseApi({
-        propertyId,
+        propertyId: formPropertyId || undefined,
         category,
         amountPaise,
         description: description.trim(),
@@ -196,6 +273,9 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, 
     setEditPaidTo(exp.paidTo || '');
     setEditDate(exp.date ? exp.date.split('T')[0] : getTodayString());
     setEditPaymentMethod(exp.paymentMethod || 'cash');
+    const existingPropId =
+      typeof exp.property === 'object' && exp.property ? exp.property._id : null;
+    setEditPropertyId(existingPropId);
   };
 
   const handleSaveEdit = async () => {
@@ -221,6 +301,7 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, 
         paidTo: editPaidTo.trim() || undefined,
         date: editDate.trim() || undefined,
         paymentMethod: editPaymentMethod,
+        propertyId: editPropertyId || undefined,
       });
 
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
@@ -277,7 +358,7 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, 
           <View>
             <Text className="text-xl font-extrabold text-slate-900">Expenses & Monthly P&L</Text>
             <Text className="text-xs font-semibold text-slate-500 mt-0.5">
-              Live cashflow tracking and monthly ledger
+              Live property-wise cashflow tracking & unit economics
             </Text>
           </View>
           <TouchableOpacity
@@ -326,6 +407,63 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, 
           </TouchableOpacity>
         </View>
 
+        {/* Property Filter Bar */}
+        {properties.length > 0 && (
+          <View className="bg-white px-5 py-2.5 border-b border-slate-200/60">
+            <Text className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">
+              Filter By Property
+            </Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ gap: 8 }}
+            >
+              <TouchableOpacity
+                onPress={() => setSelectedFilterPropertyId(null)}
+                className={`flex-row items-center px-3 py-1.5 rounded-xl border ${
+                  selectedFilterPropertyId === null
+                    ? 'bg-[#0A6C50] border-[#0A6C50]'
+                    : 'bg-slate-50 border-slate-200'
+                }`}
+              >
+                <Building
+                  size={12}
+                  color={selectedFilterPropertyId === null ? '#ffffff' : '#64748B'}
+                />
+                <Text
+                  className={`text-xs font-bold ml-1.5 ${
+                    selectedFilterPropertyId === null ? 'text-white' : 'text-slate-700'
+                  }`}
+                >
+                  All Properties (Consolidated)
+                </Text>
+              </TouchableOpacity>
+
+              {properties.map(p => {
+                const isSelected = selectedFilterPropertyId === p._id;
+                return (
+                  <TouchableOpacity
+                    key={p._id}
+                    onPress={() => setSelectedFilterPropertyId(p._id)}
+                    className={`flex-row items-center px-3 py-1.5 rounded-xl border ${
+                      isSelected ? 'bg-[#0A6C50] border-[#0A6C50]' : 'bg-slate-50 border-slate-200'
+                    }`}
+                  >
+                    <Building size={12} color={isSelected ? '#ffffff' : '#64748B'} />
+                    <Text
+                      className={`text-xs font-bold ml-1.5 ${
+                        isSelected ? 'text-white' : 'text-slate-700'
+                      }`}
+                    >
+                      {p.name}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        )}
+
         {isLoading ? (
           <View className="flex-1 items-center justify-center">
             <ActivityIndicator size="large" color="#0A6C50" />
@@ -335,9 +473,23 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, 
           <ScrollView className="flex-1 px-5 pt-4" showsVerticalScrollIndicator={false}>
             {/* Net Cashflow Hero Card */}
             <View className="bg-white rounded-2xl p-5 border border-slate-200 mb-4 shadow-xs">
-              <Text className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
-                Net Operating Cashflow (This Month)
-              </Text>
+              <View className="flex-row items-center justify-between mb-1">
+                <Text className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  Net Operating Cashflow (This Month)
+                </Text>
+                {selectedFilterPropertyId && activeProperty ? (
+                  <View className="bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                    <Text className="text-[10px] font-bold text-[#0A6C50]">
+                      {activeProperty.name}
+                    </Text>
+                  </View>
+                ) : (
+                  <View className="bg-slate-100 px-2 py-0.5 rounded">
+                    <Text className="text-[10px] font-bold text-slate-600">All Properties</Text>
+                  </View>
+                )}
+              </View>
+
               <Text
                 className={`text-3xl font-black mb-4 ${
                   (pnl?.netCashflowPaise || 0) >= 0 ? 'text-[#0A6C50]' : 'text-rose-600'
@@ -368,6 +520,69 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, 
                 </View>
               </View>
             </View>
+
+            {/* Unit Economics & Per-Bed Metrics Card */}
+            {(unitEconomics.totalBeds > 0 || unitEconomics.costPerOccupiedBed > 0) && (
+              <View className="bg-white rounded-2xl p-4 border border-emerald-100 mb-4 shadow-xs">
+                <View className="flex-row items-center justify-between mb-3">
+                  <View className="flex-row items-center">
+                    <View className="w-7 h-7 rounded-lg bg-emerald-50 items-center justify-center mr-2 border border-emerald-200">
+                      <BedIcon size={14} color="#0A6C50" />
+                    </View>
+                    <View>
+                      <Text className="text-xs font-black text-slate-900">
+                        Unit Economics ({unitEconomics.propertyName})
+                      </Text>
+                      <Text className="text-[10px] text-slate-500 font-medium">
+                        Per-bed operating cost & yield
+                      </Text>
+                    </View>
+                  </View>
+                  <View className="bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-200">
+                    <Text className="text-[11px] font-extrabold text-[#0A6C50]">
+                      {unitEconomics.occupiedBeds}/{unitEconomics.totalBeds} Beds (
+                      {unitEconomics.occupancyRate}%)
+                    </Text>
+                  </View>
+                </View>
+
+                <View className="flex-row gap-2.5 pt-2 border-t border-slate-100">
+                  <View className="flex-1 bg-slate-50 p-2.5 rounded-xl border border-slate-200/60">
+                    <Text className="text-[10px] font-bold text-slate-500 uppercase">
+                      Cost / Bed
+                    </Text>
+                    <Text className="text-sm font-black text-rose-600 mt-0.5">
+                      {formatINR(unitEconomics.costPerOccupiedBed)}
+                    </Text>
+                    <Text className="text-[9px] text-slate-400 mt-0.5">Monthly expense</Text>
+                  </View>
+
+                  <View className="flex-1 bg-slate-50 p-2.5 rounded-xl border border-slate-200/60">
+                    <Text className="text-[10px] font-bold text-slate-500 uppercase">
+                      Yield / Bed
+                    </Text>
+                    <Text className="text-sm font-black text-emerald-700 mt-0.5">
+                      {formatINR(unitEconomics.collectionsPerBed)}
+                    </Text>
+                    <Text className="text-[9px] text-slate-400 mt-0.5">Revenue collected</Text>
+                  </View>
+
+                  <View className="flex-1 bg-slate-50 p-2.5 rounded-xl border border-slate-200/60">
+                    <Text className="text-[10px] font-bold text-slate-500 uppercase">
+                      Net / Bed
+                    </Text>
+                    <Text
+                      className={`text-sm font-black mt-0.5 ${
+                        unitEconomics.netPerBed >= 0 ? 'text-[#0A6C50]' : 'text-rose-600'
+                      }`}
+                    >
+                      {formatINR(unitEconomics.netPerBed)}
+                    </Text>
+                    <Text className="text-[9px] text-slate-400 mt-0.5">Net profit</Text>
+                  </View>
+                </View>
+              </View>
+            )}
 
             {/* Category Breakdown */}
             {pnl && pnl.categoryBreakdown.length > 0 && (
@@ -447,6 +662,25 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, 
                             {exp.paidTo ? ` · ${exp.paidTo}` : ''}
                             {exp.paymentMethod ? ` (${exp.paymentMethod.toUpperCase()})` : ''}
                           </Text>
+
+                          {/* Property Scope Tag */}
+                          <View className="flex-row items-center mt-1.5">
+                            {exp.property?.name ? (
+                              <View className="flex-row items-center bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200/60">
+                                <Building size={10} color="#0A6C50" />
+                                <Text className="text-[10px] font-bold text-[#0A6C50] ml-1">
+                                  {exp.property.name}
+                                </Text>
+                              </View>
+                            ) : (
+                              <View className="flex-row items-center bg-slate-100 px-2 py-0.5 rounded border border-slate-200/60">
+                                <Building size={10} color="#64748B" />
+                                <Text className="text-[10px] font-semibold text-slate-600 ml-1">
+                                  General Overhead
+                                </Text>
+                              </View>
+                            )}
+                          </View>
                         </View>
                         <Text className="text-sm font-black text-rose-600">
                           -{formatINR(exp.amountPaise)}
@@ -480,6 +714,54 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, 
           /* Add Expense Form */
           <ScrollView className="flex-1 px-5 pt-4" showsVerticalScrollIndicator={false}>
             <View className="bg-white rounded-2xl p-5 border border-slate-200 mb-6 shadow-xs">
+              {/* Property Scope Picker */}
+              <Text className="text-xs font-bold text-slate-700 uppercase mb-2">
+                Property / Scope
+              </Text>
+              <View className="flex-row flex-wrap gap-2 mb-4">
+                <TouchableOpacity
+                  onPress={() => setFormPropertyId(null)}
+                  className={`flex-row items-center px-3 py-2 rounded-xl border ${
+                    formPropertyId === null
+                      ? 'bg-[#E6F4EA] border-[#0A6C50]'
+                      : 'bg-slate-50 border-slate-200'
+                  }`}
+                >
+                  <Building size={12} color={formPropertyId === null ? '#0A6C50' : '#64748B'} />
+                  <Text
+                    className={`text-xs font-bold ml-1.5 ${
+                      formPropertyId === null ? 'text-[#0A6C50]' : 'text-slate-600'
+                    }`}
+                  >
+                    General Overhead (All Properties)
+                  </Text>
+                </TouchableOpacity>
+
+                {properties.map(p => {
+                  const isSelected = formPropertyId === p._id;
+                  return (
+                    <TouchableOpacity
+                      key={p._id}
+                      onPress={() => setFormPropertyId(p._id)}
+                      className={`flex-row items-center px-3 py-2 rounded-xl border ${
+                        isSelected
+                          ? 'bg-[#E6F4EA] border-[#0A6C50]'
+                          : 'bg-slate-50 border-slate-200'
+                      }`}
+                    >
+                      <Building size={12} color={isSelected ? '#0A6C50' : '#64748B'} />
+                      <Text
+                        className={`text-xs font-bold ml-1.5 ${
+                          isSelected ? 'text-[#0A6C50]' : 'text-slate-600'
+                        }`}
+                      >
+                        {p.name}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
               {/* Category Picker */}
               <Text className="text-xs font-bold text-slate-700 uppercase mb-2">Category</Text>
               <View className="flex-row flex-wrap gap-2 mb-4">
@@ -617,6 +899,54 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, 
                 </View>
 
                 <ScrollView showsVerticalScrollIndicator={false}>
+                  {/* Property Scope */}
+                  <Text className="text-[10px] font-bold text-slate-700 uppercase mb-1.5">
+                    Property / Scope
+                  </Text>
+                  <View className="flex-row flex-wrap gap-1.5 mb-3">
+                    <TouchableOpacity
+                      onPress={() => setEditPropertyId(null)}
+                      className={`flex-row items-center px-2.5 py-1.5 rounded-lg border ${
+                        editPropertyId === null
+                          ? 'bg-[#E6F4EA] border-[#0A6C50]'
+                          : 'bg-slate-50 border-slate-200'
+                      }`}
+                    >
+                      <Building size={11} color={editPropertyId === null ? '#0A6C50' : '#64748B'} />
+                      <Text
+                        className={`text-[11px] font-bold ml-1 ${
+                          editPropertyId === null ? 'text-[#0A6C50]' : 'text-slate-600'
+                        }`}
+                      >
+                        General Overhead
+                      </Text>
+                    </TouchableOpacity>
+
+                    {properties.map(p => {
+                      const isSelected = editPropertyId === p._id;
+                      return (
+                        <TouchableOpacity
+                          key={p._id}
+                          onPress={() => setEditPropertyId(p._id)}
+                          className={`flex-row items-center px-2.5 py-1.5 rounded-lg border ${
+                            isSelected
+                              ? 'bg-[#E6F4EA] border-[#0A6C50]'
+                              : 'bg-slate-50 border-slate-200'
+                          }`}
+                        >
+                          <Building size={11} color={isSelected ? '#0A6C50' : '#64748B'} />
+                          <Text
+                            className={`text-[11px] font-bold ml-1 ${
+                              isSelected ? 'text-[#0A6C50]' : 'text-slate-600'
+                            }`}
+                          >
+                            {p.name}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+
                   {/* Category */}
                   <Text className="text-[10px] font-bold text-slate-700 uppercase mb-1.5">
                     Category
