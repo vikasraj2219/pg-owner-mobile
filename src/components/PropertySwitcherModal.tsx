@@ -7,7 +7,7 @@ import {
   ScrollView,
   TouchableWithoutFeedback,
 } from 'react-native';
-import { Check, Plus, X, Pencil } from 'lucide-react-native';
+import { Check, Plus, X, Pencil, Building } from 'lucide-react-native';
 import { IProperty } from '../types/api';
 
 interface PropertySwitcherModalProps {
@@ -54,6 +54,41 @@ export const PropertySwitcherModal: React.FC<PropertySwitcherModalProps> = ({
 
               {/* Property list */}
               <ScrollView showsVerticalScrollIndicator={false} className="mb-2">
+                {/* All Properties / Consolidated Overview Option */}
+                {properties.length > 1 && (
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => {
+                      onSelectProperty('all');
+                      onClose();
+                    }}
+                    className={`p-4 rounded-2xl mb-3.5 ${
+                      selectedPropertyId === 'all'
+                        ? 'border-2 border-[#0A6C50] bg-white'
+                        : 'border border-slate-200 bg-white'
+                    }`}
+                  >
+                    <View className="flex-row items-center justify-between mb-1">
+                      <View className="flex-row items-center flex-1 mr-2">
+                        <View className="w-8 h-8 rounded-lg bg-emerald-50 items-center justify-center mr-2.5 border border-emerald-200">
+                          <Building size={16} color="#0A6C50" />
+                        </View>
+                        <View className="flex-1">
+                          <Text className="text-base font-extrabold text-slate-900">
+                            All Properties (Overview)
+                          </Text>
+                          <Text className="text-xs font-medium text-slate-500">
+                            Consolidated metrics across {properties.length} properties
+                          </Text>
+                        </View>
+                      </View>
+                      {selectedPropertyId === 'all' && (
+                        <Check size={20} color="#0A6C50" strokeWidth={2.5} />
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                )}
+
                 {properties.map(property => {
                   const isSelected = property._id === selectedPropertyId;
                   const totalBeds = property.stats?.totalBeds ?? 0;

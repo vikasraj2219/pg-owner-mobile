@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Modal,
   View,
@@ -9,7 +9,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { X, Zap, Edit2, Trash2 } from 'lucide-react-native';
+import { X, Zap, Edit2, Trash2, Building } from 'lucide-react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import { formatINR } from '../utils/currency';
 import { formatSafeDate } from '../utils/date';
@@ -28,10 +28,30 @@ interface SubMeterModalProps {
   visible: boolean;
   onClose: () => void;
   property: IProperty | null;
+  properties?: IProperty[];
 }
 
-export const SubMeterModal: React.FC<SubMeterModalProps> = ({ visible, onClose, property }) => {
+export const SubMeterModal: React.FC<SubMeterModalProps> = ({
+  visible,
+  onClose,
+  property,
+  properties = [],
+}) => {
   const queryClient = useQueryClient();
+  const [activePropertyId, setActivePropertyId] = useState<string | null>(property?._id || null);
+
+  useEffect(() => {
+    if (visible) {
+      const initialId = property?._id || (properties.length > 0 ? properties[0]._id : null);
+      setActivePropertyId(initialId);
+    }
+  }, [visible, property, properties]);
+
+  const activeProperty = useMemo(() => {
+    if (!activePropertyId) return property;
+    return properties.find(p => p._id === activePropertyId) || property;
+  }, [activePropertyId, properties, property]);
+
   const [rooms, setRooms] = useState<IRoom[]>([]);
   const [selectedRoom, setSelectedRoom] = useState<IRoom | null>(null);
   const [readings, setReadings] = useState<IMeterReading[]>([]);
@@ -55,12 +75,12 @@ export const SubMeterModal: React.FC<SubMeterModalProps> = ({ visible, onClose, 
   const [isDeleting, setIsDeleting] = useState(false);
 
   const loadRoomsAndReadings = useCallback(async () => {
-    if (!property?._id) return;
+    if (!activeProperty?._id) return;
     setIsLoading(true);
     try {
       const [roomsData, readingsData] = await Promise.all([
-        fetchPropertyRooms(property._id),
-        getMeterReadingsApi(property._id),
+        fetchPropertyRooms(activeProperty._id),
+        getMeterReadingsApi(activeProperty._id),
       ]);
       setRooms(roomsData);
       setReadings(readingsData);
@@ -72,16 +92,16 @@ export const SubMeterModal: React.FC<SubMeterModalProps> = ({ visible, onClose, 
     } finally {
       setIsLoading(false);
     }
-  }, [property?._id, selectedRoom]);
+  }, [activeProperty?._id, selectedRoom]);
 
   useEffect(() => {
-    if (visible && property?._id) {
+    if (visible && activeProperty?._id) {
       loadRoomsAndReadings();
-      if (property.electricityRatePaisePerUnit) {
-        setRatePerUnit((property.electricityRatePaisePerUnit / 100).toString());
+      if (activeProperty.electricityRatePaisePerUnit) {
+        setRatePerUnit((activeProperty.electricityRatePaisePerUnit / 100).toString());
       }
     }
-  }, [visible, property, loadRoomsAndReadings]);
+  }, [visible, activeProperty, loadRoomsAndReadings]);
 
   // When room selection changes, load latest reading
   useEffect(() => {
@@ -109,7 +129,7 @@ export const SubMeterModal: React.FC<SubMeterModalProps> = ({ visible, onClose, 
   const totalAmountPaise = Math.round(unitsConsumed * rateNum * 100);
 
   const handleRecordReading = async () => {
-    if (!property?._id || !selectedRoom?._id) return;
+    if (!activeProperty?._id || !selectedRoom?._id) return;
 
     if (currNum < prevNum) {
       Alert.alert(
@@ -128,7 +148,7 @@ export const SubMeterModal: React.FC<SubMeterModalProps> = ({ visible, onClose, 
     try {
       const ratePaise = Math.round(rateNum * 100);
       await recordMeterReadingApi({
-        propertyId: property._id,
+        propertyId: activeProperty._id,
         roomId: selectedRoom._id,
         meterIdentifier: `Room ${selectedRoom.roomNumber} Sub-meter`,
         previousReading: prevNum,
@@ -241,7 +261,7 @@ export const SubMeterModal: React.FC<SubMeterModalProps> = ({ visible, onClose, 
           <View>
             <Text className="text-xl font-extrabold text-slate-900">Sub-meter Electricity Log</Text>
             <Text className="text-xs font-semibold text-slate-500 mt-0.5">
-              {property?.name || 'Property'} · EB Split Calculator
+              {activeProperty?.name || 'Property'} · EB Split Calculator
             </Text>
           </View>
           <TouchableOpacity
@@ -251,6 +271,45 @@ export const SubMeterModal: React.FC<SubMeterModalProps> = ({ visible, onClose, 
             <X size={20} color="#64748B" />
           </TouchableOpacity>
         </View>
+
+        {/* Property Selector Bar */}
+        {properties.length > 1 && (
+          <View className="bg-white px-5 py-2.5 border-b border-slate-200/60">
+            <Text className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">
+              Select Property
+            </Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ gap: 8 }}
+            >
+              {properties.map(p => {
+                const isSelected = activePropertyId === p._id;
+                return (
+                  <TouchableOpacity
+                    key={p._id}
+                    onPress={() => {
+                      setActivePropertyId(p._id);
+                      setSelectedRoom(null);
+                    }}
+                    className={`flex-row items-center px-3 py-1.5 rounded-xl border ${
+                      isSelected ? 'bg-[#0A6C50] border-[#0A6C50]' : 'bg-slate-50 border-slate-200'
+                    }`}
+                  >
+                    <Building size={12} color={isSelected ? '#ffffff' : '#64748B'} />
+                    <Text
+                      className={`text-xs font-bold ml-1.5 ${
+                        isSelected ? 'text-white' : 'text-slate-700'
+                      }`}
+                    >
+                      {p.name}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        )}
 
         {isLoading ? (
           <View className="flex-1 items-center justify-center">

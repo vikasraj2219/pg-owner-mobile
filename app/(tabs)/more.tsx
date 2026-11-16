@@ -355,6 +355,7 @@ export default function MoreScreen() {
         visible={showSubMeterModal}
         onClose={() => setShowSubMeterModal(false)}
         property={selectedProperty}
+        properties={properties}
       />
 
       {/* Staff & Manager Access Modal */}

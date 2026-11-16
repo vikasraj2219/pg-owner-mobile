@@ -14,6 +14,7 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { fetchTenantsApi } from '../api/tenants';
 import { useAuth } from '../hooks/useAuth';
+import { useProperties } from '../context/PropertyContext';
 import { ITenantListItem } from '../types/api';
 
 interface DpdpKycComplianceModalProps {
@@ -26,14 +27,24 @@ export const DpdpKycComplianceModal: React.FC<DpdpKycComplianceModalProps> = ({
   onClose,
 }) => {
   const { organization, user } = useAuth();
+  const { properties } = useProperties();
+  const [filterPropertyId, setFilterPropertyId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'tenants'>('overview');
 
-  // Fetch live tenants to display KYC audit verification status
+  // Fetch live tenants to display KYC audit verification status (property-scoped or org-wide)
   const { data: tenants = [] } = useQuery<ITenantListItem[]>({
-    queryKey: ['tenants', 'all'],
-    queryFn: () => fetchTenantsApi({ status: 'active' }),
+    queryKey: ['tenants', 'kyc-audit', filterPropertyId || 'all'],
+    queryFn: () =>
+      fetchTenantsApi({
+        status: 'active',
+        propertyId: filterPropertyId || undefined,
+      }),
     enabled: visible,
   });
+
+  const activeProperty = filterPropertyId
+    ? properties.find(p => p._id === filterPropertyId) || null
+    : null;
 
   if (!visible) return null;
 
@@ -44,10 +55,14 @@ export const DpdpKycComplianceModal: React.FC<DpdpKycComplianceModalProps> = ({
 
   const handleShareComplianceAudit = async () => {
     try {
+      const branchDetails = activeProperty
+        ? `\nProperty / Branch: ${activeProperty.name}\nBranch Address: ${activeProperty.address || 'Local jurisdiction'}`
+        : '\nScope: Organization-wide (All Properties)';
+
       const summaryText = `
 *Nilaaya PG Management · DPDP & KYC Compliance Certificate*
 --------------------------------------------------
-Organization: ${organization?.name || 'Nilaaya PG'}
+Organization: ${organization?.name || 'Nilaaya PG'}${branchDetails}
 Owner / Data Fiduciary: ${organization?.ownerName || user?.name || 'Owner'}
 Phone: ${organization?.phone || user?.phone || 'N/A'}
 Statutory Law: Digital Personal Data Protection (DPDP) Act, 2023 & Local Police Verification
@@ -104,6 +119,60 @@ Certified by Nilaaya Security Core
             <X size={20} color="#64748B" />
           </TouchableOpacity>
         </View>
+
+        {/* Property Filter Bar */}
+        {properties.length > 1 && (
+          <View className="bg-white px-5 py-2.5 border-b border-slate-200/60">
+            <Text className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">
+              Filter By Property / Branch
+            </Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ gap: 8 }}
+            >
+              <TouchableOpacity
+                onPress={() => setFilterPropertyId(null)}
+                className={`flex-row items-center px-3 py-1.5 rounded-xl border ${
+                  filterPropertyId === null
+                    ? 'bg-[#0A6C50] border-[#0A6C50]'
+                    : 'bg-slate-50 border-slate-200'
+                }`}
+              >
+                <Building size={12} color={filterPropertyId === null ? '#ffffff' : '#64748B'} />
+                <Text
+                  className={`text-xs font-bold ml-1.5 ${
+                    filterPropertyId === null ? 'text-white' : 'text-slate-700'
+                  }`}
+                >
+                  All Properties (Organization)
+                </Text>
+              </TouchableOpacity>
+
+              {properties.map(p => {
+                const isSelected = filterPropertyId === p._id;
+                return (
+                  <TouchableOpacity
+                    key={p._id}
+                    onPress={() => setFilterPropertyId(p._id)}
+                    className={`flex-row items-center px-3 py-1.5 rounded-xl border ${
+                      isSelected ? 'bg-[#0A6C50] border-[#0A6C50]' : 'bg-slate-50 border-slate-200'
+                    }`}
+                  >
+                    <Building size={12} color={isSelected ? '#ffffff' : '#64748B'} />
+                    <Text
+                      className={`text-xs font-bold ml-1.5 ${
+                        isSelected ? 'text-white' : 'text-slate-700'
+                      }`}
+                    >
+                      {p.name}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        )}
 
         {/* Tab Switcher */}
         <View className="px-5 pt-3 pb-2 bg-white flex-row border-b border-slate-100">

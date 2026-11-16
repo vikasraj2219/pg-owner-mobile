@@ -27,6 +27,7 @@ import {
   ChevronRight,
   Check,
   LogOut,
+  Building,
 } from 'lucide-react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTenants } from '../../src/hooks/useTenants';
@@ -118,7 +119,8 @@ export default function TenantsScreen() {
 
   // Fetch tenants
   const { tenants, isLoading, isRefetching, refetch } = useTenants({
-    propertyId: selectedPropertyId || undefined,
+    propertyId:
+      selectedPropertyId === 'all' || !selectedPropertyId ? undefined : selectedPropertyId,
   });
 
   // Tab counts
@@ -528,8 +530,17 @@ export default function TenantsScreen() {
                       {subtitleText}
                     </Text>
 
-                    {/* Status Pill */}
-                    <View className="flex-row items-center mt-1.5">
+                    {/* Status Pill & Property Tag */}
+                    <View className="flex-row items-center flex-wrap gap-1.5 mt-1.5">
+                      {(selectedPropertyId === 'all' || !selectedProperty) &&
+                        tenant.property?.name && (
+                          <View className="bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-full flex-row items-center">
+                            <Building size={10} color="#0A6C50" />
+                            <Text className="text-[10px] font-bold text-[#0A6C50] ml-1">
+                              {tenant.property.name}
+                            </Text>
+                          </View>
+                        )}
                       {tenant.status === 'active' && (
                         <View className="bg-[#E6F4EA] px-2.5 py-0.5 rounded-full">
                           <Text className="text-[11px] font-bold text-[#0D652D]">Active</Text>

@@ -91,12 +91,26 @@ export default function PulseScreen() {
     return calculateDaysRemaining(subscription.trialEndsAt);
   }, [subscription]);
 
-  const activePropertyName = selectedProperty?.name || organization?.name || 'My PG Property';
+  const activePropertyName =
+    selectedPropertyId === 'all'
+      ? 'All Properties (Overview)'
+      : selectedProperty?.name || organization?.name || 'My PG Property';
   const overdueCount = stats?.overdueCount ?? 0;
   const overdueAmountPaise = stats?.overdueAmountPaise ?? 0;
 
   // Fallback bed stats: ensure accurate counts even during network latency or endpoint fallbacks
-  const activePropertyStats = selectedProperty?.stats;
+  const consolidatedStats = useMemo(() => {
+    if (selectedPropertyId !== 'all') return selectedProperty?.stats;
+    return {
+      totalRooms: properties.reduce((sum, p) => sum + (p.stats?.totalRooms || 0), 0),
+      totalBeds: properties.reduce((sum, p) => sum + (p.stats?.totalBeds || 0), 0),
+      occupiedBeds: properties.reduce((sum, p) => sum + (p.stats?.occupiedBeds || 0), 0),
+      availableBeds: properties.reduce((sum, p) => sum + (p.stats?.availableBeds || 0), 0),
+      occupancyRate: 0,
+    };
+  }, [selectedPropertyId, selectedProperty, properties]);
+
+  const activePropertyStats = consolidatedStats;
   const displayTotalBeds =
     stats?.totalBeds && stats.totalBeds > 0 ? stats.totalBeds : activePropertyStats?.totalBeds || 0;
   const displayOccupiedBeds =

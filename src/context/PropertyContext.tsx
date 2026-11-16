@@ -68,6 +68,10 @@ export const PropertyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // When properties list is available, ensure a valid selectedPropertyId is set
   useEffect(() => {
     if (properties.length > 0) {
+      if (selectedPropertyId === 'all') {
+        // 'all' represents consolidated organization-wide overview
+        return;
+      }
       if (!selectedPropertyId || !properties.some(p => p._id === selectedPropertyId)) {
         const defaultId = properties[0]._id;
         setSelectedPropertyIdState(defaultId);
@@ -95,16 +99,18 @@ export const PropertyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     },
   });
 
-  const selectedProperty =
-    properties.find(p => p._id === selectedPropertyId) ||
-    (properties.length > 0 ? properties[0] : null);
+  const isAllSelected = selectedPropertyId === 'all';
+  const selectedProperty = isAllSelected
+    ? null
+    : properties.find(p => p._id === selectedPropertyId) ||
+      (properties.length > 0 && selectedPropertyId !== 'all' ? properties[0] : null);
 
   return (
     <PropertyContext.Provider
       value={{
         properties,
         selectedProperty,
-        selectedPropertyId: selectedProperty?._id || selectedPropertyId,
+        selectedPropertyId: isAllSelected ? 'all' : selectedProperty?._id || selectedPropertyId,
         setSelectedPropertyId,
         isLoading:
           isLoading ||

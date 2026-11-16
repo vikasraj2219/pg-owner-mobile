@@ -39,6 +39,13 @@ export default function MatrixScreen() {
     isLoading: isPropertiesLoading,
   } = useProperties();
 
+  const effectiveMatrixPropertyId =
+    selectedPropertyId === 'all' || !selectedPropertyId
+      ? properties[0]?._id || null
+      : selectedPropertyId;
+  const effectiveMatrixProperty =
+    selectedPropertyId === 'all' || !selectedPropertyId ? properties[0] || null : selectedProperty;
+
   const {
     matrixData,
     isLoading: isMatrixLoading,
@@ -52,23 +59,23 @@ export default function MatrixScreen() {
     isCreatingRoom,
     updateBedStatus,
     isUpdatingBedStatus,
-  } = useMatrix(selectedPropertyId);
+  } = useMatrix(effectiveMatrixPropertyId);
 
   // Automatically refresh bed matrix & properties when screen comes into focus
   useFocusEffect(
     useCallback(() => {
       void refetchProperties();
-      if (selectedPropertyId) {
+      if (effectiveMatrixPropertyId) {
         void refetchMatrix();
       }
-    }, [selectedPropertyId, refetchMatrix, refetchProperties]),
+    }, [effectiveMatrixPropertyId, refetchMatrix, refetchProperties]),
   );
 
   const isDataLoading =
     isPropertiesLoading ||
     (properties.length === 0 && isPropertiesLoading) ||
-    (!selectedPropertyId && properties.length > 0) ||
-    (Boolean(selectedPropertyId) &&
+    (!effectiveMatrixPropertyId && properties.length > 0) ||
+    (Boolean(effectiveMatrixPropertyId) &&
       (isMatrixLoading || isMatrixPending || isMatrixFetching) &&
       !matrixData);
 
@@ -280,14 +287,14 @@ export default function MatrixScreen() {
               className="flex-row items-center bg-[#E8F5EE] border border-[#A7F3D0] rounded-full px-3.5 py-1.5 mt-2 self-start"
             >
               <Text className="text-xs font-bold text-[#0A6C50]">
-                {vacantBedsCount} beds vacant · {selectedProperty?.name || 'Select property'}
+                {vacantBedsCount} beds vacant · {effectiveMatrixProperty?.name || 'Select property'}
               </Text>
               <ChevronDown size={14} color="#0A6C50" style={{ marginLeft: 4 }} />
             </TouchableOpacity>
           </View>
 
           {/* Quick Actions: Edit Property & Add Room Buttons */}
-          {selectedProperty && (
+          {effectiveMatrixProperty && (
             <View className="flex-row items-center gap-2 mt-1">
               <TouchableOpacity
                 activeOpacity={0.8}
@@ -707,7 +714,7 @@ export default function MatrixScreen() {
       <AddRoomModal
         visible={isAddRoomOpen}
         onClose={() => setIsAddRoomOpen(false)}
-        property={selectedProperty}
+        property={effectiveMatrixProperty}
         existingRooms={existingRoomNumbers}
         defaultFloor={selectedFloor}
         onSubmit={payload => createRoom(payload)}
@@ -727,7 +734,7 @@ export default function MatrixScreen() {
               activeVacantBed?.room.baseRentPaisePerBed ||
               850000,
           );
-          const propertyId = selectedPropertyId || '';
+          const propertyId = effectiveMatrixPropertyId || '';
           const roomNumber = activeVacantBed?.room.roomNumber || '';
           const floorNumber = String(activeVacantBed?.room.floorNumber || selectedFloor || 1);
           const sharingType = String(activeVacantBed?.room.sharingType || 2);
@@ -755,7 +762,7 @@ export default function MatrixScreen() {
         onClose={() => setActiveOccupiedBed(null)}
         bed={activeOccupiedBed?.bed || null}
         room={activeOccupiedBed?.room || null}
-        upiVpa={selectedProperty?.upiVpa}
+        upiVpa={effectiveMatrixProperty?.upiVpa}
         onViewProfile={tenantId => {
           setActiveOccupiedBed(null);
           router.push(`/tenant/${tenantId}` as any);
@@ -780,7 +787,7 @@ export default function MatrixScreen() {
       {/* Edit Property Modal */}
       <EditPropertyModal
         visible={isEditPropertyOpen}
-        property={selectedProperty}
+        property={effectiveMatrixProperty}
         onClose={() => setIsEditPropertyOpen(false)}
         onSuccess={() => {
           refetchProperties();
@@ -791,7 +798,7 @@ export default function MatrixScreen() {
       {/* Edit Room Modal */}
       <EditRoomModal
         visible={!!roomToEdit}
-        propertyId={selectedPropertyId || ''}
+        propertyId={effectiveMatrixPropertyId || ''}
         room={roomToEdit}
         onClose={() => setRoomToEdit(null)}
         onSuccess={() => {

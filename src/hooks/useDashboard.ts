@@ -5,7 +5,8 @@ import { DashboardStats } from '../types/api';
 export function useDashboard(propertyId?: string | null) {
   const query = useQuery<DashboardStats>({
     queryKey: ['dashboard', propertyId || 'all'],
-    queryFn: () => fetchDashboardStatsApi(propertyId || undefined),
+    queryFn: () =>
+      fetchDashboardStatsApi(propertyId === 'all' || !propertyId ? undefined : propertyId),
     staleTime: 1000 * 60 * 2, // 2 minutes cache validity
   });
 

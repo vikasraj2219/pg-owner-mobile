@@ -11,7 +11,16 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { MessageCircle, QrCode, CheckCircle2, Share2, Search, X, Eye } from 'lucide-react-native';
+import {
+  MessageCircle,
+  QrCode,
+  CheckCircle2,
+  Share2,
+  Search,
+  X,
+  Eye,
+  Building,
+} from 'lucide-react-native';
 import { useProperties } from '../../src/context/PropertyContext';
 import { useInvoices } from '../../src/hooks/useInvoices';
 import { useMatrix } from '../../src/hooks/useMatrix';
@@ -25,7 +34,10 @@ import { DueInvoiceItem } from '../../src/types/api';
 
 export default function DuesScreen() {
   const router = useRouter();
-  const { selectedProperty, selectedPropertyId } = useProperties();
+  const { selectedProperty, selectedPropertyId, properties } = useProperties();
+  const [duesPropertyFilterId, setDuesPropertyFilterId] = useState<string | null>(
+    selectedPropertyId === 'all' ? null : selectedPropertyId || null,
+  );
   const [filter, setFilter] = useState<'all' | 'overdue' | 'unpaid' | 'paid'>('overdue');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -34,11 +46,17 @@ export default function DuesScreen() {
   const [qrInvoice, setQrInvoice] = useState<DueInvoiceItem | null>(null);
 
   const { invoices, isLoading, isRefetching, refetch, markPaid, isMarkingPaid } = useInvoices(
-    selectedPropertyId,
+    duesPropertyFilterId,
     filter,
     searchQuery,
   );
-  const { matrixData } = useMatrix(selectedProperty?._id || null);
+
+  const activeDuesProperty = useMemo(() => {
+    if (!duesPropertyFilterId) return selectedProperty || properties[0] || null;
+    return properties.find(p => p._id === duesPropertyFilterId) || selectedProperty || null;
+  }, [duesPropertyFilterId, properties, selectedProperty]);
+
+  const { matrixData } = useMatrix(activeDuesProperty?._id || null);
 
   const currentMonthYear = useMemo(() => {
     return formatSafeMonthYear();
@@ -81,7 +99,8 @@ export default function DuesScreen() {
     const bedInfo = getBedInfo(item);
     const amountPaise = String(item.balanceDuePaise || item.totalAmountPaise || 850000);
     const overdueDays = String(item.overdueDays ?? 0);
-    const upiVpa = selectedProperty?.upiVpa || '';
+    const itemProperty = properties.find(p => p._id === item.property?._id) || activeDuesProperty;
+    const upiVpa = itemProperty?.upiVpa || activeDuesProperty?.upiVpa || '';
 
     const daysUntilDue = item.dueDate
       ? Math.round(
@@ -116,11 +135,12 @@ export default function DuesScreen() {
     const bedInfo = getBedInfo(item);
     const amountPaise = String(item.amountPaidPaise || item.totalAmountPaise || 850000);
     const date = item.paidAt || item.dueDate || new Date().toISOString();
-    const propertyName = item.property?.name || selectedProperty?.name || 'Sri Sai Boys PG';
-    const propertyAddress = selectedProperty?.address || 'Madhapur, Hyderabad';
+    const itemProperty = properties.find(p => p._id === item.property?._id) || activeDuesProperty;
+    const propertyName = item.property?.name || itemProperty?.name || 'PG Property';
+    const propertyAddress = itemProperty?.address || '';
     const forMonth =
       item.items?.[0]?.description ||
-      (item.dueDate ? `${formatSafeMonthYear(new Date(item.dueDate))} rent` : 'October 2026 rent');
+      (item.dueDate ? `${formatSafeMonthYear(new Date(item.dueDate))} rent` : 'Rent payment');
     const method = item.paymentMethod?.toUpperCase() || 'UPI';
 
     router.push({
@@ -143,14 +163,15 @@ export default function DuesScreen() {
   const handleSharePaidReceipt = async (item: DueInvoiceItem) => {
     try {
       const bedInfo = getBedInfo(item);
+      const itemProperty = properties.find(p => p._id === item.property?._id) || activeDuesProperty;
       await generateAndShareReceipt({
         receiptNo: item.invoiceNumber.replace('INV-', 'RCP-'),
         tenantName: item.tenant?.fullName || 'Tenant',
         bedNo: bedInfo.formattedLabel,
         amountPaise: item.amountPaidPaise || item.totalAmountPaise,
         date: formatSafeDate(item.paidAt || item.dueDate),
-        property: item.property?.name || selectedProperty?.name || 'Sri Sai Boys PG',
-        propertyAddress: selectedProperty?.address || 'Madhapur, Hyderabad',
+        property: item.property?.name || itemProperty?.name || 'PG Property',
+        propertyAddress: itemProperty?.address || '',
         forMonth:
           item.items?.[0]?.description ||
           (item.dueDate ? `${formatSafeMonthYear(new Date(item.dueDate))} rent` : 'Rent Payment'),
@@ -177,10 +198,116 @@ export default function DuesScreen() {
         }
       >
         {/* Header Title & Month */}
-        <View className="mb-4">
+        <View className="mb-3">
           <Text className="text-3xl font-extrabold text-slate-900 tracking-tight">Dues</Text>
           <Text className="text-sm font-medium text-slate-600 mt-1">{currentMonthYear}</Text>
         </View>
+
+        {/* Property Filter Chips */}
+        {properties.length > 1 && (
+          <View className="mb-3.5">
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ gap: 8 }}
+            >
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => setDuesPropertyFilterId(null)}
+                className={`flex-row items-center px-3.5 py-1.5 rounded-full border ${
+                  duesPropertyFilterId === null
+                    ? 'bg-[#0A6C50] border-[#0A6C50]'
+                    : 'bg-white border-slate-200'
+                }`}
+              >
+                <Building size={12} color={duesPropertyFilterId === null ? '#ffffff' : '#64748B'} />
+                <Text
+                  className={`text-xs font-bold ml-1.5 ${
+                    duesPropertyFilterId === null ? 'text-white' : 'text-slate-700'
+                  }`}
+                >
+                  All Properties
+                </Text>
+              </TouchableOpacity>
+
+              {properties.map(p => {
+                const isSelected = duesPropertyFilterId === p._id;
+                return (
+                  <TouchableOpacity
+                    key={p._id}
+                    activeOpacity={0.8}
+                    onPress={() => setDuesPropertyFilterId(p._id)}
+                    className={`flex-row items-center px-3.5 py-1.5 rounded-full border ${
+                      isSelected ? 'bg-[#0A6C50] border-[#0A6C50]' : 'bg-white border-slate-200'
+                    }`}
+                  >
+                    <Building size={12} color={isSelected ? '#ffffff' : '#64748B'} />
+                    <Text
+                      className={`text-xs font-bold ml-1.5 ${
+                        isSelected ? 'text-white' : 'text-slate-700'
+                      }`}
+                    >
+                      {p.name}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        )}
+
+        {/* Property Filter Chips */}
+        {properties.length > 1 && (
+          <View className="mb-3.5">
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ gap: 8 }}
+            >
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => setDuesPropertyFilterId(null)}
+                className={`flex-row items-center px-3.5 py-1.5 rounded-full border ${
+                  duesPropertyFilterId === null
+                    ? 'bg-[#0A6C50] border-[#0A6C50]'
+                    : 'bg-white border-slate-200'
+                }`}
+              >
+                <Building size={12} color={duesPropertyFilterId === null ? '#ffffff' : '#64748B'} />
+                <Text
+                  className={`text-xs font-bold ml-1.5 ${
+                    duesPropertyFilterId === null ? 'text-white' : 'text-slate-700'
+                  }`}
+                >
+                  All Properties
+                </Text>
+              </TouchableOpacity>
+
+              {properties.map(p => {
+                const isSelected = duesPropertyFilterId === p._id;
+                return (
+                  <TouchableOpacity
+                    key={p._id}
+                    activeOpacity={0.8}
+                    onPress={() => setDuesPropertyFilterId(p._id)}
+                    className={`flex-row items-center px-3.5 py-1.5 rounded-full border ${
+                      isSelected ? 'bg-[#0A6C50] border-[#0A6C50]' : 'bg-white border-slate-200'
+                    }`}
+                  >
+                    <Building size={12} color={isSelected ? '#ffffff' : '#64748B'} />
+                    <Text
+                      className={`text-xs font-bold ml-1.5 ${
+                        isSelected ? 'text-white' : 'text-slate-700'
+                      }`}
+                    >
+                      {p.name}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        )}
 
         {/* Total Outstanding Card */}
         <View className="bg-white border border-slate-200/80 rounded-2xl p-4 flex-row items-center justify-between mb-4 shadow-xs">
@@ -369,6 +496,14 @@ export default function DuesScreen() {
                           {item.items[0].description}
                         </Text>
                       ) : null}
+                      {!duesPropertyFilterId && item.property?.name && (
+                        <View className="flex-row items-center bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200/60 mt-1 self-start">
+                          <Building size={10} color="#0A6C50" />
+                          <Text className="text-[10px] font-bold text-[#0A6C50] ml-1">
+                            {item.property.name}
+                          </Text>
+                        </View>
+                      )}
                     </View>
                   </View>
 
