@@ -53,4 +53,3 @@ export const NILAAYA_THEME = {
     border: '#35423B',
   },
 } as const;
-

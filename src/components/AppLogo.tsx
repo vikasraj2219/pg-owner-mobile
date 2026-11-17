@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Image, Text } from 'react-native';
+import { View, Image } from 'react-native';
 import nilaayaLogoWhite from '../../assets/nilaaya-logo-white.png';
 
 interface AppLogoProps {
@@ -13,6 +13,7 @@ export const AppLogo: React.FC<AppLogoProps> = ({ size = 44, variant = 'green' }
   const borderRadius = Math.round(size * 0.28);
 
   if (isNilaayaCard) {
+    const iconSize = Math.round(size * 0.7);
     return (
       <View
         style={{
@@ -29,18 +30,15 @@ export const AppLogo: React.FC<AppLogoProps> = ({ size = 44, variant = 'green' }
           elevation: 3,
         }}
       >
-        <Text
+        <Image
+          source={nilaayaLogoWhite}
           style={{
-            color: '#4F5330',
-            fontSize: Math.round(size * 0.58),
-            fontWeight: '900',
-            fontStyle: 'italic',
-            transform: [{ skewX: '-6deg' }],
-            marginTop: -Math.round(size * 0.04),
+            width: iconSize,
+            height: iconSize,
+            tintColor: '#4F5330',
           }}
-        >
-          N
-        </Text>
+          resizeMode="contain"
+        />
       </View>
     );
   }
@@ -58,14 +56,14 @@ export const AppLogo: React.FC<AppLogoProps> = ({ size = 44, variant = 'green' }
     );
   }
 
-  // Emerald squircle (#0A6C50) with white Nilaaya logo inside
-  const iconSize = Math.round(size * 0.72);
+  // Olive squircle (#4F5330) with white Nilaaya logo inside
+  const iconSize = Math.round(size * 0.68);
   return (
     <View
       style={{
         width: size,
         height: size,
-        backgroundColor: '#0A6C50',
+        backgroundColor: '#4F5330',
         borderRadius,
         justifyContent: 'center',
         alignItems: 'center',

@@ -10,7 +10,8 @@ import {
   Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 import { Eye, EyeOff, Check, AlertCircle } from 'lucide-react-native';
 import { AppLogo } from '../../src/components/AppLogo';
 import { useAuth } from '../../src/hooks/useAuth';
@@ -24,6 +25,7 @@ import {
 
 export default function RegisterScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { register } = useAuth();
 
   const [ownerName, setOwnerName] = useState('');
@@ -131,264 +133,565 @@ export default function RegisterScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-[#F8F9FA]">
+    <View style={{ flex: 1, backgroundColor: '#4F5330' }}>
+      <StatusBar style="light" />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        className="flex-1"
+        style={{ flex: 1 }}
       >
         <ScrollView
-          contentContainerStyle={{ flexGrow: 1, paddingBottom: 32 }}
-          className="px-6 py-4"
+          contentContainerStyle={{ flexGrow: 1 }}
           keyboardShouldPersistTaps="handled"
+          bounces={false}
         >
-          {/* Top Logo & Title */}
-          <View className="flex-row items-center gap-3.5 mb-3.5">
-            <AppLogo size={46} />
-            <Text className="text-2xl font-extrabold text-slate-900 tracking-tight">
-              Create account
-            </Text>
-          </View>
-
-          {/* 14-day trial badge */}
-          <View className="self-start bg-[#ECFDF5] border border-[#6EE7B7] px-3.5 py-1.5 rounded-full mb-5 flex-row items-center">
-            <Text className="text-xs font-bold text-[#0A6C50]">
-              ✓ 14-day free trial, no card needed
-            </Text>
-          </View>
-
-          {/* Error Banner */}
-          {errorMessage && (
-            <View className="flex-row items-center bg-[#FFF1F2] border border-[#FECDD3] px-3.5 py-3 rounded-2xl mb-4">
-              <AlertCircle size={18} color="#BE123C" />
-              <Text className="text-xs font-semibold text-[#991B1B] ml-2 flex-1">
-                {errorMessage}
-              </Text>
-            </View>
-          )}
-
-          {/* Form Field: Owner name */}
-          <View className="mb-3.5">
-            <Text className="text-sm font-semibold text-slate-700 mb-1.5">Owner name</Text>
-            <TextInput
-              className={`bg-white border rounded-xl px-4 py-3 text-base text-slate-900 shadow-sm ${
-                fieldErrors.ownerName ? 'border-[#BE123C] bg-rose-50/20' : 'border-slate-200'
-              }`}
-              placeholder="e.g. Ramesh Kumar"
-              placeholderTextColor="#94A3B8"
-              value={ownerName}
-              onChangeText={text => {
-                setOwnerName(text);
-                clearFieldError('ownerName');
-              }}
-              autoCapitalize="words"
-            />
-            {fieldErrors.ownerName && (
-              <Text className="text-xs font-semibold text-[#BE123C] mt-1 ml-1">
-                {fieldErrors.ownerName}
-              </Text>
-            )}
-          </View>
-
-          {/* Form Field: PG Business name */}
-          <View className="mb-3.5">
-            <Text className="text-sm font-semibold text-slate-700 mb-1.5">PG business name</Text>
-            <TextInput
-              className={`bg-white border rounded-xl px-4 py-3 text-base text-slate-900 shadow-sm ${
-                fieldErrors.orgName ? 'border-[#BE123C] bg-rose-50/20' : 'border-slate-200'
-              }`}
-              placeholder="e.g. Sri Sai Boys PG"
-              placeholderTextColor="#94A3B8"
-              value={orgName}
-              onChangeText={text => {
-                setOrgName(text);
-                clearFieldError('orgName');
-              }}
-            />
-            {fieldErrors.orgName && (
-              <Text className="text-xs font-semibold text-[#BE123C] mt-1 ml-1">
-                {fieldErrors.orgName}
-              </Text>
-            )}
-          </View>
-
-          {/* Form Field: Phone */}
-          <View className="mb-3.5">
-            <Text className="text-sm font-semibold text-slate-700 mb-1.5">Phone number</Text>
-            <TextInput
-              className={`bg-white border rounded-xl px-4 py-3 text-base text-slate-900 shadow-sm ${
-                fieldErrors.phone ? 'border-[#BE123C] bg-rose-50/20' : 'border-slate-200'
-              }`}
-              placeholder="10-digit mobile (e.g. 9876543210)"
-              placeholderTextColor="#94A3B8"
-              keyboardType="phone-pad"
-              value={phone}
-              onChangeText={text => {
-                setPhone(text);
-                clearFieldError('phone');
-              }}
-            />
-            {fieldErrors.phone && (
-              <Text className="text-xs font-semibold text-[#BE123C] mt-1 ml-1">
-                {fieldErrors.phone}
-              </Text>
-            )}
-          </View>
-
-          {/* Form Field: Email */}
-          <View className="mb-3.5">
-            <Text className="text-sm font-semibold text-slate-700 mb-1.5">Email address</Text>
-            <TextInput
-              className={`bg-white border rounded-xl px-4 py-3 text-base text-slate-900 shadow-sm ${
-                fieldErrors.email ? 'border-[#BE123C] bg-rose-50/20' : 'border-slate-200'
-              }`}
-              placeholder="e.g. owner@example.com"
-              placeholderTextColor="#94A3B8"
-              autoCapitalize="none"
-              keyboardType="email-address"
-              value={email}
-              onChangeText={text => {
-                setEmail(text);
-                clearFieldError('email');
-              }}
-            />
-            {fieldErrors.email && (
-              <Text className="text-xs font-semibold text-[#BE123C] mt-1 ml-1">
-                {fieldErrors.email}
-              </Text>
-            )}
-          </View>
-
-          {/* Form Field: Password */}
-          <View className="mb-3.5">
-            <Text className="text-sm font-semibold text-slate-700 mb-1.5">Password</Text>
+          {/* Top Olive Section with Cyan Accent Circle */}
+          <View style={{ backgroundColor: '#4F5330', overflow: 'hidden' }}>
+            {/* Cyan Accent Circle */}
             <View
-              className={`bg-white border rounded-xl flex-row items-center px-4 py-0.5 shadow-sm ${
-                fieldErrors.password ? 'border-[#BE123C] bg-rose-50/20' : 'border-slate-200'
-              }`}
-            >
-              <TextInput
-                className="flex-1 py-2.5 text-base text-slate-900"
-                placeholder="At least 8 characters"
-                placeholderTextColor="#94A3B8"
-                secureTextEntry={!showPassword}
-                value={password}
-                onChangeText={text => {
-                  setPassword(text);
-                  clearFieldError('password');
-                }}
-              />
-              <TouchableOpacity
-                onPress={() => setShowPassword(!showPassword)}
-                className="p-1"
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              >
-                {showPassword ? (
-                  <EyeOff size={20} color="#64748B" />
-                ) : (
-                  <Eye size={20} color="#64748B" />
-                )}
-              </TouchableOpacity>
-            </View>
-            {fieldErrors.password && (
-              <Text className="text-xs font-semibold text-[#BE123C] mt-1 ml-1">
-                {fieldErrors.password}
-              </Text>
-            )}
-          </View>
+              style={{
+                position: 'absolute',
+                top: -55,
+                right: -45,
+                width: 260,
+                height: 260,
+                borderRadius: 130,
+                backgroundColor: '#19D3E6',
+              }}
+            />
 
-          {/* Form Field: Confirm Password */}
-          <View className="mb-5">
-            <Text className="text-sm font-semibold text-slate-700 mb-1.5">Confirm Password</Text>
+            {/* Header Content */}
             <View
-              className={`bg-white border rounded-xl flex-row items-center px-4 py-0.5 shadow-sm ${
-                fieldErrors.confirmPassword ? 'border-[#BE123C] bg-rose-50/20' : 'border-slate-200'
-              }`}
+              style={{
+                paddingTop: Math.max(insets.top + 8, 44),
+                paddingHorizontal: 24,
+                paddingBottom: 22,
+              }}
             >
-              <TextInput
-                className="flex-1 py-2.5 text-base text-slate-900"
-                placeholder="Re-enter your password"
-                placeholderTextColor="#94A3B8"
-                secureTextEntry={!showConfirmPassword}
-                value={confirmPassword}
-                onChangeText={text => {
-                  setConfirmPassword(text);
-                  clearFieldError('confirmPassword');
+              {/* Logo squircle card */}
+              <View style={{ marginBottom: 18 }}>
+                <AppLogo size={52} variant="nilaaya-card" />
+              </View>
+
+              {/* Bold headline */}
+              <Text
+                style={{
+                  fontSize: 34,
+                  fontWeight: '800',
+                  color: '#FFFFFF',
+                  letterSpacing: -0.5,
+                  marginBottom: 12,
                 }}
-              />
-              <TouchableOpacity
-                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="p-1"
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
-                {showConfirmPassword ? (
-                  <EyeOff size={20} color="#64748B" />
-                ) : (
-                  <Eye size={20} color="#64748B" />
-                )}
-              </TouchableOpacity>
-            </View>
-            {fieldErrors.confirmPassword && (
-              <Text className="text-xs font-semibold text-[#BE123C] mt-1 ml-1">
-                {fieldErrors.confirmPassword}
+                Create account
               </Text>
-            )}
+
+              {/* 14-day free trial badge */}
+              <View
+                style={{
+                  alignSelf: 'flex-start',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  borderWidth: 1.5,
+                  borderColor: 'rgba(255, 255, 255, 0.45)',
+                  backgroundColor: 'rgba(0, 0, 0, 0.12)',
+                  paddingHorizontal: 14,
+                  paddingVertical: 6,
+                  borderRadius: 9999,
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 13,
+                    fontWeight: '700',
+                    color: '#FFFFFF',
+                  }}
+                >
+                  ✓ 14-day free trial, no card needed
+                </Text>
+              </View>
+            </View>
           </View>
 
-          {/* Terms checkbox */}
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={() => {
-              setAgreedToTerms(!agreedToTerms);
-              clearFieldError('agreedToTerms');
+          {/* Bottom White Sheet */}
+          <View
+            style={{
+              flex: 1,
+              backgroundColor: '#FFFFFF',
+              borderTopLeftRadius: 36,
+              borderTopRightRadius: 36,
+              paddingHorizontal: 24,
+              paddingTop: 28,
+              paddingBottom: Math.max(insets.bottom, 24),
             }}
-            className="flex-row items-center mb-6"
           >
-            <View
-              className={`w-6 h-6 rounded-md items-center justify-center mr-3 ${
-                agreedToTerms
-                  ? 'bg-[#0A6C50]'
-                  : fieldErrors.agreedToTerms
-                    ? 'border-2 border-[#BE123C] bg-white'
-                    : 'border border-slate-300 bg-white'
-              }`}
-            >
-              {agreedToTerms && <Check size={16} color="#ffffff" strokeWidth={3} />}
-            </View>
-            <Text className="text-sm text-slate-700 flex-1 leading-5">
-              I agree to the{' '}
-              <Text className="text-blue-600 font-bold underline">Terms of Service</Text> and{' '}
-              <Text className="text-blue-600 font-bold underline">Privacy Policy</Text>
-            </Text>
-          </TouchableOpacity>
-
-          {/* CTA Button */}
-          <TouchableOpacity
-            activeOpacity={0.85}
-            className="bg-[#0A6C50] rounded-xl py-3.5 items-center justify-center flex-row shadow-sm mb-6"
-            onPress={handleRegister}
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? (
-              <>
-                <ActivityIndicator color="#ffffff" size="small" />
-                <Text className="text-white font-bold text-base ml-2">Creating account…</Text>
-              </>
-            ) : (
-              <Text className="text-white font-bold text-base">Create account</Text>
+            {/* Global Error Banner */}
+            {errorMessage && (
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  backgroundColor: '#FFF1F2',
+                  borderWidth: 1,
+                  borderColor: '#FECDD3',
+                  paddingHorizontal: 14,
+                  paddingVertical: 12,
+                  borderRadius: 16,
+                  marginBottom: 16,
+                }}
+              >
+                <AlertCircle size={18} color="#BE123C" />
+                <Text
+                  style={{
+                    fontSize: 13,
+                    fontWeight: '600',
+                    color: '#991B1B',
+                    marginLeft: 8,
+                    flex: 1,
+                  }}
+                >
+                  {errorMessage}
+                </Text>
+              </View>
             )}
-          </TouchableOpacity>
 
-          {/* Log in link */}
-          <View className="items-center">
-            <TouchableOpacity onPress={() => router.push('/(auth)/login')} className="py-2">
-              <Text className="text-sm font-medium text-slate-700">
-                Already have an account?{' '}
-                <Text className="text-blue-600 font-bold underline">Log in</Text>
+            {/* Form Field: Owner name */}
+            <View style={{ marginBottom: 16 }}>
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: '700',
+                  color: '#0C192B',
+                  marginBottom: 8,
+                }}
+              >
+                Owner name
+              </Text>
+              <TextInput
+                style={{
+                  backgroundColor: '#FAF7F2',
+                  borderWidth: 1,
+                  borderColor: fieldErrors.ownerName ? '#BE123C' : '#E5DDCD',
+                  borderRadius: 14,
+                  height: 52,
+                  paddingHorizontal: 16,
+                  fontSize: 16,
+                  color: '#0C192B',
+                }}
+                placeholder="e.g. Ramesh Kumar"
+                placeholderTextColor="#8E98A0"
+                value={ownerName}
+                onChangeText={text => {
+                  setOwnerName(text);
+                  clearFieldError('ownerName');
+                }}
+                autoCapitalize="words"
+              />
+              {fieldErrors.ownerName && (
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontWeight: '600',
+                    color: '#BE123C',
+                    marginTop: 4,
+                    marginLeft: 4,
+                  }}
+                >
+                  {fieldErrors.ownerName}
+                </Text>
+              )}
+            </View>
+
+            {/* Form Field: PG Business name */}
+            <View style={{ marginBottom: 16 }}>
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: '700',
+                  color: '#0C192B',
+                  marginBottom: 8,
+                }}
+              >
+                PG business name
+              </Text>
+              <TextInput
+                style={{
+                  backgroundColor: '#FAF7F2',
+                  borderWidth: 1,
+                  borderColor: fieldErrors.orgName ? '#BE123C' : '#E5DDCD',
+                  borderRadius: 14,
+                  height: 52,
+                  paddingHorizontal: 16,
+                  fontSize: 16,
+                  color: '#0C192B',
+                }}
+                placeholder="e.g. Sri Sai Boys PG"
+                placeholderTextColor="#8E98A0"
+                value={orgName}
+                onChangeText={text => {
+                  setOrgName(text);
+                  clearFieldError('orgName');
+                }}
+              />
+              {fieldErrors.orgName && (
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontWeight: '600',
+                    color: '#BE123C',
+                    marginTop: 4,
+                    marginLeft: 4,
+                  }}
+                >
+                  {fieldErrors.orgName}
+                </Text>
+              )}
+            </View>
+
+            {/* Form Field: Phone number */}
+            <View style={{ marginBottom: 16 }}>
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: '700',
+                  color: '#0C192B',
+                  marginBottom: 8,
+                }}
+              >
+                Phone number
+              </Text>
+              <TextInput
+                style={{
+                  backgroundColor: '#FAF7F2',
+                  borderWidth: 1,
+                  borderColor: fieldErrors.phone ? '#BE123C' : '#E5DDCD',
+                  borderRadius: 14,
+                  height: 52,
+                  paddingHorizontal: 16,
+                  fontSize: 16,
+                  color: '#0C192B',
+                }}
+                placeholder="10-digit mobile (e.g. 9876543210)"
+                placeholderTextColor="#8E98A0"
+                keyboardType="phone-pad"
+                value={phone}
+                onChangeText={text => {
+                  setPhone(text);
+                  clearFieldError('phone');
+                }}
+              />
+              {fieldErrors.phone && (
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontWeight: '600',
+                    color: '#BE123C',
+                    marginTop: 4,
+                    marginLeft: 4,
+                  }}
+                >
+                  {fieldErrors.phone}
+                </Text>
+              )}
+            </View>
+
+            {/* Form Field: Email address */}
+            <View style={{ marginBottom: 16 }}>
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: '700',
+                  color: '#0C192B',
+                  marginBottom: 8,
+                }}
+              >
+                Email address
+              </Text>
+              <TextInput
+                style={{
+                  backgroundColor: '#FAF7F2',
+                  borderWidth: 1,
+                  borderColor: fieldErrors.email ? '#BE123C' : '#E5DDCD',
+                  borderRadius: 14,
+                  height: 52,
+                  paddingHorizontal: 16,
+                  fontSize: 16,
+                  color: '#0C192B',
+                }}
+                placeholder="e.g. owner@example.com"
+                placeholderTextColor="#8E98A0"
+                autoCapitalize="none"
+                keyboardType="email-address"
+                value={email}
+                onChangeText={text => {
+                  setEmail(text);
+                  clearFieldError('email');
+                }}
+              />
+              {fieldErrors.email && (
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontWeight: '600',
+                    color: '#BE123C',
+                    marginTop: 4,
+                    marginLeft: 4,
+                  }}
+                >
+                  {fieldErrors.email}
+                </Text>
+              )}
+            </View>
+
+            {/* Form Field: Password */}
+            <View style={{ marginBottom: 16 }}>
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: '700',
+                  color: '#0C192B',
+                  marginBottom: 8,
+                }}
+              >
+                Password
+              </Text>
+              <View
+                style={{
+                  backgroundColor: '#FAF7F2',
+                  borderWidth: 1,
+                  borderColor: fieldErrors.password ? '#BE123C' : '#E5DDCD',
+                  borderRadius: 14,
+                  height: 52,
+                  paddingHorizontal: 16,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                }}
+              >
+                <TextInput
+                  style={{
+                    flex: 1,
+                    fontSize: 16,
+                    color: '#0C192B',
+                    paddingVertical: 0,
+                  }}
+                  placeholder="At least 8 characters"
+                  placeholderTextColor="#8E98A0"
+                  secureTextEntry={!showPassword}
+                  value={password}
+                  onChangeText={text => {
+                    setPassword(text);
+                    clearFieldError('password');
+                  }}
+                />
+                <TouchableOpacity
+                  onPress={() => setShowPassword(!showPassword)}
+                  style={{ padding: 4 }}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                  {showPassword ? (
+                    <EyeOff size={20} color="#657080" />
+                  ) : (
+                    <Eye size={20} color="#657080" />
+                  )}
+                </TouchableOpacity>
+              </View>
+              {fieldErrors.password && (
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontWeight: '600',
+                    color: '#BE123C',
+                    marginTop: 4,
+                    marginLeft: 4,
+                  }}
+                >
+                  {fieldErrors.password}
+                </Text>
+              )}
+            </View>
+
+            {/* Form Field: Confirm password */}
+            <View style={{ marginBottom: 20 }}>
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: '700',
+                  color: '#0C192B',
+                  marginBottom: 8,
+                }}
+              >
+                Confirm password
+              </Text>
+              <View
+                style={{
+                  backgroundColor: '#FAF7F2',
+                  borderWidth: 1,
+                  borderColor: fieldErrors.confirmPassword ? '#BE123C' : '#E5DDCD',
+                  borderRadius: 14,
+                  height: 52,
+                  paddingHorizontal: 16,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                }}
+              >
+                <TextInput
+                  style={{
+                    flex: 1,
+                    fontSize: 16,
+                    color: '#0C192B',
+                    paddingVertical: 0,
+                  }}
+                  placeholder="Re-enter your password"
+                  placeholderTextColor="#8E98A0"
+                  secureTextEntry={!showConfirmPassword}
+                  value={confirmPassword}
+                  onChangeText={text => {
+                    setConfirmPassword(text);
+                    clearFieldError('confirmPassword');
+                  }}
+                />
+                <TouchableOpacity
+                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                  style={{ padding: 4 }}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff size={20} color="#657080" />
+                  ) : (
+                    <Eye size={20} color="#657080" />
+                  )}
+                </TouchableOpacity>
+              </View>
+              {fieldErrors.confirmPassword && (
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontWeight: '600',
+                    color: '#BE123C',
+                    marginTop: 4,
+                    marginLeft: 4,
+                  }}
+                >
+                  {fieldErrors.confirmPassword}
+                </Text>
+              )}
+            </View>
+
+            {/* Terms checkbox */}
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => {
+                setAgreedToTerms(!agreedToTerms);
+                clearFieldError('agreedToTerms');
+              }}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                marginBottom: 24,
+              }}
+            >
+              <View
+                style={{
+                  width: 22,
+                  height: 22,
+                  borderRadius: 5,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginRight: 12,
+                  backgroundColor: agreedToTerms ? '#4F5330' : '#FFFFFF',
+                  borderWidth: agreedToTerms ? 0 : 1.5,
+                  borderColor: fieldErrors.agreedToTerms ? '#BE123C' : '#CBD5E1',
+                }}
+              >
+                {agreedToTerms && <Check size={16} color="#FFFFFF" strokeWidth={3} />}
+              </View>
+              <Text style={{ fontSize: 13, color: '#0C192B', flex: 1, lineHeight: 18 }}>
+                I agree to the{' '}
+                <Text
+                  style={{
+                    fontWeight: '700',
+                    textDecorationLine: 'underline',
+                    color: '#0C192B',
+                  }}
+                >
+                  Terms of Service
+                </Text>{' '}
+                and{' '}
+                <Text
+                  style={{
+                    fontWeight: '700',
+                    textDecorationLine: 'underline',
+                    color: '#0C192B',
+                  }}
+                >
+                  Privacy Policy
+                </Text>
               </Text>
             </TouchableOpacity>
+
+            {/* CTA Button */}
+            <TouchableOpacity
+              activeOpacity={0.88}
+              style={{
+                backgroundColor: '#4F5330',
+                borderRadius: 9999,
+                height: 52,
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexDirection: 'row',
+                shadowColor: '#4F5330',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.15,
+                shadowRadius: 4,
+                elevation: 2,
+                marginBottom: 24,
+              }}
+              onPress={handleRegister}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <ActivityIndicator color="#ffffff" size="small" />
+                  <Text
+                    style={{
+                      color: '#FFFFFF',
+                      fontWeight: '700',
+                      fontSize: 16,
+                      marginLeft: 8,
+                    }}
+                  >
+                    Creating account…
+                  </Text>
+                </>
+              ) : (
+                <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 16 }}>
+                  Create account
+                </Text>
+              )}
+            </TouchableOpacity>
+
+            {/* Log in link */}
+            <View style={{ alignItems: 'center' }}>
+              <TouchableOpacity
+                onPress={() => router.push('/(auth)/login')}
+                style={{ paddingVertical: 6 }}
+              >
+                <Text style={{ fontSize: 14, color: '#0C192B', fontWeight: '500' }}>
+                  Already have an account?{' '}
+                  <Text
+                    style={{
+                      fontWeight: '700',
+                      textDecorationLine: 'underline',
+                      color: '#0C192B',
+                    }}
+                  >
+                    Log in
+                  </Text>
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }
