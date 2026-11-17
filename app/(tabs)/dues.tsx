@@ -467,7 +467,7 @@ export default function DuesScreen() {
               marginRight: 16,
             }}
           >
-            <Wallet size={26} color="#4F5330" strokeWidth={2.3} />
+            <Wallet size={26} color="#19D3E6" strokeWidth={2.3} />
           </View>
 
           {/* Texts: Label on top, Large Amount below */}
@@ -758,15 +758,15 @@ export default function DuesScreen() {
                         flex: 1,
                         height: 44,
                         borderRadius: 12,
-                        backgroundColor: '#19D3E6',
+                        backgroundColor: '#4F5330',
                         alignItems: 'center',
                         justifyContent: 'center',
                       }}
                     >
                       {isMarkingPaid ? (
-                        <ActivityIndicator size="small" color="#0C192B" />
+                        <ActivityIndicator size="small" color="#FFFFFF" />
                       ) : (
-                        <Text style={{ color: '#0C192B', fontWeight: '800', fontSize: 14 }}>
+                        <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 14 }}>
                           Mark received
                         </Text>
                       )}

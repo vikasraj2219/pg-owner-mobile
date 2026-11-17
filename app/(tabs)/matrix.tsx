@@ -377,17 +377,17 @@ export default function MatrixScreen() {
                   width: 38,
                   height: 38,
                   borderRadius: 12,
-                  backgroundColor: '#19D3E6',
+                  backgroundColor: '#4F5330',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  shadowColor: '#19D3E6',
+                  shadowColor: '#4F5330',
                   shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.25,
+                  shadowOpacity: 0.15,
                   shadowRadius: 3,
                   elevation: 2,
                 }}
               >
-                <Plus size={20} color="#0C192B" strokeWidth={2.5} />
+                <Plus size={20} color="#FFFFFF" strokeWidth={2.5} />
               </TouchableOpacity>
             </View>
           )}
@@ -622,7 +622,7 @@ export default function MatrixScreen() {
               activeOpacity={0.8}
               onPress={() => setIsAddPropertyOpen(true)}
               style={{
-                backgroundColor: '#19D3E6',
+                backgroundColor: '#4F5330',
                 paddingHorizontal: 24,
                 paddingVertical: 14,
                 borderRadius: 14,
@@ -630,8 +630,8 @@ export default function MatrixScreen() {
                 alignItems: 'center',
               }}
             >
-              <Plus size={18} color="#0C192B" strokeWidth={2.5} />
-              <Text style={{ fontSize: 14, fontWeight: '800', color: '#0C192B', marginLeft: 8 }}>
+              <Plus size={18} color="#FFFFFF" strokeWidth={2.5} />
+              <Text style={{ fontSize: 14, fontWeight: '700', color: '#FFFFFF', marginLeft: 8 }}>
                 Add Property
               </Text>
             </TouchableOpacity>
@@ -689,7 +689,7 @@ export default function MatrixScreen() {
               activeOpacity={0.8}
               onPress={() => refetchMatrix()}
               style={{
-                backgroundColor: '#19D3E6',
+                backgroundColor: '#4F5330',
                 paddingHorizontal: 24,
                 paddingVertical: 12,
                 borderRadius: 14,
@@ -697,8 +697,8 @@ export default function MatrixScreen() {
                 alignItems: 'center',
               }}
             >
-              <RefreshCw size={16} color="#0C192B" />
-              <Text style={{ fontSize: 14, fontWeight: '800', color: '#0C192B', marginLeft: 8 }}>
+              <RefreshCw size={16} color="#FFFFFF" />
+              <Text style={{ fontSize: 14, fontWeight: '700', color: '#FFFFFF', marginLeft: 8 }}>
                 Retry
               </Text>
             </TouchableOpacity>
@@ -815,37 +815,9 @@ export default function MatrixScreen() {
                             borderColor: '#E5DDCD',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            marginRight: 6,
                           }}
                         >
                           <Pencil size={13} color="#4F5330" />
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          activeOpacity={0.7}
-                          disabled={isAddingBedRoomId === room._id}
-                          onPress={() => handleAddBed(room._id, room.roomNumber)}
-                          style={{
-                            backgroundColor: '#FAF7F2',
-                            borderWidth: 1,
-                            borderColor: '#D0D7B4',
-                            paddingHorizontal: 8,
-                            paddingVertical: 4,
-                            borderRadius: 8,
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                          }}
-                        >
-                          <Plus size={11} color="#4F5330" strokeWidth={2.5} />
-                          <Text
-                            style={{
-                              fontSize: 11,
-                              fontWeight: '800',
-                              color: '#4F5330',
-                              marginLeft: 3,
-                            }}
-                          >
-                            Add Bed
-                          </Text>
                         </TouchableOpacity>
                       </View>
 

@@ -11,7 +11,22 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { X, Building2, Trash2, MapPin, QrCode, Zap } from 'lucide-react-native';
+import {
+  ArrowLeft,
+  Building2,
+  Building,
+  Pencil,
+  MapPin,
+  ChevronDown,
+  Mail,
+  QrCode,
+  Copy,
+  Zap,
+  Lightbulb,
+  ArrowRight,
+  Trash2,
+  Navigation,
+} from 'lucide-react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import { IProperty, PropertyType } from '../types/api';
 import { updatePropertyApi, deletePropertyApi } from '../api/properties';
@@ -185,67 +200,256 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        className="flex-1 bg-white"
+        style={{ flex: 1, backgroundColor: '#FAF5EB' }}
       >
-        {/* Header */}
-        <View className="px-5 pt-4 pb-3 flex-row items-center justify-between border-b border-slate-100 bg-white">
-          <View className="flex-row items-center gap-2.5">
-            <View className="w-9 h-9 rounded-xl bg-emerald-50 items-center justify-center">
-              <Building2 size={20} color="#0A6C50" />
-            </View>
-            <View>
-              <Text className="text-xl font-extrabold text-slate-900">Edit Property</Text>
-              <Text className="text-xs font-semibold text-slate-500">
-                Update branch details, UPI & EB rates
-              </Text>
-            </View>
-          </View>
+        {/* Header matching Reference */}
+        <View
+          style={{
+            paddingHorizontal: 20,
+            paddingTop: 16,
+            paddingBottom: 14,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            borderBottomWidth: 1,
+            borderBottomColor: '#E5DDCD',
+            backgroundColor: '#FAF5EB',
+          }}
+        >
           <TouchableOpacity
+            activeOpacity={0.7}
             onPress={onClose}
-            className="w-9 h-9 rounded-full bg-slate-100 items-center justify-center"
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              backgroundColor: '#FFFDF8',
+              borderWidth: 1,
+              borderColor: '#E5DDCD',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
           >
-            <X size={20} color="#64748B" />
+            <ArrowLeft size={20} color="#0C192B" strokeWidth={2.3} />
           </TouchableOpacity>
+
+          <View style={{ flex: 1, marginLeft: 14 }}>
+            <Text
+              style={{ fontSize: 20, fontWeight: '800', color: '#0C192B', letterSpacing: -0.3 }}
+            >
+              Edit Property
+            </Text>
+            <Text style={{ fontSize: 12, fontWeight: '500', color: '#657080', marginTop: 2 }}>
+              Update property details
+            </Text>
+          </View>
+
+          <View
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 12,
+              backgroundColor: '#FFFDF8',
+              borderWidth: 1,
+              borderColor: '#E5DDCD',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Building2 size={20} color="#4F5330" />
+          </View>
         </View>
 
-        <ScrollView className="flex-1 px-5 pt-4" showsVerticalScrollIndicator={false}>
-          {/* Property Name */}
-          <View className="mb-4">
-            <Text className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-              Property Name *
-            </Text>
-            <TextInput
-              value={name}
-              onChangeText={setName}
-              placeholder="e.g. Blossom Luxury PG"
-              placeholderTextColor="#94A3B8"
-              className="bg-white border border-slate-300 rounded-xl px-4 py-3 font-semibold text-slate-900 text-base shadow-xs"
-            />
+        <ScrollView
+          style={{ flex: 1, backgroundColor: '#FAF5EB' }}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 40 }}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Property Preview Card matching Left Screen */}
+          <View
+            style={{
+              backgroundColor: '#FFFDF8',
+              borderWidth: 1,
+              borderColor: '#E5DDCD',
+              borderRadius: 20,
+              padding: 12,
+              flexDirection: 'row',
+              alignItems: 'center',
+              marginBottom: 18,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.04,
+              shadowRadius: 3,
+              elevation: 1,
+            }}
+          >
+            {/* Building Image / Graphic Thumbnail */}
+            <View
+              style={{
+                width: 96,
+                height: 84,
+                borderRadius: 14,
+                backgroundColor: '#EAE8DF',
+                alignItems: 'center',
+                justifyContent: 'center',
+                overflow: 'hidden',
+                marginRight: 14,
+              }}
+            >
+              <Building2 size={42} color="#4F5330" strokeWidth={1.8} />
+            </View>
+
+            {/* Info Column */}
+            <View style={{ flex: 1 }}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: 4,
+                }}
+              >
+                <Text style={{ fontSize: 11, fontWeight: '600', color: '#657080' }}>
+                  Property Preview
+                </Text>
+                <View
+                  style={{
+                    backgroundColor: '#E8F5E9',
+                    paddingHorizontal: 8,
+                    paddingVertical: 2,
+                    borderRadius: 9999,
+                  }}
+                >
+                  <Text style={{ fontSize: 10, fontWeight: '800', color: '#2E7D32' }}>Active</Text>
+                </View>
+              </View>
+
+              <Text style={{ fontSize: 17, fontWeight: '800', color: '#0C192B' }} numberOfLines={1}>
+                {name || property.name}
+              </Text>
+
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginTop: 3,
+                }}
+              >
+                <Text style={{ fontSize: 12, fontWeight: '500', color: '#657080' }}>
+                  {type === 'boys'
+                    ? 'Premium PG for Boys'
+                    : type === 'girls'
+                      ? 'Premium PG for Girls'
+                      : 'Coliving PG'}
+                </Text>
+                <View
+                  style={{
+                    width: 24,
+                    height: 24,
+                    borderRadius: 7,
+                    backgroundColor: '#FAF7F2',
+                    borderWidth: 1,
+                    borderColor: '#E5DDCD',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Pencil size={11} color="#4F5330" />
+                </View>
+              </View>
+            </View>
           </View>
 
-          {/* Property Type Pills */}
-          <View className="mb-4">
-            <Text className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-              Property Type *
+          {/* Property Name Input */}
+          <View style={{ marginBottom: 16 }}>
+            <Text
+              style={{
+                fontSize: 13,
+                fontWeight: '700',
+                color: '#0C192B',
+                marginBottom: 8,
+              }}
+            >
+              Property Name *
             </Text>
-            <View className="flex-row gap-2">
-              {(['boys', 'girls', 'coliving'] as PropertyType[]).map(t => {
-                const isSelected = type === t;
-                const label = t === 'boys' ? 'Boys' : t === 'girls' ? 'Girls' : 'Coliving';
+            <View
+              style={{
+                backgroundColor: '#FFFDF8',
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+                borderRadius: 16,
+                paddingHorizontal: 14,
+                height: 52,
+                justifyContent: 'center',
+              }}
+            >
+              <TextInput
+                value={name}
+                onChangeText={setName}
+                placeholder="e.g. Blossom Luxury PG"
+                placeholderTextColor="#94A3B8"
+                style={{
+                  fontSize: 15,
+                  fontWeight: '600',
+                  color: '#0C192B',
+                  paddingVertical: 0,
+                }}
+              />
+            </View>
+          </View>
+
+          {/* Property Type Selection matching Left Screen */}
+          <View style={{ marginBottom: 18 }}>
+            <Text
+              style={{
+                fontSize: 13,
+                fontWeight: '700',
+                color: '#0C192B',
+                marginBottom: 8,
+              }}
+            >
+              Property Type
+            </Text>
+            <View style={{ flexDirection: 'row', gap: 10 }}>
+              {[
+                { id: 'boys', label: 'Boys', icon: '👦' },
+                { id: 'girls', label: 'Girls', icon: '👧' },
+                { id: 'coliving', label: 'Coliving', icon: '👥' },
+              ].map(item => {
+                const isSelected = type === item.id;
                 return (
                   <TouchableOpacity
-                    key={t}
-                    onPress={() => setType(t)}
-                    className={`flex-1 py-3 rounded-xl items-center justify-center border shadow-xs ${
-                      isSelected ? 'bg-[#19D3E6] border-[#19D3E6]' : 'bg-white border-slate-300'
-                    }`}
+                    key={item.id}
+                    activeOpacity={0.8}
+                    onPress={() => setType(item.id as PropertyType)}
+                    style={{
+                      flex: 1,
+                      paddingVertical: 12,
+                      paddingHorizontal: 8,
+                      borderRadius: 16,
+                      borderWidth: 1,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: isSelected ? '#4F5330' : '#FFFDF8',
+                      borderColor: isSelected ? '#4F5330' : '#E5DDCD',
+                      shadowColor: '#000',
+                      shadowOffset: { width: 0, height: 1 },
+                      shadowOpacity: 0.03,
+                      shadowRadius: 2,
+                      elevation: 1,
+                    }}
                   >
+                    <Text style={{ fontSize: 16, marginRight: 6 }}>{item.icon}</Text>
                     <Text
-                      className={`text-sm font-extrabold ${
-                        isSelected ? 'text-[#0C192B]' : 'text-slate-800'
-                      }`}
+                      style={{
+                        fontSize: 13,
+                        fontWeight: '800',
+                        color: isSelected ? '#FFFFFF' : '#0C192B',
+                      }}
                     >
-                      {label}
+                      {item.label}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -254,101 +458,262 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
           </View>
 
           {/* Street Address */}
-          <View className="mb-4">
-            <View className="flex-row items-center gap-1.5 mb-1.5">
-              <MapPin size={14} color="#64748B" />
-              <Text className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+          <View style={{ marginBottom: 16 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+              <MapPin size={14} color="#657080" style={{ marginRight: 6 }} />
+              <Text style={{ fontSize: 13, fontWeight: '700', color: '#0C192B' }}>
                 Street Address
               </Text>
             </View>
-            <TextInput
-              value={address}
-              onChangeText={setAddress}
-              placeholder="e.g. #42, 4th Cross, 5th Block, Koramangala"
-              placeholderTextColor="#94A3B8"
-              multiline
-              numberOfLines={2}
-              className="bg-white border border-slate-300 rounded-xl px-4 py-2.5 font-medium text-slate-900 text-sm shadow-xs"
-            />
+            <View
+              style={{
+                backgroundColor: '#FFFDF8',
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+                borderRadius: 16,
+                paddingHorizontal: 14,
+                height: 52,
+                flexDirection: 'row',
+                alignItems: 'center',
+              }}
+            >
+              <Building2 size={18} color="#657080" style={{ marginRight: 10 }} />
+              <TextInput
+                value={address}
+                onChangeText={setAddress}
+                placeholder="Street address, area"
+                placeholderTextColor="#94A3B8"
+                style={{
+                  flex: 1,
+                  fontSize: 14,
+                  fontWeight: '500',
+                  color: '#0C192B',
+                  paddingVertical: 0,
+                }}
+              />
+              <Navigation size={18} color="#657080" />
+            </View>
           </View>
 
-          {/* City & Pincode Side by Side */}
-          <View className="flex-row gap-3 mb-4">
-            <View className="flex-1">
-              <Text className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+          {/* City & Pincode Row */}
+          <View style={{ flexDirection: 'row', gap: 12, marginBottom: 16 }}>
+            {/* City */}
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: '#0C192B', marginBottom: 8 }}>
                 City
               </Text>
-              <TextInput
-                value={city}
-                onChangeText={setCity}
-                placeholder="e.g. Bengaluru"
-                placeholderTextColor="#94A3B8"
-                className="bg-white border border-slate-300 rounded-xl px-4 py-3 font-semibold text-slate-900 text-sm shadow-xs"
-              />
+              <View
+                style={{
+                  backgroundColor: '#FFFDF8',
+                  borderWidth: 1,
+                  borderColor: '#E5DDCD',
+                  borderRadius: 16,
+                  paddingHorizontal: 14,
+                  height: 52,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                }}
+              >
+                <Building size={18} color="#657080" style={{ marginRight: 8 }} />
+                <TextInput
+                  value={city}
+                  onChangeText={setCity}
+                  placeholder="City"
+                  placeholderTextColor="#94A3B8"
+                  style={{
+                    flex: 1,
+                    fontSize: 14,
+                    fontWeight: '600',
+                    color: '#0C192B',
+                    paddingVertical: 0,
+                  }}
+                />
+                <ChevronDown size={18} color="#657080" />
+              </View>
             </View>
-            <View className="w-36">
-              <Text className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+
+            {/* Pincode */}
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: '#0C192B', marginBottom: 8 }}>
                 Pincode
               </Text>
-              <TextInput
-                value={pincode}
-                onChangeText={setPincode}
-                placeholder="e.g. 560034"
-                placeholderTextColor="#94A3B8"
-                keyboardType="number-pad"
-                className="bg-white border border-slate-300 rounded-xl px-4 py-3 font-semibold text-slate-900 text-sm shadow-xs"
-              />
+              <View
+                style={{
+                  backgroundColor: '#FFFDF8',
+                  borderWidth: 1,
+                  borderColor: '#E5DDCD',
+                  borderRadius: 16,
+                  paddingHorizontal: 14,
+                  height: 52,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                }}
+              >
+                <Mail size={18} color="#657080" style={{ marginRight: 8 }} />
+                <TextInput
+                  value={pincode}
+                  onChangeText={setPincode}
+                  placeholder="Pincode"
+                  placeholderTextColor="#94A3B8"
+                  keyboardType="numeric"
+                  maxLength={6}
+                  style={{
+                    flex: 1,
+                    fontSize: 14,
+                    fontWeight: '600',
+                    color: '#0C192B',
+                    paddingVertical: 0,
+                  }}
+                />
+              </View>
             </View>
           </View>
 
-          {/* UPI ID for Rent */}
-          <View className="mb-4">
-            <View className="flex-row items-center gap-1.5 mb-1.5">
-              <QrCode size={14} color="#0A6C50" />
-              <Text className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                UPI ID for Rent Collection *
+          {/* UPI ID for Rent Collection */}
+          <View style={{ marginBottom: 16 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+              <QrCode size={15} color="#4F5330" style={{ marginRight: 6 }} />
+              <Text style={{ fontSize: 13, fontWeight: '700', color: '#0C192B' }}>
+                UPI ID for Rent Collection
               </Text>
             </View>
-            <TextInput
-              value={upiVpa}
-              onChangeText={setUpiVpa}
-              placeholder="e.g. blossompg@okaxis"
-              placeholderTextColor="#94A3B8"
-              autoCapitalize="none"
-              className="bg-white border border-slate-300 rounded-xl px-4 py-3 font-semibold text-slate-900 text-sm shadow-xs"
-            />
-            <Text className="text-2xs text-slate-500 font-medium mt-1">
-              Used to generate dynamic QR codes for rent receipts and invoices
-            </Text>
+            <View
+              style={{
+                backgroundColor: '#FFFDF8',
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+                borderRadius: 16,
+                paddingHorizontal: 14,
+                height: 52,
+                flexDirection: 'row',
+                alignItems: 'center',
+              }}
+            >
+              <TextInput
+                value={upiVpa}
+                onChangeText={setUpiVpa}
+                placeholder="name@upi"
+                placeholderTextColor="#94A3B8"
+                autoCapitalize="none"
+                autoCorrect={false}
+                style={{
+                  flex: 1,
+                  fontSize: 14,
+                  fontWeight: '600',
+                  color: '#0C192B',
+                  paddingVertical: 0,
+                }}
+              />
+              <TouchableOpacity
+                onPress={() => {
+                  if (upiVpa.trim()) {
+                    Alert.alert('Copied', `UPI ID ${upiVpa} copied.`);
+                  }
+                }}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Copy size={18} color="#657080" />
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Electricity Rate */}
-          <View className="mb-6">
-            <View className="flex-row items-center gap-1.5 mb-1.5">
-              <Zap size={14} color="#0A6C50" />
-              <Text className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                Electricity Rate (₹ / unit) *
+          <View style={{ marginBottom: 18 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+              <Zap size={15} color="#4F5330" style={{ marginRight: 6 }} />
+              <Text style={{ fontSize: 13, fontWeight: '700', color: '#0C192B' }}>
+                Electricity Rate (₹ / Unit)
               </Text>
             </View>
-            <TextInput
-              value={electricityRate}
-              onChangeText={setElectricityRate}
-              placeholder="0"
-              placeholderTextColor="#94A3B8"
-              keyboardType="decimal-pad"
-              className="bg-white border border-slate-300 rounded-xl px-4 py-3 font-semibold text-slate-900 text-sm shadow-xs"
-            />
+            <View
+              style={{
+                backgroundColor: '#FFFDF8',
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+                borderRadius: 16,
+                paddingHorizontal: 14,
+                height: 52,
+                flexDirection: 'row',
+                alignItems: 'center',
+              }}
+            >
+              <TextInput
+                value={electricityRate}
+                onChangeText={setElectricityRate}
+                placeholder="0"
+                placeholderTextColor="#94A3B8"
+                keyboardType="decimal-pad"
+                style={{
+                  flex: 1,
+                  fontSize: 15,
+                  fontWeight: '700',
+                  color: '#0C192B',
+                  paddingVertical: 0,
+                }}
+              />
+              <Text style={{ fontSize: 13, fontWeight: '600', color: '#657080' }}>/ unit</Text>
+            </View>
+          </View>
+
+          {/* Tip Banner matching Left Screen */}
+          <View
+            style={{
+              backgroundColor: '#F4F8EC',
+              borderWidth: 1,
+              borderColor: '#D9E8CE',
+              borderRadius: 16,
+              padding: 14,
+              flexDirection: 'row',
+              alignItems: 'center',
+              marginBottom: 20,
+            }}
+          >
+            <View
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 16,
+                backgroundColor: '#E5EED6',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginRight: 10,
+              }}
+            >
+              <Lightbulb size={16} color="#4F5330" />
+            </View>
+            <Text
+              style={{
+                flex: 1,
+                fontSize: 12,
+                fontWeight: '600',
+                color: '#4F5330',
+                lineHeight: 17,
+              }}
+            >
+              Keep your property details updated for accurate reports and billing.
+            </Text>
           </View>
 
           {/* Destructive Actions Row: Delete Property */}
-          <View className="pt-2 pb-6 border-t border-slate-200">
+          <View style={{ paddingTop: 4, paddingBottom: 16 }}>
             <TouchableOpacity
               onPress={handleDeleteClick}
               disabled={isDeleting}
-              className="flex-row items-center justify-center gap-2 py-3.5 rounded-xl bg-rose-50 border border-rose-200"
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                paddingVertical: 14,
+                borderRadius: 16,
+                backgroundColor: '#FFFDF8',
+                borderWidth: 1,
+                borderColor: '#FECDD3',
+              }}
             >
               <Trash2 size={16} color="#BE123C" />
-              <Text className="text-xs font-bold text-[#BE123C]">Delete property</Text>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: '#BE123C', marginLeft: 8 }}>
+                Delete property
+              </Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -365,18 +730,45 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
           requiresInput={property.name}
         />
 
-        {/* Primary Save Button */}
-        <View className="p-4 border-t border-slate-200 bg-white shadow-lg">
+        {/* Primary Save Changes CTA Button matching Left Screen */}
+        <View
+          style={{
+            paddingHorizontal: 20,
+            paddingTop: 12,
+            paddingBottom: Platform.OS === 'ios' ? 28 : 16,
+            borderTopWidth: 1,
+            borderTopColor: '#E5DDCD',
+            backgroundColor: '#FAF5EB',
+          }}
+        >
           <TouchableOpacity
-            activeOpacity={0.85}
+            activeOpacity={0.88}
             onPress={handleSave}
             disabled={isSaving}
-            className="w-full bg-[#19D3E6] py-3.5 rounded-xl items-center justify-center shadow-xs"
+            style={{
+              width: '100%',
+              backgroundColor: '#4F5330',
+              height: 52,
+              borderRadius: 16,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              shadowColor: '#4F5330',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.15,
+              shadowRadius: 4,
+              elevation: 2,
+            }}
           >
             {isSaving ? (
-              <ActivityIndicator size="small" color="#0C192B" />
+              <ActivityIndicator size="small" color="#FFFFFF" />
             ) : (
-              <Text className="text-[#0C192B] font-extrabold text-base">Save changes</Text>
+              <>
+                <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 16 }}>
+                  Save Changes
+                </Text>
+                <ArrowRight size={18} color="#FFFFFF" strokeWidth={2.5} style={{ marginLeft: 8 }} />
+              </>
             )}
           </TouchableOpacity>
         </View>

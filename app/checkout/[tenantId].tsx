@@ -192,10 +192,10 @@ export default function CheckoutScreen() {
 
           <TouchableOpacity
             activeOpacity={0.85}
-            className="w-full bg-[#19D3E6] rounded-2xl py-4 items-center justify-center shadow-xs"
+            className="w-full bg-[#4F5330] rounded-2xl py-4 items-center justify-center shadow-xs"
             onPress={() => router.replace('/(tabs)/matrix')}
           >
-            <Text className="text-[#0C192B] font-extrabold text-base">Back to Bed Matrix</Text>
+            <Text className="text-white font-extrabold text-base">Back to Bed Matrix</Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -292,15 +292,13 @@ export default function CheckoutScreen() {
             <TouchableOpacity
               activeOpacity={0.85}
               disabled={isSubmitting}
-              className="bg-[#19D3E6] rounded-xl py-4 items-center shadow-xs"
+              className="bg-[#4F5330] rounded-xl py-4 items-center shadow-xs"
               onPress={handleConfirmVacate}
             >
               {isSubmitting ? (
-                <ActivityIndicator size="small" color="#0C192B" />
+                <ActivityIndicator size="small" color="#FFFFFF" />
               ) : (
-                <Text className="text-[#0C192B] font-extrabold text-base">
-                  Confirm Vacate & Settle
-                </Text>
+                <Text className="text-white font-extrabold text-base">Confirm Vacate & Settle</Text>
               )}
             </TouchableOpacity>
           </View>

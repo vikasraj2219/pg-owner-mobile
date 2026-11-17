@@ -12,7 +12,21 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { ChevronLeft, AlertCircle, Sparkles, Plus, Minus } from 'lucide-react-native';
+import {
+  ArrowLeft,
+  Home,
+  Layers,
+  ChevronDown,
+  DoorClosed,
+  BedDouble,
+  Snowflake,
+  ShowerHead,
+  ArrowRight,
+  AlertCircle,
+  Sparkles,
+  Plus,
+  Minus,
+} from 'lucide-react-native';
 import { IProperty } from '../types/api';
 import { formatINR } from '../utils/currency';
 import { getApiErrorMessage } from '../utils/validation';
@@ -185,104 +199,269 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        className="flex-1 bg-[#F8F9FA]"
+        style={{ flex: 1, backgroundColor: '#FAF5EB' }}
       >
-        {/* Top App Bar */}
-        <View className="px-5 py-4 bg-white border-b border-slate-200 flex-row items-center">
+        {/* Header matching Right Screen */}
+        <View
+          style={{
+            paddingHorizontal: 20,
+            paddingTop: 16,
+            paddingBottom: 14,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            borderBottomWidth: 1,
+            borderBottomColor: '#E5DDCD',
+            backgroundColor: '#FAF5EB',
+          }}
+        >
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={onClose}
-            className="w-9 h-9 rounded-full bg-slate-100 items-center justify-center mr-3"
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              backgroundColor: '#FFFDF8',
+              borderWidth: 1,
+              borderColor: '#E5DDCD',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
           >
-            <ChevronLeft size={22} color="#1E293B" />
+            <ArrowLeft size={20} color="#0C192B" strokeWidth={2.3} />
           </TouchableOpacity>
-          <View className="flex-1">
-            <Text className="text-xl font-extrabold text-slate-900">Add room</Text>
-            {property && (
-              <Text className="text-xs font-medium text-slate-500 mt-0.5" numberOfLines={1}>
-                {property.name}
-              </Text>
-            )}
+
+          <View style={{ flex: 1, marginLeft: 14 }}>
+            <Text
+              style={{ fontSize: 20, fontWeight: '800', color: '#0C192B', letterSpacing: -0.3 }}
+            >
+              Add Room
+            </Text>
+            <Text style={{ fontSize: 12, fontWeight: '500', color: '#657080', marginTop: 2 }}>
+              Add a new room to this property
+            </Text>
+          </View>
+
+          <View
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 12,
+              backgroundColor: '#FFFDF8',
+              borderWidth: 1,
+              borderColor: '#E5DDCD',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Home size={20} color="#4F5330" />
           </View>
         </View>
 
         <ScrollView
-          className="flex-1 px-5 pt-4"
-          contentContainerStyle={{ paddingBottom: 40 }}
+          style={{ flex: 1, backgroundColor: '#FAF5EB' }}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 40 }}
           keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
-          {/* Floor & Room Number Row */}
-          <View className="flex-row gap-3 mb-2">
-            <View className="w-1/3">
-              <Text className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+          {/* Property Info Card matching Right Screen */}
+          <View
+            style={{
+              backgroundColor: '#FFFDF8',
+              borderWidth: 1,
+              borderColor: '#E5DDCD',
+              borderRadius: 20,
+              padding: 14,
+              flexDirection: 'row',
+              alignItems: 'center',
+              marginBottom: 18,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.04,
+              shadowRadius: 3,
+              elevation: 1,
+            }}
+          >
+            <View
+              style={{
+                width: 48,
+                height: 48,
+                borderRadius: 14,
+                backgroundColor: '#FAF7F2',
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginRight: 14,
+              }}
+            >
+              <Home size={24} color="#4F5330" />
+            </View>
+
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 17, fontWeight: '800', color: '#0C192B' }} numberOfLines={1}>
+                {property?.name || 'My PG Property'}
+              </Text>
+              <Text
+                style={{ fontSize: 12, fontWeight: '500', color: '#657080', marginTop: 2 }}
+                numberOfLines={1}
+              >
+                {property?.city
+                  ? `${property.city}, ${property.pincode || '500081'}`
+                  : property?.address || 'Hyderabad, 500081'}
+              </Text>
+            </View>
+
+            <View
+              style={{
+                backgroundColor: '#E8F5E9',
+                paddingHorizontal: 10,
+                paddingVertical: 3,
+                borderRadius: 9999,
+              }}
+            >
+              <Text style={{ fontSize: 11, fontWeight: '800', color: '#2E7D32' }}>Active</Text>
+            </View>
+          </View>
+
+          {/* Floor & Room Number Row matching Right Screen */}
+          <View style={{ flexDirection: 'row', gap: 12, marginBottom: 16 }}>
+            {/* Floor Selection */}
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: '#0C192B', marginBottom: 8 }}>
                 Floor
               </Text>
-              <TextInput
-                value={floorNumber}
-                onChangeText={handleFloorChange}
-                placeholder="1"
-                placeholderTextColor="#94A3B8"
-                keyboardType="numeric"
-                className="bg-white border border-slate-300 rounded-xl px-4 py-3.5 text-base text-slate-900 font-semibold shadow-xs"
-              />
+              <View
+                style={{
+                  backgroundColor: '#FFFDF8',
+                  borderWidth: 1,
+                  borderColor: '#E5DDCD',
+                  borderRadius: 16,
+                  paddingHorizontal: 14,
+                  height: 52,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                }}
+              >
+                <Layers size={18} color="#657080" style={{ marginRight: 8 }} />
+                <TextInput
+                  value={floorNumber}
+                  onChangeText={handleFloorChange}
+                  placeholder="1"
+                  placeholderTextColor="#94A3B8"
+                  keyboardType="numeric"
+                  style={{
+                    flex: 1,
+                    fontSize: 14,
+                    fontWeight: '700',
+                    color: '#0C192B',
+                    paddingVertical: 0,
+                  }}
+                />
+                <ChevronDown size={18} color="#657080" />
+              </View>
             </View>
-            <View className="flex-1">
-              <Text className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                Room number
+
+            {/* Room Number Input */}
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: '#0C192B', marginBottom: 8 }}>
+                Room Number
               </Text>
-              <TextInput
-                value={roomNumber}
-                onChangeText={setRoomNumber}
-                placeholder="e.g. 101"
-                placeholderTextColor="#94A3B8"
-                className={`bg-white border rounded-xl px-4 py-3.5 text-base text-slate-900 font-semibold shadow-xs ${
-                  isDuplicateRoom ? 'border-[#BE123C] bg-rose-50/20' : 'border-slate-300'
-                }`}
-              />
+              <View
+                style={{
+                  backgroundColor: '#FFFDF8',
+                  borderWidth: 1,
+                  borderColor: isDuplicateRoom ? '#BE123C' : '#E5DDCD',
+                  borderRadius: 16,
+                  paddingHorizontal: 14,
+                  height: 52,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                }}
+              >
+                <DoorClosed size={18} color="#657080" style={{ marginRight: 8 }} />
+                <TextInput
+                  value={roomNumber}
+                  onChangeText={setRoomNumber}
+                  placeholder="e.g. 101"
+                  placeholderTextColor="#94A3B8"
+                  style={{
+                    flex: 1,
+                    fontSize: 15,
+                    fontWeight: '700',
+                    color: '#0C192B',
+                    paddingVertical: 0,
+                  }}
+                />
+              </View>
             </View>
           </View>
 
           {/* Duplicate Room Warning & Auto-suggestion */}
           {isDuplicateRoom && (
-            <View className="bg-rose-50 border border-rose-200 rounded-xl p-3 mb-4">
-              <View className="flex-row items-center mb-1.5">
+            <View
+              style={{
+                backgroundColor: '#FFF1F2',
+                borderWidth: 1,
+                borderColor: '#FECDD3',
+                borderRadius: 16,
+                padding: 12,
+                marginBottom: 16,
+              }}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
                 <AlertCircle size={16} color="#BE123C" />
-                <Text className="text-xs font-bold text-[#BE123C] ml-1.5">
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#BE123C', marginLeft: 6 }}>
                   Room &quot;{roomNumber.trim()}&quot; already exists in this property!
                 </Text>
               </View>
               <TouchableOpacity
                 onPress={() => setRoomNumber(suggestedAlternative)}
-                className="flex-row items-center bg-white border border-rose-200 py-1.5 px-2.5 rounded-lg self-start mt-1"
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  backgroundColor: '#FFFFFF',
+                  borderWidth: 1,
+                  borderColor: '#FECDD3',
+                  paddingVertical: 6,
+                  paddingHorizontal: 10,
+                  borderRadius: 10,
+                  alignSelf: 'flex-start',
+                  marginTop: 4,
+                }}
               >
-                <Sparkles size={14} color="#0A6C50" />
-                <Text className="text-xs font-bold text-[#0A6C50] ml-1.5">
+                <Sparkles size={14} color="#4F5330" />
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#4F5330', marginLeft: 6 }}>
                   Use next available: Room {suggestedAlternative}
                 </Text>
               </TouchableOpacity>
             </View>
           )}
 
-          {!isDuplicateRoom && (
-            <View className="mb-4">
-              <Text className="text-[11px] text-slate-400 font-medium ml-1">
-                Must be unique within this property
-              </Text>
-            </View>
-          )}
+          {/* Sharing Type (Beds per Room) matching Right Screen */}
+          <View style={{ marginBottom: 18 }}>
+            <Text style={{ fontSize: 13, fontWeight: '700', color: '#0C192B', marginBottom: 8 }}>
+              Sharing Type (Beds per Room)
+            </Text>
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              {/* Bed Icon Chip */}
+              <View
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 14,
+                  backgroundColor: '#FFFDF8',
+                  borderWidth: 1,
+                  borderColor: '#E5DDCD',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <BedDouble size={20} color="#657080" />
+              </View>
 
-          {/* Sharing Type */}
-          <View className="mb-5">
-            <View className="flex-row items-center justify-between mb-2">
-              <Text className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                Sharing type (Beds per room)
-              </Text>
-              <Text className="text-xs font-bold text-[#0A6C50]">
-                {sharingType} {sharingType === 1 ? 'Bed' : 'Beds'}
-              </Text>
-            </View>
-            <View className="flex-row flex-wrap gap-2">
-              {[1, 2, 3, 4].map(count => {
+              {[2, 3, 4].map(count => {
                 const isSelected = sharingType === count && !showCustomSharing;
                 return (
                   <TouchableOpacity
@@ -292,34 +471,59 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
                       setSharingType(count);
                       setShowCustomSharing(false);
                     }}
-                    className={`min-w-[48px] flex-1 py-3 rounded-xl items-center justify-center border shadow-xs ${
-                      isSelected ? 'bg-[#19D3E6] border-[#19D3E6]' : 'bg-white border-slate-300'
-                    }`}
+                    style={{
+                      flex: 1,
+                      height: 48,
+                      borderRadius: 14,
+                      borderWidth: 1,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: isSelected ? '#19D3E6' : '#FFFDF8',
+                      borderColor: isSelected ? '#19D3E6' : '#E5DDCD',
+                      shadowColor: '#000',
+                      shadowOffset: { width: 0, height: 1 },
+                      shadowOpacity: 0.03,
+                      shadowRadius: 2,
+                      elevation: 1,
+                    }}
                   >
                     <Text
-                      className={`text-base font-extrabold ${
-                        isSelected ? 'text-[#0C192B]' : 'text-slate-800'
-                      }`}
+                      style={{
+                        fontSize: 16,
+                        fontWeight: '800',
+                        color: isSelected ? '#0C192B' : '#0C192B',
+                      }}
                     >
                       {count}
                     </Text>
                   </TouchableOpacity>
                 );
               })}
+
+              {/* + Custom Chip */}
               <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={() => {
                   setShowCustomSharing(true);
                   if (sharingType <= 4) setSharingType(5);
                 }}
-                className={`px-3 py-3 rounded-xl items-center justify-center border shadow-xs ${
-                  showCustomSharing ? 'bg-[#19D3E6] border-[#19D3E6]' : 'bg-white border-slate-300'
-                }`}
+                style={{
+                  paddingHorizontal: 12,
+                  height: 48,
+                  borderRadius: 14,
+                  borderWidth: 1,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: showCustomSharing ? '#19D3E6' : '#FFFDF8',
+                  borderColor: showCustomSharing ? '#19D3E6' : '#E5DDCD',
+                }}
               >
                 <Text
-                  className={`text-xs font-extrabold ${
-                    showCustomSharing ? 'text-[#0C192B]' : 'text-slate-800'
-                  }`}
+                  style={{
+                    fontSize: 12,
+                    fontWeight: '800',
+                    color: showCustomSharing ? '#0C192B' : '#0C192B',
+                  }}
                 >
                   {showCustomSharing && sharingType > 4 ? `${sharingType} Beds` : '+ Custom'}
                 </Text>
@@ -327,14 +531,37 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
             </View>
 
             {showCustomSharing && (
-              <View className="mt-3 flex-row items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-200">
-                <Text className="text-xs font-bold text-slate-700">Custom sharing capacity:</Text>
-                <View className="flex-row items-center gap-2">
+              <View
+                style={{
+                  marginTop: 10,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  backgroundColor: '#FFFDF8',
+                  padding: 12,
+                  borderRadius: 14,
+                  borderWidth: 1,
+                  borderColor: '#E5DDCD',
+                }}
+              >
+                <Text style={{ fontSize: 13, fontWeight: '700', color: '#0C192B' }}>
+                  Custom sharing capacity:
+                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                   <TouchableOpacity
                     onPress={() => setSharingType(prev => Math.max(1, prev - 1))}
-                    className="w-8 h-8 rounded-lg bg-white border border-slate-300 items-center justify-center"
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 8,
+                      backgroundColor: '#FAF7F2',
+                      borderWidth: 1,
+                      borderColor: '#E5DDCD',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
                   >
-                    <Minus size={15} color="#334155" />
+                    <Minus size={15} color="#4F5330" />
                   </TouchableOpacity>
                   <TextInput
                     value={sharingType.toString()}
@@ -344,100 +571,271 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
                       else if (txt === '') setSharingType(1);
                     }}
                     keyboardType="number-pad"
-                    className="w-12 h-8 bg-white border border-slate-300 rounded-lg text-center font-black text-slate-900"
+                    style={{
+                      width: 48,
+                      height: 32,
+                      backgroundColor: '#FFFFFF',
+                      borderWidth: 1,
+                      borderColor: '#E5DDCD',
+                      borderRadius: 8,
+                      textAlign: 'center',
+                      fontWeight: '800',
+                      color: '#0C192B',
+                      paddingVertical: 0,
+                    }}
                   />
                   <TouchableOpacity
                     onPress={() => setSharingType(prev => Math.min(20, prev + 1))}
-                    className="w-8 h-8 rounded-lg bg-white border border-slate-300 items-center justify-center"
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 8,
+                      backgroundColor: '#FAF7F2',
+                      borderWidth: 1,
+                      borderColor: '#E5DDCD',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
                   >
-                    <Plus size={15} color="#334155" />
+                    <Plus size={15} color="#4F5330" />
                   </TouchableOpacity>
                 </View>
               </View>
             )}
           </View>
 
-          {/* AC Switch */}
-          <View className="bg-white border border-slate-200 rounded-xl px-4 py-3.5 flex-row items-center justify-between mb-3 shadow-xs">
-            <Text className="text-base font-semibold text-slate-900">Air conditioning</Text>
+          {/* Room Amenities / Features Switches matching Right Screen */}
+          {/* Card 1: Air Conditioning */}
+          <View
+            style={{
+              backgroundColor: '#FFFDF8',
+              borderWidth: 1,
+              borderColor: '#E5DDCD',
+              borderRadius: 16,
+              padding: 14,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: 10,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.03,
+              shadowRadius: 2,
+              elevation: 1,
+            }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 12 }}>
+              <View
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 12,
+                  backgroundColor: '#D1F4F9',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginRight: 12,
+                }}
+              >
+                <Snowflake size={20} color="#0799AA" />
+              </View>
+              <View>
+                <Text style={{ fontSize: 14, fontWeight: '700', color: '#0C192B' }}>
+                  Air Conditioning
+                </Text>
+                <Text style={{ fontSize: 12, fontWeight: '500', color: '#657080', marginTop: 2 }}>
+                  Room has AC
+                </Text>
+              </View>
+            </View>
             <Switch
               value={hasAC}
               onValueChange={setHasAC}
-              trackColor={{ false: '#CBD5E1', true: '#0A6C50' }}
+              trackColor={{ false: '#E2E8F0', true: '#19D3E6' }}
               thumbColor="#FFFFFF"
             />
           </View>
 
-          {/* Washroom Switch */}
-          <View className="bg-white border border-slate-200 rounded-xl px-4 py-3.5 flex-row items-center justify-between mb-5 shadow-xs">
-            <Text className="text-base font-semibold text-slate-900">Attached washroom</Text>
+          {/* Card 2: Attached Washroom */}
+          <View
+            style={{
+              backgroundColor: '#FFFDF8',
+              borderWidth: 1,
+              borderColor: '#E5DDCD',
+              borderRadius: 16,
+              padding: 14,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: 18,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.03,
+              shadowRadius: 2,
+              elevation: 1,
+            }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 12 }}>
+              <View
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 12,
+                  backgroundColor: '#D1F4F9',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginRight: 12,
+                }}
+              >
+                <ShowerHead size={20} color="#0799AA" />
+              </View>
+              <View>
+                <Text style={{ fontSize: 14, fontWeight: '700', color: '#0C192B' }}>
+                  Attached Washroom
+                </Text>
+                <Text style={{ fontSize: 12, fontWeight: '500', color: '#657080', marginTop: 2 }}>
+                  Room has attached bathroom
+                </Text>
+              </View>
+            </View>
             <Switch
               value={hasWashroom}
               onValueChange={setHasWashroom}
-              trackColor={{ false: '#CBD5E1', true: '#0A6C50' }}
+              trackColor={{ false: '#E2E8F0', true: '#19D3E6' }}
               thumbColor="#FFFFFF"
             />
           </View>
 
-          {/* Rent per bed */}
-          <View className="mb-6">
-            <Text className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-              Rent per bed
+          {/* Rent Per Bed */}
+          <View style={{ marginBottom: 18 }}>
+            <Text style={{ fontSize: 13, fontWeight: '700', color: '#0C192B', marginBottom: 8 }}>
+              Rent Per Bed
             </Text>
-            <View className="flex-row items-center bg-white border border-slate-300 rounded-xl px-4 py-3.5 shadow-xs">
+            <View
+              style={{
+                backgroundColor: '#FFFDF8',
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+                borderRadius: 16,
+                paddingHorizontal: 16,
+                height: 52,
+                flexDirection: 'row',
+                alignItems: 'center',
+              }}
+            >
               <TextInput
                 value={rentPerBed}
                 onChangeText={setRentPerBed}
                 placeholder="7500"
                 placeholderTextColor="#94A3B8"
                 keyboardType="numeric"
-                className="flex-1 text-base font-bold text-slate-900 p-0"
+                style={{
+                  flex: 1,
+                  fontSize: 16,
+                  fontWeight: '700',
+                  color: '#0C192B',
+                  paddingVertical: 0,
+                }}
               />
-              <Text className="text-sm font-semibold text-slate-500 ml-2">₹ / month</Text>
+              <Text style={{ fontSize: 13, fontWeight: '600', color: '#657080' }}>₹ / month</Text>
             </View>
           </View>
 
-          {/* Live Preview Box */}
-          <View className="bg-[#EFF6FF] border border-[#BFDBFE] rounded-2xl p-4 mb-6">
-            <Text className="text-sm font-bold text-[#1E40AF] mb-3">
-              This will create beds: {bedLabels.join(', ')}
-            </Text>
-            <View className="flex-row flex-wrap gap-2 mb-3">
+          {/* Generated Beds Preview Card matching Right Screen */}
+          <View
+            style={{
+              backgroundColor: '#E6FBFC',
+              borderWidth: 1,
+              borderColor: '#BCEEFA',
+              borderRadius: 20,
+              padding: 16,
+              marginBottom: 20,
+            }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+              <BedDouble size={18} color="#0799AA" style={{ marginRight: 8 }} />
+              <Text style={{ fontSize: 13, fontWeight: '800', color: '#0C192B' }}>
+                This will create beds: {bedLabels.join(', ')}
+              </Text>
+            </View>
+
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
               {bedLabels.map(label => (
                 <View
                   key={label}
-                  className="bg-[#DCFCE7] border border-[#86EFAC] px-3 py-1.5 rounded-lg"
+                  style={{
+                    backgroundColor: '#D1F4F9',
+                    borderWidth: 1,
+                    borderColor: '#A5F3FC',
+                    paddingHorizontal: 12,
+                    paddingVertical: 6,
+                    borderRadius: 10,
+                  }}
                 >
-                  <Text className="text-xs font-extrabold text-[#065F46]">{label}</Text>
+                  <Text style={{ fontSize: 12, fontWeight: '800', color: '#0799AA' }}>{label}</Text>
                 </View>
               ))}
             </View>
-            <Text className="text-xs font-medium text-slate-600">
+
+            <Text style={{ fontSize: 12, fontWeight: '600', color: '#657080' }}>
               {sharingType} beds × {formatINR(rentNumeric * 100)} ={' '}
               {formatINR(totalMonthlyPotential * 100)} a month when full
             </Text>
           </View>
+        </ScrollView>
 
-          {/* Create Button */}
+        {/* Primary Create Room & Beds CTA Button matching Right Screen */}
+        <View
+          style={{
+            paddingHorizontal: 20,
+            paddingTop: 12,
+            paddingBottom: Platform.OS === 'ios' ? 28 : 16,
+            borderTopWidth: 1,
+            borderTopColor: '#E5DDCD',
+            backgroundColor: '#FAF5EB',
+          }}
+        >
           <TouchableOpacity
-            activeOpacity={0.8}
+            activeOpacity={0.88}
             onPress={handleCreate}
             disabled={isSubmitting || isDuplicateRoom}
-            className={`w-full rounded-xl py-4 items-center justify-center shadow-sm ${
-              isDuplicateRoom ? 'bg-slate-300' : 'bg-[#19D3E6]'
-            }`}
+            style={{
+              width: '100%',
+              backgroundColor: isDuplicateRoom ? '#CBD5E1' : '#4F5330',
+              height: 52,
+              borderRadius: 16,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              shadowColor: '#4F5330',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: isDuplicateRoom ? 0 : 0.15,
+              shadowRadius: 4,
+              elevation: 2,
+            }}
           >
             {isSubmitting ? (
-              <ActivityIndicator color="#0C192B" />
+              <ActivityIndicator size="small" color="#FFFFFF" />
             ) : (
-              <Text
-                className={`text-base font-extrabold ${isDuplicateRoom ? 'text-slate-500' : 'text-[#0C192B]'}`}
-              >
-                Create room and beds
-              </Text>
+              <>
+                <Text
+                  style={{
+                    color: isDuplicateRoom ? '#64748B' : '#FFFFFF',
+                    fontWeight: '800',
+                    fontSize: 16,
+                  }}
+                >
+                  Create Room & Beds
+                </Text>
+                <ArrowRight
+                  size={18}
+                  color={isDuplicateRoom ? '#64748B' : '#FFFFFF'}
+                  strokeWidth={2.5}
+                  style={{ marginLeft: 8 }}
+                />
+              </>
             )}
           </TouchableOpacity>
-        </ScrollView>
+        </View>
       </KeyboardAvoidingView>
     </Modal>
   );

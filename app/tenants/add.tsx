@@ -257,10 +257,10 @@ export default function PickVacantBedScreen() {
           </Text>
           <TouchableOpacity
             onPress={handleContinue}
-            className="w-full bg-[#19D3E6] py-3.5 rounded-full items-center justify-center flex-row shadow-md"
+            className="w-full bg-[#4F5330] py-3.5 rounded-full items-center justify-center flex-row shadow-md"
           >
-            <ChevronRight size={18} color="#0C192B" strokeWidth={2.5} />
-            <Text className="text-[#0C192B] font-black text-sm ml-1">Continue to check-in</Text>
+            <ChevronRight size={18} color="#FFFFFF" strokeWidth={2.5} />
+            <Text className="text-white font-black text-sm ml-1">Continue to check-in</Text>
           </TouchableOpacity>
         </View>
       )}

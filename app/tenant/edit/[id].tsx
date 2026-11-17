@@ -286,12 +286,12 @@ export default function EditTenantScreen() {
         <TouchableOpacity
           onPress={handleSave}
           disabled={isSaving}
-          className="w-full bg-[#19D3E6] py-3.5 rounded-full items-center justify-center mb-2.5 shadow-sm"
+          className="w-full bg-[#4F5330] py-3.5 rounded-full items-center justify-center mb-2.5 shadow-sm"
         >
           {isSaving ? (
-            <ActivityIndicator size="small" color="#0C192B" />
+            <ActivityIndicator size="small" color="#FFFFFF" />
           ) : (
-            <Text className="text-[#0C192B] font-black text-sm">Save changes</Text>
+            <Text className="text-white font-black text-sm">Save changes</Text>
           )}
         </TouchableOpacity>
 

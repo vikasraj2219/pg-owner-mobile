@@ -766,17 +766,17 @@ export default function PulseScreen() {
             width: 56,
             height: 56,
             borderRadius: 28,
-            backgroundColor: '#19D3E6',
+            backgroundColor: '#4F5330',
             alignItems: 'center',
             justifyContent: 'center',
-            shadowColor: '#19D3E6',
+            shadowColor: '#4F5330',
             shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.35,
+            shadowOpacity: 0.25,
             shadowRadius: 8,
             elevation: 6,
           }}
         >
-          <Plus size={28} color="#0C192B" strokeWidth={2.5} />
+          <Plus size={28} color="#FFFFFF" strokeWidth={2.5} />
         </TouchableOpacity>
       </View>
 

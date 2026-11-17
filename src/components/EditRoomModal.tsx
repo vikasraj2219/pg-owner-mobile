@@ -378,12 +378,12 @@ export const EditRoomModal: React.FC<EditRoomModalProps> = ({
             activeOpacity={0.85}
             disabled={isSaving}
             onPress={handleSave}
-            className="bg-[#19D3E6] rounded-xl py-3.5 items-center justify-center flex-row shadow-sm mb-4"
+            className="bg-[#4F5330] rounded-xl py-3.5 items-center justify-center flex-row shadow-sm mb-4"
           >
             {isSaving ? (
-              <ActivityIndicator size="small" color="#0C192B" />
+              <ActivityIndicator size="small" color="#FFFFFF" />
             ) : (
-              <Text className="text-[#0C192B] font-extrabold text-base">Save Room Changes</Text>
+              <Text className="text-white font-extrabold text-base">Save Room Changes</Text>
             )}
           </TouchableOpacity>
 

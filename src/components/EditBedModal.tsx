@@ -304,12 +304,12 @@ export const EditBedModal: React.FC<EditBedModalProps> = ({
               activeOpacity={0.85}
               onPress={handleSave}
               disabled={isSaving}
-              className="w-full bg-[#19D3E6] py-3.5 rounded-xl items-center justify-center shadow-xs mb-3"
+              className="w-full bg-[#4F5330] py-3.5 rounded-xl items-center justify-center shadow-xs mb-3"
             >
               {isSaving ? (
-                <ActivityIndicator size="small" color="#0C192B" />
+                <ActivityIndicator size="small" color="#FFFFFF" />
               ) : (
-                <Text className="text-[#0C192B] font-extrabold text-base">Save bed</Text>
+                <Text className="text-white font-extrabold text-base">Save bed</Text>
               )}
             </TouchableOpacity>
 

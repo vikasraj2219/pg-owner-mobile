@@ -80,14 +80,14 @@ export const MaintenanceBedSheet: React.FC<MaintenanceBedSheetProps> = ({
                 activeOpacity={0.8}
                 disabled={isLoading}
                 onPress={() => onMarkAvailable(bed._id)}
-                className="w-full bg-[#19D3E6] rounded-2xl py-4 flex-row items-center justify-center shadow-sm mb-2.5"
+                className="w-full bg-[#4F5330] rounded-2xl py-4 flex-row items-center justify-center shadow-sm mb-2.5"
               >
                 {isLoading ? (
-                  <ActivityIndicator color="#0C192B" size="small" />
+                  <ActivityIndicator color="#FFFFFF" size="small" />
                 ) : (
                   <>
-                    <CheckCircle size={20} color="#0C192B" strokeWidth={2.5} />
-                    <Text className="text-base font-extrabold text-[#0C192B] ml-2.5">
+                    <CheckCircle size={20} color="#FFFFFF" strokeWidth={2.5} />
+                    <Text className="text-base font-extrabold text-white ml-2.5">
                       Mark as available
                     </Text>
                   </>

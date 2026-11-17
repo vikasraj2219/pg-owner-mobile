@@ -632,15 +632,15 @@ export default function RegisterScreen() {
             <TouchableOpacity
               activeOpacity={0.88}
               style={{
-                backgroundColor: '#19D3E6',
+                backgroundColor: '#4F5330',
                 borderRadius: 9999,
                 height: 52,
                 alignItems: 'center',
                 justifyContent: 'center',
                 flexDirection: 'row',
-                shadowColor: '#19D3E6',
+                shadowColor: '#4F5330',
                 shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.25,
+                shadowOpacity: 0.15,
                 shadowRadius: 4,
                 elevation: 2,
                 marginBottom: 24,
@@ -650,10 +650,10 @@ export default function RegisterScreen() {
             >
               {isSubmitting ? (
                 <>
-                  <ActivityIndicator color="#0C192B" size="small" />
+                  <ActivityIndicator color="#FFFFFF" size="small" />
                   <Text
                     style={{
-                      color: '#0C192B',
+                      color: '#FFFFFF',
                       fontWeight: '800',
                       fontSize: 16,
                       marginLeft: 8,
@@ -663,7 +663,7 @@ export default function RegisterScreen() {
                   </Text>
                 </>
               ) : (
-                <Text style={{ color: '#0C192B', fontWeight: '800', fontSize: 16 }}>
+                <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 16 }}>
                   Create account
                 </Text>
               )}

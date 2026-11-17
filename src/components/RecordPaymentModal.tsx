@@ -356,13 +356,13 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
               onPress={handleSubmit}
               disabled={isSubmitting || currentPayablePaise <= 0}
               className={`h-13 rounded-2xl items-center justify-center mb-6 shadow-md ${
-                isSubmitting || currentPayablePaise <= 0 ? 'bg-slate-300' : 'bg-[#19D3E6]'
+                isSubmitting || currentPayablePaise <= 0 ? 'bg-slate-300' : 'bg-[#4F5330]'
               }`}
             >
               {isSubmitting ? (
-                <ActivityIndicator size="small" color="#0C192B" />
+                <ActivityIndicator size="small" color="#FFFFFF" />
               ) : (
-                <Text className="text-[#0C192B] font-black text-base">
+                <Text className="text-white font-black text-base">
                   Confirm Received {formatINR(currentPayablePaise)}
                 </Text>
               )}

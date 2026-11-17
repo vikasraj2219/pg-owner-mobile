@@ -769,11 +769,11 @@ export default function CheckinScreen() {
             onPress={handleCheckinSubmit}
             disabled={!isFormReady || isUploading}
             className={`w-full py-4 rounded-2xl items-center justify-center shadow-sm ${
-              isFormReady ? 'bg-[#19D3E6]' : 'bg-slate-200'
+              isFormReady ? 'bg-[#4F5330]' : 'bg-slate-200'
             }`}
           >
             <Text
-              className={`text-base font-extrabold ${isFormReady ? 'text-[#0C192B]' : 'text-slate-400'}`}
+              className={`text-base font-extrabold ${isFormReady ? 'text-white' : 'text-slate-400'}`}
             >
               Check in tenant
             </Text>
