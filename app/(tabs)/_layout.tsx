@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { View } from 'react-native';
 import { Tabs } from 'expo-router';
-import { LucideIcon, Home, Users, Wallet, PlusCircle, LayoutGrid } from 'lucide-react-native';
+import { LucideIcon, Home, LayoutGrid, Users, Wallet, PlusCircle } from 'lucide-react-native';
 import * as SplashScreen from 'expo-splash-screen';
 
 export default function TabsLayout() {
@@ -19,7 +19,7 @@ export default function TabsLayout() {
         <View
           style={{
             backgroundColor: '#D1F4F9',
-            paddingHorizontal: 16,
+            paddingHorizontal: 14,
             paddingVertical: 3,
             borderRadius: 16,
             alignItems: 'center',
@@ -30,7 +30,7 @@ export default function TabsLayout() {
         </View>
       );
     }
-    return <IconComponent color="#657080" size={22} strokeWidth={2} />;
+    return <IconComponent color="#657080" size={21} strokeWidth={2} />;
   };
 
   return (
@@ -53,7 +53,7 @@ export default function TabsLayout() {
           shadowRadius: 4,
         },
         tabBarLabelStyle: {
-          fontSize: 11,
+          fontSize: 10.5,
           fontWeight: '700',
           marginTop: 2,
         },
@@ -64,6 +64,13 @@ export default function TabsLayout() {
         options={{
           title: 'Home',
           tabBarIcon: ({ focused }) => renderTabIcon(Home, focused),
+        }}
+      />
+      <Tabs.Screen
+        name="matrix"
+        options={{
+          title: 'Matrix',
+          tabBarIcon: ({ focused }) => renderTabIcon(LayoutGrid, focused),
         }}
       />
       <Tabs.Screen
@@ -85,14 +92,6 @@ export default function TabsLayout() {
         options={{
           title: 'More',
           tabBarIcon: ({ focused }) => renderTabIcon(PlusCircle, focused),
-        }}
-      />
-      <Tabs.Screen
-        name="matrix"
-        options={{
-          href: null,
-          title: 'Matrix',
-          tabBarIcon: ({ focused }) => renderTabIcon(LayoutGrid, focused),
         }}
       />
     </Tabs>
