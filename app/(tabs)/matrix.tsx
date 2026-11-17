@@ -7,10 +7,21 @@ import {
   RefreshControl,
   ActivityIndicator,
   Alert,
+  TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { ChevronDown, Plus, AlertCircle, RefreshCw, Building, Pencil } from 'lucide-react-native';
+import { StatusBar } from 'expo-status-bar';
+import {
+  ChevronDown,
+  Plus,
+  AlertCircle,
+  RefreshCw,
+  Building,
+  Pencil,
+  Search,
+  X,
+} from 'lucide-react-native';
 import { useProperties } from '../../src/context/PropertyContext';
 import { useMatrix } from '../../src/hooks/useMatrix';
 import { IMatrixBed, IMatrixRoom } from '../../src/types/api';
@@ -80,7 +91,8 @@ export default function MatrixScreen() {
       !matrixData);
 
   // Filters state
-  const [selectedFloor, setSelectedFloor] = useState<number>(1);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedFloor, setSelectedFloor] = useState<number | 'all'>('all');
   const [vacantOnly, setVacantOnly] = useState<boolean>(false);
 
   // Modals state
@@ -115,29 +127,14 @@ export default function MatrixScreen() {
 
   // Ensure selectedFloor is valid when floors change
   useEffect(() => {
-    if (floorsList.length > 0 && !floorsList.includes(selectedFloor)) {
-      setSelectedFloor(floorsList[0]);
+    if (
+      selectedFloor !== 'all' &&
+      floorsList.length > 0 &&
+      !floorsList.includes(selectedFloor as number)
+    ) {
+      setSelectedFloor('all');
     }
   }, [floorsList, selectedFloor]);
-
-  // Filtered rooms for the selected floor
-  const currentFloorRooms = useMemo(() => {
-    if (!matrixData?.floors) return [];
-    const floorObj = matrixData.floors.find(f => f.floorNumber === selectedFloor);
-    if (!floorObj) return [];
-
-    return floorObj.rooms
-      .map(room => {
-        if (vacantOnly) {
-          return {
-            ...room,
-            beds: room.beds.filter(b => b.status === 'available'),
-          };
-        }
-        return room;
-      })
-      .filter(room => room.beds.length > 0);
-  }, [matrixData, selectedFloor, vacantOnly]);
 
   const totalRoomsCount = useMemo(() => {
     if (matrixData?.summary?.totalRooms !== undefined && matrixData.summary.totalRooms > 0) {
@@ -145,6 +142,19 @@ export default function MatrixScreen() {
     }
     if (matrixData?.floors) {
       return matrixData.floors.reduce((acc, f) => acc + (f.rooms?.length || 0), 0);
+    }
+    return 0;
+  }, [matrixData]);
+
+  const totalBedsCount = useMemo(() => {
+    if (matrixData?.summary?.totalBeds !== undefined && matrixData.summary.totalBeds > 0) {
+      return matrixData.summary.totalBeds;
+    }
+    if (matrixData?.floors) {
+      return matrixData.floors.reduce(
+        (acc, f) => acc + f.rooms.reduce((rAcc, r) => rAcc + (r.beds?.length || 0), 0),
+        0,
+      );
     }
     return 0;
   }, [matrixData]);
@@ -171,6 +181,57 @@ export default function MatrixScreen() {
     if (!matrixData?.floors) return [];
     return matrixData.floors.flatMap(floor => floor.rooms.map(room => room.roomNumber));
   }, [matrixData]);
+
+  // Filtered floors & rooms based on search query, floor selection, and vacant-only toggle
+  const displayFloors = useMemo(() => {
+    if (!matrixData?.floors) return [];
+    const q = searchQuery.trim().toLowerCase();
+
+    // If searching, search across all floors so the owner immediately finds what they're looking for
+    const baseFloors =
+      q.length > 0
+        ? matrixData.floors
+        : selectedFloor === 'all'
+          ? matrixData.floors
+          : matrixData.floors.filter(f => f.floorNumber === selectedFloor);
+
+    return baseFloors
+      .map(floor => {
+        const matchingRooms = floor.rooms
+          .map(room => {
+            let beds = room.beds;
+            if (vacantOnly) {
+              beds = beds.filter(b => b.status === 'available');
+            }
+            if (q.length > 0) {
+              const roomMatches = room.roomNumber.toLowerCase().includes(q);
+              if (!roomMatches) {
+                beds = beds.filter(
+                  b =>
+                    b.bedNumber.toLowerCase().includes(q) ||
+                    b.currentTenant?.fullName?.toLowerCase().includes(q) ||
+                    b.currentTenant?.phone?.toLowerCase().includes(q),
+                );
+              }
+            }
+            return {
+              ...room,
+              beds,
+            };
+          })
+          .filter(room => room.beds.length > 0);
+
+        return {
+          ...floor,
+          rooms: matchingRooms,
+        };
+      })
+      .filter(floor => floor.rooms.length > 0);
+  }, [matrixData, selectedFloor, vacantOnly, searchQuery]);
+
+  const totalMatchingRoomsCount = useMemo(() => {
+    return displayFloors.reduce((acc, f) => acc + f.rooms.length, 0);
+  }, [displayFloors]);
 
   const handleBedPress = (bed: IMatrixBed, room: IMatrixRoom) => {
     if (bed.status === 'available') {
@@ -212,10 +273,10 @@ export default function MatrixScreen() {
   };
 
   const handleAddBed = async (roomId: string, roomNumber: string) => {
-    if (!selectedPropertyId) return;
+    if (!effectiveMatrixPropertyId) return;
     setIsAddingBedRoomId(roomId);
     try {
-      const newBed = await addBedToRoomApi(selectedPropertyId, roomId);
+      const newBed = await addBedToRoomApi(effectiveMatrixPropertyId, roomId);
       await Promise.all([refetchMatrix(), refetchProperties()]);
       Alert.alert('Bed Added', `Bed ${newBed.bedNumber} added successfully to Room ${roomNumber}.`);
     } catch (err: unknown) {
@@ -256,97 +317,370 @@ export default function MatrixScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-[#F8F9FA]" edges={['top']}>
-      {/* Offline Banner matching Page 50 */}
+    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: '#FAF5EB' }}>
+      <StatusBar style="dark" />
+      {/* Offline Banner */}
       <OfflineBanner />
 
-      <ScrollView
-        className="flex-1 px-5 pt-3"
-        contentContainerStyle={{ paddingBottom: 60, flexGrow: 1 }}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefetching}
-            onRefresh={handleRefresh}
-            colors={['#0A6C50']}
-            tintColor="#0A6C50"
-          />
-        }
+      {/* Screen Header with Nilaaya Brand Styling */}
+      <View
+        style={{
+          paddingHorizontal: 20,
+          paddingTop: 16,
+          paddingBottom: 12,
+          backgroundColor: '#FFFDF8',
+          borderBottomWidth: 1,
+          borderBottomColor: '#E5DDCD',
+        }}
       >
-        {/* Screen Title & Property Switcher Pill Header */}
-        <View className="flex-row items-start justify-between mb-4">
-          <View className="flex-1 mr-3">
-            <Text className="text-3xl font-extrabold text-slate-900 tracking-tight">
-              Bed matrix
-            </Text>
+        {/* Title & Quick Actions Row */}
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 28,
+              fontWeight: '800',
+              color: '#0C192B',
+              letterSpacing: -0.5,
+            }}
+          >
+            Bed matrix
+          </Text>
 
-            {/* Clickable Property Selector Pill matching Page 2 */}
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={() => setIsSwitcherOpen(true)}
-              className="flex-row items-center bg-[#E8F5EE] border border-[#A7F3D0] rounded-full px-3.5 py-1.5 mt-2 self-start"
-            >
-              <Text className="text-xs font-bold text-[#0A6C50]">
-                {vacantBedsCount} beds vacant · {effectiveMatrixProperty?.name || 'Select property'}
-              </Text>
-              <ChevronDown size={14} color="#0A6C50" style={{ marginLeft: 4 }} />
-            </TouchableOpacity>
-          </View>
-
-          {/* Quick Actions: Edit Property & Add Room Buttons */}
           {effectiveMatrixProperty && (
-            <View className="flex-row items-center gap-2 mt-1">
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={() => setIsEditPropertyOpen(true)}
-                className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 items-center justify-center shadow-2xs"
+                style={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: 12,
+                  backgroundColor: '#FAF7F2',
+                  borderWidth: 1,
+                  borderColor: '#E5DDCD',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
               >
-                <Pencil size={17} color="#475569" />
+                <Pencil size={16} color="#4F5330" />
               </TouchableOpacity>
               <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={() => setIsAddRoomOpen(true)}
-                className="w-10 h-10 rounded-full bg-[#0A6C50] items-center justify-center shadow-sm"
+                style={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: 12,
+                  backgroundColor: '#4F5330',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  shadowColor: '#4F5330',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.15,
+                  shadowRadius: 3,
+                  elevation: 2,
+                }}
               >
-                <Plus size={22} color="#FFFFFF" strokeWidth={2.5} />
+                <Plus size={20} color="#FFFFFF" strokeWidth={2.5} />
               </TouchableOpacity>
             </View>
           )}
         </View>
 
+        {/* Subtitle / Property Switcher */}
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={() => setIsSwitcherOpen(true)}
+          style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}
+        >
+          {searchQuery.trim().length > 0 ? (
+            <Text style={{ fontSize: 13, fontWeight: '600', color: '#657080' }}>
+              {totalMatchingRoomsCount} room{totalMatchingRoomsCount === 1 ? '' : 's'} matching
+              &ldquo;
+              {searchQuery}&rdquo;
+            </Text>
+          ) : (
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: '#4F5330' }}>
+                {vacantBedsCount} vacant · {effectiveMatrixProperty?.name || 'Select property'}
+              </Text>
+              <ChevronDown size={14} color="#4F5330" style={{ marginLeft: 3 }} />
+            </View>
+          )}
+        </TouchableOpacity>
+
+        {/* Search Bar matching Tenants Screen */}
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor: '#FAF7F2',
+            borderWidth: 1,
+            borderColor: '#E5DDCD',
+            borderRadius: 16,
+            paddingHorizontal: 14,
+            paddingVertical: 10,
+            marginTop: 12,
+          }}
+        >
+          <Search size={18} color="#657080" />
+          <TextInput
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholder="Search room, bed or tenant..."
+            placeholderTextColor="#8E98A0"
+            style={{
+              flex: 1,
+              marginLeft: 10,
+              fontSize: 14,
+              fontWeight: '500',
+              color: '#0C192B',
+              paddingVertical: 0,
+            }}
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity
+              onPress={() => setSearchQuery('')}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <X size={18} color="#657080" />
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* Floor Selection & Vacant Filter Chips matching Tenants Screen */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={{
+            flexDirection: 'row',
+            marginTop: 12,
+            marginHorizontal: -20,
+            paddingHorizontal: 20,
+          }}
+          contentContainerStyle={{ paddingRight: 30 }}
+        >
+          {/* All Floors Chip */}
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => setSelectedFloor('all')}
+            style={{
+              paddingHorizontal: 16,
+              paddingVertical: 8,
+              borderRadius: 9999,
+              borderWidth: 1,
+              marginRight: 8,
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: selectedFloor === 'all' ? '#4F5330' : '#FFFDF8',
+              borderColor: selectedFloor === 'all' ? '#4F5330' : '#E5DDCD',
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 12,
+                fontWeight: '700',
+                color: selectedFloor === 'all' ? '#FFFFFF' : '#657080',
+              }}
+            >
+              All Floors · {totalBedsCount} beds
+            </Text>
+          </TouchableOpacity>
+
+          {/* Individual Floor Chips */}
+          {floorsList.map(floor => {
+            const isActive = selectedFloor === floor;
+            const floorObj = matrixData?.floors?.find(f => f.floorNumber === floor);
+            const bedCount =
+              floorObj?.rooms?.reduce((acc, r) => acc + (r.beds?.length || 0), 0) || 0;
+            return (
+              <TouchableOpacity
+                key={floor}
+                activeOpacity={0.8}
+                onPress={() => setSelectedFloor(floor)}
+                style={{
+                  paddingHorizontal: 16,
+                  paddingVertical: 8,
+                  borderRadius: 9999,
+                  borderWidth: 1,
+                  marginRight: 8,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  backgroundColor: isActive ? '#4F5330' : '#FFFDF8',
+                  borderColor: isActive ? '#4F5330' : '#E5DDCD',
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontWeight: '700',
+                    color: isActive ? '#FFFFFF' : '#657080',
+                  }}
+                >
+                  Floor {floor} · {bedCount} beds
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+
+          {/* Vacant Only Filter Chip */}
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => setVacantOnly(prev => !prev)}
+            style={{
+              paddingHorizontal: 16,
+              paddingVertical: 8,
+              borderRadius: 9999,
+              borderWidth: 1,
+              marginRight: 8,
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: vacantOnly ? '#4F5330' : '#FFFDF8',
+              borderColor: vacantOnly ? '#4F5330' : '#E5DDCD',
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 12,
+                fontWeight: '700',
+                color: vacantOnly ? '#FFFFFF' : '#657080',
+              }}
+            >
+              Vacant only · {vacantBedsCount}
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </View>
+
+      {/* Main Content Area */}
+      <ScrollView
+        style={{ flex: 1, backgroundColor: '#FAF5EB' }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 60 }}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefetching}
+            onRefresh={handleRefresh}
+            colors={['#4F5330']}
+            tintColor="#4F5330"
+          />
+        }
+      >
         {/* Loading State */}
         {isDataLoading ? (
-          <View className="flex-1 justify-center items-center py-20">
-            <ActivityIndicator size="large" color="#0A6C50" />
-            <Text className="text-sm font-semibold text-slate-500 mt-3">Loading bed matrix...</Text>
+          <View
+            style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 80 }}
+          >
+            <ActivityIndicator size="large" color="#4F5330" />
+            <Text style={{ fontSize: 14, fontWeight: '600', color: '#657080', marginTop: 12 }}>
+              Loading bed matrix...
+            </Text>
           </View>
         ) : properties.length === 0 ? (
-          <View className="flex-1 justify-center items-center py-16 px-6">
-            <Building size={48} color="#0A6C50" />
-            <Text className="text-xl font-bold text-slate-900 mt-4 text-center">
+          /* Empty Properties State */
+          <View
+            style={{
+              flex: 1,
+              justifyContent: 'center',
+              alignItems: 'center',
+              paddingVertical: 64,
+              paddingHorizontal: 24,
+            }}
+          >
+            <Building size={48} color="#4F5330" />
+            <Text
+              style={{
+                fontSize: 20,
+                fontWeight: '800',
+                color: '#0C192B',
+                marginTop: 16,
+                textAlign: 'center',
+              }}
+            >
               No properties found
             </Text>
-            <Text className="text-sm font-medium text-slate-500 text-center mb-6 max-w-[280px]">
+            <Text
+              style={{
+                fontSize: 14,
+                fontWeight: '500',
+                color: '#657080',
+                textAlign: 'center',
+                marginBottom: 24,
+                maxWidth: 280,
+                marginTop: 6,
+              }}
+            >
               Create your first PG property to start adding rooms and beds.
             </Text>
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={() => setIsAddPropertyOpen(true)}
-              className="bg-[#0A6C50] px-6 py-3.5 rounded-xl flex-row items-center shadow-sm"
+              style={{
+                backgroundColor: '#4F5330',
+                paddingHorizontal: 24,
+                paddingVertical: 14,
+                borderRadius: 14,
+                flexDirection: 'row',
+                alignItems: 'center',
+              }}
             >
               <Plus size={18} color="#FFFFFF" strokeWidth={2.5} />
-              <Text className="text-sm font-bold text-white ml-2">Add Property</Text>
+              <Text style={{ fontSize: 14, fontWeight: '700', color: '#FFFFFF', marginLeft: 8 }}>
+                Add Property
+              </Text>
             </TouchableOpacity>
           </View>
         ) : isError && !matrixData ? (
-          <View className="flex-1 justify-center items-center py-16 px-6">
-            <View className="w-16 h-16 rounded-full bg-red-50 items-center justify-center mb-4">
+          /* Error State */
+          <View
+            style={{
+              flex: 1,
+              justifyContent: 'center',
+              alignItems: 'center',
+              paddingVertical: 64,
+              paddingHorizontal: 24,
+            }}
+          >
+            <View
+              style={{
+                width: 64,
+                height: 64,
+                borderRadius: 32,
+                backgroundColor: '#FEF2F2',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 16,
+              }}
+            >
               <AlertCircle size={32} color="#DC2626" />
             </View>
-            <Text className="text-xl font-bold text-slate-900 mb-2 text-center">
+            <Text
+              style={{
+                fontSize: 20,
+                fontWeight: '800',
+                color: '#0C192B',
+                marginBottom: 8,
+                textAlign: 'center',
+              }}
+            >
               Unable to load rooms
             </Text>
-            <Text className="text-sm font-medium text-slate-500 text-center mb-6 max-w-[280px]">
+            <Text
+              style={{
+                fontSize: 14,
+                fontWeight: '500',
+                color: '#657080',
+                textAlign: 'center',
+                marginBottom: 24,
+                maxWidth: 280,
+              }}
+            >
               {error instanceof Error
                 ? error.message
                 : 'Failed to fetch bed matrix data. Please pull down to refresh or tap Retry.'}
@@ -354,342 +688,621 @@ export default function MatrixScreen() {
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={() => refetchMatrix()}
-              className="bg-[#0A6C50] px-6 py-3 rounded-xl flex-row items-center"
+              style={{
+                backgroundColor: '#4F5330',
+                paddingHorizontal: 24,
+                paddingVertical: 12,
+                borderRadius: 14,
+                flexDirection: 'row',
+                alignItems: 'center',
+              }}
             >
               <RefreshCw size={16} color="#FFFFFF" />
-              <Text className="text-sm font-bold text-white ml-2">Retry</Text>
+              <Text style={{ fontSize: 14, fontWeight: '700', color: '#FFFFFF', marginLeft: 8 }}>
+                Retry
+              </Text>
             </TouchableOpacity>
           </View>
         ) : totalRoomsCount === 0 ? (
-          /* Empty State matching Page 49 */
+          /* Empty Matrix State */
           <MatrixEmptyState onAddRoom={() => setIsAddRoomOpen(true)} />
+        ) : displayFloors.length === 0 ? (
+          /* No Matching Rooms or Beds Filter Result */
+          <View style={{ paddingVertical: 60, alignItems: 'center', justifyContent: 'center' }}>
+            <Text
+              style={{ fontSize: 15, fontWeight: '700', color: '#0C192B', textAlign: 'center' }}
+            >
+              No rooms or beds found
+            </Text>
+            <Text
+              style={{
+                fontSize: 13,
+                fontWeight: '500',
+                color: '#657080',
+                marginTop: 4,
+                textAlign: 'center',
+              }}
+            >
+              {searchQuery.trim().length > 0
+                ? `No results matching "${searchQuery}"`
+                : vacantOnly
+                  ? 'No vacant beds on this floor'
+                  : 'No rooms found on this floor'}
+            </Text>
+          </View>
         ) : (
           <>
-            {/* Filter Pills Row matching Page 2 */}
-            <View className="flex-row items-center gap-2 mb-5 flex-wrap">
-              {floorsList.map(floor => {
-                const isActive = selectedFloor === floor;
-                return (
-                  <TouchableOpacity
-                    key={floor}
-                    activeOpacity={0.8}
-                    onPress={() => setSelectedFloor(floor)}
-                    className={`px-5 py-2.5 rounded-full ${
-                      isActive ? 'bg-[#0A6C50]' : 'bg-white border border-slate-200'
-                    }`}
-                  >
-                    <Text
-                      className={`text-sm font-bold ${isActive ? 'text-white' : 'text-slate-800'}`}
+            {/* Room Cards grouped by Floor */}
+            {displayFloors.map(floor => (
+              <View key={`floor-${floor.floorNumber}`} style={{ marginBottom: 12 }}>
+                {/* Floor Section Header when multiple floors are shown or searching */}
+                {(selectedFloor === 'all' || searchQuery.trim().length > 0) &&
+                  displayFloors.length > 1 && (
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        marginBottom: 10,
+                        marginTop: 4,
+                      }}
                     >
-                      Floor {floor}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={() => setVacantOnly(!vacantOnly)}
-                className={`px-5 py-2.5 rounded-full ml-auto ${
-                  vacantOnly ? 'bg-[#0A6C50]' : 'bg-white border border-slate-200'
-                }`}
-              >
-                <Text
-                  className={`text-sm font-bold ${vacantOnly ? 'text-white' : 'text-slate-800'}`}
-                >
-                  Vacant only
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Room Cards List */}
-            {currentFloorRooms.length === 0 ? (
-              <View className="py-12 items-center justify-center">
-                <Text className="text-sm font-semibold text-slate-400">
-                  {vacantOnly ? 'No vacant beds on this floor' : 'No rooms found on this floor'}
-                </Text>
-              </View>
-            ) : (
-              currentFloorRooms.map(room => (
-                <View
-                  key={room._id}
-                  className="bg-white border border-slate-200/80 rounded-2xl p-4 mb-4 shadow-xs"
-                >
-                  {/* Room Header with Edit & Quick Add Bed */}
-                  <View className="flex-row items-center justify-between mb-3.5">
-                    <View className="flex-row items-center">
-                      <Text className="text-lg font-extrabold text-slate-900 mr-2">
-                        Room {room.roomNumber}
+                      <View
+                        style={{
+                          width: 4,
+                          height: 16,
+                          borderRadius: 2,
+                          backgroundColor: '#4F5330',
+                          marginRight: 8,
+                        }}
+                      />
+                      <Text style={{ fontSize: 15, fontWeight: '800', color: '#0C192B' }}>
+                        Floor {floor.floorNumber}
                       </Text>
-                      <TouchableOpacity
-                        activeOpacity={0.7}
-                        onPress={() => setRoomToEdit(room)}
-                        className="w-7 h-7 rounded-lg bg-slate-100 items-center justify-center border border-slate-200 mr-1.5"
+                      <Text
+                        style={{
+                          fontSize: 12,
+                          fontWeight: '600',
+                          color: '#657080',
+                          marginLeft: 6,
+                        }}
                       >
-                        <Pencil size={13} color="#475569" />
-                      </TouchableOpacity>
+                        ({floor.rooms.length} {floor.rooms.length === 1 ? 'room' : 'rooms'})
+                      </Text>
+                    </View>
+                  )}
+
+                {floor.rooms.map(room => (
+                  <View
+                    key={room._id}
+                    style={{
+                      backgroundColor: '#FFFDF8',
+                      borderWidth: 1,
+                      borderColor: '#E5DDCD',
+                      borderRadius: 16,
+                      padding: 16,
+                      marginBottom: 14,
+                    }}
+                  >
+                    {/* Room Header with Edit & Quick Add Bed */}
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        marginBottom: 14,
+                      }}
+                    >
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Text
+                          style={{
+                            fontSize: 17,
+                            fontWeight: '800',
+                            color: '#0C192B',
+                            marginRight: 8,
+                          }}
+                        >
+                          Room {room.roomNumber}
+                        </Text>
+                        <TouchableOpacity
+                          activeOpacity={0.7}
+                          onPress={() => setRoomToEdit(room)}
+                          style={{
+                            width: 28,
+                            height: 28,
+                            borderRadius: 8,
+                            backgroundColor: '#FAF7F2',
+                            borderWidth: 1,
+                            borderColor: '#E5DDCD',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            marginRight: 6,
+                          }}
+                        >
+                          <Pencil size={13} color="#4F5330" />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          activeOpacity={0.7}
+                          disabled={isAddingBedRoomId === room._id}
+                          onPress={() => handleAddBed(room._id, room.roomNumber)}
+                          style={{
+                            backgroundColor: '#FAF7F2',
+                            borderWidth: 1,
+                            borderColor: '#D0D7B4',
+                            paddingHorizontal: 8,
+                            paddingVertical: 4,
+                            borderRadius: 8,
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                          }}
+                        >
+                          <Plus size={11} color="#4F5330" strokeWidth={2.5} />
+                          <Text
+                            style={{
+                              fontSize: 11,
+                              fontWeight: '800',
+                              color: '#4F5330',
+                              marginLeft: 3,
+                            }}
+                          >
+                            Add Bed
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+
+                      {/* Room Tags */}
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          gap: 6,
+                          flexWrap: 'wrap',
+                        }}
+                      >
+                        {(room.tags || [])
+                          .filter(
+                            tag =>
+                              !['single', 'double', 'triple'].includes(tag.toLowerCase()) &&
+                              !tag.toLowerCase().includes('sharing'),
+                          )
+                          .map(tag => {
+                            const displayTag =
+                              tag.toLowerCase() === 'attached washroom' ? 'Washroom' : tag;
+                            return (
+                              <View
+                                key={tag}
+                                style={{
+                                  paddingHorizontal: 8,
+                                  paddingVertical: 3,
+                                  borderRadius: 6,
+                                  borderWidth: 1,
+                                  borderColor: '#E5DDCD',
+                                  backgroundColor: '#FAF7F2',
+                                }}
+                              >
+                                <Text
+                                  style={{
+                                    fontSize: 11,
+                                    fontWeight: '600',
+                                    color: '#657080',
+                                  }}
+                                >
+                                  {displayTag}
+                                </Text>
+                              </View>
+                            );
+                          })}
+                      </View>
+                    </View>
+
+                    {/* Bed Chips Row / Grid */}
+                    <View style={{ flexDirection: 'row', gap: 10, flexWrap: 'wrap' }}>
+                      {room.beds.map(bed => {
+                        // 1. Available / Vacant Bed
+                        if (bed.status === 'available') {
+                          return (
+                            <TouchableOpacity
+                              key={bed._id}
+                              activeOpacity={0.8}
+                              onPress={() => handleBedPress(bed, room)}
+                              style={{
+                                flex: 1,
+                                minWidth: 95,
+                                minHeight: 88,
+                                backgroundColor: '#F0FDF4',
+                                borderWidth: 1,
+                                borderColor: '#86EFAC',
+                                borderRadius: 14,
+                                padding: 12,
+                                justifyContent: 'space-between',
+                              }}
+                            >
+                              <Text style={{ fontSize: 12, fontWeight: '700', color: '#15803D' }}>
+                                {bed.bedNumber}
+                              </Text>
+                              <View>
+                                <Text style={{ fontSize: 14, fontWeight: '800', color: '#0C192B' }}>
+                                  Vacant
+                                </Text>
+                                <Text
+                                  style={{
+                                    fontSize: 12,
+                                    fontWeight: '700',
+                                    color: '#15803D',
+                                    marginTop: 2,
+                                  }}
+                                >
+                                  {formatINR(bed.baseRentPaise || room.baseRentPaisePerBed)}
+                                </Text>
+                              </View>
+                            </TouchableOpacity>
+                          );
+                        }
+
+                        // 2. Occupied Bed
+                        if (bed.status === 'occupied') {
+                          const tenantName = bed.currentTenant?.fullName || 'Tenant';
+                          const firstName = tenantName.split(' ')[0];
+                          const initials = tenantName
+                            .split(' ')
+                            .map(w => w[0])
+                            .slice(0, 2)
+                            .join('')
+                            .toUpperCase();
+                          const isDue =
+                            bed.currentTenant?.paymentStatus === 'DUE' ||
+                            (bed.currentTenant?.rentDuePaise && bed.currentTenant.rentDuePaise > 0);
+
+                          return (
+                            <TouchableOpacity
+                              key={bed._id}
+                              activeOpacity={0.8}
+                              onPress={() => handleBedPress(bed, room)}
+                              style={{
+                                flex: 1,
+                                minWidth: 95,
+                                minHeight: 88,
+                                backgroundColor: '#FFF1F2',
+                                borderWidth: 1,
+                                borderColor: '#FECDD3',
+                                borderRadius: 14,
+                                padding: 12,
+                                justifyContent: 'space-between',
+                              }}
+                            >
+                              <View
+                                style={{
+                                  flexDirection: 'row',
+                                  alignItems: 'center',
+                                  justifyContent: 'space-between',
+                                }}
+                              >
+                                <Text style={{ fontSize: 12, fontWeight: '700', color: '#E11D48' }}>
+                                  {bed.bedNumber}
+                                </Text>
+                                <View
+                                  style={{
+                                    width: 20,
+                                    height: 20,
+                                    borderRadius: 10,
+                                    backgroundColor: '#FFE4E6',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                  }}
+                                >
+                                  <Text
+                                    style={{ fontSize: 10, fontWeight: '800', color: '#BE123C' }}
+                                  >
+                                    {initials}
+                                  </Text>
+                                </View>
+                              </View>
+                              <View>
+                                <Text
+                                  numberOfLines={1}
+                                  style={{ fontSize: 14, fontWeight: '800', color: '#0C192B' }}
+                                >
+                                  {firstName}
+                                </Text>
+                                <View
+                                  style={{
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    marginTop: 2,
+                                  }}
+                                >
+                                  <Text
+                                    style={{ fontSize: 12, fontWeight: '600', color: '#657080' }}
+                                  >
+                                    {formatINR(
+                                      bed.currentTenant?.monthlyRentPaise ||
+                                        bed.baseRentPaise ||
+                                        room.baseRentPaisePerBed,
+                                    )}
+                                  </Text>
+                                  <Text
+                                    style={{
+                                      fontSize: 10,
+                                      fontWeight: '800',
+                                      color: isDue ? '#E11D48' : '#15803D',
+                                    }}
+                                  >
+                                    {isDue ? 'DUE' : 'PAID'}
+                                  </Text>
+                                </View>
+                              </View>
+                            </TouchableOpacity>
+                          );
+                        }
+
+                        // 3. Notice Period Bed
+                        if (bed.status === 'notice_period') {
+                          const tenantName = bed.currentTenant?.fullName || 'Tenant';
+                          const firstName = tenantName.split(' ')[0];
+                          const initials = tenantName
+                            .split(' ')
+                            .map(w => w[0])
+                            .slice(0, 2)
+                            .join('')
+                            .toUpperCase();
+
+                          const daysLeft = bed.noticeEndDate
+                            ? Math.max(
+                                0,
+                                Math.ceil(
+                                  (new Date(bed.noticeEndDate).getTime() - Date.now()) /
+                                    (1000 * 60 * 60 * 24),
+                                ),
+                              )
+                            : null;
+                          const noticeText =
+                            daysLeft !== null
+                              ? daysLeft === 0
+                                ? 'Ends today'
+                                : `${daysLeft}d left`
+                              : 'Notice';
+
+                          return (
+                            <TouchableOpacity
+                              key={bed._id}
+                              activeOpacity={0.8}
+                              onPress={() => handleBedPress(bed, room)}
+                              style={{
+                                flex: 1,
+                                minWidth: 95,
+                                minHeight: 88,
+                                backgroundColor: '#FEF3C7',
+                                borderWidth: 1,
+                                borderColor: '#FDE68A',
+                                borderRadius: 14,
+                                padding: 12,
+                                justifyContent: 'space-between',
+                              }}
+                            >
+                              <View
+                                style={{
+                                  flexDirection: 'row',
+                                  alignItems: 'center',
+                                  justifyContent: 'space-between',
+                                }}
+                              >
+                                <Text style={{ fontSize: 12, fontWeight: '700', color: '#B45309' }}>
+                                  {bed.bedNumber}
+                                </Text>
+                                <View
+                                  style={{
+                                    width: 20,
+                                    height: 20,
+                                    borderRadius: 10,
+                                    backgroundColor: '#FDE68A',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                  }}
+                                >
+                                  <Text
+                                    style={{ fontSize: 10, fontWeight: '800', color: '#92400E' }}
+                                  >
+                                    {initials}
+                                  </Text>
+                                </View>
+                              </View>
+                              <View>
+                                <Text
+                                  numberOfLines={1}
+                                  style={{ fontSize: 14, fontWeight: '800', color: '#0C192B' }}
+                                >
+                                  {firstName}
+                                </Text>
+                                <View
+                                  style={{
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    marginTop: 2,
+                                  }}
+                                >
+                                  <Text
+                                    style={{ fontSize: 12, fontWeight: '600', color: '#92400E' }}
+                                  >
+                                    {formatINR(
+                                      bed.currentTenant?.monthlyRentPaise ||
+                                        bed.baseRentPaise ||
+                                        room.baseRentPaisePerBed,
+                                    )}
+                                  </Text>
+                                  <Text
+                                    style={{ fontSize: 10, fontWeight: '800', color: '#B45309' }}
+                                  >
+                                    {noticeText}
+                                  </Text>
+                                </View>
+                              </View>
+                            </TouchableOpacity>
+                          );
+                        }
+
+                        // 4. Maintenance Bed
+                        return (
+                          <TouchableOpacity
+                            key={bed._id}
+                            activeOpacity={0.8}
+                            onPress={() => handleBedPress(bed, room)}
+                            style={{
+                              flex: 1,
+                              minWidth: 95,
+                              minHeight: 88,
+                              backgroundColor: '#FAF7F2',
+                              borderWidth: 1,
+                              borderColor: '#E5DDCD',
+                              borderRadius: 14,
+                              padding: 12,
+                              justifyContent: 'space-between',
+                            }}
+                          >
+                            <Text style={{ fontSize: 12, fontWeight: '700', color: '#657080' }}>
+                              {bed.bedNumber}
+                            </Text>
+                            <View>
+                              <Text style={{ fontSize: 14, fontWeight: '800', color: '#0C192B' }}>
+                                Maintenance
+                              </Text>
+                              <Text
+                                numberOfLines={1}
+                                style={{
+                                  fontSize: 12,
+                                  fontWeight: '600',
+                                  color: '#657080',
+                                  marginTop: 2,
+                                }}
+                              >
+                                {bed.maintenanceNote || 'Repair'}
+                              </Text>
+                            </View>
+                          </TouchableOpacity>
+                        );
+                      })}
+
+                      {/* Quick + Bed Dashed Chip */}
                       <TouchableOpacity
                         activeOpacity={0.7}
                         disabled={isAddingBedRoomId === room._id}
                         onPress={() => handleAddBed(room._id, room.roomNumber)}
-                        className="bg-emerald-50 border border-emerald-200 px-2 py-1 rounded-lg flex-row items-center"
+                        style={{
+                          minWidth: 80,
+                          minHeight: 88,
+                          backgroundColor: '#FAF7F2',
+                          borderWidth: 1,
+                          borderStyle: 'dashed',
+                          borderColor: '#CBD5E1',
+                          borderRadius: 14,
+                          padding: 12,
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
                       >
-                        <Plus size={11} color="#0A6C50" strokeWidth={2.5} />
-                        <Text className="text-[10px] font-extrabold text-[#0A6C50] ml-0.5">
-                          Add Bed
-                        </Text>
+                        {isAddingBedRoomId === room._id ? (
+                          <ActivityIndicator size="small" color="#4F5330" />
+                        ) : (
+                          <>
+                            <Plus size={18} color="#4F5330" strokeWidth={2.5} />
+                            <Text
+                              style={{
+                                fontSize: 11,
+                                fontWeight: '800',
+                                color: '#4F5330',
+                                marginTop: 4,
+                              }}
+                            >
+                              + Bed
+                            </Text>
+                          </>
+                        )}
                       </TouchableOpacity>
                     </View>
-                    <View className="flex-row items-center gap-1.5 flex-wrap">
-                      {(room.tags || [])
-                        .filter(
-                          tag =>
-                            !['single', 'double', 'triple'].includes(tag.toLowerCase()) &&
-                            !tag.toLowerCase().includes('sharing'),
-                        )
-                        .map(tag => {
-                          const displayTag =
-                            tag.toLowerCase() === 'attached washroom' ? 'Washroom' : tag;
-                          return (
-                            <View
-                              key={tag}
-                              className="px-2 py-0.5 rounded-md border border-slate-200 bg-white"
-                            >
-                              <Text className="text-xs font-semibold text-slate-600">
-                                {displayTag}
-                              </Text>
-                            </View>
-                          );
-                        })}
-                    </View>
                   </View>
+                ))}
+              </View>
+            ))}
 
-                  {/* Bed Chips Row / Grid matching Page 2 */}
-                  <View className="flex-row gap-2.5 flex-wrap">
-                    {room.beds.map(bed => {
-                      // 1. Available / Vacant Bed (🟢)
-                      if (bed.status === 'available') {
-                        return (
-                          <TouchableOpacity
-                            key={bed._id}
-                            activeOpacity={0.8}
-                            onPress={() => handleBedPress(bed, room)}
-                            className="flex-1 min-w-[95px] bg-[#F0FDF4] border border-[#86EFAC] rounded-xl p-3 justify-between"
-                            style={{ minHeight: 88 }}
-                          >
-                            <Text className="text-xs font-semibold text-[#0A6C50]">
-                              {bed.bedNumber}
-                            </Text>
-                            <View>
-                              <Text className="text-sm font-bold text-slate-900">Vacant</Text>
-                              <Text className="text-xs font-bold text-[#0A6C50] mt-0.5">
-                                {formatINR(bed.baseRentPaise || room.baseRentPaisePerBed)}
-                              </Text>
-                            </View>
-                          </TouchableOpacity>
-                        );
-                      }
-
-                      // 2. Occupied Bed (🔴)
-                      if (bed.status === 'occupied') {
-                        const tenantName = bed.currentTenant?.fullName || 'Tenant';
-                        const firstName = tenantName.split(' ')[0];
-                        const initials = tenantName
-                          .split(' ')
-                          .map(w => w[0])
-                          .slice(0, 2)
-                          .join('')
-                          .toUpperCase();
-                        const isDue =
-                          bed.currentTenant?.paymentStatus === 'DUE' ||
-                          (bed.currentTenant?.rentDuePaise && bed.currentTenant.rentDuePaise > 0);
-
-                        return (
-                          <TouchableOpacity
-                            key={bed._id}
-                            activeOpacity={0.8}
-                            onPress={() => handleBedPress(bed, room)}
-                            className="flex-1 min-w-[95px] bg-[#FFF1F2] border border-[#FECDD3] rounded-xl p-3 justify-between"
-                            style={{ minHeight: 88 }}
-                          >
-                            <View className="flex-row items-center justify-between">
-                              <Text className="text-xs font-semibold text-rose-500">
-                                {bed.bedNumber}
-                              </Text>
-                              <View className="w-5 h-5 rounded-full bg-rose-100 items-center justify-center">
-                                <Text className="text-[10px] font-extrabold text-rose-700">
-                                  {initials}
-                                </Text>
-                              </View>
-                            </View>
-                            <View>
-                              <Text
-                                className="text-sm font-bold text-slate-900 truncate"
-                                numberOfLines={1}
-                              >
-                                {firstName}
-                              </Text>
-                              <View className="flex-row items-center justify-between mt-0.5">
-                                <Text className="text-xs font-semibold text-slate-500">
-                                  {formatINR(
-                                    bed.currentTenant?.monthlyRentPaise ||
-                                      bed.baseRentPaise ||
-                                      room.baseRentPaisePerBed,
-                                  )}
-                                </Text>
-                                <Text
-                                  className={`text-2xs font-extrabold ${
-                                    isDue ? 'text-rose-600' : 'text-emerald-700'
-                                  }`}
-                                >
-                                  {isDue ? 'DUE' : 'PAID'}
-                                </Text>
-                              </View>
-                            </View>
-                          </TouchableOpacity>
-                        );
-                      }
-
-                      // 3. Notice Period Bed (🟡)
-                      if (bed.status === 'notice_period') {
-                        const tenantName = bed.currentTenant?.fullName || 'Tenant';
-                        const firstName = tenantName.split(' ')[0];
-                        const initials = tenantName
-                          .split(' ')
-                          .map(w => w[0])
-                          .slice(0, 2)
-                          .join('')
-                          .toUpperCase();
-
-                        const daysLeft = bed.noticeEndDate
-                          ? Math.max(
-                              0,
-                              Math.ceil(
-                                (new Date(bed.noticeEndDate).getTime() - Date.now()) /
-                                  (1000 * 60 * 60 * 24),
-                              ),
-                            )
-                          : null;
-                        const noticeText =
-                          daysLeft !== null
-                            ? daysLeft === 0
-                              ? 'Notice · Ends today'
-                              : `Notice · ${daysLeft}d left`
-                            : 'Notice Period';
-
-                        return (
-                          <TouchableOpacity
-                            key={bed._id}
-                            activeOpacity={0.8}
-                            onPress={() => handleBedPress(bed, room)}
-                            className="flex-1 min-w-[95px] bg-[#FFFBEB] border border-[#FDE68A] rounded-xl p-3 justify-between"
-                            style={{ minHeight: 88 }}
-                          >
-                            <View className="flex-row items-center justify-between">
-                              <Text className="text-xs font-semibold text-amber-700">
-                                {bed.bedNumber}
-                              </Text>
-                              <View className="w-5 h-5 rounded-full bg-amber-100 items-center justify-center">
-                                <Text className="text-[10px] font-extrabold text-amber-800">
-                                  {initials}
-                                </Text>
-                              </View>
-                            </View>
-                            <View>
-                              <Text
-                                className="text-sm font-bold text-slate-900 truncate"
-                                numberOfLines={1}
-                              >
-                                {firstName}
-                              </Text>
-                              <View className="flex-row items-center justify-between mt-0.5">
-                                <Text className="text-xs font-semibold text-amber-800">
-                                  {formatINR(
-                                    bed.currentTenant?.monthlyRentPaise ||
-                                      bed.baseRentPaise ||
-                                      room.baseRentPaisePerBed,
-                                  )}
-                                </Text>
-                                <Text className="text-[10px] font-bold text-amber-700">
-                                  {noticeText}
-                                </Text>
-                              </View>
-                            </View>
-                          </TouchableOpacity>
-                        );
-                      }
-
-                      // 4. Maintenance Bed (⚪)
-                      return (
-                        <TouchableOpacity
-                          key={bed._id}
-                          activeOpacity={0.8}
-                          onPress={() => handleBedPress(bed, room)}
-                          className="flex-1 min-w-[95px] bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl p-3 justify-between"
-                          style={{ minHeight: 88 }}
-                        >
-                          <Text className="text-xs font-semibold text-slate-500">
-                            {bed.bedNumber}
-                          </Text>
-                          <View>
-                            <Text className="text-sm font-bold text-slate-900">Maintenance</Text>
-                            <Text className="text-xs font-bold text-slate-500 mt-0.5">
-                              {bed.maintenanceNote || 'Repair'}
-                            </Text>
-                          </View>
-                        </TouchableOpacity>
-                      );
-                    })}
-
-                    {/* Quick + Bed Dashed Chip */}
-                    <TouchableOpacity
-                      activeOpacity={0.7}
-                      disabled={isAddingBedRoomId === room._id}
-                      onPress={() => handleAddBed(room._id, room.roomNumber)}
-                      className="min-w-[80px] bg-slate-50 border border-dashed border-slate-300 rounded-xl p-3 items-center justify-center"
-                      style={{ minHeight: 88 }}
-                    >
-                      {isAddingBedRoomId === room._id ? (
-                        <ActivityIndicator size="small" color="#0A6C50" />
-                      ) : (
-                        <>
-                          <Plus size={18} color="#0A6C50" strokeWidth={2.5} />
-                          <Text className="text-[11px] font-bold text-[#0A6C50] mt-1">+ Bed</Text>
-                        </>
-                      )}
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              ))
-            )}
-
-            {/* Bottom Status Legend matching Page 2 */}
-            <View className="flex-row items-center justify-around py-4 mt-2">
-              <View className="flex-row items-center">
-                <View className="w-3.5 h-3.5 rounded-sm bg-[#F0FDF4] border border-[#86EFAC] mr-1.5" />
-                <Text className="text-xs font-semibold text-slate-700">Vacant</Text>
+            {/* Bottom Status Legend matching Nilaaya Theme */}
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-around',
+                paddingVertical: 16,
+                marginTop: 8,
+                backgroundColor: '#FFFDF8',
+                borderRadius: 16,
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+              }}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <View
+                  style={{
+                    width: 14,
+                    height: 14,
+                    borderRadius: 4,
+                    backgroundColor: '#F0FDF4',
+                    borderWidth: 1,
+                    borderColor: '#86EFAC',
+                    marginRight: 6,
+                  }}
+                />
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#0C192B' }}>Vacant</Text>
               </View>
 
-              <View className="flex-row items-center">
-                <View className="w-3.5 h-3.5 rounded-sm bg-[#FFF1F2] border border-[#FECDD3] mr-1.5" />
-                <Text className="text-xs font-semibold text-slate-700">Occupied</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <View
+                  style={{
+                    width: 14,
+                    height: 14,
+                    borderRadius: 4,
+                    backgroundColor: '#FFF1F2',
+                    borderWidth: 1,
+                    borderColor: '#FECDD3',
+                    marginRight: 6,
+                  }}
+                />
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#0C192B' }}>Occupied</Text>
               </View>
 
-              <View className="flex-row items-center">
-                <View className="w-3.5 h-3.5 rounded-sm bg-[#FFFBEB] border border-[#FDE68A] mr-1.5" />
-                <Text className="text-xs font-semibold text-slate-700">Notice</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <View
+                  style={{
+                    width: 14,
+                    height: 14,
+                    borderRadius: 4,
+                    backgroundColor: '#FEF3C7',
+                    borderWidth: 1,
+                    borderColor: '#FDE68A',
+                    marginRight: 6,
+                  }}
+                />
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#0C192B' }}>Notice</Text>
               </View>
 
-              <View className="flex-row items-center">
-                <View className="w-3.5 h-3.5 rounded-sm bg-[#F8FAFC] border border-[#CBD5E1] mr-1.5" />
-                <Text className="text-xs font-semibold text-slate-700">Maintenance</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <View
+                  style={{
+                    width: 14,
+                    height: 14,
+                    borderRadius: 4,
+                    backgroundColor: '#FAF7F2',
+                    borderWidth: 1,
+                    borderColor: '#E5DDCD',
+                    marginRight: 6,
+                  }}
+                />
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#0C192B' }}>Repair</Text>
               </View>
             </View>
           </>
         )}
       </ScrollView>
 
-      {/* Property Switcher Modal matching Page 12 */}
+      {/* Property Switcher Modal */}
       <PropertySwitcherModal
         visible={isSwitcherOpen}
         onClose={() => setIsSwitcherOpen(false)}
@@ -700,7 +1313,7 @@ export default function MatrixScreen() {
         onEditProperty={() => setIsEditPropertyOpen(true)}
       />
 
-      {/* Add Property Modal matching Page 38 */}
+      {/* Add Property Modal */}
       <AddPropertyModal
         visible={isAddPropertyOpen}
         onClose={() => setIsAddPropertyOpen(false)}
@@ -710,18 +1323,18 @@ export default function MatrixScreen() {
         }}
       />
 
-      {/* Add Room Modal matching Page 39 */}
+      {/* Add Room Modal */}
       <AddRoomModal
         visible={isAddRoomOpen}
         onClose={() => setIsAddRoomOpen(false)}
         property={effectiveMatrixProperty}
         existingRooms={existingRoomNumbers}
-        defaultFloor={selectedFloor}
+        defaultFloor={typeof selectedFloor === 'number' ? selectedFloor : floorsList[0] || 1}
         onSubmit={payload => createRoom(payload)}
         isSubmitting={isCreatingRoom}
       />
 
-      {/* Vacant Bed Bottom Sheet matching Page 13 */}
+      {/* Vacant Bed Bottom Sheet */}
       <VacantBedSheet
         visible={!!activeVacantBed}
         onClose={() => setActiveVacantBed(null)}
@@ -736,7 +1349,10 @@ export default function MatrixScreen() {
           );
           const propertyId = effectiveMatrixPropertyId || '';
           const roomNumber = activeVacantBed?.room.roomNumber || '';
-          const floorNumber = String(activeVacantBed?.room.floorNumber || selectedFloor || 1);
+          const floorNumber = String(
+            activeVacantBed?.room.floorNumber ||
+              (typeof selectedFloor === 'number' ? selectedFloor : 1),
+          );
           const sharingType = String(activeVacantBed?.room.sharingType || 2);
           router.push({
             pathname: '/checkin/[bedId]',
@@ -756,7 +1372,7 @@ export default function MatrixScreen() {
         isLoading={isUpdatingBedStatus}
       />
 
-      {/* Occupied Bed Bottom Sheet matching Page 14 */}
+      {/* Occupied Bed Bottom Sheet */}
       <OccupiedBedSheet
         visible={!!activeOccupiedBed}
         onClose={() => setActiveOccupiedBed(null)}
@@ -807,7 +1423,7 @@ export default function MatrixScreen() {
         }}
       />
 
-      {/* Beautiful Bed Deletion Confirmation Dialog */}
+      {/* Bed Deletion Confirmation Dialog */}
       <ConfirmDeleteModal
         visible={!!bedToDelete}
         onClose={() => setBedToDelete(null)}

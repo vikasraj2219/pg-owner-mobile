@@ -72,8 +72,8 @@ export const VacantBedSheet: React.FC<VacantBedSheetProps> = ({
 
               {/* Bed Info Header */}
               <View className="flex-row items-center mb-6">
-                <View className="bg-[#E8F5EE] border border-[#A7F3D0] rounded-xl px-3 py-2 mr-3.5 items-center justify-center">
-                  <Text className="text-sm font-extrabold text-[#0A6C50]">{bed.bedNumber}</Text>
+                <View className="bg-[#FAF7F2] border border-[#D0D7B4] rounded-xl px-3 py-2 mr-3.5 items-center justify-center">
+                  <Text className="text-sm font-extrabold text-[#4F5330]">{bed.bedNumber}</Text>
                 </View>
                 <View className="flex-1 mr-2">
                   <Text className="text-lg font-extrabold text-slate-900">
@@ -84,7 +84,7 @@ export const VacantBedSheet: React.FC<VacantBedSheetProps> = ({
                   </Text>
                 </View>
                 <View className="items-end">
-                  <Text className="text-lg font-extrabold text-[#0A6C50]">
+                  <Text className="text-lg font-extrabold text-[#4F5330]">
                     {formatINR(bed.baseRentPaise || room.baseRentPaisePerBed)}
                   </Text>
                   <Text className="text-xs text-slate-400 font-medium">per month</Text>
@@ -98,7 +98,7 @@ export const VacantBedSheet: React.FC<VacantBedSheetProps> = ({
                   onClose();
                   onCheckIn(bed._id);
                 }}
-                className="w-full bg-[#0A6C50] rounded-2xl py-4 flex-row items-center justify-center mb-3.5 shadow-sm"
+                className="w-full bg-[#4F5330] rounded-2xl py-4 flex-row items-center justify-center mb-3.5 shadow-sm"
               >
                 <UserPlus size={20} color="#FFFFFF" strokeWidth={2.5} />
                 <Text className="text-base font-extrabold text-white ml-2.5">Check in tenant</Text>

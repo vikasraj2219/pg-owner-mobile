@@ -64,14 +64,14 @@ export const PropertySwitcherModal: React.FC<PropertySwitcherModalProps> = ({
                     }}
                     className={`p-4 rounded-2xl mb-3.5 ${
                       selectedPropertyId === 'all'
-                        ? 'border-2 border-[#0A6C50] bg-white'
+                        ? 'border-2 border-[#4F5330] bg-white'
                         : 'border border-slate-200 bg-white'
                     }`}
                   >
                     <View className="flex-row items-center justify-between mb-1">
                       <View className="flex-row items-center flex-1 mr-2">
-                        <View className="w-8 h-8 rounded-lg bg-emerald-50 items-center justify-center mr-2.5 border border-emerald-200">
-                          <Building size={16} color="#0A6C50" />
+                        <View className="w-8 h-8 rounded-lg bg-[#FAF7F2] items-center justify-center mr-2.5 border border-[#D0D7B4]">
+                          <Building size={16} color="#4F5330" />
                         </View>
                         <View className="flex-1">
                           <Text className="text-base font-extrabold text-slate-900">
@@ -83,7 +83,7 @@ export const PropertySwitcherModal: React.FC<PropertySwitcherModalProps> = ({
                         </View>
                       </View>
                       {selectedPropertyId === 'all' && (
-                        <Check size={20} color="#0A6C50" strokeWidth={2.5} />
+                        <Check size={20} color="#4F5330" strokeWidth={2.5} />
                       )}
                     </View>
                   </TouchableOpacity>
@@ -105,7 +105,7 @@ export const PropertySwitcherModal: React.FC<PropertySwitcherModalProps> = ({
                       }}
                       className={`p-4 rounded-2xl mb-3.5 ${
                         isSelected
-                          ? 'border-2 border-[#0A6C50] bg-white'
+                          ? 'border-2 border-[#4F5330] bg-white'
                           : 'border border-slate-200 bg-white'
                       }`}
                     >
@@ -128,7 +128,7 @@ export const PropertySwitcherModal: React.FC<PropertySwitcherModalProps> = ({
                               <Pencil size={12} color="#475569" />
                             </TouchableOpacity>
                           )}
-                          {isSelected && <Check size={20} color="#0A6C50" strokeWidth={2.5} />}
+                          {isSelected && <Check size={20} color="#4F5330" strokeWidth={2.5} />}
                         </View>
                       </View>
 
@@ -142,7 +142,7 @@ export const PropertySwitcherModal: React.FC<PropertySwitcherModalProps> = ({
                       {/* Progress Bar */}
                       <View className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
                         <View
-                          className="h-full bg-[#0A6C50] rounded-full"
+                          className="h-full bg-[#4F5330] rounded-full"
                           style={{
                             width: `${Math.min(100, Math.max(0, occupancyRate))}%`,
                           }}
@@ -160,10 +160,10 @@ export const PropertySwitcherModal: React.FC<PropertySwitcherModalProps> = ({
                   onClose();
                   onOpenAddProperty();
                 }}
-                className="w-full border-2 border-dashed border-slate-300 rounded-2xl p-4 flex-row items-center justify-center my-2 bg-slate-50/50"
+                className="w-full border-2 border-dashed border-[#D0D7B4] rounded-2xl p-4 flex-row items-center justify-center my-2 bg-[#FAF7F2]"
               >
-                <Plus size={20} color="#0A6C50" strokeWidth={2.5} />
-                <Text className="text-base font-bold text-[#0A6C50] ml-2">Add property</Text>
+                <Plus size={20} color="#4F5330" strokeWidth={2.5} />
+                <Text className="text-base font-bold text-[#4F5330] ml-2">Add property</Text>
               </TouchableOpacity>
             </View>
           </TouchableWithoutFeedback>

@@ -80,7 +80,7 @@ export const MaintenanceBedSheet: React.FC<MaintenanceBedSheetProps> = ({
                 activeOpacity={0.8}
                 disabled={isLoading}
                 onPress={() => onMarkAvailable(bed._id)}
-                className="w-full bg-[#0A6C50] rounded-2xl py-4 flex-row items-center justify-center shadow-sm mb-2.5"
+                className="w-full bg-[#4F5330] rounded-2xl py-4 flex-row items-center justify-center shadow-sm mb-2.5"
               >
                 {isLoading ? (
                   <ActivityIndicator color="#FFFFFF" size="small" />

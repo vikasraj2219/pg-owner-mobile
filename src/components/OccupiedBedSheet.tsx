@@ -147,7 +147,7 @@ export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
                   }`}
                 >
                   <Text
-                    className={`text-xs font-black ${isDue ? 'text-[#991B1B]' : 'text-[#0A6C50]'}`}
+                    className={`text-xs font-black ${isDue ? 'text-[#991B1B]' : 'text-[#4F5330]'}`}
                   >
                     {isDue ? 'DUE' : 'PAID'}
                   </Text>
@@ -187,7 +187,7 @@ export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
                   onPress={handleWhatsApp}
                   className="w-14 h-14 rounded-2xl border border-slate-300 items-center justify-center bg-white"
                 >
-                  <MessageSquare size={22} color="#0A6C50" />
+                  <MessageSquare size={22} color="#4F5330" />
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -196,7 +196,7 @@ export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
                     onClose();
                     onViewProfile(tenant._id);
                   }}
-                  className="flex-1 bg-[#0A6C50] rounded-2xl py-4 items-center justify-center shadow-sm"
+                  className="flex-1 bg-[#4F5330] rounded-2xl py-4 items-center justify-center shadow-sm"
                 >
                   <Text className="text-base font-extrabold text-white">View dues & profile</Text>
                 </TouchableOpacity>
@@ -207,10 +207,10 @@ export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
                 <TouchableOpacity
                   activeOpacity={0.8}
                   onPress={() => setShowIdDocViewer(true)}
-                  className="w-full bg-[#F0FDF4] border border-[#A7F3D0] rounded-2xl py-3.5 flex-row items-center justify-center mb-2.5 shadow-xs"
+                  className="w-full bg-[#FAF7F2] border border-[#D0D7B4] rounded-2xl py-3.5 flex-row items-center justify-center mb-2.5 shadow-xs"
                 >
-                  <ShieldCheck size={18} color="#0A6C50" />
-                  <Text className="text-sm font-bold text-[#0A6C50] ml-2">
+                  <ShieldCheck size={18} color="#4F5330" />
+                  <Text className="text-sm font-bold text-[#4F5330] ml-2">
                     View ID Proof ({tenant.kycDocType?.toUpperCase() || 'AADHAAR'})
                   </Text>
                 </TouchableOpacity>
