@@ -18,7 +18,7 @@ export default function TabsLayout() {
       return (
         <View
           style={{
-            backgroundColor: '#D1F4F9',
+            backgroundColor: '#19D3E6',
             paddingHorizontal: 14,
             paddingVertical: 3,
             borderRadius: 16,
@@ -30,26 +30,26 @@ export default function TabsLayout() {
         </View>
       );
     }
-    return <IconComponent color="#657080" size={21} strokeWidth={2} />;
+    return <IconComponent color="#BCC2A6" size={21} strokeWidth={2} />;
   };
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#0C192B',
-        tabBarInactiveTintColor: '#657080',
+        tabBarActiveTintColor: '#FFFFFF',
+        tabBarInactiveTintColor: '#BCC2A6',
         tabBarStyle: {
-          backgroundColor: '#FAF5EB',
-          borderTopColor: '#E5DDCD',
+          backgroundColor: '#4F5330',
+          borderTopColor: '#3E4225',
           borderTopWidth: 1,
           paddingBottom: 8,
           paddingTop: 6,
           height: 66,
-          elevation: 4,
+          elevation: 6,
           shadowColor: '#000000',
           shadowOffset: { width: 0, height: -2 },
-          shadowOpacity: 0.04,
+          shadowOpacity: 0.1,
           shadowRadius: 4,
         },
         tabBarLabelStyle: {

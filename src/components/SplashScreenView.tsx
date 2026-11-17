@@ -12,7 +12,7 @@ export const SplashScreenView: React.FC<SplashScreenViewProps> = ({
   onDismiss,
 }) => {
   return (
-    <SafeAreaView className="flex-1 bg-[#0A6C50] justify-between items-center py-12 px-6">
+    <SafeAreaView className="flex-1 bg-[#4F5330] justify-between items-center py-12 px-6">
       {/* Top spacer */}
       <View className="h-4" />
 
@@ -31,14 +31,14 @@ export const SplashScreenView: React.FC<SplashScreenViewProps> = ({
             Nilaaya
           </Text>
 
-          <Text className="text-base font-semibold text-emerald-100/90 text-center">
+          <Text className="text-base font-semibold text-[#E6FBFC]/90 text-center">
             Run your PG from your pocket
           </Text>
         </TouchableOpacity>
 
         {showLoader && (
           <View className="mt-8">
-            <ActivityIndicator size="small" color="#A7F3D0" />
+            <ActivityIndicator size="small" color="#19D3E6" />
           </View>
         )}
       </View>
@@ -54,7 +54,7 @@ export const SplashScreenView: React.FC<SplashScreenViewProps> = ({
           <View className="w-10 h-3 rounded-full bg-[#94A3B8]" />
         </View>
 
-        <Text className="text-xs font-bold text-emerald-100/80 tracking-widest uppercase">
+        <Text className="text-xs font-bold text-[#E6FBFC]/80 tracking-widest uppercase">
           Beds · Rent · KYC · Meters
         </Text>
       </View>

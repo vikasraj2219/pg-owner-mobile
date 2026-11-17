@@ -556,6 +556,77 @@ export default function MatrixScreen() {
             </Text>
           </TouchableOpacity>
         </ScrollView>
+
+        {/* Status Indicators placed right after filter pills */}
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingTop: 12,
+            paddingBottom: 2,
+          }}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View
+              style={{
+                width: 12,
+                height: 12,
+                borderRadius: 3,
+                backgroundColor: '#F0FDF4',
+                borderWidth: 1,
+                borderColor: '#86EFAC',
+                marginRight: 6,
+              }}
+            />
+            <Text style={{ fontSize: 12, fontWeight: '700', color: '#0C192B' }}>Vacant</Text>
+          </View>
+
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View
+              style={{
+                width: 12,
+                height: 12,
+                borderRadius: 3,
+                backgroundColor: '#FFF1F2',
+                borderWidth: 1,
+                borderColor: '#FECDD3',
+                marginRight: 6,
+              }}
+            />
+            <Text style={{ fontSize: 12, fontWeight: '700', color: '#0C192B' }}>Occupied</Text>
+          </View>
+
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View
+              style={{
+                width: 12,
+                height: 12,
+                borderRadius: 3,
+                backgroundColor: '#FEF3C7',
+                borderWidth: 1,
+                borderColor: '#FDE68A',
+                marginRight: 6,
+              }}
+            />
+            <Text style={{ fontSize: 12, fontWeight: '700', color: '#0C192B' }}>Notice</Text>
+          </View>
+
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View
+              style={{
+                width: 12,
+                height: 12,
+                borderRadius: 3,
+                backgroundColor: '#FAF7F2',
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+                marginRight: 6,
+              }}
+            />
+            <Text style={{ fontSize: 12, fontWeight: '700', color: '#0C192B' }}>Repair</Text>
+          </View>
+        </View>
       </View>
 
       {/* Main Content Area */}
@@ -1195,81 +1266,6 @@ export default function MatrixScreen() {
                 ))}
               </View>
             ))}
-
-            {/* Bottom Status Legend matching Nilaaya Theme */}
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-around',
-                paddingVertical: 16,
-                marginTop: 8,
-                backgroundColor: '#FFFDF8',
-                borderRadius: 16,
-                borderWidth: 1,
-                borderColor: '#E5DDCD',
-              }}
-            >
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <View
-                  style={{
-                    width: 14,
-                    height: 14,
-                    borderRadius: 4,
-                    backgroundColor: '#F0FDF4',
-                    borderWidth: 1,
-                    borderColor: '#86EFAC',
-                    marginRight: 6,
-                  }}
-                />
-                <Text style={{ fontSize: 12, fontWeight: '700', color: '#0C192B' }}>Vacant</Text>
-              </View>
-
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <View
-                  style={{
-                    width: 14,
-                    height: 14,
-                    borderRadius: 4,
-                    backgroundColor: '#FFF1F2',
-                    borderWidth: 1,
-                    borderColor: '#FECDD3',
-                    marginRight: 6,
-                  }}
-                />
-                <Text style={{ fontSize: 12, fontWeight: '700', color: '#0C192B' }}>Occupied</Text>
-              </View>
-
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <View
-                  style={{
-                    width: 14,
-                    height: 14,
-                    borderRadius: 4,
-                    backgroundColor: '#FEF3C7',
-                    borderWidth: 1,
-                    borderColor: '#FDE68A',
-                    marginRight: 6,
-                  }}
-                />
-                <Text style={{ fontSize: 12, fontWeight: '700', color: '#0C192B' }}>Notice</Text>
-              </View>
-
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <View
-                  style={{
-                    width: 14,
-                    height: 14,
-                    borderRadius: 4,
-                    backgroundColor: '#FAF7F2',
-                    borderWidth: 1,
-                    borderColor: '#E5DDCD',
-                    marginRight: 6,
-                  }}
-                />
-                <Text style={{ fontSize: 12, fontWeight: '700', color: '#0C192B' }}>Repair</Text>
-              </View>
-            </View>
           </>
         )}
       </ScrollView>
