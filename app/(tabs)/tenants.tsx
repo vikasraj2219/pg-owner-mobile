@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import {
   Search,
   X,
@@ -194,7 +195,6 @@ export default function TenantsScreen() {
     const hasDues = (tenant.balanceDuePaise ?? 0) > 0;
 
     if (isOccupied || hasBed || hasDues) {
-      // Show Can't delete yet dialog
       const bedNumber =
         typeof tenant.currentBed === 'object' ? tenant.currentBed?.bedNumber : 'assigned bed';
       const dueFormatted = formatINR(tenant.balanceDuePaise || 0);
@@ -207,7 +207,6 @@ export default function TenantsScreen() {
         message: msg,
       });
     } else {
-      // Show confirmation dialog for settled/checked out tenant
       setConfirmDeleteModal({
         visible: true,
         tenant,
@@ -225,7 +224,6 @@ export default function TenantsScreen() {
     try {
       const res = await deleteTenantApi(tenant._id);
       if (res.canDelete) {
-        // Trigger undo toast
         setUndoToast({
           visible: true,
           tenantId: tenant._id,
@@ -284,10 +282,6 @@ export default function TenantsScreen() {
         'Notice Period Set',
         `${tenant.fullName} is now on ${noticeModal.days} days notice.`,
       );
-      Alert.alert(
-        'Notice Period Set',
-        `${tenant.fullName} is now on ${noticeModal.days} days notice.`,
-      );
     } catch (err: any) {
       setNoticeModal(prev => ({ ...prev, isSubmitting: false }));
       Alert.alert('Error', err?.response?.data?.message || 'Could not set notice period.');
@@ -331,46 +325,77 @@ export default function TenantsScreen() {
   };
 
   return (
-    <SafeAreaView edges={['top']} className="flex-1 bg-[#F8FAFC]">
+    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: '#FAF5EB' }}>
+      <StatusBar style="dark" />
       {/* Header */}
-      <View className="px-5 pt-4 pb-3 bg-white border-b border-slate-100">
-        <Text className="text-3xl font-black text-slate-900 tracking-tight">Tenants</Text>
+      <View
+        style={{
+          paddingHorizontal: 20,
+          paddingTop: 16,
+          paddingBottom: 12,
+          backgroundColor: '#FFFDF8',
+          borderBottomWidth: 1,
+          borderBottomColor: '#E5DDCD',
+        }}
+      >
+        <Text style={{ fontSize: 28, fontWeight: '800', color: '#0C192B', letterSpacing: -0.5 }}>
+          Tenants
+        </Text>
         <TouchableOpacity
           onPress={() => setIsPropertySwitcherVisible(true)}
           activeOpacity={0.7}
-          className="flex-row items-center mt-1"
+          style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}
         >
           {searchQuery.trim().length > 0 ? (
-            <Text className="text-sm font-semibold text-slate-500">
+            <Text style={{ fontSize: 13, fontWeight: '600', color: '#657080' }}>
               {filteredTenants.length} result{filteredTenants.length === 1 ? '' : 's'} for &ldquo;
               {searchQuery}&rdquo;
             </Text>
           ) : (
-            <View className="flex-row items-center">
-              <Text className="text-sm font-bold text-slate-600">
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: '#4F5330' }}>
                 {selectedProperty?.name || 'All Properties'}
               </Text>
-              <ChevronRight size={14} color="#64748B" style={{ marginLeft: 2 }} />
+              <ChevronRight size={14} color="#4F5330" style={{ marginLeft: 3 }} />
             </View>
           )}
         </TouchableOpacity>
 
         {/* Search Bar */}
-        <View className="flex-row items-center bg-slate-50 border border-slate-200 rounded-2xl px-3.5 py-2.5 mt-3">
-          <Search size={18} color="#94A3B8" />
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor: '#FAF7F2',
+            borderWidth: 1,
+            borderColor: '#E5DDCD',
+            borderRadius: 16,
+            paddingHorizontal: 14,
+            paddingVertical: 10,
+            marginTop: 12,
+          }}
+        >
+          <Search size={18} color="#657080" />
           <TextInput
             value={searchQuery}
             onChangeText={setSearchQuery}
             placeholder="Search name, phone or bed"
-            placeholderTextColor="#94A3B8"
-            className="flex-1 ml-2.5 text-sm font-medium text-slate-900"
+            placeholderTextColor="#8E98A0"
+            style={{
+              flex: 1,
+              marginLeft: 10,
+              fontSize: 14,
+              fontWeight: '500',
+              color: '#0C192B',
+              paddingVertical: 0,
+            }}
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity
               onPress={() => setSearchQuery('')}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <X size={18} color="#64748B" />
+              <X size={18} color="#657080" />
             </TouchableOpacity>
           )}
         </View>
@@ -379,19 +404,34 @@ export default function TenantsScreen() {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          className="flex-row mt-3 -mx-5 px-5"
+          style={{
+            flexDirection: 'row',
+            marginTop: 12,
+            marginHorizontal: -20,
+            paddingHorizontal: 20,
+          }}
           contentContainerStyle={{ paddingRight: 30 }}
         >
           <TouchableOpacity
             onPress={() => setActiveTab('all')}
-            className={`px-4 py-2 rounded-full border mr-2 flex-row items-center ${
-              activeTab === 'all' ? 'bg-[#0B6645] border-[#0B6645]' : 'bg-white border-slate-200'
-            }`}
+            style={{
+              paddingHorizontal: 16,
+              paddingVertical: 8,
+              borderRadius: 9999,
+              borderWidth: 1,
+              marginRight: 8,
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: activeTab === 'all' ? '#4F5330' : '#FFFDF8',
+              borderColor: activeTab === 'all' ? '#4F5330' : '#E5DDCD',
+            }}
           >
             <Text
-              className={`text-xs font-bold ${
-                activeTab === 'all' ? 'text-white' : 'text-slate-700'
-              }`}
+              style={{
+                fontSize: 12,
+                fontWeight: '700',
+                color: activeTab === 'all' ? '#FFFFFF' : '#657080',
+              }}
             >
               All · {allCount}
             </Text>
@@ -399,14 +439,24 @@ export default function TenantsScreen() {
 
           <TouchableOpacity
             onPress={() => setActiveTab('active')}
-            className={`px-4 py-2 rounded-full border mr-2 flex-row items-center ${
-              activeTab === 'active' ? 'bg-[#0B6645] border-[#0B6645]' : 'bg-white border-slate-200'
-            }`}
+            style={{
+              paddingHorizontal: 16,
+              paddingVertical: 8,
+              borderRadius: 9999,
+              borderWidth: 1,
+              marginRight: 8,
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: activeTab === 'active' ? '#4F5330' : '#FFFDF8',
+              borderColor: activeTab === 'active' ? '#4F5330' : '#E5DDCD',
+            }}
           >
             <Text
-              className={`text-xs font-bold ${
-                activeTab === 'active' ? 'text-white' : 'text-slate-700'
-              }`}
+              style={{
+                fontSize: 12,
+                fontWeight: '700',
+                color: activeTab === 'active' ? '#FFFFFF' : '#657080',
+              }}
             >
               Active · {activeCount}
             </Text>
@@ -414,16 +464,24 @@ export default function TenantsScreen() {
 
           <TouchableOpacity
             onPress={() => setActiveTab('notice_period')}
-            className={`px-4 py-2 rounded-full border mr-2 flex-row items-center ${
-              activeTab === 'notice_period'
-                ? 'bg-[#0B6645] border-[#0B6645]'
-                : 'bg-white border-slate-200'
-            }`}
+            style={{
+              paddingHorizontal: 16,
+              paddingVertical: 8,
+              borderRadius: 9999,
+              borderWidth: 1,
+              marginRight: 8,
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: activeTab === 'notice_period' ? '#4F5330' : '#FFFDF8',
+              borderColor: activeTab === 'notice_period' ? '#4F5330' : '#E5DDCD',
+            }}
           >
             <Text
-              className={`text-xs font-bold ${
-                activeTab === 'notice_period' ? 'text-white' : 'text-slate-700'
-              }`}
+              style={{
+                fontSize: 12,
+                fontWeight: '700',
+                color: activeTab === 'notice_period' ? '#FFFFFF' : '#657080',
+              }}
             >
               Notice · {noticeCount}
             </Text>
@@ -431,16 +489,24 @@ export default function TenantsScreen() {
 
           <TouchableOpacity
             onPress={() => setActiveTab('checked_out')}
-            className={`px-4 py-2 rounded-full border mr-2 flex-row items-center ${
-              activeTab === 'checked_out'
-                ? 'bg-[#0B6645] border-[#0B6645]'
-                : 'bg-white border-slate-200'
-            }`}
+            style={{
+              paddingHorizontal: 16,
+              paddingVertical: 8,
+              borderRadius: 9999,
+              borderWidth: 1,
+              marginRight: 8,
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: activeTab === 'checked_out' ? '#4F5330' : '#FFFDF8',
+              borderColor: activeTab === 'checked_out' ? '#4F5330' : '#E5DDCD',
+            }}
           >
             <Text
-              className={`text-xs font-bold ${
-                activeTab === 'checked_out' ? 'text-white' : 'text-slate-700'
-              }`}
+              style={{
+                fontSize: 12,
+                fontWeight: '700',
+                color: activeTab === 'checked_out' ? '#FFFFFF' : '#657080',
+              }}
             >
               Checked out · {checkedOutCount}
             </Text>
@@ -450,42 +516,79 @@ export default function TenantsScreen() {
 
       {/* Main List */}
       {isLoading ? (
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#0B6645" />
-          <Text className="text-xs font-medium text-slate-400 mt-2">Loading tenants...</Text>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <ActivityIndicator size="large" color="#4F5330" />
+          <Text style={{ fontSize: 12, fontWeight: '500', color: '#657080', marginTop: 8 }}>
+            Loading tenants...
+          </Text>
         </View>
       ) : filteredTenants.length === 0 ? (
         /* Empty State */
-        <View className="flex-1 items-center justify-center px-6">
-          <View className="w-20 h-20 rounded-full bg-[#E6F4EA] items-center justify-center mb-5">
-            <Users size={36} color="#0B6645" />
+        <View
+          style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 }}
+        >
+          <View
+            style={{
+              width: 76,
+              height: 76,
+              borderRadius: 38,
+              backgroundColor: '#D1F4F9',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: 20,
+            }}
+          >
+            <Users size={36} color="#4F5330" />
           </View>
-          <Text className="text-xl font-bold text-slate-900 text-center">
+          <Text style={{ fontSize: 20, fontWeight: '800', color: '#0C192B', textAlign: 'center' }}>
             {searchQuery ? 'No matching tenants' : 'No tenants yet'}
           </Text>
-          <Text className="text-sm text-slate-500 text-center mt-2 mb-6 px-4">
+          <Text
+            style={{
+              fontSize: 14,
+              color: '#657080',
+              textAlign: 'center',
+              marginTop: 8,
+              marginBottom: 24,
+              paddingHorizontal: 16,
+            }}
+          >
             {searchQuery
               ? 'Try adjusting your search keywords or clear filters.'
               : 'Add your first tenant to a vacant bed. It takes under 2 minutes.'}
           </Text>
           <TouchableOpacity
             onPress={() => router.push('/tenants/add' as any)}
-            className="flex-row items-center bg-[#0B6645] px-6 py-3.5 rounded-full shadow-sm"
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: '#4F5330',
+              paddingHorizontal: 24,
+              paddingVertical: 14,
+              borderRadius: 9999,
+              shadowColor: '#4F5330',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.2,
+              shadowRadius: 4,
+              elevation: 2,
+            }}
           >
-            <Plus size={18} color="#ffffff" strokeWidth={2.5} />
-            <Text className="text-white font-bold text-sm ml-1.5">Add tenant</Text>
+            <Plus size={18} color="#FFFFFF" strokeWidth={2.5} />
+            <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 14, marginLeft: 6 }}>
+              Add tenant
+            </Text>
           </TouchableOpacity>
         </View>
       ) : (
         <ScrollView
-          className="flex-1 px-4 pt-3"
-          contentContainerStyle={{ paddingBottom: 100 }}
+          style={{ flex: 1, paddingHorizontal: 16, paddingTop: 12 }}
+          contentContainerStyle={{ paddingBottom: 110 }}
           refreshControl={
             <RefreshControl
               refreshing={isRefetching}
               onRefresh={refetch}
-              colors={['#0B6645']}
-              tintColor="#0B6645"
+              colors={['#4F5330']}
+              tintColor="#4F5330"
             />
           }
         >
@@ -496,7 +599,6 @@ export default function TenantsScreen() {
             const isCheckedOut = tenant.status === 'checked_out';
             const isNotice = tenant.status === 'notice_period';
 
-            // Subtitle date string
             let subtitleText = '';
             if (isCheckedOut) {
               subtitleText = `Bed ${bedNumber} · Left ${formatDayMonth(tenant.updatedAt || tenant.createdAt)}`;
@@ -510,76 +612,170 @@ export default function TenantsScreen() {
               <TouchableOpacity
                 key={tenant._id}
                 onPress={() => router.push(`/tenant/${tenant._id}` as any)}
-                activeOpacity={0.7}
-                className="bg-white rounded-2xl p-4 mb-3 border border-slate-100 shadow-sm flex-row items-center justify-between"
+                activeOpacity={0.75}
+                style={{
+                  backgroundColor: '#FFFDF8',
+                  borderRadius: 18,
+                  padding: 16,
+                  marginBottom: 12,
+                  borderWidth: 1,
+                  borderColor: '#E5DDCD',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  shadowColor: '#000000',
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: 0.03,
+                  shadowRadius: 2,
+                  elevation: 1,
+                }}
               >
                 {/* Left: Avatar */}
-                <View className="flex-row items-center flex-1 pr-2">
-                  <View className="w-12 h-12 rounded-full bg-[#E0F2FE] items-center justify-center mr-3.5">
-                    <Text className="text-sm font-black text-[#0369A1]">
+                <View
+                  style={{ flexDirection: 'row', alignItems: 'center', flex: 1, paddingRight: 8 }}
+                >
+                  <View
+                    style={{
+                      width: 46,
+                      height: 46,
+                      borderRadius: 23,
+                      backgroundColor: '#D1F4F9',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginRight: 14,
+                    }}
+                  >
+                    <Text style={{ fontSize: 14, fontWeight: '800', color: '#0799AA' }}>
                       {getInitials(tenant.fullName)}
                     </Text>
                   </View>
 
                   {/* Middle: Details */}
-                  <View className="flex-1">
-                    <Text className="text-base font-bold text-slate-900 leading-tight">
+                  <View style={{ flex: 1 }}>
+                    <Text
+                      style={{ fontSize: 15, fontWeight: '800', color: '#0C192B', lineHeight: 20 }}
+                    >
                       {tenant.fullName}
                     </Text>
-                    <Text className="text-xs text-slate-500 font-medium mt-0.5">
+                    <Text
+                      style={{ fontSize: 12, color: '#657080', fontWeight: '500', marginTop: 2 }}
+                    >
                       {subtitleText}
                     </Text>
 
                     {/* Status Pill & Property Tag */}
-                    <View className="flex-row items-center flex-wrap gap-1.5 mt-1.5">
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        flexWrap: 'wrap',
+                        gap: 6,
+                        marginTop: 6,
+                      }}
+                    >
                       {(selectedPropertyId === 'all' || !selectedProperty) &&
                         tenant.property?.name && (
-                          <View className="bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-full flex-row items-center">
-                            <Building size={10} color="#0A6C50" />
-                            <Text className="text-[10px] font-bold text-[#0A6C50] ml-1">
+                          <View
+                            style={{
+                              backgroundColor: '#EAE8DF',
+                              borderWidth: 1,
+                              borderColor: '#E5DDCD',
+                              paddingHorizontal: 8,
+                              paddingVertical: 2,
+                              borderRadius: 9999,
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                            }}
+                          >
+                            <Building size={10} color="#4F5330" />
+                            <Text
+                              style={{
+                                fontSize: 10,
+                                fontWeight: '700',
+                                color: '#4F5330',
+                                marginLeft: 4,
+                              }}
+                            >
                               {tenant.property.name}
                             </Text>
                           </View>
                         )}
                       {tenant.status === 'active' && (
-                        <View className="bg-[#E6F4EA] px-2.5 py-0.5 rounded-full">
-                          <Text className="text-[11px] font-bold text-[#0D652D]">Active</Text>
+                        <View
+                          style={{
+                            backgroundColor: '#F0FDF4',
+                            borderWidth: 1,
+                            borderColor: '#BBF7D0',
+                            paddingHorizontal: 10,
+                            paddingVertical: 2,
+                            borderRadius: 9999,
+                          }}
+                        >
+                          <Text style={{ fontSize: 11, fontWeight: '700', color: '#15803D' }}>
+                            Active
+                          </Text>
                         </View>
                       )}
                       {tenant.status === 'notice_period' && (
-                        <View className="bg-[#FEF3C7] px-2.5 py-0.5 rounded-full">
-                          <Text className="text-[11px] font-bold text-[#B45309]">Notice</Text>
+                        <View
+                          style={{
+                            backgroundColor: '#FEF3C7',
+                            borderWidth: 1,
+                            borderColor: '#FDE047',
+                            paddingHorizontal: 10,
+                            paddingVertical: 2,
+                            borderRadius: 9999,
+                          }}
+                        >
+                          <Text style={{ fontSize: 11, fontWeight: '700', color: '#B45309' }}>
+                            Notice
+                          </Text>
                         </View>
                       )}
                       {tenant.status === 'checked_out' && (
-                        <View className="bg-slate-100 px-2.5 py-0.5 rounded-full">
-                          <Text className="text-[11px] font-bold text-slate-600">Checked out</Text>
+                        <View
+                          style={{
+                            backgroundColor: '#FAF5EB',
+                            borderWidth: 1,
+                            borderColor: '#E5DDCD',
+                            paddingHorizontal: 10,
+                            paddingVertical: 2,
+                            borderRadius: 9999,
+                          }}
+                        >
+                          <Text style={{ fontSize: 11, fontWeight: '700', color: '#657080' }}>
+                            Checked out
+                          </Text>
                         </View>
                       )}
                     </View>
                   </View>
                 </View>
 
-                {/* Right: Due / Paid / Settled + Kebab Menu */}
-                <View className="flex-row items-center pl-2">
-                  <View className="items-end mr-2">
+                {/* Right: Due / Paid / Settled + Menu */}
+                <View style={{ flexDirection: 'row', alignItems: 'center', paddingLeft: 8 }}>
+                  <View style={{ alignItems: 'flex-end', marginRight: 8 }}>
                     {dueAmount > 0 ? (
-                      <Text className="text-sm font-black text-[#991B1B]">
+                      <Text style={{ fontSize: 14, fontWeight: '800', color: '#BE123C' }}>
                         Due {formatINR(dueAmount)}
                       </Text>
                     ) : isCheckedOut ? (
-                      <Text className="text-sm font-bold text-slate-500">Settled</Text>
+                      <Text style={{ fontSize: 13, fontWeight: '700', color: '#657080' }}>
+                        Settled
+                      </Text>
                     ) : (
-                      <Text className="text-sm font-black text-[#15803D]">Paid</Text>
+                      <Text style={{ fontSize: 14, fontWeight: '800', color: '#15803D' }}>
+                        Paid
+                      </Text>
                     )}
                   </View>
 
                   <TouchableOpacity
                     onPress={() => setActionSheetTenant(tenant)}
                     hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                    className="p-1 rounded-full active:bg-slate-100"
+                    style={{ padding: 4, borderRadius: 9999 }}
                   >
-                    <MoreVertical size={20} color="#64748B" />
+                    <MoreVertical size={20} color="#657080" />
                   </TouchableOpacity>
                 </View>
               </TouchableOpacity>
@@ -589,38 +785,81 @@ export default function TenantsScreen() {
       )}
 
       {/* Floating Action Button (+ Add tenant) */}
-      <View className="absolute bottom-6 right-5">
+      <View style={{ position: 'absolute', bottom: 24, right: 20 }}>
         <TouchableOpacity
           onPress={() => router.push('/tenants/add' as any)}
           activeOpacity={0.85}
-          className="flex-row items-center bg-[#0B6645] px-5 py-3.5 rounded-full shadow-lg elevation-8"
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor: '#4F5330',
+            paddingHorizontal: 20,
+            paddingVertical: 14,
+            borderRadius: 9999,
+            shadowColor: '#4F5330',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.35,
+            shadowRadius: 8,
+            elevation: 6,
+          }}
         >
-          <Plus size={20} color="#ffffff" strokeWidth={2.5} />
-          <Text className="text-white font-bold text-sm ml-1.5">Add tenant</Text>
+          <Plus size={20} color="#FFFFFF" strokeWidth={2.5} />
+          <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 14, marginLeft: 6 }}>
+            Add tenant
+          </Text>
         </TouchableOpacity>
       </View>
 
       {/* Undo Floating Banner */}
       {undoToast.visible && (
-        <View className="absolute bottom-6 left-5 right-5 bg-slate-900 rounded-2xl px-4 py-3 flex-row items-center justify-between shadow-2xl elevation-10">
-          <View className="flex-row items-center flex-1 mr-2">
-            <Check size={18} color="#22C55E" strokeWidth={2.5} />
-            <Text className="text-white text-sm font-bold ml-2 numberOfLines={1}">
+        <View
+          style={{
+            position: 'absolute',
+            bottom: 24,
+            left: 20,
+            right: 20,
+            backgroundColor: '#0C192B',
+            borderRadius: 18,
+            paddingHorizontal: 16,
+            paddingVertical: 14,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            shadowColor: '#000000',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.3,
+            shadowRadius: 8,
+            elevation: 8,
+          }}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>
+            <Check size={18} color="#19D3E6" strokeWidth={2.5} />
+            <Text
+              style={{ color: '#FFFFFF', fontSize: 14, fontWeight: '700', marginLeft: 8 }}
+              numberOfLines={1}
+            >
               {undoToast.tenantName} deleted
             </Text>
           </View>
           <TouchableOpacity
             onPress={handleUndoDelete}
-            className="bg-slate-800 px-3.5 py-1.5 rounded-xl border border-slate-700"
+            style={{
+              backgroundColor: '#1E293B',
+              paddingHorizontal: 14,
+              paddingVertical: 6,
+              borderRadius: 12,
+              borderWidth: 1,
+              borderColor: '#334155',
+            }}
           >
-            <Text className="text-[#38BDF8] text-xs font-black">
+            <Text style={{ color: '#19D3E6', fontSize: 12, fontWeight: '800' }}>
               Undo · {undoToast.secondsLeft}s
             </Text>
           </TouchableOpacity>
         </View>
       )}
 
-      {/* Action Bottom Sheet (Page 3) */}
+      {/* Action Bottom Sheet */}
       <Modal
         visible={actionSheetTenant !== null}
         transparent
@@ -630,28 +869,65 @@ export default function TenantsScreen() {
         <TouchableOpacity
           activeOpacity={1}
           onPress={() => setActionSheetTenant(null)}
-          className="flex-1 bg-black/50 justify-end"
+          style={{ flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.5)', justifyContent: 'flex-end' }}
         >
           <TouchableOpacity
             activeOpacity={1}
-            className="bg-white rounded-t-3xl pt-3 pb-8 px-6 border-t border-slate-100"
+            style={{
+              backgroundColor: '#FFFDF8',
+              borderTopLeftRadius: 28,
+              borderTopRightRadius: 28,
+              paddingTop: 12,
+              paddingBottom: 32,
+              paddingHorizontal: 24,
+              borderTopWidth: 1,
+              borderTopColor: '#E5DDCD',
+            }}
           >
             {/* Sheet Handle */}
-            <View className="w-12 h-1.5 bg-slate-200 rounded-full self-center mb-4" />
+            <View
+              style={{
+                width: 48,
+                height: 5,
+                backgroundColor: '#E5DDCD',
+                borderRadius: 9999,
+                alignSelf: 'center',
+                marginBottom: 16,
+              }}
+            />
 
             {/* Tenant Info Header */}
             {actionSheetTenant && (
-              <View className="flex-row items-center pb-4 border-b border-slate-100 mb-2">
-                <View className="w-12 h-12 rounded-full bg-[#E0F2FE] items-center justify-center mr-3.5">
-                  <Text className="text-sm font-black text-[#0369A1]">
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  paddingBottom: 16,
+                  borderBottomWidth: 1,
+                  borderBottomColor: '#E5DDCD',
+                  marginBottom: 8,
+                }}
+              >
+                <View
+                  style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 24,
+                    backgroundColor: '#D1F4F9',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginRight: 14,
+                  }}
+                >
+                  <Text style={{ fontSize: 14, fontWeight: '800', color: '#0799AA' }}>
                     {getInitials(actionSheetTenant.fullName)}
                   </Text>
                 </View>
-                <View className="flex-1">
-                  <Text className="text-base font-bold text-slate-900">
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 16, fontWeight: '800', color: '#0C192B' }}>
                     {actionSheetTenant.fullName}
                   </Text>
-                  <Text className="text-xs font-medium text-slate-500 mt-0.5">
+                  <Text style={{ fontSize: 12, fontWeight: '500', color: '#657080', marginTop: 2 }}>
                     Bed{' '}
                     {typeof actionSheetTenant.currentBed === 'object'
                       ? actionSheetTenant.currentBed?.bedNumber
@@ -674,10 +950,18 @@ export default function TenantsScreen() {
                 setActionSheetTenant(null);
                 if (id) router.push(`/tenant/${id}` as any);
               }}
-              className="flex-row items-center py-3.5 border-b border-slate-50"
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingVertical: 14,
+                borderBottomWidth: 1,
+                borderBottomColor: '#F3ECE0',
+              }}
             >
-              <User size={20} color="#334155" />
-              <Text className="text-sm font-bold text-slate-800 ml-3.5">View profile</Text>
+              <User size={20} color="#0C192B" />
+              <Text style={{ fontSize: 14, fontWeight: '700', color: '#0C192B', marginLeft: 14 }}>
+                View profile
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -686,18 +970,32 @@ export default function TenantsScreen() {
                 setActionSheetTenant(null);
                 if (id) router.push(`/tenant/edit/${id}` as any);
               }}
-              className="flex-row items-center py-3.5 border-b border-slate-50"
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingVertical: 14,
+                borderBottomWidth: 1,
+                borderBottomColor: '#F3ECE0',
+              }}
             >
-              <Edit2 size={20} color="#334155" />
-              <Text className="text-sm font-bold text-slate-800 ml-3.5">Edit tenant</Text>
+              <Edit2 size={20} color="#0C192B" />
+              <Text style={{ fontSize: 14, fontWeight: '700', color: '#0C192B', marginLeft: 14 }}>
+                Edit tenant
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               onPress={() => actionSheetTenant && handleWhatsAppAction(actionSheetTenant)}
-              className="flex-row items-center py-3.5 border-b border-slate-50"
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingVertical: 14,
+                borderBottomWidth: 1,
+                borderBottomColor: '#F3ECE0',
+              }}
             >
-              <MessageSquare size={20} color="#334155" />
-              <Text className="text-sm font-bold text-slate-800 ml-3.5">
+              <MessageSquare size={20} color="#0C192B" />
+              <Text style={{ fontSize: 14, fontWeight: '700', color: '#0C192B', marginLeft: 14 }}>
                 Send WhatsApp reminder
               </Text>
             </TouchableOpacity>
@@ -705,10 +1003,16 @@ export default function TenantsScreen() {
             {actionSheetTenant?.status === 'notice_period' ? (
               <TouchableOpacity
                 onPress={() => actionSheetTenant && handleCancelNotice(actionSheetTenant)}
-                className="flex-row items-center py-3.5 border-b border-slate-50"
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  paddingVertical: 14,
+                  borderBottomWidth: 1,
+                  borderBottomColor: '#F3ECE0',
+                }}
               >
-                <Clock size={20} color="#D97706" />
-                <Text className="text-sm font-bold text-[#D97706] ml-3.5">
+                <Clock size={20} color="#B45309" />
+                <Text style={{ fontSize: 14, fontWeight: '700', color: '#B45309', marginLeft: 14 }}>
                   Cancel notice period
                 </Text>
               </TouchableOpacity>
@@ -726,10 +1030,18 @@ export default function TenantsScreen() {
                       isSubmitting: false,
                     });
                 }}
-                className="flex-row items-center py-3.5 border-b border-slate-50"
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  paddingVertical: 14,
+                  borderBottomWidth: 1,
+                  borderBottomColor: '#F3ECE0',
+                }}
               >
-                <Clock size={20} color="#334155" />
-                <Text className="text-sm font-bold text-slate-800 ml-3.5">Start notice period</Text>
+                <Clock size={20} color="#0C192B" />
+                <Text style={{ fontSize: 14, fontWeight: '700', color: '#0C192B', marginLeft: 14 }}>
+                  Start notice period
+                </Text>
               </TouchableOpacity>
             )}
 
@@ -740,40 +1052,95 @@ export default function TenantsScreen() {
                   setActionSheetTenant(null);
                   if (id) router.push(`/checkout/${id}`);
                 }}
-                className="flex-row items-center py-3.5 border-b border-slate-50"
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  paddingVertical: 14,
+                  borderBottomWidth: 1,
+                  borderBottomColor: '#F3ECE0',
+                }}
               >
                 <LogOut size={20} color="#BE123C" />
-                <Text className="text-sm font-bold text-[#BE123C] ml-3.5">Checkout tenant</Text>
+                <Text style={{ fontSize: 14, fontWeight: '700', color: '#BE123C', marginLeft: 14 }}>
+                  Checkout tenant
+                </Text>
               </TouchableOpacity>
             )}
 
             <TouchableOpacity
               onPress={() => actionSheetTenant && handleDeletePress(actionSheetTenant)}
-              className="flex-row items-center py-3.5"
+              style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 14 }}
             >
               <Trash2 size={20} color="#DC2626" />
-              <Text className="text-sm font-bold text-[#DC2626] ml-3.5">Delete tenant</Text>
+              <Text style={{ fontSize: 14, fontWeight: '700', color: '#DC2626', marginLeft: 14 }}>
+                Delete tenant
+              </Text>
             </TouchableOpacity>
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
 
-      {/* "Can't delete yet" Modal (Page 10) */}
+      {/* "Can't delete yet" Modal */}
       <Modal
         visible={cantDeleteModal.visible}
         transparent
         animationType="fade"
         onRequestClose={() => setCantDeleteModal(prev => ({ ...prev, visible: false }))}
       >
-        <View className="flex-1 bg-black/60 items-center justify-center px-6">
-          <View className="bg-white rounded-3xl p-6 w-full max-w-sm items-center shadow-xl">
-            <View className="w-16 h-16 rounded-full bg-amber-50 items-center justify-center mb-4">
-              <AlertTriangle size={32} color="#D97706" />
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingHorizontal: 24,
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: '#FFFDF8',
+              borderRadius: 24,
+              padding: 24,
+              width: '100%',
+              maxWidth: 360,
+              alignItems: 'center',
+              borderWidth: 1,
+              borderColor: '#E5DDCD',
+            }}
+          >
+            <View
+              style={{
+                width: 64,
+                height: 64,
+                borderRadius: 32,
+                backgroundColor: '#FEF3C7',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 16,
+              }}
+            >
+              <AlertTriangle size={32} color="#B45309" />
             </View>
-            <Text className="text-xl font-black text-slate-900 text-center mb-2">
+            <Text
+              style={{
+                fontSize: 20,
+                fontWeight: '800',
+                color: '#0C192B',
+                textAlign: 'center',
+                marginBottom: 8,
+              }}
+            >
               Can’t delete yet
             </Text>
-            <Text className="text-sm text-slate-600 text-center leading-relaxed mb-6">
+            <Text
+              style={{
+                fontSize: 14,
+                color: '#657080',
+                textAlign: 'center',
+                lineHeight: 20,
+                marginBottom: 24,
+              }}
+            >
               {cantDeleteModal.message}
             </Text>
 
@@ -783,16 +1150,26 @@ export default function TenantsScreen() {
                 setCantDeleteModal(prev => ({ ...prev, visible: false }));
                 if (tenantId) router.push(`/checkout/${tenantId}`);
               }}
-              className="w-full bg-[#0B6645] py-3.5 rounded-full items-center justify-center mb-3"
+              style={{
+                width: '100%',
+                backgroundColor: '#4F5330',
+                paddingVertical: 14,
+                borderRadius: 9999,
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 12,
+              }}
             >
-              <Text className="text-white font-bold text-base">[→ Go to checkout</Text>
+              <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 15 }}>
+                Go to checkout
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               onPress={() => setCantDeleteModal(prev => ({ ...prev, visible: false }))}
-              className="py-2.5 items-center justify-center"
+              style={{ paddingVertical: 10, alignItems: 'center', justifyContent: 'center' }}
             >
-              <Text className="text-slate-600 font-bold text-sm">Cancel</Text>
+              <Text style={{ color: '#657080', fontWeight: '700', fontSize: 14 }}>Cancel</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -815,29 +1192,59 @@ export default function TenantsScreen() {
         animationType="fade"
         onRequestClose={() => setNoticeModal(prev => ({ ...prev, visible: false }))}
       >
-        <View className="flex-1 bg-black/60 items-center justify-center px-6">
-          <View className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-xl">
-            <Text className="text-lg font-black text-slate-900 mb-1">Start Notice Period</Text>
-            <Text className="text-xs text-slate-500 mb-4">
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingHorizontal: 24,
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: '#FFFDF8',
+              borderRadius: 24,
+              padding: 24,
+              width: '100%',
+              maxWidth: 360,
+              borderWidth: 1,
+              borderColor: '#E5DDCD',
+            }}
+          >
+            <Text style={{ fontSize: 18, fontWeight: '800', color: '#0C192B', marginBottom: 4 }}>
+              Start Notice Period
+            </Text>
+            <Text style={{ fontSize: 13, color: '#657080', marginBottom: 16 }}>
               Set expected departure date for {noticeModal.tenant?.fullName}.
             </Text>
 
-            <Text className="text-xs font-bold text-slate-700 mb-2">Notice Duration</Text>
-            <View className="flex-row mb-4 space-x-2">
+            <Text style={{ fontSize: 13, fontWeight: '700', color: '#0C192B', marginBottom: 8 }}>
+              Notice Duration
+            </Text>
+            <View style={{ flexDirection: 'row', marginBottom: 16 }}>
               {[15, 30, 45].map(d => (
                 <TouchableOpacity
                   key={d}
                   onPress={() => setNoticeModal(prev => ({ ...prev, days: d }))}
-                  className={`flex-1 py-2 rounded-xl border items-center justify-center mr-1 ${
-                    noticeModal.days === d
-                      ? 'bg-[#0B6645] border-[#0B6645]'
-                      : 'bg-white border-slate-200'
-                  }`}
+                  style={{
+                    flex: 1,
+                    paddingVertical: 10,
+                    borderRadius: 14,
+                    borderWidth: 1,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginRight: d === 45 ? 0 : 8,
+                    backgroundColor: noticeModal.days === d ? '#4F5330' : '#FAF7F2',
+                    borderColor: noticeModal.days === d ? '#4F5330' : '#E5DDCD',
+                  }}
                 >
                   <Text
-                    className={`text-xs font-bold ${
-                      noticeModal.days === d ? 'text-white' : 'text-slate-700'
-                    }`}
+                    style={{
+                      fontSize: 13,
+                      fontWeight: '700',
+                      color: noticeModal.days === d ? '#FFFFFF' : '#657080',
+                    }}
                   >
                     {d} days
                   </Text>
@@ -845,31 +1252,61 @@ export default function TenantsScreen() {
               ))}
             </View>
 
-            <Text className="text-xs font-bold text-slate-700 mb-1">Notes (Optional)</Text>
+            <Text style={{ fontSize: 13, fontWeight: '700', color: '#0C192B', marginBottom: 6 }}>
+              Notes (Optional)
+            </Text>
             <TextInput
               value={noticeModal.notes}
               onChangeText={text => setNoticeModal(prev => ({ ...prev, notes: text }))}
               placeholder="e.g. Relocating for new job"
-              className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 mb-6"
+              placeholderTextColor="#8E98A0"
+              style={{
+                backgroundColor: '#FAF7F2',
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+                borderRadius: 14,
+                paddingHorizontal: 14,
+                paddingVertical: 10,
+                fontSize: 13,
+                color: '#0C192B',
+                marginBottom: 20,
+              }}
             />
 
-            <View className="flex-row items-center">
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <TouchableOpacity
                 onPress={() => setNoticeModal(prev => ({ ...prev, visible: false }))}
-                className="flex-1 py-3 border border-slate-200 rounded-full items-center mr-2"
+                style={{
+                  flex: 1,
+                  paddingVertical: 12,
+                  borderWidth: 1,
+                  borderColor: '#E5DDCD',
+                  borderRadius: 9999,
+                  alignItems: 'center',
+                  marginRight: 8,
+                }}
               >
-                <Text className="text-xs font-bold text-slate-600">Cancel</Text>
+                <Text style={{ fontSize: 13, fontWeight: '700', color: '#657080' }}>Cancel</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 onPress={handleStartNoticeSubmit}
                 disabled={noticeModal.isSubmitting}
-                className="flex-1 py-3 bg-[#0B6645] rounded-full items-center ml-2"
+                style={{
+                  flex: 1,
+                  paddingVertical: 12,
+                  backgroundColor: '#4F5330',
+                  borderRadius: 9999,
+                  alignItems: 'center',
+                  marginLeft: 8,
+                }}
               >
                 {noticeModal.isSubmitting ? (
-                  <ActivityIndicator size="small" color="#ffffff" />
+                  <ActivityIndicator size="small" color="#FFFFFF" />
                 ) : (
-                  <Text className="text-xs font-bold text-white">Confirm Notice</Text>
+                  <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF' }}>
+                    Confirm Notice
+                  </Text>
                 )}
               </TouchableOpacity>
             </View>
