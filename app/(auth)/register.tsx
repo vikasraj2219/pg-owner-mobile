@@ -597,12 +597,12 @@ export default function RegisterScreen() {
                   alignItems: 'center',
                   justifyContent: 'center',
                   marginRight: 12,
-                  backgroundColor: agreedToTerms ? '#4F5330' : '#FFFFFF',
+                  backgroundColor: agreedToTerms ? '#19D3E6' : '#FFFFFF',
                   borderWidth: agreedToTerms ? 0 : 1.5,
                   borderColor: fieldErrors.agreedToTerms ? '#BE123C' : '#CBD5E1',
                 }}
               >
-                {agreedToTerms && <Check size={16} color="#FFFFFF" strokeWidth={3} />}
+                {agreedToTerms && <Check size={16} color="#0C192B" strokeWidth={3} />}
               </View>
               <Text style={{ fontSize: 13, color: '#0C192B', flex: 1, lineHeight: 18 }}>
                 I agree to the{' '}
@@ -632,15 +632,15 @@ export default function RegisterScreen() {
             <TouchableOpacity
               activeOpacity={0.88}
               style={{
-                backgroundColor: '#4F5330',
+                backgroundColor: '#19D3E6',
                 borderRadius: 9999,
                 height: 52,
                 alignItems: 'center',
                 justifyContent: 'center',
                 flexDirection: 'row',
-                shadowColor: '#4F5330',
+                shadowColor: '#19D3E6',
                 shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.15,
+                shadowOpacity: 0.25,
                 shadowRadius: 4,
                 elevation: 2,
                 marginBottom: 24,
@@ -650,11 +650,11 @@ export default function RegisterScreen() {
             >
               {isSubmitting ? (
                 <>
-                  <ActivityIndicator color="#ffffff" size="small" />
+                  <ActivityIndicator color="#0C192B" size="small" />
                   <Text
                     style={{
-                      color: '#FFFFFF',
-                      fontWeight: '700',
+                      color: '#0C192B',
+                      fontWeight: '800',
                       fontSize: 16,
                       marginLeft: 8,
                     }}
@@ -663,7 +663,7 @@ export default function RegisterScreen() {
                   </Text>
                 </>
               ) : (
-                <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 16 }}>
+                <Text style={{ color: '#0C192B', fontWeight: '800', fontSize: 16 }}>
                   Create account
                 </Text>
               )}

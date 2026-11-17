@@ -385,15 +385,15 @@ export default function LoginScreen() {
                 <TouchableOpacity
                   activeOpacity={0.88}
                   style={{
-                    backgroundColor: '#4F5330',
+                    backgroundColor: '#19D3E6',
                     borderRadius: 9999,
                     height: 52,
                     alignItems: 'center',
                     justifyContent: 'center',
                     flexDirection: 'row',
-                    shadowColor: '#4F5330',
+                    shadowColor: '#19D3E6',
                     shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.15,
+                    shadowOpacity: 0.25,
                     shadowRadius: 4,
                     elevation: 2,
                   }}
@@ -402,11 +402,11 @@ export default function LoginScreen() {
                 >
                   {isSubmitting ? (
                     <>
-                      <ActivityIndicator color="#ffffff" size="small" />
+                      <ActivityIndicator color="#0C192B" size="small" />
                       <Text
                         style={{
-                          color: '#FFFFFF',
-                          fontWeight: '700',
+                          color: '#0C192B',
+                          fontWeight: '800',
                           fontSize: 16,
                           marginLeft: 8,
                         }}
@@ -415,7 +415,7 @@ export default function LoginScreen() {
                       </Text>
                     </>
                   ) : (
-                    <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 16 }}>
+                    <Text style={{ color: '#0C192B', fontWeight: '800', fontSize: 16 }}>
                       Log in
                     </Text>
                   )}

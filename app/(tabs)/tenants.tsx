@@ -562,19 +562,19 @@ export default function TenantsScreen() {
             style={{
               flexDirection: 'row',
               alignItems: 'center',
-              backgroundColor: '#4F5330',
+              backgroundColor: '#19D3E6',
               paddingHorizontal: 24,
               paddingVertical: 14,
               borderRadius: 9999,
-              shadowColor: '#4F5330',
+              shadowColor: '#19D3E6',
               shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.2,
+              shadowOpacity: 0.25,
               shadowRadius: 4,
               elevation: 2,
             }}
           >
-            <Plus size={18} color="#FFFFFF" strokeWidth={2.5} />
-            <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 14, marginLeft: 6 }}>
+            <Plus size={18} color="#0C192B" strokeWidth={2.5} />
+            <Text style={{ color: '#0C192B', fontWeight: '800', fontSize: 14, marginLeft: 6 }}>
               Add tenant
             </Text>
           </TouchableOpacity>
@@ -784,31 +784,33 @@ export default function TenantsScreen() {
         </ScrollView>
       )}
 
-      {/* Floating Action Button (+ Add tenant) */}
-      <View style={{ position: 'absolute', bottom: 24, right: 20 }}>
-        <TouchableOpacity
-          onPress={() => router.push('/tenants/add' as any)}
-          activeOpacity={0.85}
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            backgroundColor: '#19D3E6',
-            paddingHorizontal: 20,
-            paddingVertical: 14,
-            borderRadius: 9999,
-            shadowColor: '#19D3E6',
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.35,
-            shadowRadius: 8,
-            elevation: 6,
-          }}
-        >
-          <Plus size={20} color="#0C192B" strokeWidth={2.5} />
-          <Text style={{ color: '#0C192B', fontWeight: '800', fontSize: 14, marginLeft: 6 }}>
-            Add tenant
-          </Text>
-        </TouchableOpacity>
-      </View>
+      {/* Floating Action Button (+ Add tenant) - only shown when tenants list is not empty */}
+      {filteredTenants.length > 0 && (
+        <View style={{ position: 'absolute', bottom: 24, right: 20 }}>
+          <TouchableOpacity
+            onPress={() => router.push('/tenants/add' as any)}
+            activeOpacity={0.85}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: '#19D3E6',
+              paddingHorizontal: 20,
+              paddingVertical: 14,
+              borderRadius: 9999,
+              shadowColor: '#19D3E6',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.35,
+              shadowRadius: 8,
+              elevation: 6,
+            }}
+          >
+            <Plus size={20} color="#0C192B" strokeWidth={2.5} />
+            <Text style={{ color: '#0C192B', fontWeight: '800', fontSize: 14, marginLeft: 6 }}>
+              Add tenant
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* Undo Floating Banner */}
       {undoToast.visible && (

@@ -271,8 +271,10 @@ export default function PulseScreen() {
                 </TouchableOpacity>
               </View>
 
-              {/* Hero Card: Total Collections */}
-              <View
+              {/* Hero Card: Total Collections (Tap to view dues & collections) */}
+              <TouchableOpacity
+                activeOpacity={0.9}
+                onPress={() => router.push('/(tabs)/dues')}
                 style={{
                   backgroundColor: '#4F5330',
                   borderRadius: 24,
@@ -326,7 +328,7 @@ export default function PulseScreen() {
                 <Text style={{ fontSize: 13, fontWeight: '700', color: '#A8D5BA', marginTop: 2 }}>
                   ↑ {collectionChangeText}
                 </Text>
-              </View>
+              </TouchableOpacity>
 
               {/* Two-Column Stats: Occupied Beds & Active Tenants */}
               <View style={{ flexDirection: 'row', gap: 14, marginBottom: 18 }}>
@@ -416,7 +418,7 @@ export default function PulseScreen() {
                   </Text>
                   <TouchableOpacity activeOpacity={0.7} onPress={() => setShowPropertyPicker(true)}>
                     <Text style={{ fontSize: 13, fontWeight: '700', color: '#0C192B' }}>
-                      View All →
+                      View All
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -558,7 +560,7 @@ export default function PulseScreen() {
                   {/* Check-in */}
                   <TouchableOpacity
                     activeOpacity={0.8}
-                    onPress={() => router.push('/(tabs)/matrix')}
+                    onPress={() => router.push('/tenants/add' as any)}
                     style={{
                       flex: 1,
                       backgroundColor: '#FFFDF8',
@@ -710,7 +712,9 @@ export default function PulseScreen() {
                   </View>
                 </TouchableOpacity>
               ) : (
-                <View
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  onPress={() => router.push('/(tabs)/dues')}
                   style={{
                     backgroundColor: '#F0FDF4',
                     borderWidth: 1,
@@ -745,7 +749,7 @@ export default function PulseScreen() {
                       Zero overdue accounts pending
                     </Text>
                   </View>
-                </View>
+                </TouchableOpacity>
               )}
             </View>
           )}

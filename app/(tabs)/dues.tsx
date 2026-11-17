@@ -453,19 +453,21 @@ export default function DuesScreen() {
             elevation: 1,
           }}
         >
-          {/* Sky Blue Wallet Icon */}
+          {/* Total Outstanding Brand Icon */}
           <View
             style={{
-              width: 52,
-              height: 52,
+              width: 48,
+              height: 48,
               borderRadius: 14,
-              backgroundColor: '#E6FBFC',
+              backgroundColor: '#FAF7F2',
+              borderWidth: 1,
+              borderColor: '#E5DDCD',
               alignItems: 'center',
               justifyContent: 'center',
               marginRight: 16,
             }}
           >
-            <Wallet size={30} color="#19D3E6" strokeWidth={2.2} />
+            <Wallet size={26} color="#4F5330" strokeWidth={2.3} />
           </View>
 
           {/* Texts: Label on top, Large Amount below */}
