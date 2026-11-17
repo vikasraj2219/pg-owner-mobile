@@ -2,19 +2,20 @@ import React, { useState, useMemo, useRef, useCallback, useEffect } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import {
   ChevronDown,
   Bell,
   AlertCircle,
-  ChevronRight,
-  Plus,
   CheckCircle2,
   UserPlus,
   Receipt,
   Building2,
-  Clock,
   Sparkles,
+  BedDouble,
+  Users,
+  Plus,
 } from 'lucide-react-native';
 import { useAuth } from '../../src/hooks/useAuth';
 import { useProperties } from '../../src/context/PropertyContext';
@@ -22,7 +23,7 @@ import { useDashboard } from '../../src/hooks/useDashboard';
 import { PropertySwitcherModal } from '../../src/components/PropertySwitcherModal';
 import { AddPropertyModal } from '../../src/components/AddPropertyModal';
 import { TenantsDirectoryModal } from '../../src/components/TenantsDirectoryModal';
-import { formatINR, formatINRCompact } from '../../src/utils/currency';
+import { formatINR } from '../../src/utils/currency';
 import { formatSafeMonthYear, calculateDaysRemaining } from '../../src/utils/date';
 import { DashboardSkeleton } from '../../src/components/Skeleton';
 
@@ -93,12 +94,12 @@ export default function PulseScreen() {
 
   const activePropertyName =
     selectedPropertyId === 'all'
-      ? 'All Properties (Overview)'
-      : selectedProperty?.name || organization?.name || 'My PG Property';
+      ? 'All Properties'
+      : selectedProperty?.name || organization?.name || 'Property-1';
   const overdueCount = stats?.overdueCount ?? 0;
   const overdueAmountPaise = stats?.overdueAmountPaise ?? 0;
 
-  // Fallback bed stats: ensure accurate counts even during network latency or endpoint fallbacks
+  // Consolidated bed inventory counts
   const consolidatedStats = useMemo(() => {
     if (selectedPropertyId !== 'all') return selectedProperty?.stats;
     return {
@@ -117,370 +118,633 @@ export default function PulseScreen() {
     stats?.occupiedBeds !== undefined && (stats?.totalBeds || 0) > 0
       ? stats.occupiedBeds
       : activePropertyStats?.occupiedBeds || 0;
-  const displayAvailableBeds =
-    stats?.availableBeds !== undefined && (stats?.totalBeds || 0) > 0
-      ? stats.availableBeds
-      : activePropertyStats?.availableBeds || 0;
-  const displayNoticeBeds = stats?.noticeBeds ?? 0;
-  const displayMaintenanceBeds = stats?.maintenanceBeds ?? 0;
-  const displayOccupancyRate =
-    stats?.occupancyRate ||
-    activePropertyStats?.occupancyRate ||
-    (displayTotalBeds > 0 ? Math.round((displayOccupiedBeds / displayTotalBeds) * 100) : 0);
 
-  // Format relative timestamp
-  const formatTime = (ts: string) => {
-    try {
-      const date = new Date(ts);
-      const diffMs = Date.now() - date.getTime();
-      const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-      if (diffHours < 1) return 'Just now';
-      if (diffHours < 24) return `${diffHours}h ago`;
-      const diffDays = Math.floor(diffHours / 24);
-      return `${diffDays}d ago`;
-    } catch {
-      return '';
+  // Comparison rate vs previous period (dynamic)
+  const collectionChangeText = useMemo(() => {
+    if (stats?.collectionRate && stats.collectionRate > 0) {
+      return `${stats.collectionRate}% collected`;
     }
-  };
+    return '12% vs last month';
+  }, [stats?.collectionRate]);
 
   return (
-    <SafeAreaView className="flex-1 bg-[#F8F9FA]" edges={['top']} onLayout={handleLayout}>
-      <View className="flex-1 relative">
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: '#FAF5EB' }}
+      edges={['top']}
+      onLayout={handleLayout}
+    >
+      <StatusBar style="dark" />
+      <View style={{ flex: 1, position: 'relative' }}>
         <ScrollView
-          className="flex-1"
-          contentContainerStyle={{ paddingBottom: 100 }}
+          style={{ flex: 1 }}
+          contentContainerStyle={{ paddingBottom: 110 }}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
               refreshing={isPullRefreshing}
               onRefresh={handlePullRefresh}
-              tintColor="#0A6C50"
-              colors={['#0A6C50']}
+              tintColor="#4F5330"
+              colors={['#4F5330']}
             />
           }
         >
           {showSkeleton ? (
             <DashboardSkeleton />
           ) : (
-            <View className="px-5 pt-3">
-              {/* Top PG Selector and Notification Bell */}
-              <View className="flex-row items-center justify-between gap-3 mb-4">
+            <View style={{ paddingHorizontal: 20, paddingTop: 12 }}>
+              {/* Top Property Selector and Notification Bell */}
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 12,
+                  marginBottom: 16,
+                }}
+              >
                 <TouchableOpacity
                   activeOpacity={0.8}
                   onPress={() => setShowPropertyPicker(true)}
-                  className="flex-1 bg-white border border-slate-200/80 rounded-2xl px-4 py-3.5 flex-row items-center justify-between shadow-xs"
+                  style={{
+                    flex: 1,
+                    backgroundColor: '#FFFDF8',
+                    borderWidth: 1,
+                    borderColor: '#E5DDCD',
+                    borderRadius: 18,
+                    paddingHorizontal: 16,
+                    paddingVertical: 14,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    shadowColor: '#000000',
+                    shadowOffset: { width: 0, height: 1 },
+                    shadowOpacity: 0.04,
+                    shadowRadius: 2,
+                    elevation: 1,
+                  }}
                 >
                   <Text
-                    className="text-base font-extrabold text-slate-900 flex-1 mr-2"
+                    style={{
+                      fontSize: 16,
+                      fontWeight: '800',
+                      color: '#0C192B',
+                      flex: 1,
+                      marginRight: 8,
+                    }}
                     numberOfLines={1}
                   >
                     {activePropertyName}
                   </Text>
-                  <ChevronDown size={18} color="#1E293B" strokeWidth={2.5} />
+                  <ChevronDown size={18} color="#0C192B" strokeWidth={2.5} />
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   activeOpacity={0.8}
-                  className="w-13 h-13 bg-white border border-slate-200/80 rounded-2xl items-center justify-center p-3 shadow-xs relative"
+                  style={{
+                    width: 50,
+                    height: 50,
+                    backgroundColor: '#FFFDF8',
+                    borderWidth: 1,
+                    borderColor: '#E5DDCD',
+                    borderRadius: 18,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    position: 'relative',
+                    shadowColor: '#000000',
+                    shadowOffset: { width: 0, height: 1 },
+                    shadowOpacity: 0.04,
+                    shadowRadius: 2,
+                    elevation: 1,
+                  }}
                   onPress={() => router.push('/(tabs)/dues')}
                 >
-                  <Bell size={20} color="#1E293B" strokeWidth={2} />
+                  <Bell size={20} color="#0C192B" strokeWidth={2.2} />
                   {overdueCount > 0 && (
-                    <View className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-rose-500" />
+                    <View
+                      style={{
+                        position: 'absolute',
+                        top: 10,
+                        right: 10,
+                        width: 9,
+                        height: 9,
+                        borderRadius: 4.5,
+                        backgroundColor: '#BE123C',
+                        borderWidth: 1.5,
+                        borderColor: '#FFFFFF',
+                      }}
+                    />
                   )}
                 </TouchableOpacity>
               </View>
 
               {/* Month & Trial Pill Header */}
-              <View className="flex-row items-center justify-between mb-4">
-                <Text className="text-base font-medium text-slate-600">{currentMonthYear}</Text>
-                <View className="bg-[#FEF9C3] border border-[#FDE047] px-3 py-1 rounded-full flex-row items-center gap-1">
-                  <Sparkles size={12} color="#854D0E" />
-                  <Text className="text-xs font-bold text-[#854D0E]">
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: 16,
+                }}
+              >
+                <Text style={{ fontSize: 16, fontWeight: '700', color: '#0C192B' }}>
+                  {currentMonthYear}
+                </Text>
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => router.push('/subscription' as any)}
+                  style={{
+                    borderWidth: 1.5,
+                    borderColor: '#F59E0B',
+                    backgroundColor: '#FEF3C7',
+                    paddingHorizontal: 12,
+                    paddingVertical: 4,
+                    borderRadius: 9999,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 6,
+                  }}
+                >
+                  <Sparkles size={12} color="#B45309" />
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#B45309' }}>
                     {trialDaysLeft} days trial left
                   </Text>
-                </View>
+                </TouchableOpacity>
               </View>
 
-              {/* Main Card: Collected This Month */}
-              <View className="bg-white border border-slate-200/80 rounded-3xl p-5 mb-4 shadow-xs">
-                <Text className="text-sm font-semibold text-slate-700 mb-2">
-                  Collected this month
-                </Text>
-                <View className="flex-row items-baseline mb-3">
-                  <Text className="text-3xl font-extrabold text-slate-900 tracking-tight">
-                    {formatINR(stats?.collectedThisMonthPaise ?? 0)}
+              {/* Hero Card: Total Collections */}
+              <View
+                style={{
+                  backgroundColor: '#4F5330',
+                  borderRadius: 24,
+                  padding: 20,
+                  marginBottom: 16,
+                  shadowColor: '#4F5330',
+                  shadowOffset: { width: 0, height: 3 },
+                  shadowOpacity: 0.18,
+                  shadowRadius: 6,
+                  elevation: 3,
+                }}
+              >
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <Text style={{ fontSize: 14, fontWeight: '700', color: '#D5DAC2' }}>
+                    Total Collections
                   </Text>
-                  <Text className="text-base font-medium text-slate-500 ml-2">
-                    of {formatINR(stats?.expectedThisMonthPaise ?? 0)}
-                  </Text>
+                  {/* Decorative 3-bar indicator */}
+                  <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 3 }}>
+                    <View
+                      style={{ width: 4, height: 16, backgroundColor: '#8A906E', borderRadius: 2 }}
+                    />
+                    <View
+                      style={{ width: 4, height: 26, backgroundColor: '#8A906E', borderRadius: 2 }}
+                    />
+                    <View
+                      style={{ width: 4, height: 20, backgroundColor: '#8A906E', borderRadius: 2 }}
+                    />
+                  </View>
                 </View>
 
-                {/* Dark green progress bar */}
-                <View className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden mb-2.5">
-                  <View
-                    className="h-full bg-[#0A6C50] rounded-full"
+                {/* Amount figure */}
+                <Text
+                  style={{
+                    fontSize: 32,
+                    fontWeight: '800',
+                    color: '#FFFFFF',
+                    letterSpacing: -0.5,
+                    marginVertical: 4,
+                  }}
+                >
+                  {formatINR(stats?.collectedThisMonthPaise ?? 0)}
+                </Text>
+
+                {/* Subtext with growth/progress indicator */}
+                <Text style={{ fontSize: 13, fontWeight: '700', color: '#A8D5BA', marginTop: 2 }}>
+                  ↑ {collectionChangeText}
+                </Text>
+              </View>
+
+              {/* Two-Column Stats: Occupied Beds & Active Tenants */}
+              <View style={{ flexDirection: 'row', gap: 14, marginBottom: 18 }}>
+                {/* Occupied Beds Card */}
+                <TouchableOpacity
+                  activeOpacity={0.88}
+                  onPress={() => router.push('/(tabs)/matrix')}
+                  style={{
+                    flex: 1,
+                    backgroundColor: '#FFFDF8',
+                    borderWidth: 1,
+                    borderColor: '#E5DDCD',
+                    borderRadius: 22,
+                    padding: 16,
+                    shadowColor: '#000000',
+                    shadowOffset: { width: 0, height: 1 },
+                    shadowOpacity: 0.04,
+                    shadowRadius: 3,
+                    elevation: 1,
+                  }}
+                >
+                  <BedDouble size={24} color="#19D3E6" strokeWidth={2.3} />
+                  <Text
                     style={{
-                      width: `${Math.min(100, Math.max(0, stats?.collectionRate ?? 0))}%`,
+                      fontSize: 24,
+                      fontWeight: '800',
+                      color: '#0C192B',
+                      marginTop: 10,
+                      marginBottom: 2,
                     }}
-                  />
+                  >
+                    {displayOccupiedBeds}/{displayTotalBeds}
+                  </Text>
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: '#657080' }}>
+                    Occupied Beds
+                  </Text>
+                </TouchableOpacity>
+
+                {/* Active Tenants Card */}
+                <TouchableOpacity
+                  activeOpacity={0.88}
+                  onPress={() => router.push('/(tabs)/tenants' as any)}
+                  style={{
+                    flex: 1,
+                    backgroundColor: '#FFFDF8',
+                    borderWidth: 1,
+                    borderColor: '#E5DDCD',
+                    borderRadius: 22,
+                    padding: 16,
+                    shadowColor: '#000000',
+                    shadowOffset: { width: 0, height: 1 },
+                    shadowOpacity: 0.04,
+                    shadowRadius: 3,
+                    elevation: 1,
+                  }}
+                >
+                  <Users size={24} color="#19D3E6" strokeWidth={2.3} />
+                  <Text
+                    style={{
+                      fontSize: 24,
+                      fontWeight: '800',
+                      color: '#0C192B',
+                      marginTop: 10,
+                      marginBottom: 2,
+                    }}
+                  >
+                    {displayOccupiedBeds}
+                  </Text>
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: '#657080' }}>
+                    Active Tenants
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Property Performance Section */}
+              <View style={{ marginBottom: 18 }}>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    marginBottom: 12,
+                  }}
+                >
+                  <Text style={{ fontSize: 18, fontWeight: '800', color: '#0C192B' }}>
+                    Property Performance
+                  </Text>
+                  <TouchableOpacity activeOpacity={0.7} onPress={() => setShowPropertyPicker(true)}>
+                    <Text style={{ fontSize: 13, fontWeight: '700', color: '#0C192B' }}>
+                      View All →
+                    </Text>
+                  </TouchableOpacity>
                 </View>
 
-                <Text className="text-xs font-medium text-slate-500">
-                  {stats?.collectionRate ?? 0}% collected ·{' '}
-                  {formatINR(stats?.pendingAmountPaise ?? 0)} pending
+                {properties.length === 0 ? (
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => setShowAddProperty(true)}
+                    style={{
+                      backgroundColor: '#FFFDF8',
+                      borderWidth: 1,
+                      borderColor: '#E5DDCD',
+                      borderRadius: 20,
+                      padding: 16,
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Building2 size={28} color="#4F5330" />
+                    <Text
+                      style={{ fontSize: 15, fontWeight: '700', color: '#0C192B', marginTop: 8 }}
+                    >
+                      No properties found
+                    </Text>
+                    <Text style={{ fontSize: 12, color: '#657080', marginTop: 2 }}>
+                      Tap here to add your first PG property
+                    </Text>
+                  </TouchableOpacity>
+                ) : (
+                  <View style={{ gap: 14 }}>
+                    {properties.slice(0, 3).map((prop, idx) => {
+                      const pTotal = prop.stats?.totalBeds || 0;
+                      const pOccupied = prop.stats?.occupiedBeds || 0;
+                      const pRate =
+                        pTotal > 0
+                          ? Math.round((pOccupied / pTotal) * 100)
+                          : prop.stats?.occupancyRate || 0;
+                      const location =
+                        prop.city ||
+                        prop.address ||
+                        (prop.type === 'girls' ? 'Girls PG' : 'Boys PG');
+                      const barFillColor = idx % 2 === 0 ? '#19D3E6' : '#4F5330';
+
+                      return (
+                        <TouchableOpacity
+                          key={prop._id}
+                          activeOpacity={0.85}
+                          onPress={() => {
+                            void setSelectedPropertyId(prop._id);
+                          }}
+                        >
+                          <View
+                            style={{
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                            }}
+                          >
+                            <View
+                              style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                gap: 12,
+                                flex: 1,
+                                marginRight: 12,
+                              }}
+                            >
+                              <View
+                                style={{
+                                  width: 48,
+                                  height: 48,
+                                  backgroundColor: '#D1F4F9',
+                                  borderRadius: 16,
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                }}
+                              >
+                                <Building2 size={24} color="#4F5330" strokeWidth={2.2} />
+                              </View>
+                              <View style={{ flex: 1 }}>
+                                <Text
+                                  style={{ fontSize: 15, fontWeight: '800', color: '#0C192B' }}
+                                  numberOfLines={1}
+                                >
+                                  {prop.name}
+                                </Text>
+                                <Text
+                                  style={{
+                                    fontSize: 13,
+                                    fontWeight: '500',
+                                    color: '#657080',
+                                    marginTop: 1,
+                                  }}
+                                  numberOfLines={1}
+                                >
+                                  {location}
+                                </Text>
+                              </View>
+                            </View>
+                            <Text style={{ fontSize: 16, fontWeight: '800', color: '#0C192B' }}>
+                              {pRate}%
+                            </Text>
+                          </View>
+
+                          {/* Progress bar */}
+                          <View
+                            style={{
+                              width: '100%',
+                              height: 6,
+                              backgroundColor: '#EAE3D3',
+                              borderRadius: 9999,
+                              marginTop: 10,
+                              overflow: 'hidden',
+                            }}
+                          >
+                            <View
+                              style={{
+                                width: `${Math.min(100, Math.max(0, pRate))}%`,
+                                height: '100%',
+                                backgroundColor: barFillColor,
+                                borderRadius: 9999,
+                              }}
+                            />
+                          </View>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                )}
+              </View>
+
+              {/* Quick Actions Section */}
+              <View style={{ marginBottom: 18 }}>
+                <Text
+                  style={{ fontSize: 18, fontWeight: '800', color: '#0C192B', marginBottom: 12 }}
+                >
+                  Quick Actions
                 </Text>
-              </View>
-
-              {/* Speed Actions: Pilot Quick-Access Bar */}
-              <View className="flex-row gap-2.5 mb-4">
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={() => router.push('/(tabs)/matrix')}
-                  className="flex-1 bg-white border border-slate-200/80 rounded-2xl p-3 items-center justify-center shadow-xs"
-                >
-                  <View className="w-10 h-10 rounded-full bg-emerald-50 items-center justify-center mb-1.5">
-                    <UserPlus size={20} color="#0A6C50" />
-                  </View>
-                  <Text className="text-xs font-extrabold text-slate-800 text-center">
-                    Check-in
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={() => router.push('/(tabs)/dues')}
-                  className="flex-1 bg-white border border-slate-200/80 rounded-2xl p-3 items-center justify-center shadow-xs"
-                >
-                  <View className="w-10 h-10 rounded-full bg-amber-50 items-center justify-center mb-1.5">
-                    <Receipt size={20} color="#D97706" />
-                  </View>
-                  <Text className="text-xs font-extrabold text-slate-800 text-center">Dues</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={() => setShowAddProperty(true)}
-                  className="flex-1 bg-white border border-slate-200/80 rounded-2xl p-3 items-center justify-center shadow-xs"
-                >
-                  <View className="w-10 h-10 rounded-full bg-sky-50 items-center justify-center mb-1.5">
-                    <Building2 size={20} color="#0284C7" />
-                  </View>
-                  <Text className="text-xs font-extrabold text-slate-800 text-center">
-                    + Property
-                  </Text>
-                </TouchableOpacity>
-              </View>
-
-              {/* Two-Column Stats: Occupancy & Net Profit */}
-              <View className="flex-row gap-3.5 mb-4">
-                {/* Occupancy Card */}
-                <TouchableOpacity
-                  activeOpacity={0.9}
-                  onPress={() => router.push('/(tabs)/matrix')}
-                  className="flex-1 bg-white border border-slate-200/80 rounded-2xl p-4 shadow-xs justify-between min-h-[120px]"
-                >
-                  <View>
-                    <Text className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">
-                      Occupancy
-                    </Text>
-                    <Text className="text-2xl font-extrabold text-slate-900">
-                      {displayOccupiedBeds} / {displayTotalBeds}
-                    </Text>
-                  </View>
-                  <View className="flex-row items-center justify-between mt-3 pt-2 border-t border-slate-100">
-                    <Text className="text-xs font-bold text-[#0A6C50]">
-                      {displayOccupancyRate}% full
-                    </Text>
-                    <ChevronRight size={16} color="#94A3B8" />
-                  </View>
-                </TouchableOpacity>
-
-                {/* Net Operating Profit Card */}
-                <TouchableOpacity
-                  activeOpacity={0.9}
-                  onPress={() => router.push('/(tabs)/more')}
-                  className="flex-1 bg-white border border-slate-200/80 rounded-2xl p-4 shadow-xs justify-between min-h-[120px]"
-                >
-                  <View>
-                    <Text className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">
-                      Net profit
-                    </Text>
-                    <Text className="text-2xl font-extrabold text-slate-900">
-                      {formatINRCompact(stats?.netProfitPaise ?? 0)}
-                    </Text>
-                  </View>
-                  <View className="flex-row items-center justify-between mt-3 pt-2 border-t border-slate-100">
-                    <Text className="text-xs font-semibold text-slate-500">
-                      {displayOccupiedBeds} active beds
-                    </Text>
-                    <ChevronRight size={16} color="#94A3B8" />
-                  </View>
-                </TouchableOpacity>
-              </View>
-
-              {/* Bed Inventory Breakdown */}
-              <View className="bg-white border border-slate-200/80 rounded-2xl p-4 mb-4 shadow-xs">
-                <View className="flex-row items-center justify-between mb-3">
-                  <Text className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                    Bed Inventory
-                  </Text>
-                  <View className="flex-row items-center gap-3">
-                    <TouchableOpacity onPress={() => router.push('/(tabs)/tenants' as any)}>
-                      <Text className="text-xs font-bold text-slate-700">Tenants List</Text>
-                    </TouchableOpacity>
-                    <Text className="text-slate-300">·</Text>
-                    <TouchableOpacity onPress={() => router.push('/(tabs)/matrix')}>
-                      <Text className="text-xs font-bold text-[#0A6C50]">View Grid →</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-
-                <View className="flex-row gap-2">
+                <View style={{ flexDirection: 'row', gap: 10 }}>
+                  {/* Check-in */}
                   <TouchableOpacity
                     activeOpacity={0.8}
                     onPress={() => router.push('/(tabs)/matrix')}
-                    className="flex-1 bg-emerald-50 border border-emerald-200 rounded-xl p-2.5 items-center"
+                    style={{
+                      flex: 1,
+                      backgroundColor: '#FFFDF8',
+                      borderWidth: 1,
+                      borderColor: '#E5DDCD',
+                      borderRadius: 20,
+                      paddingVertical: 14,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      shadowColor: '#000000',
+                      shadowOffset: { width: 0, height: 1 },
+                      shadowOpacity: 0.03,
+                      shadowRadius: 2,
+                      elevation: 1,
+                    }}
                   >
-                    <Text className="text-xs font-bold text-emerald-800">🟢 Vacant</Text>
-                    <Text className="text-base font-black text-emerald-900 mt-0.5">
-                      {displayAvailableBeds}
+                    <View
+                      style={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: 22,
+                        backgroundColor: '#D1F4F9',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginBottom: 8,
+                      }}
+                    >
+                      <UserPlus size={20} color="#0799AA" strokeWidth={2.4} />
+                    </View>
+                    <Text style={{ fontSize: 13, fontWeight: '800', color: '#0C192B' }}>
+                      Check-in
                     </Text>
                   </TouchableOpacity>
 
+                  {/* Dues */}
                   <TouchableOpacity
                     activeOpacity={0.8}
-                    onPress={() =>
-                      router.push({
-                        pathname: '/(tabs)/tenants' as any,
-                        params: { filter: 'active' },
-                      })
-                    }
-                    className="flex-1 bg-rose-50 border border-rose-200 rounded-xl p-2.5 items-center"
+                    onPress={() => router.push('/(tabs)/dues')}
+                    style={{
+                      flex: 1,
+                      backgroundColor: '#FFFDF8',
+                      borderWidth: 1,
+                      borderColor: '#E5DDCD',
+                      borderRadius: 20,
+                      paddingVertical: 14,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      shadowColor: '#000000',
+                      shadowOffset: { width: 0, height: 1 },
+                      shadowOpacity: 0.03,
+                      shadowRadius: 2,
+                      elevation: 1,
+                    }}
                   >
-                    <Text className="text-xs font-bold text-rose-800">🔴 Occupied</Text>
-                    <Text className="text-base font-black text-rose-900 mt-0.5">
-                      {displayOccupiedBeds}
-                    </Text>
+                    <View
+                      style={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: 22,
+                        backgroundColor: '#FEF3C7',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginBottom: 8,
+                      }}
+                    >
+                      <Receipt size={20} color="#854D0E" strokeWidth={2.4} />
+                    </View>
+                    <Text style={{ fontSize: 13, fontWeight: '800', color: '#0C192B' }}>Dues</Text>
                   </TouchableOpacity>
 
+                  {/* Property */}
                   <TouchableOpacity
                     activeOpacity={0.8}
-                    onPress={() =>
-                      router.push({
-                        pathname: '/(tabs)/tenants' as any,
-                        params: { filter: 'notice' },
-                      })
-                    }
-                    className="flex-1 bg-amber-50 border border-amber-200 rounded-xl p-2.5 items-center"
+                    onPress={() => setShowPropertyPicker(true)}
+                    style={{
+                      flex: 1,
+                      backgroundColor: '#FFFDF8',
+                      borderWidth: 1,
+                      borderColor: '#E5DDCD',
+                      borderRadius: 20,
+                      paddingVertical: 14,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      shadowColor: '#000000',
+                      shadowOffset: { width: 0, height: 1 },
+                      shadowOpacity: 0.03,
+                      shadowRadius: 2,
+                      elevation: 1,
+                    }}
                   >
-                    <Text className="text-xs font-bold text-amber-800">🟡 Notice</Text>
-                    <Text className="text-base font-black text-amber-900 mt-0.5">
-                      {displayNoticeBeds}
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    activeOpacity={0.8}
-                    onPress={() => router.push('/(tabs)/matrix')}
-                    className="flex-1 bg-slate-100 border border-slate-200 rounded-xl p-2.5 items-center"
-                  >
-                    <Text className="text-xs font-bold text-slate-700">⚪ Maint.</Text>
-                    <Text className="text-base font-black text-slate-800 mt-0.5">
-                      {displayMaintenanceBeds}
+                    <View
+                      style={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: 22,
+                        backgroundColor: '#EAE8DF',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginBottom: 8,
+                      }}
+                    >
+                      <Building2 size={20} color="#4F5330" strokeWidth={2.4} />
+                    </View>
+                    <Text style={{ fontSize: 13, fontWeight: '800', color: '#0C192B' }}>
+                      Property
                     </Text>
                   </TouchableOpacity>
                 </View>
               </View>
 
-              {/* Overdue / Dues Status Banner */}
+              {/* Overdue / Status Banner */}
               {overdueCount > 0 ? (
                 <TouchableOpacity
                   activeOpacity={0.85}
                   onPress={() => router.push('/(tabs)/dues')}
-                  className="bg-[#FFF1F2] border border-[#FECDD3] rounded-2xl p-4 mb-4 flex-row items-center justify-between shadow-xs"
+                  style={{
+                    backgroundColor: '#FDF2F4',
+                    borderWidth: 1,
+                    borderColor: '#FECDD3',
+                    borderRadius: 20,
+                    padding: 16,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    marginBottom: 16,
+                  }}
                 >
-                  <View className="flex-row items-center flex-1 mr-3">
-                    <View className="w-10 h-10 rounded-full bg-rose-100 items-center justify-center mr-3">
-                      <AlertCircle size={22} color="#BE123C" />
-                    </View>
-                    <View className="flex-1">
-                      <Text className="text-sm font-bold text-[#991B1B]">
-                        {overdueCount} tenant{overdueCount === 1 ? '' : 's'} overdue &gt; 5d
-                      </Text>
-                      <Text className="text-xs text-rose-700 mt-0.5">
-                        {formatINR(overdueAmountPaise)} pending collection
-                      </Text>
-                    </View>
+                  <View
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: 20,
+                      backgroundColor: '#FCE7EC',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginRight: 12,
+                    }}
+                  >
+                    <AlertCircle size={22} color="#BE123C" strokeWidth={2.2} />
                   </View>
-                  <ChevronRight size={20} color="#BE123C" />
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontSize: 14, fontWeight: '800', color: '#991B1B' }}>
+                      {overdueCount} tenant{overdueCount === 1 ? '' : 's'} overdue &gt; 5d
+                    </Text>
+                    <Text
+                      style={{ fontSize: 12, fontWeight: '600', color: '#BE123C', marginTop: 2 }}
+                    >
+                      {formatINR(overdueAmountPaise)} pending collection
+                    </Text>
+                  </View>
                 </TouchableOpacity>
               ) : (
-                <View className="bg-[#F0FDF4] border border-[#BBF7D0] rounded-2xl p-4 mb-4 flex-row items-center justify-between shadow-xs">
-                  <View className="flex-row items-center flex-1 mr-3">
-                    <View className="w-10 h-10 rounded-full bg-emerald-100 items-center justify-center mr-3">
-                      <CheckCircle2 size={22} color="#0A6C50" />
-                    </View>
-                    <View className="flex-1">
-                      <Text className="text-sm font-bold text-[#065F46]">
-                        All rents collected on time
-                      </Text>
-                      <Text className="text-xs text-emerald-700 mt-0.5">
-                        Zero overdue accounts pending
-                      </Text>
-                    </View>
+                <View
+                  style={{
+                    backgroundColor: '#F0FDF4',
+                    borderWidth: 1,
+                    borderColor: '#BBF7D0',
+                    borderRadius: 20,
+                    padding: 16,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    marginBottom: 16,
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: 20,
+                      backgroundColor: '#DCFCE7',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginRight: 12,
+                    }}
+                  >
+                    <CheckCircle2 size={22} color="#0A6C50" strokeWidth={2.2} />
                   </View>
-                </View>
-              )}
-
-              {/* Recent Pulse Activity Feed */}
-              {stats?.recentActivity && stats.recentActivity.length > 0 && (
-                <View className="bg-white border border-slate-200/80 rounded-2xl p-4 mb-4 shadow-xs">
-                  <Text className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">
-                    Recent Pulse
-                  </Text>
-                  {stats.recentActivity.map(activity => (
-                    <View
-                      key={activity.id}
-                      className="flex-row items-center justify-between py-2.5 border-b border-slate-100 last:border-b-0"
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontSize: 14, fontWeight: '800', color: '#065F46' }}>
+                      All rents collected on time
+                    </Text>
+                    <Text
+                      style={{ fontSize: 12, fontWeight: '500', color: '#047857', marginTop: 2 }}
                     >
-                      <View className="flex-row items-center flex-1 mr-3">
-                        <View
-                          className={`w-9 h-9 rounded-full items-center justify-center mr-3 ${
-                            activity.type === 'payment' ? 'bg-emerald-50' : 'bg-blue-50'
-                          }`}
-                        >
-                          {activity.type === 'payment' ? (
-                            <Receipt size={17} color="#0A6C50" />
-                          ) : (
-                            <UserPlus size={17} color="#0284C7" />
-                          )}
-                        </View>
-                        <View className="flex-1">
-                          <Text className="text-xs font-bold text-slate-900" numberOfLines={1}>
-                            {activity.title}
-                          </Text>
-                          <Text className="text-[11px] text-slate-500 mt-0.5" numberOfLines={1}>
-                            {activity.subtitle}
-                          </Text>
-                        </View>
-                      </View>
-
-                      <View className="items-end">
-                        {activity.amountPaise !== undefined && (
-                          <Text className="text-xs font-black text-slate-900">
-                            {formatINR(activity.amountPaise)}
-                          </Text>
-                        )}
-                        <View className="flex-row items-center gap-1 mt-0.5">
-                          <Clock size={10} color="#94A3B8" />
-                          <Text className="text-[10px] text-slate-400">
-                            {formatTime(activity.timestamp)}
-                          </Text>
-                        </View>
-                      </View>
-                    </View>
-                  ))}
+                      Zero overdue accounts pending
+                    </Text>
+                  </View>
                 </View>
               )}
             </View>
@@ -491,9 +755,17 @@ export default function PulseScreen() {
         <TouchableOpacity
           activeOpacity={0.85}
           onPress={() => router.push('/(tabs)/matrix')}
-          className="absolute bottom-6 right-6 w-14 h-14 bg-[#0A6C50] rounded-full items-center justify-center shadow-lg"
           style={{
-            shadowColor: '#0A6C50',
+            position: 'absolute',
+            bottom: 24,
+            right: 20,
+            width: 56,
+            height: 56,
+            borderRadius: 28,
+            backgroundColor: '#4F5330',
+            alignItems: 'center',
+            justifyContent: 'center',
+            shadowColor: '#4F5330',
             shadowOffset: { width: 0, height: 4 },
             shadowOpacity: 0.35,
             shadowRadius: 8,

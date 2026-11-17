@@ -67,11 +67,11 @@ export const DashboardSkeleton: React.FC = () => {
     <View className="flex-1 px-5 pt-3">
       {/* Top PG Selector and Notification Bell */}
       <View className="flex-row items-center justify-between gap-3 mb-4">
-        <View className="flex-1 bg-white border border-slate-200/80 rounded-2xl px-4 py-3.5 flex-row items-center justify-between shadow-xs">
-          <Skeleton width="65%" height={20} borderRadius={6} />
+        <View className="flex-1 bg-[#FFFDF8] border border-[#E5DDCD] rounded-2xl px-4 py-3.5 flex-row items-center justify-between shadow-xs">
+          <Skeleton width="65%" height={18} borderRadius={6} />
           <Skeleton width={18} height={18} borderRadius={9} />
         </View>
-        <View className="w-13 h-13 bg-white border border-slate-200/80 rounded-2xl items-center justify-center p-3 shadow-xs">
+        <View className="w-12 h-12 bg-[#FFFDF8] border border-[#E5DDCD] rounded-2xl items-center justify-center p-3 shadow-xs">
           <Skeleton width={20} height={20} borderRadius={10} />
         </View>
       </View>
@@ -79,78 +79,127 @@ export const DashboardSkeleton: React.FC = () => {
       {/* Month & Trial Pill Header */}
       <View className="flex-row items-center justify-between mb-4">
         <Skeleton width={120} height={18} borderRadius={6} />
-        <Skeleton width={110} height={24} borderRadius={12} />
+        <Skeleton width={120} height={24} borderRadius={12} />
       </View>
 
-      {/* Main Card: Collected This Month */}
-      <View className="bg-white border border-slate-200/80 rounded-3xl p-5 mb-4 shadow-xs">
-        <Skeleton width={140} height={14} borderRadius={6} className="mb-3" />
-        <View className="flex-row items-baseline mb-4">
-          <Skeleton width={180} height={32} borderRadius={8} />
-          <Skeleton width={90} height={16} borderRadius={6} style={{ marginLeft: 8 }} />
+      {/* Hero Card: Total Collections (Olive) */}
+      <View
+        style={{
+          backgroundColor: '#4F5330',
+          borderRadius: 24,
+          padding: 20,
+          marginBottom: 16,
+        }}
+      >
+        <View className="flex-row items-center justify-between mb-2">
+          <View
+            style={{
+              width: 130,
+              height: 14,
+              borderRadius: 4,
+              backgroundColor: 'rgba(255, 255, 255, 0.35)',
+            }}
+          />
+          <View
+            style={{
+              width: 32,
+              height: 16,
+              borderRadius: 4,
+              backgroundColor: 'rgba(255, 255, 255, 0.35)',
+            }}
+          />
         </View>
-        {/* Progress bar skeleton */}
-        <Skeleton width="100%" height={10} borderRadius={5} className="mb-3" />
-        <Skeleton width="60%" height={14} borderRadius={6} />
+        <View
+          style={{
+            width: 190,
+            height: 32,
+            borderRadius: 8,
+            backgroundColor: 'rgba(255, 255, 255, 0.85)',
+            marginBottom: 12,
+          }}
+        />
+        <View
+          style={{
+            width: 140,
+            height: 14,
+            borderRadius: 4,
+            backgroundColor: 'rgba(255, 255, 255, 0.4)',
+          }}
+        />
       </View>
 
-      {/* Pilot Quick-Access Bar (3 buttons) */}
-      <View className="flex-row gap-2.5 mb-4">
-        <View className="flex-1 bg-white border border-slate-200/80 rounded-2xl p-3 items-center justify-center shadow-xs">
-          <Skeleton width={40} height={40} borderRadius={20} className="mb-2" />
-          <Skeleton width={50} height={12} borderRadius={4} />
-        </View>
-        <View className="flex-1 bg-white border border-slate-200/80 rounded-2xl p-3 items-center justify-center shadow-xs">
-          <Skeleton width={40} height={40} borderRadius={20} className="mb-2" />
-          <Skeleton width={40} height={12} borderRadius={4} />
-        </View>
-        <View className="flex-1 bg-white border border-slate-200/80 rounded-2xl p-3 items-center justify-center shadow-xs">
-          <Skeleton width={40} height={40} borderRadius={20} className="mb-2" />
-          <Skeleton width={60} height={12} borderRadius={4} />
-        </View>
-      </View>
-
-      {/* Two-Column Stats: Occupancy & Net Profit */}
+      {/* Two-Column Stats: Occupied Beds & Active Tenants */}
       <View className="flex-row gap-3.5 mb-4">
-        <View className="flex-1 bg-white border border-slate-200/80 rounded-2xl p-4 shadow-xs min-h-[120px] justify-between">
-          <View>
-            <Skeleton width={70} height={12} borderRadius={4} className="mb-2" />
-            <Skeleton width={90} height={24} borderRadius={6} />
-          </View>
-          <Skeleton width="75%" height={14} borderRadius={4} className="mt-4" />
+        <View className="flex-1 bg-[#FFFDF8] border border-[#E5DDCD] rounded-3xl p-4 shadow-xs">
+          <Skeleton width={24} height={24} borderRadius={6} className="mb-2" />
+          <Skeleton width={90} height={24} borderRadius={6} className="mb-1" />
+          <Skeleton width={80} height={14} borderRadius={4} />
         </View>
-        <View className="flex-1 bg-white border border-slate-200/80 rounded-2xl p-4 shadow-xs min-h-[120px] justify-between">
-          <View>
-            <Skeleton width={70} height={12} borderRadius={4} className="mb-2" />
-            <Skeleton width={100} height={24} borderRadius={6} />
-          </View>
-          <Skeleton width="80%" height={14} borderRadius={4} className="mt-4" />
+        <View className="flex-1 bg-[#FFFDF8] border border-[#E5DDCD] rounded-3xl p-4 shadow-xs">
+          <Skeleton width={24} height={24} borderRadius={6} className="mb-2" />
+          <Skeleton width={70} height={24} borderRadius={6} className="mb-1" />
+          <Skeleton width={80} height={14} borderRadius={4} />
         </View>
       </View>
 
-      {/* Bed Inventory Breakdown (4 items) */}
-      <View className="bg-white border border-slate-200/80 rounded-2xl p-4 mb-4 shadow-xs">
+      {/* Property Performance Skeleton */}
+      <View className="mb-4">
         <View className="flex-row items-center justify-between mb-3">
-          <Skeleton width={110} height={14} borderRadius={4} />
-          <Skeleton width={90} height={14} borderRadius={4} />
+          <Skeleton width={160} height={18} borderRadius={6} />
+          <Skeleton width={70} height={14} borderRadius={4} />
         </View>
-        <View className="flex-row gap-2">
-          <View className="flex-1 bg-slate-50 border border-slate-200/70 rounded-xl p-2.5 items-center">
-            <Skeleton width={45} height={12} borderRadius={4} className="mb-1.5" />
-            <Skeleton width={25} height={18} borderRadius={4} />
+        <View className="bg-[#FFFDF8] border border-[#E5DDCD] rounded-2xl p-4">
+          <View className="flex-row items-center justify-between mb-2">
+            <View className="flex-row items-center gap-3">
+              <Skeleton width={44} height={44} borderRadius={14} />
+              <View>
+                <Skeleton width={110} height={15} borderRadius={4} className="mb-1.5" />
+                <Skeleton width={70} height={12} borderRadius={4} />
+              </View>
+            </View>
+            <Skeleton width={36} height={16} borderRadius={4} />
           </View>
-          <View className="flex-1 bg-slate-50 border border-slate-200/70 rounded-xl p-2.5 items-center">
-            <Skeleton width={45} height={12} borderRadius={4} className="mb-1.5" />
-            <Skeleton width={25} height={18} borderRadius={4} />
+          <Skeleton width="100%" height={8} borderRadius={4} className="mb-4" />
+
+          <View className="flex-row items-center justify-between mb-2">
+            <View className="flex-row items-center gap-3">
+              <Skeleton width={44} height={44} borderRadius={14} />
+              <View>
+                <Skeleton width={95} height={15} borderRadius={4} className="mb-1.5" />
+                <Skeleton width={60} height={12} borderRadius={4} />
+              </View>
+            </View>
+            <Skeleton width={36} height={16} borderRadius={4} />
           </View>
-          <View className="flex-1 bg-slate-50 border border-slate-200/70 rounded-xl p-2.5 items-center">
-            <Skeleton width={45} height={12} borderRadius={4} className="mb-1.5" />
-            <Skeleton width={25} height={18} borderRadius={4} />
+          <Skeleton width="100%" height={8} borderRadius={4} />
+        </View>
+      </View>
+
+      {/* Quick Actions (3 buttons) */}
+      <View className="mb-4">
+        <Skeleton width={120} height={18} borderRadius={6} className="mb-3" />
+        <View className="flex-row gap-2.5">
+          <View className="flex-1 bg-[#FFFDF8] border border-[#E5DDCD] rounded-2xl p-3.5 items-center justify-center">
+            <Skeleton width={40} height={40} borderRadius={20} className="mb-2" />
+            <Skeleton width={50} height={12} borderRadius={4} />
           </View>
-          <View className="flex-1 bg-slate-50 border border-slate-200/70 rounded-xl p-2.5 items-center">
-            <Skeleton width={45} height={12} borderRadius={4} className="mb-1.5" />
-            <Skeleton width={25} height={18} borderRadius={4} />
+          <View className="flex-1 bg-[#FFFDF8] border border-[#E5DDCD] rounded-2xl p-3.5 items-center justify-center">
+            <Skeleton width={40} height={40} borderRadius={20} className="mb-2" />
+            <Skeleton width={40} height={12} borderRadius={4} />
           </View>
+          <View className="flex-1 bg-[#FFFDF8] border border-[#E5DDCD] rounded-2xl p-3.5 items-center justify-center">
+            <Skeleton width={40} height={40} borderRadius={20} className="mb-2" />
+            <Skeleton width={50} height={12} borderRadius={4} />
+          </View>
+        </View>
+      </View>
+
+      {/* Alert Banner Skeleton */}
+      <View className="bg-[#FFFDF8] border border-[#E5DDCD] rounded-2xl p-4 flex-row items-center gap-3">
+        <Skeleton width={40} height={40} borderRadius={20} />
+        <View className="flex-1">
+          <Skeleton width="70%" height={14} borderRadius={4} className="mb-1.5" />
+          <Skeleton width="50%" height={12} borderRadius={4} />
         </View>
       </View>
     </View>

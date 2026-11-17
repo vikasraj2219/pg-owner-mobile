@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
-import { View, Text } from 'react-native';
+import { View } from 'react-native';
 import { Tabs } from 'expo-router';
-import { Activity, LayoutGrid, Menu } from 'lucide-react-native';
+import { LucideIcon, Home, Users, Wallet, PlusCircle, LayoutGrid } from 'lucide-react-native';
 import * as SplashScreen from 'expo-splash-screen';
 
 export default function TabsLayout() {
@@ -12,78 +12,87 @@ export default function TabsLayout() {
     }, 3000);
     return () => clearTimeout(timer);
   }, []);
+
+  const renderTabIcon = (IconComponent: LucideIcon, focused: boolean) => {
+    if (focused) {
+      return (
+        <View
+          style={{
+            backgroundColor: '#D1F4F9',
+            paddingHorizontal: 16,
+            paddingVertical: 3,
+            borderRadius: 16,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <IconComponent color="#0C192B" size={20} strokeWidth={2.4} />
+        </View>
+      );
+    }
+    return <IconComponent color="#657080" size={22} strokeWidth={2} />;
+  };
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#0A6C50',
-        tabBarInactiveTintColor: '#64748B',
+        tabBarActiveTintColor: '#0C192B',
+        tabBarInactiveTintColor: '#657080',
         tabBarStyle: {
-          backgroundColor: '#ffffff',
-          borderTopColor: '#F0F0F0',
+          backgroundColor: '#FAF5EB',
+          borderTopColor: '#E5DDCD',
           borderTopWidth: 1,
-          paddingBottom: 6,
+          paddingBottom: 8,
           paddingTop: 6,
-          height: 64,
-          elevation: 8,
+          height: 66,
+          elevation: 4,
           shadowColor: '#000000',
           shadowOffset: { width: 0, height: -2 },
-          shadowOpacity: 0.05,
+          shadowOpacity: 0.04,
           shadowRadius: 4,
         },
         tabBarLabelStyle: {
           fontSize: 11,
-          fontWeight: '600',
-          marginTop: -2,
+          fontWeight: '700',
+          marginTop: 2,
         },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Pulse',
-          tabBarIcon: ({ color }) => <Activity color={color} size={22} strokeWidth={2.2} />,
+          title: 'Home',
+          tabBarIcon: ({ focused }) => renderTabIcon(Home, focused),
         }}
       />
       <Tabs.Screen
-        name="matrix"
+        name="tenants"
         options={{
-          title: 'Matrix',
-          tabBarIcon: ({ color }) => <LayoutGrid color={color} size={22} strokeWidth={2} />,
+          title: 'Tenants',
+          tabBarIcon: ({ focused }) => renderTabIcon(Users, focused),
         }}
       />
       <Tabs.Screen
         name="dues"
         options={{
           title: 'Dues',
-          tabBarIcon: ({ color }) => (
-            <View style={{ width: 22, height: 22, alignItems: 'center', justifyContent: 'center' }}>
-              <Text
-                style={{
-                  fontSize: 20,
-                  fontWeight: '800',
-                  color,
-                  lineHeight: 22,
-                }}
-              >
-                ₹
-              </Text>
-            </View>
-          ),
+          tabBarIcon: ({ focused }) => renderTabIcon(Wallet, focused),
         }}
       />
       <Tabs.Screen
         name="more"
         options={{
           title: 'More',
-          tabBarIcon: ({ color }) => <Menu color={color} size={22} strokeWidth={2.2} />,
+          tabBarIcon: ({ focused }) => renderTabIcon(PlusCircle, focused),
         }}
       />
       <Tabs.Screen
-        name="tenants"
+        name="matrix"
         options={{
           href: null,
-          title: 'Tenants',
+          title: 'Matrix',
+          tabBarIcon: ({ focused }) => renderTabIcon(LayoutGrid, focused),
         }}
       />
     </Tabs>
