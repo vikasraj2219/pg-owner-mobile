@@ -237,12 +237,12 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
                     key={t}
                     onPress={() => setType(t)}
                     className={`flex-1 py-3 rounded-xl items-center justify-center border shadow-xs ${
-                      isSelected ? 'bg-[#0A6C50] border-[#0A6C50]' : 'bg-white border-slate-300'
+                      isSelected ? 'bg-[#19D3E6] border-[#19D3E6]' : 'bg-white border-slate-300'
                     }`}
                   >
                     <Text
                       className={`text-sm font-extrabold ${
-                        isSelected ? 'text-white' : 'text-slate-800'
+                        isSelected ? 'text-[#0C192B]' : 'text-slate-800'
                       }`}
                     >
                       {label}
@@ -371,12 +371,12 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
             activeOpacity={0.85}
             onPress={handleSave}
             disabled={isSaving}
-            className="w-full bg-[#0A6C50] py-3.5 rounded-xl items-center justify-center shadow-xs"
+            className="w-full bg-[#19D3E6] py-3.5 rounded-xl items-center justify-center shadow-xs"
           >
             {isSaving ? (
-              <ActivityIndicator size="small" color="#FFFFFF" />
+              <ActivityIndicator size="small" color="#0C192B" />
             ) : (
-              <Text className="text-white font-extrabold text-base">Save changes</Text>
+              <Text className="text-[#0C192B] font-extrabold text-base">Save changes</Text>
             )}
           </TouchableOpacity>
         </View>

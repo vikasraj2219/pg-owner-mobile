@@ -734,9 +734,9 @@ export default function TenantDetailScreen() {
 
                 <TouchableOpacity
                   onPress={() => setSelectedInvoiceForPayment(overdueInvoice as any)}
-                  className="w-full bg-[#0B6645] py-3 rounded-full items-center justify-center"
+                  className="w-full bg-[#19D3E6] py-3 rounded-full items-center justify-center"
                 >
-                  <Text className="text-white font-bold text-sm">Mark received</Text>
+                  <Text className="text-[#0C192B] font-extrabold text-sm">Mark received</Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -1044,9 +1044,9 @@ export default function TenantDetailScreen() {
                 setCantDeleteModal(false);
                 router.push(`/checkout/${tenant._id}`);
               }}
-              className="w-full bg-[#0B6645] py-3.5 rounded-full items-center justify-center mb-3"
+              className="w-full bg-[#19D3E6] py-3.5 rounded-full items-center justify-center mb-3"
             >
-              <Text className="text-white font-bold text-base">[→ Go to checkout</Text>
+              <Text className="text-[#0C192B] font-extrabold text-base">[→ Go to checkout</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -1125,12 +1125,12 @@ export default function TenantDetailScreen() {
               <TouchableOpacity
                 onPress={handleNoticeSubmit}
                 disabled={noticeModal.isSubmitting}
-                className="flex-1 py-3 bg-[#0B6645] rounded-full items-center ml-2"
+                className="flex-1 py-3 bg-[#19D3E6] rounded-full items-center ml-2"
               >
                 {noticeModal.isSubmitting ? (
-                  <ActivityIndicator size="small" color="#ffffff" />
+                  <ActivityIndicator size="small" color="#0C192B" />
                 ) : (
-                  <Text className="text-xs font-bold text-white">Confirm Notice</Text>
+                  <Text className="text-xs font-extrabold text-[#0C192B]">Confirm Notice</Text>
                 )}
               </TouchableOpacity>
             </View>

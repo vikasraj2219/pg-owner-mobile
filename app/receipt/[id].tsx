@@ -227,10 +227,10 @@ export default function ReceiptScreen() {
         <TouchableOpacity
           activeOpacity={0.85}
           onPress={handleSharePdf}
-          className="w-full py-4 bg-[#0A6C50] rounded-2xl flex-row items-center justify-center shadow-sm"
+          className="w-full py-4 bg-[#19D3E6] rounded-2xl flex-row items-center justify-center shadow-sm"
         >
-          <Share2 size={19} color="#FFFFFF" strokeWidth={2.3} />
-          <Text className="text-base font-extrabold text-white ml-2.5">Share Receipt PDF</Text>
+          <Share2 size={19} color="#0C192B" strokeWidth={2.3} />
+          <Text className="text-base font-extrabold text-[#0C192B] ml-2.5">Share Receipt PDF</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

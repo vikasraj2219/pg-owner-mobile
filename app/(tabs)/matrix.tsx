@@ -377,17 +377,17 @@ export default function MatrixScreen() {
                   width: 38,
                   height: 38,
                   borderRadius: 12,
-                  backgroundColor: '#4F5330',
+                  backgroundColor: '#19D3E6',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  shadowColor: '#4F5330',
+                  shadowColor: '#19D3E6',
                   shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.15,
+                  shadowOpacity: 0.25,
                   shadowRadius: 3,
                   elevation: 2,
                 }}
               >
-                <Plus size={20} color="#FFFFFF" strokeWidth={2.5} />
+                <Plus size={20} color="#0C192B" strokeWidth={2.5} />
               </TouchableOpacity>
             </View>
           )}
@@ -478,15 +478,15 @@ export default function MatrixScreen() {
               marginRight: 8,
               flexDirection: 'row',
               alignItems: 'center',
-              backgroundColor: selectedFloor === 'all' ? '#4F5330' : '#FFFDF8',
-              borderColor: selectedFloor === 'all' ? '#4F5330' : '#E5DDCD',
+              backgroundColor: selectedFloor === 'all' ? '#19D3E6' : '#FFFDF8',
+              borderColor: selectedFloor === 'all' ? '#19D3E6' : '#E5DDCD',
             }}
           >
             <Text
               style={{
                 fontSize: 12,
-                fontWeight: '700',
-                color: selectedFloor === 'all' ? '#FFFFFF' : '#657080',
+                fontWeight: selectedFloor === 'all' ? '800' : '600',
+                color: selectedFloor === 'all' ? '#0C192B' : '#657080',
               }}
             >
               All Floors · {totalBedsCount} beds
@@ -512,15 +512,15 @@ export default function MatrixScreen() {
                   marginRight: 8,
                   flexDirection: 'row',
                   alignItems: 'center',
-                  backgroundColor: isActive ? '#4F5330' : '#FFFDF8',
-                  borderColor: isActive ? '#4F5330' : '#E5DDCD',
+                  backgroundColor: isActive ? '#19D3E6' : '#FFFDF8',
+                  borderColor: isActive ? '#19D3E6' : '#E5DDCD',
                 }}
               >
                 <Text
                   style={{
                     fontSize: 12,
-                    fontWeight: '700',
-                    color: isActive ? '#FFFFFF' : '#657080',
+                    fontWeight: isActive ? '800' : '600',
+                    color: isActive ? '#0C192B' : '#657080',
                   }}
                 >
                   Floor {floor} · {bedCount} beds
@@ -541,15 +541,15 @@ export default function MatrixScreen() {
               marginRight: 8,
               flexDirection: 'row',
               alignItems: 'center',
-              backgroundColor: vacantOnly ? '#4F5330' : '#FFFDF8',
-              borderColor: vacantOnly ? '#4F5330' : '#E5DDCD',
+              backgroundColor: vacantOnly ? '#19D3E6' : '#FFFDF8',
+              borderColor: vacantOnly ? '#19D3E6' : '#E5DDCD',
             }}
           >
             <Text
               style={{
                 fontSize: 12,
-                fontWeight: '700',
-                color: vacantOnly ? '#FFFFFF' : '#657080',
+                fontWeight: vacantOnly ? '800' : '600',
+                color: vacantOnly ? '#0C192B' : '#657080',
               }}
             >
               Vacant only · {vacantBedsCount}
@@ -622,7 +622,7 @@ export default function MatrixScreen() {
               activeOpacity={0.8}
               onPress={() => setIsAddPropertyOpen(true)}
               style={{
-                backgroundColor: '#4F5330',
+                backgroundColor: '#19D3E6',
                 paddingHorizontal: 24,
                 paddingVertical: 14,
                 borderRadius: 14,
@@ -630,8 +630,8 @@ export default function MatrixScreen() {
                 alignItems: 'center',
               }}
             >
-              <Plus size={18} color="#FFFFFF" strokeWidth={2.5} />
-              <Text style={{ fontSize: 14, fontWeight: '700', color: '#FFFFFF', marginLeft: 8 }}>
+              <Plus size={18} color="#0C192B" strokeWidth={2.5} />
+              <Text style={{ fontSize: 14, fontWeight: '800', color: '#0C192B', marginLeft: 8 }}>
                 Add Property
               </Text>
             </TouchableOpacity>
@@ -689,7 +689,7 @@ export default function MatrixScreen() {
               activeOpacity={0.8}
               onPress={() => refetchMatrix()}
               style={{
-                backgroundColor: '#4F5330',
+                backgroundColor: '#19D3E6',
                 paddingHorizontal: 24,
                 paddingVertical: 12,
                 borderRadius: 14,
@@ -697,8 +697,8 @@ export default function MatrixScreen() {
                 alignItems: 'center',
               }}
             >
-              <RefreshCw size={16} color="#FFFFFF" />
-              <Text style={{ fontSize: 14, fontWeight: '700', color: '#FFFFFF', marginLeft: 8 }}>
+              <RefreshCw size={16} color="#0C192B" />
+              <Text style={{ fontSize: 14, fontWeight: '800', color: '#0C192B', marginLeft: 8 }}>
                 Retry
               </Text>
             </TouchableOpacity>

@@ -150,13 +150,13 @@ export default function PickVacantBedScreen() {
             onPress={() => setSelectedFloor('all')}
             className={`px-4 py-2 rounded-full border mr-2 ${
               selectedFloor === 'all'
-                ? 'bg-[#0B6645] border-[#0B6645]'
+                ? 'bg-[#19D3E6] border-[#19D3E6]'
                 : 'bg-white border-slate-200'
             }`}
           >
             <Text
-              className={`text-xs font-bold ${
-                selectedFloor === 'all' ? 'text-white' : 'text-slate-700'
+              className={`text-xs ${
+                selectedFloor === 'all' ? 'font-black text-[#0C192B]' : 'font-bold text-slate-700'
               }`}
             >
               All floors
@@ -169,13 +169,15 @@ export default function PickVacantBedScreen() {
               onPress={() => setSelectedFloor(floorNum)}
               className={`px-4 py-2 rounded-full border mr-2 ${
                 selectedFloor === floorNum
-                  ? 'bg-[#0B6645] border-[#0B6645]'
+                  ? 'bg-[#19D3E6] border-[#19D3E6]'
                   : 'bg-white border-slate-200'
               }`}
             >
               <Text
-                className={`text-xs font-bold ${
-                  selectedFloor === floorNum ? 'text-white' : 'text-slate-700'
+                className={`text-xs ${
+                  selectedFloor === floorNum
+                    ? 'font-black text-[#0C192B]'
+                    : 'font-bold text-slate-700'
                 }`}
               >
                 Floor {floorNum}
@@ -255,10 +257,10 @@ export default function PickVacantBedScreen() {
           </Text>
           <TouchableOpacity
             onPress={handleContinue}
-            className="w-full bg-[#0B6645] py-3.5 rounded-full items-center justify-center flex-row shadow-md"
+            className="w-full bg-[#19D3E6] py-3.5 rounded-full items-center justify-center flex-row shadow-md"
           >
-            <ChevronRight size={18} color="#ffffff" strokeWidth={2.5} />
-            <Text className="text-white font-black text-sm ml-1">Continue to check-in</Text>
+            <ChevronRight size={18} color="#0C192B" strokeWidth={2.5} />
+            <Text className="text-[#0C192B] font-black text-sm ml-1">Continue to check-in</Text>
           </TouchableOpacity>
         </View>
       )}

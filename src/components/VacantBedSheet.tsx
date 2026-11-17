@@ -98,10 +98,12 @@ export const VacantBedSheet: React.FC<VacantBedSheetProps> = ({
                   onClose();
                   onCheckIn(bed._id);
                 }}
-                className="w-full bg-[#4F5330] rounded-2xl py-4 flex-row items-center justify-center mb-3.5 shadow-sm"
+                className="w-full bg-[#19D3E6] rounded-2xl py-4 flex-row items-center justify-center mb-3.5 shadow-sm"
               >
-                <UserPlus size={20} color="#FFFFFF" strokeWidth={2.5} />
-                <Text className="text-base font-extrabold text-white ml-2.5">Check in tenant</Text>
+                <UserPlus size={20} color="#0C192B" strokeWidth={2.5} />
+                <Text className="text-base font-extrabold text-[#0C192B] ml-2.5">
+                  Check in tenant
+                </Text>
               </TouchableOpacity>
 
               {/* Actions row: Mark Maintenance & Delete Bed */}

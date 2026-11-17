@@ -293,12 +293,12 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
                       setShowCustomSharing(false);
                     }}
                     className={`min-w-[48px] flex-1 py-3 rounded-xl items-center justify-center border shadow-xs ${
-                      isSelected ? 'bg-[#0A6C50] border-[#0A6C50]' : 'bg-white border-slate-300'
+                      isSelected ? 'bg-[#19D3E6] border-[#19D3E6]' : 'bg-white border-slate-300'
                     }`}
                   >
                     <Text
                       className={`text-base font-extrabold ${
-                        isSelected ? 'text-white' : 'text-slate-800'
+                        isSelected ? 'text-[#0C192B]' : 'text-slate-800'
                       }`}
                     >
                       {count}
@@ -313,12 +313,12 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
                   if (sharingType <= 4) setSharingType(5);
                 }}
                 className={`px-3 py-3 rounded-xl items-center justify-center border shadow-xs ${
-                  showCustomSharing ? 'bg-[#0A6C50] border-[#0A6C50]' : 'bg-white border-slate-300'
+                  showCustomSharing ? 'bg-[#19D3E6] border-[#19D3E6]' : 'bg-white border-slate-300'
                 }`}
               >
                 <Text
                   className={`text-xs font-extrabold ${
-                    showCustomSharing ? 'text-white' : 'text-slate-800'
+                    showCustomSharing ? 'text-[#0C192B]' : 'text-slate-800'
                   }`}
                 >
                   {showCustomSharing && sharingType > 4 ? `${sharingType} Beds` : '+ Custom'}
@@ -424,13 +424,17 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
             onPress={handleCreate}
             disabled={isSubmitting || isDuplicateRoom}
             className={`w-full rounded-xl py-4 items-center justify-center shadow-sm ${
-              isDuplicateRoom ? 'bg-slate-300' : 'bg-[#0A6C50]'
+              isDuplicateRoom ? 'bg-slate-300' : 'bg-[#19D3E6]'
             }`}
           >
             {isSubmitting ? (
-              <ActivityIndicator color="#FFFFFF" />
+              <ActivityIndicator color="#0C192B" />
             ) : (
-              <Text className="text-base font-extrabold text-white">Create room and beds</Text>
+              <Text
+                className={`text-base font-extrabold ${isDuplicateRoom ? 'text-slate-500' : 'text-[#0C192B]'}`}
+              >
+                Create room and beds
+              </Text>
             )}
           </TouchableOpacity>
         </ScrollView>

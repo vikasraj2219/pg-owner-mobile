@@ -196,9 +196,11 @@ export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
                     onClose();
                     onViewProfile(tenant._id);
                   }}
-                  className="flex-1 bg-[#4F5330] rounded-2xl py-4 items-center justify-center shadow-sm"
+                  className="flex-1 bg-[#19D3E6] rounded-2xl py-4 items-center justify-center shadow-sm"
                 >
-                  <Text className="text-base font-extrabold text-white">View dues & profile</Text>
+                  <Text className="text-base font-extrabold text-[#0C192B]">
+                    View dues & profile
+                  </Text>
                 </TouchableOpacity>
               </View>
 

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Alert, Modal, Switch } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import {
   Zap,
   TrendingDown,
@@ -209,51 +210,96 @@ export default function MoreScreen() {
   ];
 
   return (
-    <SafeAreaView className="flex-1 bg-[#F8F9FA]" edges={['top']}>
+    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: '#FAF5EB' }}>
+      <StatusBar style="dark" />
       <ScrollView
-        className="flex-1 px-5 pt-3"
+        style={{ flex: 1, paddingHorizontal: 20, paddingTop: 12 }}
         contentContainerStyle={{ paddingBottom: 60 }}
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
-        <View className="mb-4">
-          <Text className="text-3xl font-extrabold text-slate-900 tracking-tight">More</Text>
-          <Text className="text-sm font-medium text-slate-600 mt-1">Settings & Operations</Text>
+        <View style={{ marginBottom: 16 }}>
+          <Text
+            style={{
+              fontSize: 28,
+              fontWeight: '800',
+              color: '#0C192B',
+              letterSpacing: -0.5,
+            }}
+          >
+            More
+          </Text>
+          <Text style={{ fontSize: 13, fontWeight: '600', color: '#657080', marginTop: 4 }}>
+            Settings & Operations
+          </Text>
         </View>
 
         {/* Owner Profile Card */}
-        <View className="bg-white border border-slate-200/80 rounded-2xl p-4 mb-5 shadow-xs flex-row items-center">
-          <View className="w-12 h-12 rounded-full bg-[#E8F5EE] items-center justify-center mr-3.5">
-            <Text className="text-[#0A6C50] font-extrabold text-base">
+        <View
+          style={{
+            backgroundColor: '#FFFDF8',
+            borderWidth: 1,
+            borderColor: '#E5DDCD',
+            borderRadius: 20,
+            padding: 16,
+            marginBottom: 20,
+            flexDirection: 'row',
+            alignItems: 'center',
+            shadowColor: '#000000',
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.04,
+            shadowRadius: 3,
+            elevation: 1,
+          }}
+        >
+          <View
+            style={{
+              width: 48,
+              height: 48,
+              borderRadius: 24,
+              backgroundColor: '#D1F4F9',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginRight: 14,
+            }}
+          >
+            <Text style={{ color: '#0799AA', fontWeight: '800', fontSize: 16 }}>
               {getInitials(user?.name || organization?.ownerName || 'Owner')}
             </Text>
           </View>
-          <View className="flex-1 mr-2">
-            <Text className="text-base font-extrabold text-slate-900">
+          <View style={{ flex: 1, marginRight: 8 }}>
+            <Text style={{ fontSize: 16, fontWeight: '800', color: '#0C192B' }}>
               {user?.name || organization?.ownerName || 'PG Owner'}
             </Text>
-            <Text className="text-xs font-medium text-slate-500 mt-0.5">
+            <Text style={{ fontSize: 12, fontWeight: '500', color: '#657080', marginTop: 2 }}>
               {organization?.name || 'My PG Organization'} · Owner
             </Text>
           </View>
           <TouchableOpacity
             onPress={() => setShowSubscriptionModal(true)}
-            className={`border px-2.5 py-1 rounded-full ${
-              isReadOnly
-                ? 'bg-rose-50 border-rose-200'
+            style={{
+              borderWidth: 1,
+              paddingHorizontal: 10,
+              paddingVertical: 5,
+              borderRadius: 9999,
+              backgroundColor: isReadOnly
+                ? '#FFF1F2'
                 : activeStatus === 'active'
-                  ? 'bg-purple-50 border-purple-200'
-                  : 'bg-[#FEF9C3] border-[#FDE047]'
-            }`}
+                  ? '#F3E8FF'
+                  : '#FEF3C7',
+              borderColor: isReadOnly
+                ? '#FECDD3'
+                : activeStatus === 'active'
+                  ? '#E9D5FF'
+                  : '#FDE68A',
+            }}
           >
             <Text
-              className={`text-[10px] font-bold ${
-                isReadOnly
-                  ? 'text-rose-700'
-                  : activeStatus === 'active'
-                    ? 'text-purple-700'
-                    : 'text-[#854D0E]'
-              }`}
+              style={{
+                fontSize: 11,
+                fontWeight: '700',
+                color: isReadOnly ? '#BE123C' : activeStatus === 'active' ? '#6B21A8' : '#92400E',
+              }}
             >
               {isReadOnly
                 ? 'Expired'
@@ -266,12 +312,35 @@ export default function MoreScreen() {
 
         {/* Menu Sections */}
         {menuSections.map(section => (
-          <View key={section.title} className="mb-5">
-            <Text className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2.5 ml-1">
+          <View key={section.title} style={{ marginBottom: 20 }}>
+            <Text
+              style={{
+                fontSize: 12,
+                fontWeight: '700',
+                color: '#657080',
+                textTransform: 'uppercase',
+                letterSpacing: 0.8,
+                marginBottom: 10,
+                marginLeft: 4,
+              }}
+            >
               {section.title}
             </Text>
 
-            <View className="bg-white border border-slate-200/80 rounded-2xl overflow-hidden shadow-xs">
+            <View
+              style={{
+                backgroundColor: '#FFFDF8',
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+                borderRadius: 20,
+                overflow: 'hidden',
+                shadowColor: '#000000',
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.04,
+                shadowRadius: 3,
+                elevation: 1,
+              }}
+            >
               {section.items.map((item, idx) => {
                 const IconComponent = item.icon;
                 const isLast = idx === section.items.length - 1;
@@ -282,17 +351,50 @@ export default function MoreScreen() {
                     onPress={
                       item.onPress || (() => Alert.alert(item.label, `${item.label} configured.`))
                     }
-                    className={`p-4 flex-row items-center justify-between ${
-                      !isLast ? 'border-b border-slate-100' : ''
-                    }`}
+                    style={{
+                      padding: 16,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      borderBottomWidth: !isLast ? 1 : 0,
+                      borderBottomColor: '#F0EBE0',
+                    }}
                   >
-                    <View className="flex-row items-center flex-1 mr-2">
-                      <View className="w-9 h-9 rounded-xl bg-[#F0FDF4] items-center justify-center mr-3">
-                        <IconComponent size={18} color="#0A6C50" />
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        flex: 1,
+                        marginRight: 8,
+                      }}
+                    >
+                      <View
+                        style={{
+                          width: 38,
+                          height: 38,
+                          borderRadius: 12,
+                          backgroundColor: '#FAF7F2',
+                          borderWidth: 1,
+                          borderColor: '#E5DDCD',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          marginRight: 12,
+                        }}
+                      >
+                        <IconComponent size={18} color="#4F5330" />
                       </View>
-                      <View className="flex-1">
-                        <Text className="text-sm font-bold text-slate-900">{item.label}</Text>
-                        <Text className="text-xs text-slate-500 mt-0.5 font-medium">
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ fontSize: 14, fontWeight: '700', color: '#0C192B' }}>
+                          {item.label}
+                        </Text>
+                        <Text
+                          style={{
+                            fontSize: 12,
+                            color: '#657080',
+                            marginTop: 2,
+                            fontWeight: '500',
+                          }}
+                        >
                           {item.detail}
                         </Text>
                       </View>
@@ -301,11 +403,11 @@ export default function MoreScreen() {
                       <Switch
                         value={item.switchValue}
                         onValueChange={item.onSwitchChange}
-                        trackColor={{ false: '#E2E8F0', true: '#0A6C50' }}
+                        trackColor={{ false: '#E2E8F0', true: '#19D3E6' }}
                         thumbColor="#FFFFFF"
                       />
                     ) : (
-                      <ChevronRight size={18} color="#94A3B8" />
+                      <ChevronRight size={18} color="#8E98A0" />
                     )}
                   </TouchableOpacity>
                 );
@@ -318,10 +420,28 @@ export default function MoreScreen() {
         <TouchableOpacity
           activeOpacity={0.8}
           onPress={handleLogout}
-          className="bg-white border border-rose-200 rounded-2xl p-4 flex-row items-center justify-center shadow-xs mt-1"
+          style={{
+            backgroundColor: '#FFFDF8',
+            borderWidth: 1,
+            borderColor: '#FECDD3',
+            borderRadius: 16,
+            padding: 16,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginTop: 4,
+            marginBottom: 24,
+            shadowColor: '#000000',
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.04,
+            shadowRadius: 3,
+            elevation: 1,
+          }}
         >
           <LogOut size={18} color="#BE123C" />
-          <Text className="text-sm font-bold text-[#BE123C] ml-2">Log out of Nilaaya</Text>
+          <Text style={{ fontSize: 14, fontWeight: '700', color: '#BE123C', marginLeft: 8 }}>
+            Log out of Nilaaya
+          </Text>
         </TouchableOpacity>
       </ScrollView>
 

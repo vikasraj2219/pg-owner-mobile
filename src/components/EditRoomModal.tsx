@@ -244,12 +244,12 @@ export const EditRoomModal: React.FC<EditRoomModalProps> = ({
                       setShowCustomSharing(false);
                     }}
                     className={`min-w-[48px] flex-1 py-3 rounded-xl items-center justify-center border shadow-xs ${
-                      isSelected ? 'bg-[#0A6C50] border-[#0A6C50]' : 'bg-white border-slate-300'
+                      isSelected ? 'bg-[#19D3E6] border-[#19D3E6]' : 'bg-white border-slate-300'
                     }`}
                   >
                     <Text
                       className={`text-base font-extrabold ${
-                        isSelected ? 'text-white' : 'text-slate-800'
+                        isSelected ? 'text-[#0C192B]' : 'text-slate-800'
                       }`}
                     >
                       {count}
@@ -264,12 +264,12 @@ export const EditRoomModal: React.FC<EditRoomModalProps> = ({
                   if (sharingType <= 4) setSharingType(5);
                 }}
                 className={`px-3 py-3 rounded-xl items-center justify-center border shadow-xs ${
-                  showCustomSharing ? 'bg-[#0A6C50] border-[#0A6C50]' : 'bg-white border-slate-300'
+                  showCustomSharing ? 'bg-[#19D3E6] border-[#19D3E6]' : 'bg-white border-slate-300'
                 }`}
               >
                 <Text
                   className={`text-xs font-extrabold ${
-                    showCustomSharing ? 'text-white' : 'text-slate-800'
+                    showCustomSharing ? 'text-[#0C192B]' : 'text-slate-800'
                   }`}
                 >
                   {showCustomSharing && sharingType > 4 ? `${sharingType} Beds` : '+ Custom'}
@@ -378,12 +378,12 @@ export const EditRoomModal: React.FC<EditRoomModalProps> = ({
             activeOpacity={0.85}
             disabled={isSaving}
             onPress={handleSave}
-            className="bg-[#0A6C50] rounded-xl py-3.5 items-center justify-center flex-row shadow-sm mb-4"
+            className="bg-[#19D3E6] rounded-xl py-3.5 items-center justify-center flex-row shadow-sm mb-4"
           >
             {isSaving ? (
-              <ActivityIndicator size="small" color="#FFFFFF" />
+              <ActivityIndicator size="small" color="#0C192B" />
             ) : (
-              <Text className="text-white font-extrabold text-base">Save Room Changes</Text>
+              <Text className="text-[#0C192B] font-extrabold text-base">Save Room Changes</Text>
             )}
           </TouchableOpacity>
 

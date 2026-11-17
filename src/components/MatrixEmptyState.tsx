@@ -64,10 +64,10 @@ export const MatrixEmptyState: React.FC<MatrixEmptyStateProps> = ({ onAddRoom })
       <TouchableOpacity
         activeOpacity={0.8}
         onPress={onAddRoom}
-        className="w-full bg-[#4F5330] rounded-2xl py-4 flex-row items-center justify-center shadow-sm"
+        className="w-full bg-[#19D3E6] rounded-2xl py-4 flex-row items-center justify-center shadow-sm"
       >
-        <Plus size={20} color="#FFFFFF" strokeWidth={2.5} />
-        <Text className="text-base font-extrabold text-white ml-2">Add your first room</Text>
+        <Plus size={20} color="#0C192B" strokeWidth={2.5} />
+        <Text className="text-base font-extrabold text-[#0C192B] ml-2">Add your first room</Text>
       </TouchableOpacity>
     </View>
   );

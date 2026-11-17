@@ -431,10 +431,12 @@ export default function SubscriptionScreen() {
           <TouchableOpacity
             onPress={handleNavigateHome}
             activeOpacity={0.85}
-            className="bg-[#0A6C50] rounded-2xl py-4 flex-row items-center justify-center mb-3 shadow-sm"
+            className="bg-[#19D3E6] rounded-2xl py-4 flex-row items-center justify-center mb-3 shadow-sm"
           >
-            <Text className="text-white font-extrabold text-sm mr-2">Go to Pulse Dashboard</Text>
-            <ArrowRight size={18} color="#FFFFFF" />
+            <Text className="text-[#0C192B] font-extrabold text-sm mr-2">
+              Go to Pulse Dashboard
+            </Text>
+            <ArrowRight size={18} color="#0C192B" />
           </TouchableOpacity>
 
           <TouchableOpacity

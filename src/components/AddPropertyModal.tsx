@@ -165,12 +165,12 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
                     activeOpacity={0.8}
                     onPress={() => setType(item)}
                     className={`flex-1 py-3 rounded-xl items-center justify-center border ${
-                      isSelected ? 'bg-[#0A6C50] border-[#0A6C50]' : 'bg-white border-slate-300'
+                      isSelected ? 'bg-[#19D3E6] border-[#19D3E6]' : 'bg-white border-slate-300'
                     }`}
                   >
                     <Text
-                      className={`text-sm font-bold ${
-                        isSelected ? 'text-white' : 'text-slate-800'
+                      className={`text-sm font-extrabold ${
+                        isSelected ? 'text-[#0C192B]' : 'text-slate-800'
                       }`}
                     >
                       {label}
@@ -266,12 +266,12 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
             activeOpacity={0.8}
             onPress={handleSave}
             disabled={isCreating}
-            className="w-full bg-[#0A6C50] rounded-xl py-4 items-center justify-center shadow-sm"
+            className="w-full bg-[#19D3E6] rounded-xl py-4 items-center justify-center shadow-sm"
           >
             {isCreating ? (
-              <ActivityIndicator color="#FFFFFF" />
+              <ActivityIndicator color="#0C192B" />
             ) : (
-              <Text className="text-base font-extrabold text-white">Save property</Text>
+              <Text className="text-base font-extrabold text-[#0C192B]">Save property</Text>
             )}
           </TouchableOpacity>
         </ScrollView>

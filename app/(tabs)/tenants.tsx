@@ -422,15 +422,15 @@ export default function TenantsScreen() {
               marginRight: 8,
               flexDirection: 'row',
               alignItems: 'center',
-              backgroundColor: activeTab === 'all' ? '#4F5330' : '#FFFDF8',
-              borderColor: activeTab === 'all' ? '#4F5330' : '#E5DDCD',
+              backgroundColor: activeTab === 'all' ? '#19D3E6' : '#FFFDF8',
+              borderColor: activeTab === 'all' ? '#19D3E6' : '#E5DDCD',
             }}
           >
             <Text
               style={{
                 fontSize: 12,
-                fontWeight: '700',
-                color: activeTab === 'all' ? '#FFFFFF' : '#657080',
+                fontWeight: '800',
+                color: activeTab === 'all' ? '#0C192B' : '#657080',
               }}
             >
               All · {allCount}
@@ -447,15 +447,15 @@ export default function TenantsScreen() {
               marginRight: 8,
               flexDirection: 'row',
               alignItems: 'center',
-              backgroundColor: activeTab === 'active' ? '#4F5330' : '#FFFDF8',
-              borderColor: activeTab === 'active' ? '#4F5330' : '#E5DDCD',
+              backgroundColor: activeTab === 'active' ? '#19D3E6' : '#FFFDF8',
+              borderColor: activeTab === 'active' ? '#19D3E6' : '#E5DDCD',
             }}
           >
             <Text
               style={{
                 fontSize: 12,
-                fontWeight: '700',
-                color: activeTab === 'active' ? '#FFFFFF' : '#657080',
+                fontWeight: '800',
+                color: activeTab === 'active' ? '#0C192B' : '#657080',
               }}
             >
               Active · {activeCount}
@@ -472,15 +472,15 @@ export default function TenantsScreen() {
               marginRight: 8,
               flexDirection: 'row',
               alignItems: 'center',
-              backgroundColor: activeTab === 'notice_period' ? '#4F5330' : '#FFFDF8',
-              borderColor: activeTab === 'notice_period' ? '#4F5330' : '#E5DDCD',
+              backgroundColor: activeTab === 'notice_period' ? '#19D3E6' : '#FFFDF8',
+              borderColor: activeTab === 'notice_period' ? '#19D3E6' : '#E5DDCD',
             }}
           >
             <Text
               style={{
                 fontSize: 12,
-                fontWeight: '700',
-                color: activeTab === 'notice_period' ? '#FFFFFF' : '#657080',
+                fontWeight: '800',
+                color: activeTab === 'notice_period' ? '#0C192B' : '#657080',
               }}
             >
               Notice · {noticeCount}
@@ -497,15 +497,15 @@ export default function TenantsScreen() {
               marginRight: 8,
               flexDirection: 'row',
               alignItems: 'center',
-              backgroundColor: activeTab === 'checked_out' ? '#4F5330' : '#FFFDF8',
-              borderColor: activeTab === 'checked_out' ? '#4F5330' : '#E5DDCD',
+              backgroundColor: activeTab === 'checked_out' ? '#19D3E6' : '#FFFDF8',
+              borderColor: activeTab === 'checked_out' ? '#19D3E6' : '#E5DDCD',
             }}
           >
             <Text
               style={{
                 fontSize: 12,
-                fontWeight: '700',
-                color: activeTab === 'checked_out' ? '#FFFFFF' : '#657080',
+                fontWeight: '800',
+                color: activeTab === 'checked_out' ? '#0C192B' : '#657080',
               }}
             >
               Checked out · {checkedOutCount}
@@ -792,19 +792,19 @@ export default function TenantsScreen() {
           style={{
             flexDirection: 'row',
             alignItems: 'center',
-            backgroundColor: '#4F5330',
+            backgroundColor: '#19D3E6',
             paddingHorizontal: 20,
             paddingVertical: 14,
             borderRadius: 9999,
-            shadowColor: '#4F5330',
+            shadowColor: '#19D3E6',
             shadowOffset: { width: 0, height: 4 },
             shadowOpacity: 0.35,
             shadowRadius: 8,
             elevation: 6,
           }}
         >
-          <Plus size={20} color="#FFFFFF" strokeWidth={2.5} />
-          <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 14, marginLeft: 6 }}>
+          <Plus size={20} color="#0C192B" strokeWidth={2.5} />
+          <Text style={{ color: '#0C192B', fontWeight: '800', fontSize: 14, marginLeft: 6 }}>
             Add tenant
           </Text>
         </TouchableOpacity>

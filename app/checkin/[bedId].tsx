@@ -734,17 +734,17 @@ export default function CheckinScreen() {
                   if (!advanceCollected) setPaymentMode('cash');
                 }}
                 className={`flex-1 py-3.5 rounded-xl flex-row items-center justify-center border shadow-xs ${
-                  advanceCollected ? 'bg-[#0A6C50] border-[#0A6C50]' : 'bg-white border-slate-200'
+                  advanceCollected ? 'bg-[#19D3E6] border-[#19D3E6]' : 'bg-white border-slate-200'
                 }`}
               >
                 <Check
                   size={16}
-                  color={advanceCollected ? '#FFFFFF' : '#64748B'}
+                  color={advanceCollected ? '#0C192B' : '#64748B'}
                   strokeWidth={2.5}
                 />
                 <Text
                   className={`text-xs font-extrabold ml-1.5 ${
-                    advanceCollected ? 'text-white' : 'text-slate-700'
+                    advanceCollected ? 'text-[#0C192B]' : 'text-slate-700'
                   }`}
                 >
                   Cash received
@@ -769,11 +769,11 @@ export default function CheckinScreen() {
             onPress={handleCheckinSubmit}
             disabled={!isFormReady || isUploading}
             className={`w-full py-4 rounded-2xl items-center justify-center shadow-sm ${
-              isFormReady ? 'bg-[#0A6C50]' : 'bg-slate-200'
+              isFormReady ? 'bg-[#19D3E6]' : 'bg-slate-200'
             }`}
           >
             <Text
-              className={`text-base font-extrabold ${isFormReady ? 'text-white' : 'text-slate-400'}`}
+              className={`text-base font-extrabold ${isFormReady ? 'text-[#0C192B]' : 'text-slate-400'}`}
             >
               Check in tenant
             </Text>
