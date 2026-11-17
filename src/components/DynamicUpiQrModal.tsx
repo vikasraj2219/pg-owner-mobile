@@ -71,7 +71,7 @@ export const DynamicUpiQrModal: React.FC<DynamicUpiQrModalProps> = ({
               <Text className="text-sm font-semibold text-slate-500 text-center">
                 Collect advance from {tenantName || 'Tenant'}
               </Text>
-              <Text className="text-3xl font-black text-[#0A6C50] text-center mt-1">
+              <Text className="text-3xl font-black text-[#4F5330] text-center mt-1">
                 {formatINR(amountPaise)}
               </Text>
 
@@ -113,7 +113,7 @@ export const DynamicUpiQrModal: React.FC<DynamicUpiQrModalProps> = ({
                     if (onMarkReceived) onMarkReceived();
                     onClose();
                   }}
-                  className="flex-1 py-3.5 bg-[#0A6C50] rounded-xl flex-row items-center justify-center"
+                  className="flex-1 py-3.5 bg-[#4F5330] rounded-xl flex-row items-center justify-center"
                 >
                   <Check size={18} color="#FFFFFF" strokeWidth={2.5} />
                   <Text className="text-sm font-bold text-white ml-2">Mark received</Text>

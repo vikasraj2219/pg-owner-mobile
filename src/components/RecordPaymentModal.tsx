@@ -135,8 +135,8 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
           {/* Header */}
           <View className="flex-row items-center justify-between pb-4 border-b border-slate-100">
             <View className="flex-row items-center gap-2.5">
-              <View className="w-10 h-10 rounded-full bg-emerald-50 items-center justify-center">
-                <Receipt size={22} color="#0A6C50" />
+              <View className="w-10 h-10 rounded-full bg-[#FAF7F2] border border-[#D0D7B4] items-center justify-center">
+                <Receipt size={22} color="#4F5330" />
               </View>
               <View>
                 <Text className="text-lg font-black text-slate-900">Record Rent Payment</Text>
@@ -178,19 +178,19 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
               <TouchableOpacity
                 onPress={() => setIsFullPayment(true)}
                 className={`flex-1 p-3.5 rounded-xl border items-center ${
-                  isFullPayment ? 'border-[#0A6C50] bg-emerald-50/60' : 'border-slate-200 bg-white'
+                  isFullPayment ? 'border-[#4F5330] bg-[#FAF7F2]' : 'border-slate-200 bg-white'
                 }`}
               >
                 <Text
                   className={`text-xs font-bold ${
-                    isFullPayment ? 'text-[#0A6C50]' : 'text-slate-600'
+                    isFullPayment ? 'text-[#4F5330]' : 'text-slate-600'
                   }`}
                 >
                   Full Payment
                 </Text>
                 <Text
                   className={`text-base font-extrabold mt-0.5 ${
-                    isFullPayment ? 'text-[#0A6C50]' : 'text-slate-800'
+                    isFullPayment ? 'text-[#4F5330]' : 'text-slate-800'
                   }`}
                 >
                   {formatINR(balanceDuePaise)}
@@ -200,19 +200,19 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
               <TouchableOpacity
                 onPress={() => setIsFullPayment(false)}
                 className={`flex-1 p-3.5 rounded-xl border items-center ${
-                  !isFullPayment ? 'border-[#0A6C50] bg-emerald-50/60' : 'border-slate-200 bg-white'
+                  !isFullPayment ? 'border-[#4F5330] bg-[#FAF7F2]' : 'border-slate-200 bg-white'
                 }`}
               >
                 <Text
                   className={`text-xs font-bold ${
-                    !isFullPayment ? 'text-[#0A6C50]' : 'text-slate-600'
+                    !isFullPayment ? 'text-[#4F5330]' : 'text-slate-600'
                   }`}
                 >
                   Partial Payment
                 </Text>
                 <Text
                   className={`text-base font-extrabold mt-0.5 ${
-                    !isFullPayment ? 'text-[#0A6C50]' : 'text-slate-800'
+                    !isFullPayment ? 'text-[#4F5330]' : 'text-slate-800'
                   }`}
                 >
                   Custom ₹
@@ -248,14 +248,14 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
                 onPress={() => setPaymentMethod('upi')}
                 className={`flex-1 py-2.5 px-3 rounded-xl border flex-row items-center justify-center gap-1.5 ${
                   paymentMethod === 'upi'
-                    ? 'border-[#0A6C50] bg-emerald-50/60'
+                    ? 'border-[#4F5330] bg-[#FAF7F2]'
                     : 'border-slate-200 bg-white'
                 }`}
               >
-                <CreditCard size={16} color={paymentMethod === 'upi' ? '#0A6C50' : '#64748B'} />
+                <CreditCard size={16} color={paymentMethod === 'upi' ? '#4F5330' : '#64748B'} />
                 <Text
                   className={`text-xs font-bold ${
-                    paymentMethod === 'upi' ? 'text-[#0A6C50]' : 'text-slate-700'
+                    paymentMethod === 'upi' ? 'text-[#4F5330]' : 'text-slate-700'
                   }`}
                 >
                   UPI
@@ -266,14 +266,14 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
                 onPress={() => setPaymentMethod('cash')}
                 className={`flex-1 py-2.5 px-3 rounded-xl border flex-row items-center justify-center gap-1.5 ${
                   paymentMethod === 'cash'
-                    ? 'border-[#0A6C50] bg-emerald-50/60'
+                    ? 'border-[#4F5330] bg-[#FAF7F2]'
                     : 'border-slate-200 bg-white'
                 }`}
               >
-                <Banknote size={16} color={paymentMethod === 'cash' ? '#0A6C50' : '#64748B'} />
+                <Banknote size={16} color={paymentMethod === 'cash' ? '#4F5330' : '#64748B'} />
                 <Text
                   className={`text-xs font-bold ${
-                    paymentMethod === 'cash' ? 'text-[#0A6C50]' : 'text-slate-700'
+                    paymentMethod === 'cash' ? 'text-[#4F5330]' : 'text-slate-700'
                   }`}
                 >
                   Cash
@@ -284,17 +284,17 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
                 onPress={() => setPaymentMethod('bank_transfer')}
                 className={`flex-1 py-2.5 px-3 rounded-xl border flex-row items-center justify-center gap-1.5 ${
                   paymentMethod === 'bank_transfer'
-                    ? 'border-[#0A6C50] bg-emerald-50/60'
+                    ? 'border-[#4F5330] bg-[#FAF7F2]'
                     : 'border-slate-200 bg-white'
                 }`}
               >
                 <Building2
                   size={16}
-                  color={paymentMethod === 'bank_transfer' ? '#0A6C50' : '#64748B'}
+                  color={paymentMethod === 'bank_transfer' ? '#4F5330' : '#64748B'}
                 />
                 <Text
                   className={`text-xs font-bold ${
-                    paymentMethod === 'bank_transfer' ? 'text-[#0A6C50]' : 'text-slate-700'
+                    paymentMethod === 'bank_transfer' ? 'text-[#4F5330]' : 'text-slate-700'
                   }`}
                 >
                   Bank
@@ -336,7 +336,7 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
             >
               <View
                 className={`w-5 h-5 rounded-md border items-center justify-center ${
-                  shareReceipt ? 'bg-[#0A6C50] border-[#0A6C50]' : 'border-slate-400 bg-white'
+                  shareReceipt ? 'bg-[#4F5330] border-[#4F5330]' : 'border-slate-400 bg-white'
                 }`}
               >
                 {shareReceipt && <Check size={14} color="#ffffff" strokeWidth={3} />}
@@ -356,7 +356,7 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
               onPress={handleSubmit}
               disabled={isSubmitting || currentPayablePaise <= 0}
               className={`h-13 rounded-2xl items-center justify-center mb-6 shadow-md ${
-                isSubmitting || currentPayablePaise <= 0 ? 'bg-slate-300' : 'bg-[#0A6C50]'
+                isSubmitting || currentPayablePaise <= 0 ? 'bg-slate-300' : 'bg-[#4F5330]'
               }`}
             >
               {isSubmitting ? (

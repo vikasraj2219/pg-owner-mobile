@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import {
   MessageCircle,
   QrCode,
@@ -20,6 +21,7 @@ import {
   X,
   Eye,
   Building,
+  ChevronDown,
 } from 'lucide-react-native';
 import { useProperties } from '../../src/context/PropertyContext';
 import { useInvoices } from '../../src/hooks/useInvoices';
@@ -30,16 +32,19 @@ import { generateAndShareReceipt } from '../../src/utils/pdfReceipt';
 import { resolveRoomAndBed } from '../../src/utils/bedResolution';
 import { RecordPaymentModal } from '../../src/components/RecordPaymentModal';
 import { DynamicUpiQrModal } from '../../src/components/DynamicUpiQrModal';
+import { PropertySwitcherModal } from '../../src/components/PropertySwitcherModal';
 import { DueInvoiceItem } from '../../src/types/api';
 
 export default function DuesScreen() {
   const router = useRouter();
-  const { selectedProperty, selectedPropertyId, properties } = useProperties();
+  const { selectedProperty, selectedPropertyId, properties, setSelectedPropertyId } =
+    useProperties();
   const [duesPropertyFilterId, setDuesPropertyFilterId] = useState<string | null>(
     selectedPropertyId === 'all' ? null : selectedPropertyId || null,
   );
   const [filter, setFilter] = useState<'all' | 'overdue' | 'unpaid' | 'paid'>('overdue');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isPropertySwitcherOpen, setIsPropertySwitcherOpen] = useState(false);
 
   // Modals state
   const [paymentInvoice, setPaymentInvoice] = useState<DueInvoiceItem | null>(null);
@@ -183,243 +188,411 @@ export default function DuesScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-[#F8F9FA]" edges={['top']}>
-      <ScrollView
-        className="flex-1 px-5 pt-3"
-        contentContainerStyle={{ paddingBottom: 60 }}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefetching}
-            onRefresh={refetch}
-            tintColor="#0A6C50"
-            colors={['#0A6C50']}
-          />
-        }
+    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: '#FAF5EB' }}>
+      <StatusBar style="dark" />
+
+      {/* Screen Header with Nilaaya Brand Styling */}
+      <View
+        style={{
+          paddingHorizontal: 20,
+          paddingTop: 16,
+          paddingBottom: 12,
+          backgroundColor: '#FFFDF8',
+          borderBottomWidth: 1,
+          borderBottomColor: '#E5DDCD',
+        }}
       >
-        {/* Header Title & Month */}
-        <View className="mb-3">
-          <Text className="text-3xl font-extrabold text-slate-900 tracking-tight">Dues</Text>
-          <Text className="text-sm font-medium text-slate-600 mt-1">{currentMonthYear}</Text>
+        {/* Title & Month Badge */}
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 28,
+              fontWeight: '800',
+              color: '#0C192B',
+              letterSpacing: -0.5,
+            }}
+          >
+            Dues
+          </Text>
+
+          <View
+            style={{
+              paddingHorizontal: 10,
+              paddingVertical: 4,
+              borderRadius: 8,
+              backgroundColor: '#FAF7F2',
+              borderWidth: 1,
+              borderColor: '#E5DDCD',
+            }}
+          >
+            <Text style={{ fontSize: 12, fontWeight: '700', color: '#4F5330' }}>
+              {currentMonthYear}
+            </Text>
+          </View>
         </View>
 
-        {/* Property Filter Chips */}
-        {properties.length > 1 && (
-          <View className="mb-3.5">
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ gap: 8 }}
-            >
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={() => setDuesPropertyFilterId(null)}
-                className={`flex-row items-center px-3.5 py-1.5 rounded-full border ${
-                  duesPropertyFilterId === null
-                    ? 'bg-[#0A6C50] border-[#0A6C50]'
-                    : 'bg-white border-slate-200'
-                }`}
-              >
-                <Building size={12} color={duesPropertyFilterId === null ? '#ffffff' : '#64748B'} />
-                <Text
-                  className={`text-xs font-bold ml-1.5 ${
-                    duesPropertyFilterId === null ? 'text-white' : 'text-slate-700'
-                  }`}
-                >
-                  All Properties
-                </Text>
-              </TouchableOpacity>
+        {/* Subtitle / Property Switcher */}
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={() => setIsPropertySwitcherOpen(true)}
+          style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}
+        >
+          {searchQuery.trim().length > 0 ? (
+            <Text style={{ fontSize: 13, fontWeight: '600', color: '#657080' }}>
+              {invoices.length} invoice{invoices.length === 1 ? '' : 's'} matching &ldquo;
+              {searchQuery}&rdquo;
+            </Text>
+          ) : (
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: '#4F5330' }}>
+                {activeDuesProperty?.name || 'All Properties'}
+              </Text>
+              <ChevronDown size={14} color="#4F5330" style={{ marginLeft: 3 }} />
+            </View>
+          )}
+        </TouchableOpacity>
 
-              {properties.map(p => {
-                const isSelected = duesPropertyFilterId === p._id;
-                return (
-                  <TouchableOpacity
-                    key={p._id}
-                    activeOpacity={0.8}
-                    onPress={() => setDuesPropertyFilterId(p._id)}
-                    className={`flex-row items-center px-3.5 py-1.5 rounded-full border ${
-                      isSelected ? 'bg-[#0A6C50] border-[#0A6C50]' : 'bg-white border-slate-200'
-                    }`}
-                  >
-                    <Building size={12} color={isSelected ? '#ffffff' : '#64748B'} />
-                    <Text
-                      className={`text-xs font-bold ml-1.5 ${
-                        isSelected ? 'text-white' : 'text-slate-700'
-                      }`}
-                    >
-                      {p.name}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
-          </View>
-        )}
-
-        {/* Property Filter Chips */}
-        {properties.length > 1 && (
-          <View className="mb-3.5">
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ gap: 8 }}
-            >
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={() => setDuesPropertyFilterId(null)}
-                className={`flex-row items-center px-3.5 py-1.5 rounded-full border ${
-                  duesPropertyFilterId === null
-                    ? 'bg-[#0A6C50] border-[#0A6C50]'
-                    : 'bg-white border-slate-200'
-                }`}
-              >
-                <Building size={12} color={duesPropertyFilterId === null ? '#ffffff' : '#64748B'} />
-                <Text
-                  className={`text-xs font-bold ml-1.5 ${
-                    duesPropertyFilterId === null ? 'text-white' : 'text-slate-700'
-                  }`}
-                >
-                  All Properties
-                </Text>
-              </TouchableOpacity>
-
-              {properties.map(p => {
-                const isSelected = duesPropertyFilterId === p._id;
-                return (
-                  <TouchableOpacity
-                    key={p._id}
-                    activeOpacity={0.8}
-                    onPress={() => setDuesPropertyFilterId(p._id)}
-                    className={`flex-row items-center px-3.5 py-1.5 rounded-full border ${
-                      isSelected ? 'bg-[#0A6C50] border-[#0A6C50]' : 'bg-white border-slate-200'
-                    }`}
-                  >
-                    <Building size={12} color={isSelected ? '#ffffff' : '#64748B'} />
-                    <Text
-                      className={`text-xs font-bold ml-1.5 ${
-                        isSelected ? 'text-white' : 'text-slate-700'
-                      }`}
-                    >
-                      {p.name}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
-          </View>
-        )}
-
-        {/* Total Outstanding Card */}
-        <View className="bg-white border border-slate-200/80 rounded-2xl p-4 flex-row items-center justify-between mb-4 shadow-xs">
-          <Text className="text-sm font-semibold text-slate-700">
-            Total outstanding · {unpaidCount} tenant{unpaidCount === 1 ? '' : 's'}
-          </Text>
-          <Text className="text-2xl font-extrabold text-[#BE123C]">
-            {formatINR(totalOutstandingPaise)}
-          </Text>
-        </View>
-
-        {/* Search Bar */}
-        <View className="flex-row items-center bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 mb-4 shadow-xs">
-          <Search size={18} color="#94A3B8" className="mr-2" />
+        {/* Search Bar matching Tenants & Matrix Screen */}
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor: '#FAF7F2',
+            borderWidth: 1,
+            borderColor: '#E5DDCD',
+            borderRadius: 16,
+            paddingHorizontal: 14,
+            paddingVertical: 10,
+            marginTop: 12,
+          }}
+        >
+          <Search size={18} color="#657080" />
           <TextInput
             value={searchQuery}
             onChangeText={setSearchQuery}
-            placeholder="Search tenant or invoice number…"
-            placeholderTextColor="#94A3B8"
-            className="flex-1 text-sm font-semibold text-slate-800 ml-2 py-0"
+            placeholder="Search tenant or invoice number..."
+            placeholderTextColor="#8E98A0"
+            style={{
+              flex: 1,
+              marginLeft: 10,
+              fontSize: 14,
+              fontWeight: '500',
+              color: '#0C192B',
+              paddingVertical: 0,
+            }}
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity
               onPress={() => setSearchQuery('')}
-              hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <X size={16} color="#94A3B8" />
+              <X size={18} color="#657080" />
             </TouchableOpacity>
           )}
         </View>
 
-        {/* Filter Pills */}
-        <View className="flex-row items-center gap-2 mb-4 flex-wrap">
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={() => setFilter('all')}
-            className={`px-4 py-2 rounded-full ${
-              filter === 'all' ? 'bg-[#0A6C50]' : 'bg-white border border-slate-200'
-            }`}
-          >
-            <Text
-              className={`text-sm font-bold ${filter === 'all' ? 'text-white' : 'text-slate-800'}`}
-            >
-              All
-            </Text>
-          </TouchableOpacity>
-
+        {/* Status Filter Chips matching Tenants & Matrix */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={{
+            flexDirection: 'row',
+            marginTop: 12,
+            marginHorizontal: -20,
+            paddingHorizontal: 20,
+          }}
+          contentContainerStyle={{ paddingRight: 30 }}
+        >
+          {/* Overdue (>5d) */}
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={() => setFilter('overdue')}
-            className={`px-4 py-2 rounded-full ${
-              filter === 'overdue' ? 'bg-[#0A6C50]' : 'bg-white border border-slate-200'
-            }`}
+            style={{
+              paddingHorizontal: 16,
+              paddingVertical: 8,
+              borderRadius: 9999,
+              borderWidth: 1,
+              marginRight: 8,
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: filter === 'overdue' ? '#4F5330' : '#FFFDF8',
+              borderColor: filter === 'overdue' ? '#4F5330' : '#E5DDCD',
+            }}
           >
             <Text
-              className={`text-sm font-bold ${
-                filter === 'overdue' ? 'text-white' : 'text-slate-800'
-              }`}
+              style={{
+                fontSize: 12,
+                fontWeight: '700',
+                color: filter === 'overdue' ? '#FFFFFF' : '#657080',
+              }}
             >
-              Overdue (&gt;5 days)
+              Overdue (&gt;5d)
             </Text>
           </TouchableOpacity>
 
+          {/* Unpaid */}
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={() => setFilter('unpaid')}
-            className={`px-4 py-2 rounded-full ${
-              filter === 'unpaid' ? 'bg-[#0A6C50]' : 'bg-white border border-slate-200'
-            }`}
+            style={{
+              paddingHorizontal: 16,
+              paddingVertical: 8,
+              borderRadius: 9999,
+              borderWidth: 1,
+              marginRight: 8,
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: filter === 'unpaid' ? '#4F5330' : '#FFFDF8',
+              borderColor: filter === 'unpaid' ? '#4F5330' : '#E5DDCD',
+            }}
           >
             <Text
-              className={`text-sm font-bold ${
-                filter === 'unpaid' ? 'text-white' : 'text-slate-800'
-              }`}
+              style={{
+                fontSize: 12,
+                fontWeight: '700',
+                color: filter === 'unpaid' ? '#FFFFFF' : '#657080',
+              }}
             >
               Unpaid
             </Text>
           </TouchableOpacity>
 
+          {/* Paid */}
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={() => setFilter('paid')}
-            className={`px-4 py-2 rounded-full ${
-              filter === 'paid' ? 'bg-[#0A6C50]' : 'bg-white border border-slate-200'
-            }`}
+            style={{
+              paddingHorizontal: 16,
+              paddingVertical: 8,
+              borderRadius: 9999,
+              borderWidth: 1,
+              marginRight: 8,
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: filter === 'paid' ? '#4F5330' : '#FFFDF8',
+              borderColor: filter === 'paid' ? '#4F5330' : '#E5DDCD',
+            }}
           >
             <Text
-              className={`text-sm font-bold ${filter === 'paid' ? 'text-white' : 'text-slate-800'}`}
+              style={{
+                fontSize: 12,
+                fontWeight: '700',
+                color: filter === 'paid' ? '#FFFFFF' : '#657080',
+              }}
             >
               Paid
             </Text>
           </TouchableOpacity>
+
+          {/* All */}
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => setFilter('all')}
+            style={{
+              paddingHorizontal: 16,
+              paddingVertical: 8,
+              borderRadius: 9999,
+              borderWidth: 1,
+              marginRight: 8,
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: filter === 'all' ? '#4F5330' : '#FFFDF8',
+              borderColor: filter === 'all' ? '#4F5330' : '#E5DDCD',
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 12,
+                fontWeight: '700',
+                color: filter === 'all' ? '#FFFFFF' : '#657080',
+              }}
+            >
+              All
+            </Text>
+          </TouchableOpacity>
+
+          {/* Property Filter Chips if properties.length > 1 */}
+          {properties.length > 1 && (
+            <>
+              <View
+                style={{
+                  width: 1,
+                  height: 20,
+                  backgroundColor: '#E5DDCD',
+                  marginHorizontal: 6,
+                  alignSelf: 'center',
+                }}
+              />
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => setDuesPropertyFilterId(null)}
+                style={{
+                  paddingHorizontal: 14,
+                  paddingVertical: 8,
+                  borderRadius: 9999,
+                  borderWidth: 1,
+                  marginRight: 8,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  backgroundColor: duesPropertyFilterId === null ? '#4F5330' : '#FFFDF8',
+                  borderColor: duesPropertyFilterId === null ? '#4F5330' : '#E5DDCD',
+                }}
+              >
+                <Building
+                  size={12}
+                  color={duesPropertyFilterId === null ? '#FFFFFF' : '#657080'}
+                  style={{ marginRight: 5 }}
+                />
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontWeight: '700',
+                    color: duesPropertyFilterId === null ? '#FFFFFF' : '#657080',
+                  }}
+                >
+                  All Properties
+                </Text>
+              </TouchableOpacity>
+
+              {properties.map(p => {
+                const isSelected = duesPropertyFilterId === p._id;
+                return (
+                  <TouchableOpacity
+                    key={p._id}
+                    activeOpacity={0.8}
+                    onPress={() => setDuesPropertyFilterId(p._id)}
+                    style={{
+                      paddingHorizontal: 14,
+                      paddingVertical: 8,
+                      borderRadius: 9999,
+                      borderWidth: 1,
+                      marginRight: 8,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      backgroundColor: isSelected ? '#4F5330' : '#FFFDF8',
+                      borderColor: isSelected ? '#4F5330' : '#E5DDCD',
+                    }}
+                  >
+                    <Building
+                      size={12}
+                      color={isSelected ? '#FFFFFF' : '#657080'}
+                      style={{ marginRight: 5 }}
+                    />
+                    <Text
+                      style={{
+                        fontSize: 12,
+                        fontWeight: '700',
+                        color: isSelected ? '#FFFFFF' : '#657080',
+                      }}
+                    >
+                      {p.name}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </>
+          )}
+        </ScrollView>
+      </View>
+
+      {/* Main Content Area */}
+      <ScrollView
+        style={{ flex: 1, backgroundColor: '#FAF5EB' }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 60 }}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefetching}
+            onRefresh={refetch}
+            tintColor="#4F5330"
+            colors={['#4F5330']}
+          />
+        }
+      >
+        {/* Total Outstanding Card */}
+        <View
+          style={{
+            backgroundColor: '#FFFDF8',
+            borderWidth: 1,
+            borderColor: '#E5DDCD',
+            borderRadius: 16,
+            padding: 16,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: 16,
+          }}
+        >
+          <View>
+            <Text style={{ fontSize: 14, fontWeight: '700', color: '#0C192B' }}>
+              Total outstanding
+            </Text>
+            <Text style={{ fontSize: 12, fontWeight: '500', color: '#657080', marginTop: 2 }}>
+              {unpaidCount} tenant{unpaidCount === 1 ? '' : 's'} pending collection
+            </Text>
+          </View>
+          <Text style={{ fontSize: 24, fontWeight: '800', color: '#BE123C' }}>
+            {formatINR(totalOutstandingPaise)}
+          </Text>
         </View>
 
         {/* Loading Spinner */}
         {isLoading && !isRefetching && (
-          <View className="py-12 items-center justify-center">
-            <ActivityIndicator size="large" color="#0A6C50" />
-            <Text className="text-slate-500 font-medium text-sm mt-3">Loading invoices…</Text>
+          <View style={{ paddingVertical: 48, alignItems: 'center', justifyContent: 'center' }}>
+            <ActivityIndicator size="large" color="#4F5330" />
+            <Text style={{ fontSize: 14, fontWeight: '600', color: '#657080', marginTop: 12 }}>
+              Loading invoices…
+            </Text>
           </View>
         )}
 
         {/* Empty State */}
         {!isLoading && invoices.length === 0 && (
-          <View className="bg-white border border-slate-200/80 rounded-3xl p-8 items-center justify-center my-4">
-            <View className="w-14 h-14 rounded-full bg-emerald-50 items-center justify-center mb-3">
-              <CheckCircle2 size={32} color="#0A6C50" />
+          <View
+            style={{
+              backgroundColor: '#FFFDF8',
+              borderWidth: 1,
+              borderColor: '#E5DDCD',
+              borderRadius: 24,
+              padding: 32,
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginVertical: 16,
+            }}
+          >
+            <View
+              style={{
+                width: 56,
+                height: 56,
+                borderRadius: 28,
+                backgroundColor: '#FAF7F2',
+                borderWidth: 1,
+                borderColor: '#D0D7B4',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 12,
+              }}
+            >
+              <CheckCircle2 size={32} color="#4F5330" />
             </View>
-            <Text className="text-base font-bold text-slate-900 mb-1">
+            <Text style={{ fontSize: 16, fontWeight: '800', color: '#0C192B', marginBottom: 4 }}>
               {filter === 'overdue' ? 'No Overdue Rents' : 'No Invoices Found'}
             </Text>
-            <Text className="text-xs text-slate-500 text-center">
+            <Text
+              style={{
+                fontSize: 13,
+                fontWeight: '500',
+                color: '#657080',
+                textAlign: 'center',
+                maxWidth: 280,
+              }}
+            >
               {filter === 'overdue'
                 ? 'All tenant payments for this PG are on schedule.'
                 : 'There are no invoices matching the selected filter.'}
@@ -462,44 +635,103 @@ export default function DuesScreen() {
                         ? `${daysUntilDue} days left`
                         : 'Upcoming';
 
-            const statusColor = isPaid
-              ? 'text-[#0A6C50]'
-              : overdueDays > 0
-                ? 'text-[#BE123C]'
-                : daysUntilDue === 0
-                  ? 'text-amber-700'
-                  : 'text-emerald-700';
+            const statusBadgeBg = isPaid ? '#F0FDF4' : overdueDays > 0 ? '#FFF1F2' : '#FEF3C7';
+            const statusBadgeBorder = isPaid ? '#86EFAC' : overdueDays > 0 ? '#FECDD3' : '#FDE68A';
+            const statusBadgeText = isPaid ? '#15803D' : overdueDays > 0 ? '#E11D48' : '#B45309';
 
             return (
               <View
                 key={item._id}
-                className="bg-white border border-slate-200/80 rounded-2xl p-4 mb-3 shadow-xs"
+                style={{
+                  backgroundColor: '#FFFDF8',
+                  borderWidth: 1,
+                  borderColor: '#E5DDCD',
+                  borderRadius: 16,
+                  padding: 16,
+                  marginBottom: 12,
+                }}
               >
                 {/* Top row with Avatar, Name, Bed, Amount */}
-                <View className="flex-row items-start justify-between">
-                  <View className="flex-row items-center flex-1 mr-2">
-                    <View className="w-11 h-11 rounded-full bg-[#E2E8F0] items-center justify-center mr-3">
-                      <Text className="text-sm font-bold text-slate-700">{initials}</Text>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'flex-start',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      flex: 1,
+                      marginRight: 8,
+                    }}
+                  >
+                    <View
+                      style={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: 22,
+                        backgroundColor: '#D1F4F9',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginRight: 12,
+                      }}
+                    >
+                      <Text style={{ fontSize: 14, fontWeight: '800', color: '#0799AA' }}>
+                        {initials}
+                      </Text>
                     </View>
-                    <View className="flex-1">
-                      <Text className="text-base font-extrabold text-slate-900" numberOfLines={1}>
+                    <View style={{ flex: 1 }}>
+                      <Text
+                        numberOfLines={1}
+                        style={{ fontSize: 16, fontWeight: '800', color: '#0C192B' }}
+                      >
                         {tenantName}
                       </Text>
-                      <Text className="text-xs font-medium text-slate-500 mt-0.5" numberOfLines={1}>
+                      <Text
+                        numberOfLines={1}
+                        style={{ fontSize: 12, fontWeight: '500', color: '#657080', marginTop: 2 }}
+                      >
                         {bedName} · {dueDateFormatted}
                       </Text>
                       {item.items?.[0]?.description ? (
                         <Text
-                          className="text-[11px] font-semibold text-emerald-700 mt-0.5"
                           numberOfLines={1}
+                          style={{
+                            fontSize: 11,
+                            fontWeight: '700',
+                            color: '#4F5330',
+                            marginTop: 2,
+                          }}
                         >
                           {item.items[0].description}
                         </Text>
                       ) : null}
                       {!duesPropertyFilterId && item.property?.name && (
-                        <View className="flex-row items-center bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200/60 mt-1 self-start">
-                          <Building size={10} color="#0A6C50" />
-                          <Text className="text-[10px] font-bold text-[#0A6C50] ml-1">
+                        <View
+                          style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            backgroundColor: '#FAF7F2',
+                            paddingHorizontal: 8,
+                            paddingVertical: 2,
+                            borderRadius: 6,
+                            borderWidth: 1,
+                            borderColor: '#E5DDCD',
+                            marginTop: 4,
+                            alignSelf: 'flex-start',
+                          }}
+                        >
+                          <Building size={10} color="#4F5330" />
+                          <Text
+                            style={{
+                              fontSize: 10,
+                              fontWeight: '700',
+                              color: '#4F5330',
+                              marginLeft: 4,
+                            }}
+                          >
                             {item.property.name}
                           </Text>
                         </View>
@@ -507,31 +739,67 @@ export default function DuesScreen() {
                     </View>
                   </View>
 
-                  <View className="items-end">
-                    <Text className="text-lg font-extrabold text-slate-900">{amountFormatted}</Text>
-                    <Text className={`text-xs font-bold mt-0.5 ${statusColor}`}>{statusLabel}</Text>
+                  <View style={{ alignItems: 'flex-end' }}>
+                    <Text style={{ fontSize: 18, fontWeight: '800', color: '#0C192B' }}>
+                      {amountFormatted}
+                    </Text>
+                    <View
+                      style={{
+                        paddingHorizontal: 8,
+                        paddingVertical: 3,
+                        borderRadius: 6,
+                        backgroundColor: statusBadgeBg,
+                        borderWidth: 1,
+                        borderColor: statusBadgeBorder,
+                        marginTop: 4,
+                      }}
+                    >
+                      <Text style={{ fontSize: 11, fontWeight: '800', color: statusBadgeText }}>
+                        {statusLabel}
+                      </Text>
+                    </View>
                   </View>
                 </View>
 
                 {/* Actions: WhatsApp + QR Code + Mark received */}
                 {!isPaid ? (
-                  <View className="flex-row items-center gap-2 mt-3.5">
+                  <View
+                    style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 14 }}
+                  >
                     {/* WhatsApp 1-tap reminder */}
                     <TouchableOpacity
                       activeOpacity={0.8}
                       onPress={() => handleSendWhatsApp(item)}
-                      className="w-11 h-11 bg-[#F0FDF4] border border-[#86EFAC] rounded-xl items-center justify-center"
+                      style={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: 12,
+                        backgroundColor: '#F0FDF4',
+                        borderWidth: 1,
+                        borderColor: '#86EFAC',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
                     >
-                      <MessageCircle size={19} color="#0A6C50" strokeWidth={2.2} />
+                      <MessageCircle size={19} color="#15803D" strokeWidth={2.2} />
                     </TouchableOpacity>
 
                     {/* Show Dynamic UPI QR Code */}
                     <TouchableOpacity
                       activeOpacity={0.8}
                       onPress={() => setQrInvoice(item)}
-                      className="w-11 h-11 bg-slate-50 border border-slate-200 rounded-xl items-center justify-center"
+                      style={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: 12,
+                        backgroundColor: '#FAF7F2',
+                        borderWidth: 1,
+                        borderColor: '#E5DDCD',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
                     >
-                      <QrCode size={19} color="#334155" strokeWidth={2} />
+                      <QrCode size={19} color="#4F5330" strokeWidth={2} />
                     </TouchableOpacity>
 
                     {/* Mark Received Button */}
@@ -539,33 +807,75 @@ export default function DuesScreen() {
                       activeOpacity={0.85}
                       onPress={() => setPaymentInvoice(item)}
                       disabled={isMarkingPaid}
-                      className="flex-1 h-11 bg-[#0A6C50] rounded-xl items-center justify-center shadow-xs"
+                      style={{
+                        flex: 1,
+                        height: 44,
+                        borderRadius: 12,
+                        backgroundColor: '#4F5330',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
                     >
                       {isMarkingPaid ? (
-                        <ActivityIndicator size="small" color="#ffffff" />
+                        <ActivityIndicator size="small" color="#FFFFFF" />
                       ) : (
-                        <Text className="text-white font-bold text-sm">Mark received</Text>
+                        <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 14 }}>
+                          Mark received
+                        </Text>
                       )}
                     </TouchableOpacity>
                   </View>
                 ) : (
-                  <View className="flex-row items-center justify-end mt-3 pt-3 border-t border-slate-100 gap-2">
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'flex-end',
+                      marginTop: 12,
+                      paddingTop: 12,
+                      borderTopWidth: 1,
+                      borderTopColor: '#E5DDCD',
+                      gap: 8,
+                    }}
+                  >
                     <TouchableOpacity
                       activeOpacity={0.8}
                       onPress={() => handleViewReceipt(item)}
-                      className="flex-row items-center gap-1.5 py-1.5 px-3 bg-slate-100 rounded-lg border border-slate-200"
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        paddingHorizontal: 12,
+                        paddingVertical: 7,
+                        borderRadius: 8,
+                        backgroundColor: '#FAF7F2',
+                        borderWidth: 1,
+                        borderColor: '#E5DDCD',
+                      }}
                     >
-                      <Eye size={14} color="#334155" />
-                      <Text className="text-xs font-bold text-slate-700">View Receipt</Text>
+                      <Eye size={14} color="#0C192B" style={{ marginRight: 6 }} />
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: '#0C192B' }}>
+                        View Receipt
+                      </Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
                       activeOpacity={0.8}
                       onPress={() => handleSharePaidReceipt(item)}
-                      className="flex-row items-center gap-1.5 py-1.5 px-3 bg-emerald-50 rounded-lg border border-[#A7F3D0]"
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        paddingHorizontal: 12,
+                        paddingVertical: 7,
+                        borderRadius: 8,
+                        backgroundColor: '#FAF7F2',
+                        borderWidth: 1,
+                        borderColor: '#D0D7B4',
+                      }}
                     >
-                      <Share2 size={14} color="#0A6C50" />
-                      <Text className="text-xs font-bold text-[#0A6C50]">Share Receipt PDF</Text>
+                      <Share2 size={14} color="#4F5330" style={{ marginRight: 6 }} />
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: '#4F5330' }}>
+                        Share Receipt PDF
+                      </Text>
                     </TouchableOpacity>
                   </View>
                 )}
@@ -599,6 +909,22 @@ export default function DuesScreen() {
           }}
         />
       )}
+
+      {/* Property Switcher Modal */}
+      <PropertySwitcherModal
+        visible={isPropertySwitcherOpen}
+        onClose={() => setIsPropertySwitcherOpen(false)}
+        properties={properties}
+        selectedPropertyId={duesPropertyFilterId || 'all'}
+        onSelectProperty={id => {
+          setDuesPropertyFilterId(id === 'all' ? null : id);
+          setSelectedPropertyId(id);
+        }}
+        onOpenAddProperty={() => {
+          setIsPropertySwitcherOpen(false);
+          router.push('/(tabs)/matrix' as any);
+        }}
+      />
     </SafeAreaView>
   );
 }
