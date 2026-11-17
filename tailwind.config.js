@@ -6,6 +6,20 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        nilaaya: {
+          olive: '#4F5330',
+          bone: '#EEE7D7',
+          cyan: '#19D3E6',
+          white: '#FFFFFF',
+          navy: '#0C192B',
+          warmBg: '#F8F2E7',
+          cardSurface: '#FFFDF8',
+          oliveDark: '#383C22',
+          oliveLight: '#777B52',
+          cyanDark: '#0799AA',
+          secondaryText: '#657080',
+          border: '#E5DDCD',
+        },
         primary: {
           DEFAULT: '#0A6C50',
           50: '#F0FDF4',

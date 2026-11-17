@@ -159,47 +159,111 @@ export const DashboardSkeleton: React.FC = () => {
 
 /**
  * High-fidelity Skeleton loader matching Login Screen layout.
+ * Accurately mirrors the Nilaaya Olive header + White bottom card to prevent launch flicker.
  */
 export const LoginSkeleton: React.FC = () => {
   return (
-    <View className="flex-1 px-6 py-8 justify-between">
-      <View>
-        {/* Top Logo */}
-        <View className="mb-6">
-          <Skeleton width={46} height={46} borderRadius={14} />
+    <View style={{ flex: 1, backgroundColor: '#4F5330' }}>
+      {/* Top Olive Section */}
+      <View style={{ backgroundColor: '#4F5330', overflow: 'hidden' }}>
+        {/* Cyan accent circle */}
+        <View
+          style={{
+            position: 'absolute',
+            top: -55,
+            right: -45,
+            width: 260,
+            height: 260,
+            borderRadius: 130,
+            backgroundColor: '#19D3E6',
+            opacity: 0.6,
+          }}
+        />
+        <View style={{ paddingHorizontal: 24, paddingTop: 48, paddingBottom: 28 }}>
+          {/* Logo card placeholder */}
+          <View
+            style={{
+              width: 52,
+              height: 52,
+              borderRadius: 15,
+              backgroundColor: 'rgba(255, 255, 255, 0.9)',
+              marginBottom: 20,
+            }}
+          />
+
+          {/* Heading skeleton lines */}
+          <View
+            style={{
+              width: 210,
+              height: 32,
+              borderRadius: 8,
+              backgroundColor: 'rgba(255, 255, 255, 0.35)',
+              marginBottom: 8,
+            }}
+          />
+          <View
+            style={{
+              width: 170,
+              height: 32,
+              borderRadius: 8,
+              backgroundColor: 'rgba(255, 255, 255, 0.35)',
+            }}
+          />
         </View>
-
-        {/* Heading & Subtitle */}
-        <Skeleton width={220} height={32} borderRadius={8} className="mb-2" />
-        <Skeleton width={260} height={16} borderRadius={6} className="mb-8" />
-
-        {/* Input Field 1 (Phone or Email) */}
-        <View className="mb-4">
-          <Skeleton width={120} height={14} borderRadius={4} className="mb-2" />
-          <Skeleton width="100%" height={56} borderRadius={16} />
-        </View>
-
-        {/* Input Field 2 (Password) */}
-        <View className="mb-4">
-          <Skeleton width={80} height={14} borderRadius={4} className="mb-2" />
-          <Skeleton width="100%" height={56} borderRadius={16} />
-        </View>
-
-        {/* Forgot password */}
-        <View className="items-end mb-6">
-          <Skeleton width={110} height={14} borderRadius={4} />
-        </View>
-
-        {/* Submit button */}
-        <Skeleton width="100%" height={56} borderRadius={16} className="mb-4" />
-
-        {/* Biometric button */}
-        <Skeleton width="100%" height={52} borderRadius={16} />
       </View>
 
-      {/* Footer */}
-      <View className="items-center py-4">
-        <Skeleton width={200} height={16} borderRadius={6} />
+      {/* Bottom White Card */}
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: '#FFFFFF',
+          borderTopLeftRadius: 36,
+          borderTopRightRadius: 36,
+          paddingHorizontal: 24,
+          paddingTop: 28,
+          paddingBottom: 28,
+          justifyContent: 'space-between',
+        }}
+      >
+        <View>
+          {/* Title skeleton: "Log in" */}
+          <Skeleton width={100} height={28} borderRadius={6} className="mb-5" />
+
+          {/* Input 1: Phone / email */}
+          <View className="mb-4">
+            <Skeleton width={140} height={14} borderRadius={4} className="mb-2" />
+            <Skeleton width="100%" height={52} borderRadius={14} />
+          </View>
+
+          {/* Input 2: Password */}
+          <View className="mb-3">
+            <Skeleton width={80} height={14} borderRadius={4} className="mb-2" />
+            <Skeleton width="100%" height={52} borderRadius={14} />
+          </View>
+
+          {/* Forgot password link */}
+          <View className="items-end mb-5">
+            <Skeleton width={115} height={14} borderRadius={4} />
+          </View>
+
+          {/* Log in button */}
+          <Skeleton width="100%" height={52} borderRadius={26} className="mb-5" />
+
+          {/* Divider placeholder */}
+          <View className="flex-row items-center mb-5">
+            <View style={{ flex: 1, height: 1, backgroundColor: '#E5DDCD' }} />
+            <Skeleton width={20} height={12} borderRadius={4} className="mx-3" />
+            <View style={{ flex: 1, height: 1, backgroundColor: '#E5DDCD' }} />
+          </View>
+
+          {/* Biometrics button */}
+          <Skeleton width="100%" height={52} borderRadius={26} />
+        </View>
+
+        {/* Bottom register link skeleton */}
+        <View className="items-center py-2">
+          <Skeleton width={180} height={15} borderRadius={4} />
+        </View>
       </View>
     </View>
   );
