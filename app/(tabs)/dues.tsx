@@ -22,6 +22,7 @@ import {
   Eye,
   Building,
   ChevronDown,
+  Wallet,
 } from 'lucide-react-native';
 import { useProperties } from '../../src/context/PropertyContext';
 import { useInvoices } from '../../src/hooks/useInvoices';
@@ -74,7 +75,7 @@ export default function DuesScreen() {
     }, 0);
   }, [invoices]);
 
-  const unpaidCount = useMemo(() => {
+  const _unpaidCount = useMemo(() => {
     return invoices.filter(item => item.status !== 'paid' && item.status !== 'canceled').length;
   }, [invoices]);
 
@@ -314,22 +315,22 @@ export default function DuesScreen() {
             activeOpacity={0.8}
             onPress={() => setFilter('overdue')}
             style={{
-              paddingHorizontal: 16,
-              paddingVertical: 8,
+              paddingHorizontal: 18,
+              paddingVertical: 9,
               borderRadius: 9999,
               borderWidth: 1,
               marginRight: 8,
               flexDirection: 'row',
               alignItems: 'center',
-              backgroundColor: filter === 'overdue' ? '#4F5330' : '#FFFDF8',
-              borderColor: filter === 'overdue' ? '#4F5330' : '#E5DDCD',
+              backgroundColor: filter === 'overdue' ? '#19D3E6' : '#FFFDF8',
+              borderColor: filter === 'overdue' ? '#19D3E6' : '#E5DDCD',
             }}
           >
             <Text
               style={{
-                fontSize: 12,
-                fontWeight: '700',
-                color: filter === 'overdue' ? '#FFFFFF' : '#657080',
+                fontSize: 13,
+                fontWeight: '800',
+                color: filter === 'overdue' ? '#0C192B' : '#657080',
               }}
             >
               Overdue
@@ -341,22 +342,22 @@ export default function DuesScreen() {
             activeOpacity={0.8}
             onPress={() => setFilter('unpaid')}
             style={{
-              paddingHorizontal: 16,
-              paddingVertical: 8,
+              paddingHorizontal: 18,
+              paddingVertical: 9,
               borderRadius: 9999,
               borderWidth: 1,
               marginRight: 8,
               flexDirection: 'row',
               alignItems: 'center',
-              backgroundColor: filter === 'unpaid' ? '#4F5330' : '#FFFDF8',
-              borderColor: filter === 'unpaid' ? '#4F5330' : '#E5DDCD',
+              backgroundColor: filter === 'unpaid' ? '#19D3E6' : '#FFFDF8',
+              borderColor: filter === 'unpaid' ? '#19D3E6' : '#E5DDCD',
             }}
           >
             <Text
               style={{
-                fontSize: 12,
-                fontWeight: '700',
-                color: filter === 'unpaid' ? '#FFFFFF' : '#657080',
+                fontSize: 13,
+                fontWeight: '800',
+                color: filter === 'unpaid' ? '#0C192B' : '#657080',
               }}
             >
               Unpaid
@@ -368,22 +369,22 @@ export default function DuesScreen() {
             activeOpacity={0.8}
             onPress={() => setFilter('paid')}
             style={{
-              paddingHorizontal: 16,
-              paddingVertical: 8,
+              paddingHorizontal: 18,
+              paddingVertical: 9,
               borderRadius: 9999,
               borderWidth: 1,
               marginRight: 8,
               flexDirection: 'row',
               alignItems: 'center',
-              backgroundColor: filter === 'paid' ? '#4F5330' : '#FFFDF8',
-              borderColor: filter === 'paid' ? '#4F5330' : '#E5DDCD',
+              backgroundColor: filter === 'paid' ? '#19D3E6' : '#FFFDF8',
+              borderColor: filter === 'paid' ? '#19D3E6' : '#E5DDCD',
             }}
           >
             <Text
               style={{
-                fontSize: 12,
-                fontWeight: '700',
-                color: filter === 'paid' ? '#FFFFFF' : '#657080',
+                fontSize: 13,
+                fontWeight: '800',
+                color: filter === 'paid' ? '#0C192B' : '#657080',
               }}
             >
               Paid
@@ -395,22 +396,22 @@ export default function DuesScreen() {
             activeOpacity={0.8}
             onPress={() => setFilter('all')}
             style={{
-              paddingHorizontal: 16,
-              paddingVertical: 8,
+              paddingHorizontal: 18,
+              paddingVertical: 9,
               borderRadius: 9999,
               borderWidth: 1,
               marginRight: 8,
               flexDirection: 'row',
               alignItems: 'center',
-              backgroundColor: filter === 'all' ? '#4F5330' : '#FFFDF8',
-              borderColor: filter === 'all' ? '#4F5330' : '#E5DDCD',
+              backgroundColor: filter === 'all' ? '#19D3E6' : '#FFFDF8',
+              borderColor: filter === 'all' ? '#19D3E6' : '#E5DDCD',
             }}
           >
             <Text
               style={{
-                fontSize: 12,
-                fontWeight: '700',
-                color: filter === 'all' ? '#FFFFFF' : '#657080',
+                fontSize: 13,
+                fontWeight: '800',
+                color: filter === 'all' ? '#0C192B' : '#657080',
               }}
             >
               All
@@ -433,31 +434,57 @@ export default function DuesScreen() {
           />
         }
       >
-        {/* Total Outstanding Card */}
+        {/* Total Outstanding Card matching Reference */}
         <View
           style={{
             backgroundColor: '#FFFDF8',
             borderWidth: 1,
             borderColor: '#E5DDCD',
-            borderRadius: 16,
-            padding: 16,
+            borderRadius: 18,
+            paddingHorizontal: 20,
+            paddingVertical: 18,
             flexDirection: 'row',
             alignItems: 'center',
-            justifyContent: 'space-between',
             marginBottom: 16,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.04,
+            shadowRadius: 3,
+            elevation: 1,
           }}
         >
-          <View>
-            <Text style={{ fontSize: 14, fontWeight: '700', color: '#0C192B' }}>
-              Total outstanding
+          {/* Sky Blue Wallet Icon */}
+          <View
+            style={{
+              width: 52,
+              height: 52,
+              borderRadius: 14,
+              backgroundColor: '#E6FBFC',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginRight: 16,
+            }}
+          >
+            <Wallet size={30} color="#19D3E6" strokeWidth={2.2} />
+          </View>
+
+          {/* Texts: Label on top, Large Amount below */}
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 15, fontWeight: '700', color: '#0C192B' }}>
+              Total Outstanding
             </Text>
-            <Text style={{ fontSize: 12, fontWeight: '500', color: '#657080', marginTop: 2 }}>
-              {unpaidCount} tenant{unpaidCount === 1 ? '' : 's'} pending collection
+            <Text
+              style={{
+                fontSize: 28,
+                fontWeight: '900',
+                color: '#0C192B',
+                letterSpacing: -0.5,
+                marginTop: 2,
+              }}
+            >
+              {formatINR(totalOutstandingPaise)}
             </Text>
           </View>
-          <Text style={{ fontSize: 24, fontWeight: '800', color: '#BE123C' }}>
-            {formatINR(totalOutstandingPaise)}
-          </Text>
         </View>
 
         {/* Loading Spinner */}
@@ -729,15 +756,15 @@ export default function DuesScreen() {
                         flex: 1,
                         height: 44,
                         borderRadius: 12,
-                        backgroundColor: '#4F5330',
+                        backgroundColor: '#19D3E6',
                         alignItems: 'center',
                         justifyContent: 'center',
                       }}
                     >
                       {isMarkingPaid ? (
-                        <ActivityIndicator size="small" color="#FFFFFF" />
+                        <ActivityIndicator size="small" color="#0C192B" />
                       ) : (
-                        <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 14 }}>
+                        <Text style={{ color: '#0C192B', fontWeight: '800', fontSize: 14 }}>
                           Mark received
                         </Text>
                       )}

@@ -113,10 +113,10 @@ export const DynamicUpiQrModal: React.FC<DynamicUpiQrModalProps> = ({
                     if (onMarkReceived) onMarkReceived();
                     onClose();
                   }}
-                  className="flex-1 py-3.5 bg-[#4F5330] rounded-xl flex-row items-center justify-center"
+                  className="flex-1 py-3.5 bg-[#19D3E6] rounded-xl flex-row items-center justify-center"
                 >
-                  <Check size={18} color="#FFFFFF" strokeWidth={2.5} />
-                  <Text className="text-sm font-bold text-white ml-2">Mark received</Text>
+                  <Check size={18} color="#0C192B" strokeWidth={2.5} />
+                  <Text className="text-sm font-extrabold text-[#0C192B] ml-2">Mark received</Text>
                 </TouchableOpacity>
               </View>
             </View>
