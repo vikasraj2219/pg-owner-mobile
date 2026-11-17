@@ -297,7 +297,7 @@ export default function DuesScreen() {
           )}
         </View>
 
-        {/* Status Filter Chips matching Tenants & Matrix */}
+        {/* Status Filter Chips: Overdue, Unpaid, Paid, All */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -309,7 +309,7 @@ export default function DuesScreen() {
           }}
           contentContainerStyle={{ paddingRight: 30 }}
         >
-          {/* Overdue (>5d) */}
+          {/* Overdue */}
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={() => setFilter('overdue')}
@@ -332,7 +332,7 @@ export default function DuesScreen() {
                 color: filter === 'overdue' ? '#FFFFFF' : '#657080',
               }}
             >
-              Overdue (&gt;5d)
+              Overdue
             </Text>
           </TouchableOpacity>
 
@@ -416,88 +416,6 @@ export default function DuesScreen() {
               All
             </Text>
           </TouchableOpacity>
-
-          {/* Property Filter Chips if properties.length > 1 */}
-          {properties.length > 1 && (
-            <>
-              <View
-                style={{
-                  width: 1,
-                  height: 20,
-                  backgroundColor: '#E5DDCD',
-                  marginHorizontal: 6,
-                  alignSelf: 'center',
-                }}
-              />
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={() => setDuesPropertyFilterId(null)}
-                style={{
-                  paddingHorizontal: 14,
-                  paddingVertical: 8,
-                  borderRadius: 9999,
-                  borderWidth: 1,
-                  marginRight: 8,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  backgroundColor: duesPropertyFilterId === null ? '#4F5330' : '#FFFDF8',
-                  borderColor: duesPropertyFilterId === null ? '#4F5330' : '#E5DDCD',
-                }}
-              >
-                <Building
-                  size={12}
-                  color={duesPropertyFilterId === null ? '#FFFFFF' : '#657080'}
-                  style={{ marginRight: 5 }}
-                />
-                <Text
-                  style={{
-                    fontSize: 12,
-                    fontWeight: '700',
-                    color: duesPropertyFilterId === null ? '#FFFFFF' : '#657080',
-                  }}
-                >
-                  All Properties
-                </Text>
-              </TouchableOpacity>
-
-              {properties.map(p => {
-                const isSelected = duesPropertyFilterId === p._id;
-                return (
-                  <TouchableOpacity
-                    key={p._id}
-                    activeOpacity={0.8}
-                    onPress={() => setDuesPropertyFilterId(p._id)}
-                    style={{
-                      paddingHorizontal: 14,
-                      paddingVertical: 8,
-                      borderRadius: 9999,
-                      borderWidth: 1,
-                      marginRight: 8,
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      backgroundColor: isSelected ? '#4F5330' : '#FFFDF8',
-                      borderColor: isSelected ? '#4F5330' : '#E5DDCD',
-                    }}
-                  >
-                    <Building
-                      size={12}
-                      color={isSelected ? '#FFFFFF' : '#657080'}
-                      style={{ marginRight: 5 }}
-                    />
-                    <Text
-                      style={{
-                        fontSize: 12,
-                        fontWeight: '700',
-                        color: isSelected ? '#FFFFFF' : '#657080',
-                      }}
-                    >
-                      {p.name}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </>
-          )}
         </ScrollView>
       </View>
 
