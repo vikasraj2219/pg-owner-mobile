@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import { View } from 'react-native';
 import { Tabs } from 'expo-router';
 import { LucideIcon, Home, LayoutGrid, Users, Wallet, PlusCircle } from 'lucide-react-native';
 import * as SplashScreen from 'expo-splash-screen';
@@ -14,31 +13,21 @@ export default function TabsLayout() {
   }, []);
 
   const renderTabIcon = (IconComponent: LucideIcon, focused: boolean) => {
-    if (focused) {
-      return (
-        <View
-          style={{
-            backgroundColor: '#19D3E6',
-            paddingHorizontal: 14,
-            paddingVertical: 3,
-            borderRadius: 16,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <IconComponent color="#0C192B" size={20} strokeWidth={2.4} />
-        </View>
-      );
-    }
-    return <IconComponent color="#657080" size={21} strokeWidth={2} />;
+    return (
+      <IconComponent
+        color={focused ? '#4F5330' : '#8C95A0'}
+        size={22}
+        strokeWidth={focused ? 2.5 : 1.9}
+      />
+    );
   };
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#0C192B',
-        tabBarInactiveTintColor: '#657080',
+        tabBarActiveTintColor: '#4F5330',
+        tabBarInactiveTintColor: '#8C95A0',
         tabBarStyle: {
           backgroundColor: '#FFFFFF',
           borderTopColor: '#E5DDCD',

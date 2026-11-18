@@ -21,6 +21,7 @@ export interface UpdateTenantPayload {
 export interface MoveBedPayload {
   newBedId: string;
   notes?: string;
+  newMonthlyRentPaise?: Paise;
 }
 
 export interface NoticePayload {

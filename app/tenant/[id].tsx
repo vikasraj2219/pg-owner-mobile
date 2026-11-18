@@ -17,6 +17,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import {
   ArrowLeft,
   Edit2,
+  Repeat,
   MoreVertical,
   Phone,
   MessageSquare,
@@ -1601,6 +1602,25 @@ export default function TenantDetailScreen() {
               <Edit2 size={20} color="#0C192B" />
               <Text style={{ fontSize: 14, fontWeight: '700', color: '#0C192B', marginLeft: 14 }}>
                 Edit tenant
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => {
+                setIsActionSheetVisible(false);
+                router.push(`/tenant/edit/${tenant._id}?moveBed=true` as any);
+              }}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingVertical: 14,
+                borderBottomWidth: 1,
+                borderBottomColor: '#F0ECE1',
+              }}
+            >
+              <Repeat size={20} color="#4F5330" />
+              <Text style={{ fontSize: 14, fontWeight: '700', color: '#0C192B', marginLeft: 14 }}>
+                Move to another bed
               </Text>
             </TouchableOpacity>
 
