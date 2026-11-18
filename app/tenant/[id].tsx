@@ -15,7 +15,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import {
-  ChevronLeft,
+  ArrowLeft,
   Edit2,
   MoreVertical,
   Phone,
@@ -41,7 +41,6 @@ import { useTenantDetail } from '../../src/hooks/useTenants';
 import { useMatrix } from '../../src/hooks/useMatrix';
 import { formatINR } from '../../src/utils/currency';
 import { formatSafeDate, formatDayMonth, formatSafeMonthYear } from '../../src/utils/date';
-import { openWhatsApp } from '../../src/utils/whatsapp';
 import { resolveRoomAndBed } from '../../src/utils/bedResolution';
 import { RecordPaymentModal } from '../../src/components/RecordPaymentModal';
 import { ConfirmDeleteModal } from '../../src/components/ConfirmDeleteModal';
@@ -190,24 +189,41 @@ export default function TenantDetailScreen() {
     });
   };
 
-  // WhatsApp handler
+  // Dedicated Reminder screen opener
+  const handleOpenReminder = (dueInvoice?: DueInvoiceItem) => {
+    if (!tenant) return;
+    setIsActionSheetVisible(false);
+
+    const amount =
+      balanceDuePaise && balanceDuePaise > 0
+        ? balanceDuePaise
+        : dueInvoice
+          ? dueInvoice.balanceDuePaise
+          : tenant.monthlyRentPaise || 0;
+
+    const propertyObj = typeof tenant.property === 'object' ? tenant.property : null;
+    const propName = propertyObj?.name || 'PG Living';
+    const upi = propertyObj?.upiVpa || '';
+
+    router.push({
+      pathname: '/reminder/[id]',
+      params: {
+        id: dueInvoice?._id || tenant._id,
+        tenantName: tenant.fullName,
+        phone: tenant.phone || '',
+        bedNo: bedInfo.formattedLabel || `Bed ${bedInfo.bedNumber}`,
+        amountPaise: amount.toString(),
+        overdueDays: (overdueDays > 0 ? overdueDays : 0).toString(),
+        upiVpa: upi,
+        propertyName: propName,
+        dueDate: dueInvoice?.dueDate || '',
+      },
+    } as any);
+  };
+
+  // WhatsApp handler forwards to reminder page
   const handleWhatsApp = () => {
-    if (!tenant?.phone) return;
-    if (balanceDuePaise > 0) {
-      router.push({
-        pathname: `/reminder/${tenant._id}`,
-        params: {
-          tenantName: tenant.fullName,
-          phone: tenant.phone,
-          bedNo: `Bed ${bedInfo.bedNumber}`,
-          amountPaise: balanceDuePaise.toString(),
-          overdueDays: (overdueDays > 0 ? overdueDays : 0).toString(),
-          upiVpa: (typeof tenant.property === 'object' && tenant.property?.upiVpa) || '',
-        },
-      } as any);
-    } else {
-      void openWhatsApp(tenant.phone, `Hello ${tenant.fullName}!`);
-    }
+    handleOpenReminder();
   };
 
   // Delete check
@@ -524,7 +540,7 @@ export default function TenantDetailScreen() {
           style={{
             width: 40,
             height: 40,
-            borderRadius: 12,
+            borderRadius: 20,
             backgroundColor: '#FFFDF8',
             borderWidth: 1,
             borderColor: '#E5DDCD',
@@ -533,7 +549,7 @@ export default function TenantDetailScreen() {
           }}
           accessibilityLabel="Back"
         >
-          <ChevronLeft size={20} color="#0C192B" strokeWidth={2.3} />
+          <ArrowLeft size={20} color="#0C192B" strokeWidth={2.3} />
         </TouchableOpacity>
 
         <View style={{ flex: 1, marginLeft: 14 }}>
@@ -728,7 +744,7 @@ export default function TenantDetailScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              onPress={handleWhatsApp}
+              onPress={() => handleOpenReminder()}
               style={{
                 flex: 1,
                 paddingVertical: 12,
@@ -749,7 +765,7 @@ export default function TenantDetailScreen() {
             >
               <MessageSquare size={18} color="#15803D" />
               <Text style={{ fontSize: 14, fontWeight: '700', color: '#15803D', marginLeft: 8 }}>
-                WhatsApp
+                Send Reminder
               </Text>
             </TouchableOpacity>
           </View>
@@ -1074,21 +1090,41 @@ export default function TenantDetailScreen() {
                   {formatINR(overdueInvoice.balanceDuePaise)}
                 </Text>
 
-                <TouchableOpacity
-                  onPress={() => setSelectedInvoiceForPayment(overdueInvoice as any)}
-                  style={{
-                    width: '100%',
-                    backgroundColor: '#4F5330',
-                    paddingVertical: 12,
-                    borderRadius: 9999,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 14 }}>
-                    Mark received
-                  </Text>
-                </TouchableOpacity>
+                <View style={{ flexDirection: 'row', gap: 10 }}>
+                  <TouchableOpacity
+                    onPress={() => setSelectedInvoiceForPayment(overdueInvoice as any)}
+                    style={{
+                      flex: 1,
+                      backgroundColor: '#4F5330',
+                      paddingVertical: 12,
+                      borderRadius: 9999,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 14 }}>
+                      Mark received
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={() => handleOpenReminder(overdueInvoice as any)}
+                    style={{
+                      flex: 1,
+                      backgroundColor: '#FFFDF8',
+                      borderWidth: 1,
+                      borderColor: '#E5DDCD',
+                      paddingVertical: 12,
+                      borderRadius: 9999,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Text style={{ color: '#0C192B', fontWeight: '800', fontSize: 14 }}>
+                      Send reminder
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             )}
 

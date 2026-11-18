@@ -11,7 +11,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { ChevronLeft } from 'lucide-react-native';
+import { ArrowLeft } from 'lucide-react-native';
 import { PropertyType } from '../types/api';
 import { useProperties } from '../context/PropertyContext';
 import {
@@ -124,9 +124,19 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={onClose}
-            className="w-9 h-9 rounded-full bg-slate-100 items-center justify-center mr-3"
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              backgroundColor: '#FFFDF8',
+              borderWidth: 1,
+              borderColor: '#E5DDCD',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginRight: 14,
+            }}
           >
-            <ChevronLeft size={22} color="#1E293B" />
+            <ArrowLeft size={20} color="#0C192B" strokeWidth={2.3} />
           </TouchableOpacity>
           <Text className="text-xl font-extrabold text-slate-900">Add property</Text>
         </View>

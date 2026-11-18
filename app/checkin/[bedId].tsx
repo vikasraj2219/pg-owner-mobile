@@ -15,7 +15,7 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
-  ChevronLeft,
+  ArrowLeft,
   Camera,
   Check,
   QrCode,
@@ -433,20 +433,25 @@ export default function CheckinScreen() {
           }}
         >
           <TouchableOpacity
+            activeOpacity={0.7}
             onPress={() => router.back()}
             disabled={isUploading}
             style={{
               width: 40,
               height: 40,
+              borderRadius: 20,
+              backgroundColor: '#FFFDF8',
+              borderWidth: 1,
+              borderColor: '#E5DDCD',
               alignItems: 'center',
               justifyContent: 'center',
-              marginLeft: -8,
             }}
+            accessibilityLabel="Back"
           >
-            <ChevronLeft size={26} color="#0C192B" />
+            <ArrowLeft size={20} color="#0C192B" strokeWidth={2.3} />
           </TouchableOpacity>
 
-          <View style={{ marginLeft: 4, flex: 1 }}>
+          <View style={{ marginLeft: 14, flex: 1 }}>
             <Text style={{ fontSize: 16, fontWeight: '800', color: '#0C192B' }} numberOfLines={1}>
               {displayRoom ? `${displayRoom} · ` : ''}Bed {displayBed}
             </Text>

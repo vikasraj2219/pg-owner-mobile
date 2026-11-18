@@ -2,7 +2,7 @@ import React, { useState, useMemo, useRef } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Linking, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ChevronLeft, Share2 } from 'lucide-react-native';
+import { ArrowLeft, Share2 } from 'lucide-react-native';
 import Svg from 'react-native-svg';
 import * as FileSystem from 'expo-file-system';
 import { useProperties } from '../../src/context/PropertyContext';
@@ -28,6 +28,7 @@ export default function SendReminderScreen() {
     dueDate?: string;
     daysRemaining?: string;
     type?: ReminderType;
+    propertyName?: string;
   }>();
 
   const { selectedProperty } = useProperties();
@@ -37,7 +38,16 @@ export default function SendReminderScreen() {
   // Match invoice if available
   const invoice = useMemo(() => {
     if (!params.id) return null;
-    return invoices.find(inv => inv._id === params.id || inv.invoiceNumber === params.id) || null;
+    return (
+      invoices.find(
+        inv =>
+          inv._id === params.id ||
+          inv.invoiceNumber === params.id ||
+          (typeof inv.tenant === 'object'
+            ? inv.tenant?._id === params.id
+            : inv.tenant === params.id),
+      ) || null
+    );
   }, [invoices, params.id]);
 
   const isQrAttached = true;
@@ -45,7 +55,7 @@ export default function SendReminderScreen() {
   const passSvgRef = useRef<Svg | null>(null);
 
   // Tenant Details
-  const fullName = params.tenantName || invoice?.tenant?.fullName || 'Rahul Verma';
+  const fullName = params.tenantName || invoice?.tenant?.fullName || 'Tenant';
   const firstName = fullName.split(' ')[0] || 'there';
   const phone = params.phone || invoice?.tenant?.phone || '9876543210';
   const displayPhone = phone.startsWith('+91') ? phone : `+91 ${phone}`;
@@ -60,13 +70,15 @@ export default function SendReminderScreen() {
     });
   }, [params.bedNo, invoice, fullName, matrixData]);
 
-  const bedNo = resolvedBed.bedLabel;
+  const bedNo = params.bedNo || resolvedBed.bedLabel || 'Bed';
 
   const amountPaise = useMemo(() => {
-    if (params.amountPaise) return parseInt(params.amountPaise, 10);
+    if (params.amountPaise && parseInt(params.amountPaise, 10) > 0) {
+      return parseInt(params.amountPaise, 10);
+    }
     if (invoice?.balanceDuePaise) return invoice.balanceDuePaise;
     if (invoice?.totalAmountPaise) return invoice.totalAmountPaise;
-    return 850000;
+    return 750000;
   }, [params.amountPaise, invoice]);
 
   const amountFormatted = `₹${Math.round(amountPaise / 100).toLocaleString('en-IN')}`;
@@ -77,8 +89,17 @@ export default function SendReminderScreen() {
     return 0;
   }, [params.overdueDays, invoice]);
 
+  const propertyName =
+    params.propertyName ||
+    (typeof invoice?.property === 'object' && (invoice?.property as any)?.name) ||
+    selectedProperty?.name ||
+    'PG Living';
+
   const upiVpa =
-    params.upiVpa || invoice?.property?.upiVpa || selectedProperty?.upiVpa || 'owner@upi';
+    params.upiVpa ||
+    (typeof invoice?.property === 'object' && (invoice?.property as any)?.upiVpa) ||
+    selectedProperty?.upiVpa ||
+    'owner@upi';
 
   // Calculate days remaining / overdue status from due date
   const rawDueDate = invoice?.dueDate || params.dueDate;
@@ -110,12 +131,12 @@ export default function SendReminderScreen() {
       .toUpperCase();
   }, [fullName]);
 
-  // Configured reminder send time: 2:30 PM IST (changed from 9:00 AM)
+  // Configured reminder send time: 2:30 PM IST
   const currentTimeString = '2:30 pm';
 
   // UPI deep link for payment link & QR
   const upiPayload = `upi://pay?pa=${encodeURIComponent(upiVpa)}&pn=${encodeURIComponent(
-    selectedProperty?.name || 'PG Living',
+    propertyName,
   )}&am=${(amountPaise / 100).toFixed(2)}&cu=INR&tn=${encodeURIComponent(
     `Rent ${bedNo} ${firstName}`,
   )}`;
@@ -131,7 +152,7 @@ export default function SendReminderScreen() {
       overdueDays: overdueDays > 0 ? overdueDays : Math.abs(daysUntilDue),
       upiVpa,
       upiPayload,
-      propertyName: selectedProperty?.name,
+      propertyName,
       type: selectedType,
     });
   }, [
@@ -143,18 +164,24 @@ export default function SendReminderScreen() {
     overdueDays,
     upiVpa,
     upiPayload,
-    selectedProperty?.name,
+    propertyName,
     selectedType,
   ]);
 
   const openWhatsAppDirectly = async () => {
-    const cleanPhone = phone.replace(/\D/g, '');
+    let cleanPhone = phone.replace(/\D/g, '');
+    if (cleanPhone.startsWith('91') && cleanPhone.length > 10) {
+      // already has country code
+    } else {
+      cleanPhone = `91${cleanPhone}`;
+    }
+
     let finalMessage = reminderMessage;
     if (isQrAttached && !finalMessage.includes('Instant UPI Payment Link')) {
       finalMessage += `\n\nInstant UPI Payment Link:\n${upiPayload}`;
     }
 
-    const url = `https://wa.me/91${cleanPhone}?text=${encodeURIComponent(finalMessage)}`;
+    const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(finalMessage)}`;
 
     try {
       const canOpen = await Linking.canOpenURL(url);
@@ -162,7 +189,7 @@ export default function SendReminderScreen() {
         await Linking.openURL(url);
       } else {
         await Linking.openURL(
-          `whatsapp://send?phone=91${cleanPhone}&text=${encodeURIComponent(finalMessage)}`,
+          `whatsapp://send?phone=${cleanPhone}&text=${encodeURIComponent(finalMessage)}`,
         );
       }
     } catch (_err) {
@@ -230,7 +257,7 @@ export default function SendReminderScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-[#F8F9FA]" edges={['top']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#FAF5EB' }} edges={['top']}>
       {/* Off-screen high-res Pass Card & QR for instant 1-Message sharing */}
       <View
         style={{
@@ -242,7 +269,7 @@ export default function SendReminderScreen() {
         }}
       >
         <RentPaymentPassSvg
-          propertyName={selectedProperty?.name || 'Sri Sai Boys PG'}
+          propertyName={propertyName}
           tenantName={fullName}
           bedNo={bedNo}
           invoiceNo={invoice?.invoiceNumber || '202611-0002'}
@@ -262,34 +289,96 @@ export default function SendReminderScreen() {
         />
       </View>
 
-      {/* Top Header matching Image 2 */}
-      <View className="px-4 py-3 flex-row items-center border-b border-slate-200/60 bg-[#F8F9FA]">
+      {/* Top Header matching Add Room / Edit Room design */}
+      <View
+        style={{
+          paddingHorizontal: 20,
+          paddingTop: 16,
+          paddingBottom: 14,
+          flexDirection: 'row',
+          alignItems: 'center',
+          borderBottomWidth: 1,
+          borderBottomColor: '#E5DDCD',
+          backgroundColor: '#FAF5EB',
+        }}
+      >
         <TouchableOpacity
+          activeOpacity={0.7}
           onPress={() => router.back()}
-          className="w-10 h-10 items-center justify-center -ml-2 rounded-full active:bg-slate-200"
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 20,
+            backgroundColor: '#FFFDF8',
+            borderWidth: 1,
+            borderColor: '#E5DDCD',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+          accessibilityLabel="Back"
         >
-          <ChevronLeft size={28} color="#0F172A" strokeWidth={2.5} />
+          <ArrowLeft size={20} color="#0C192B" strokeWidth={2.3} />
         </TouchableOpacity>
-        <Text className="text-xl font-black text-slate-900 tracking-tight ml-1">Send reminder</Text>
+
+        <View style={{ flex: 1, marginLeft: 14 }}>
+          <Text style={{ fontSize: 20, fontWeight: '800', color: '#0C192B', letterSpacing: -0.3 }}>
+            Send Reminder
+          </Text>
+          <Text style={{ fontSize: 12, fontWeight: '500', color: '#657080', marginTop: 2 }}>
+            WhatsApp rent reminder & digital pass
+          </Text>
+        </View>
       </View>
 
       <ScrollView
-        className="flex-1 px-4 pt-4"
-        contentContainerStyle={{ paddingBottom: 30, flexGrow: 1 }}
+        style={{ flex: 1, backgroundColor: '#FAF5EB' }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Top Tenant Card matching Image 2 */}
-        <View className="bg-white border border-slate-200/80 rounded-2xl p-4 mb-3 shadow-xs flex-row items-center justify-between">
-          <View className="flex-row items-center flex-1 mr-2">
-            <View className="w-11 h-11 rounded-full bg-[#E2E8F0] items-center justify-center mr-3">
-              <Text className="text-base font-extrabold text-slate-700">{initials}</Text>
+        {/* Top Tenant Card */}
+        <View
+          style={{
+            backgroundColor: '#FFFDF8',
+            borderWidth: 1,
+            borderColor: '#E5DDCD',
+            borderRadius: 20,
+            padding: 16,
+            marginBottom: 14,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.03,
+            shadowRadius: 2,
+            elevation: 1,
+          }}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 12 }}>
+            <View
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: 22,
+                backgroundColor: '#FAF7F0',
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginRight: 12,
+              }}
+            >
+              <Text style={{ fontSize: 16, fontWeight: '800', color: '#4F5330' }}>{initials}</Text>
             </View>
-            <View className="flex-1">
-              <Text className="text-base font-extrabold text-slate-900" numberOfLines={1}>
+
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 16, fontWeight: '800', color: '#0C192B' }} numberOfLines={1}>
                 {fullName}
               </Text>
-              <Text className="text-xs font-semibold text-slate-500 mt-0.5" numberOfLines={1}>
+              <Text
+                style={{ fontSize: 12, fontWeight: '500', color: '#657080', marginTop: 2 }}
+                numberOfLines={1}
+              >
                 {displayPhone} · {bedNo}
               </Text>
             </View>
@@ -297,37 +386,82 @@ export default function SendReminderScreen() {
 
           {/* Dynamic Status Badge */}
           {selectedType === 'pre_reminder' ? (
-            <View className="bg-[#ECFDF5] border border-[#A7F3D0] px-3 py-1 rounded-full">
-              <Text className="text-xs font-extrabold text-[#065F46]">
+            <View
+              style={{
+                backgroundColor: '#E8F5E9',
+                borderWidth: 1,
+                borderColor: '#C8E6C9',
+                paddingHorizontal: 12,
+                paddingVertical: 5,
+                borderRadius: 9999,
+              }}
+            >
+              <Text style={{ fontSize: 11, fontWeight: '800', color: '#2E7D32' }}>
                 {daysUntilDue > 0 ? `${daysUntilDue} days left` : '2 days left'}
               </Text>
             </View>
           ) : selectedType === 'due_today' ? (
-            <View className="bg-[#FFFBEB] border border-[#FDE68A] px-3 py-1 rounded-full">
-              <Text className="text-xs font-extrabold text-[#92400E]">Due today</Text>
+            <View
+              style={{
+                backgroundColor: '#FEF3C7',
+                borderWidth: 1,
+                borderColor: '#FDE68A',
+                paddingHorizontal: 12,
+                paddingVertical: 5,
+                borderRadius: 9999,
+              }}
+            >
+              <Text style={{ fontSize: 11, fontWeight: '800', color: '#B45309' }}>Due today</Text>
             </View>
           ) : (
-            <View className="bg-[#FEF2F2] border border-[#FECACA] px-3 py-1 rounded-full">
-              <Text className="text-xs font-extrabold text-[#991B1B]">
+            <View
+              style={{
+                backgroundColor: '#FEF2F2',
+                borderWidth: 1,
+                borderColor: '#FECACA',
+                paddingHorizontal: 12,
+                paddingVertical: 5,
+                borderRadius: 9999,
+              }}
+            >
+              <Text style={{ fontSize: 11, fontWeight: '800', color: '#991B1B' }}>
                 {overdueDays > 0 ? `${overdueDays} days overdue` : 'Rent due'}
               </Text>
             </View>
           )}
         </View>
 
-        {/* 3-Stage Reminder Selector: Pre-reminder (2 days before) | Due today | Overdue */}
-        <View className="flex-row items-center bg-white p-1 rounded-2xl border border-slate-200/80 mb-3.5 shadow-2xs">
+        {/* 3-Stage Reminder Selector */}
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor: '#FFFDF8',
+            borderWidth: 1,
+            borderColor: '#E5DDCD',
+            borderRadius: 16,
+            padding: 4,
+            marginBottom: 16,
+          }}
+        >
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={() => setSelectedType('pre_reminder')}
-            className={`flex-1 py-2 rounded-xl items-center justify-center ${
-              selectedType === 'pre_reminder' ? 'bg-[#0A6C50]' : 'bg-transparent'
-            }`}
+            style={{
+              flex: 1,
+              paddingVertical: 10,
+              borderRadius: 12,
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: selectedType === 'pre_reminder' ? '#4F5330' : 'transparent',
+            }}
           >
             <Text
-              className={`text-xs font-bold ${
-                selectedType === 'pre_reminder' ? 'text-white' : 'text-slate-600'
-              }`}
+              style={{
+                fontSize: 12,
+                fontWeight: selectedType === 'pre_reminder' ? '800' : '600',
+                color: selectedType === 'pre_reminder' ? '#FFFFFF' : '#657080',
+              }}
             >
               Pre-reminder (2d)
             </Text>
@@ -336,14 +470,21 @@ export default function SendReminderScreen() {
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={() => setSelectedType('due_today')}
-            className={`flex-1 py-2 rounded-xl items-center justify-center ${
-              selectedType === 'due_today' ? 'bg-[#0A6C50]' : 'bg-transparent'
-            }`}
+            style={{
+              flex: 1,
+              paddingVertical: 10,
+              borderRadius: 12,
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: selectedType === 'due_today' ? '#4F5330' : 'transparent',
+            }}
           >
             <Text
-              className={`text-xs font-bold ${
-                selectedType === 'due_today' ? 'text-white' : 'text-slate-600'
-              }`}
+              style={{
+                fontSize: 12,
+                fontWeight: selectedType === 'due_today' ? '800' : '600',
+                color: selectedType === 'due_today' ? '#FFFFFF' : '#657080',
+              }}
             >
               Due today
             </Text>
@@ -352,14 +493,21 @@ export default function SendReminderScreen() {
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={() => setSelectedType('overdue')}
-            className={`flex-1 py-2 rounded-xl items-center justify-center ${
-              selectedType === 'overdue' ? 'bg-[#0A6C50]' : 'bg-transparent'
-            }`}
+            style={{
+              flex: 1,
+              paddingVertical: 10,
+              borderRadius: 12,
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: selectedType === 'overdue' ? '#4F5330' : 'transparent',
+            }}
           >
             <Text
-              className={`text-xs font-bold ${
-                selectedType === 'overdue' ? 'text-white' : 'text-slate-600'
-              }`}
+              style={{
+                fontSize: 12,
+                fontWeight: selectedType === 'overdue' ? '800' : '600',
+                color: selectedType === 'overdue' ? '#FFFFFF' : '#657080',
+              }}
             >
               Overdue
             </Text>
@@ -367,30 +515,94 @@ export default function SendReminderScreen() {
         </View>
 
         {/* Message Preview Box with Scheduled Time Pill */}
-        <View className="bg-[#E8F5EE] border border-[#C7E7D4] rounded-3xl p-5 mb-5 flex-1 justify-start">
-          <View className="flex-row items-center justify-between mb-4">
-            <Text className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+        <View
+          style={{
+            backgroundColor: '#FFFDF8',
+            borderWidth: 1,
+            borderColor: '#E5DDCD',
+            borderRadius: 20,
+            padding: 16,
+            marginBottom: 20,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.03,
+            shadowRadius: 2,
+            elevation: 1,
+          }}
+        >
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: 14,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 11,
+                fontWeight: '800',
+                color: '#657080',
+                textTransform: 'uppercase',
+                letterSpacing: 0.5,
+              }}
+            >
               Message preview
             </Text>
-            <View className="bg-[#ECFDF5] border border-[#A7F3D0] px-2.5 py-1 rounded-full">
-              <Text className="text-[11px] font-black text-[#065F46]">⏰ Send Time: 2:30 PM</Text>
+            <View
+              style={{
+                backgroundColor: '#FAF5EB',
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+                paddingHorizontal: 10,
+                paddingVertical: 4,
+                borderRadius: 9999,
+              }}
+            >
+              <Text style={{ fontSize: 11, fontWeight: '700', color: '#4F5330' }}>
+                ⏰ Send Time: 2:30 PM
+              </Text>
             </View>
           </View>
 
           {/* WhatsApp Speech Bubble */}
-          <View className="bg-[#DCFCE7] border border-[#BBF7D0] rounded-2xl rounded-tl-xs p-4 shadow-2xs mb-3.5">
-            <Text className="text-slate-900 text-sm font-semibold leading-relaxed">
+          <View
+            style={{
+              backgroundColor: '#FAF7F0',
+              borderWidth: 1,
+              borderColor: '#E5DDCD',
+              borderRadius: 16,
+              padding: 14,
+              marginBottom: 16,
+            }}
+          >
+            <Text
+              style={{
+                color: '#0C192B',
+                fontSize: 13,
+                fontWeight: '500',
+                lineHeight: 20,
+              }}
+            >
               {reminderMessage}
             </Text>
-            <Text className="text-[11px] text-slate-400 font-medium text-right mt-2">
+            <Text
+              style={{
+                fontSize: 11,
+                color: '#8C95A0',
+                fontWeight: '500',
+                textAlign: 'right',
+                marginTop: 6,
+              }}
+            >
               {currentTimeString}
             </Text>
           </View>
 
           {/* Fresh Bus-Style Digital Rent Payment Pass Card */}
-          <View className="mt-1">
+          <View style={{ marginTop: 2 }}>
             <RentPaymentPassCard
-              propertyName={selectedProperty?.name || 'Sri Sai Boys PG'}
+              propertyName={propertyName}
               tenantName={fullName}
               bedNo={bedNo}
               invoiceNo={invoice?.invoiceNumber || '202611-0002'}
@@ -409,21 +621,43 @@ export default function SendReminderScreen() {
         </View>
 
         {/* Bottom Actions: Single Direct WhatsApp Sender */}
-        <View className="mt-auto">
+        <View style={{ marginTop: 'auto' }}>
           <TouchableOpacity
             activeOpacity={0.85}
             onPress={handleOpenWhatsApp}
             disabled={isSharingPass}
-            className="w-full py-4 bg-[#FACC15] rounded-2xl flex-row items-center justify-center gap-2 shadow-md active:bg-[#EAB308]"
+            style={{
+              width: '100%',
+              height: 52,
+              backgroundColor: '#4F5330',
+              borderRadius: 9999,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.1,
+              shadowRadius: 4,
+              elevation: 2,
+            }}
           >
-            <Share2 size={20} color="#0F172A" strokeWidth={2.5} />
-            <Text className="text-base font-black text-slate-900">
-              {isSharingPass ? 'Opening WhatsApp...' : 'Share Pass & Link in One WhatsApp Message'}
+            <Share2 size={18} color="#FFFFFF" strokeWidth={2.3} style={{ marginRight: 8 }} />
+            <Text style={{ fontSize: 15, fontWeight: '800', color: '#FFFFFF' }}>
+              {isSharingPass ? 'Opening WhatsApp...' : 'Share Pass & Link via WhatsApp'}
             </Text>
           </TouchableOpacity>
 
           {/* Subtext */}
-          <Text className="text-xs font-medium text-slate-500 text-center mt-2.5 leading-normal">
+          <Text
+            style={{
+              fontSize: 12,
+              fontWeight: '500',
+              color: '#657080',
+              textAlign: 'center',
+              marginTop: 10,
+              lineHeight: 18,
+            }}
+          >
             Directly opens {firstName}'s WhatsApp chat with the pass card & instant payment link.
           </Text>
         </View>

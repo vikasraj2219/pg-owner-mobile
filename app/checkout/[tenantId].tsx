@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ChevronLeft, FileCheck, CheckCircle2 } from 'lucide-react-native';
+import { ArrowLeft, FileCheck, CheckCircle2 } from 'lucide-react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import { formatINR } from '../../src/utils/currency';
 import { getCheckoutPreviewApi, confirmCheckoutApi } from '../../src/api/checkout';
@@ -133,18 +133,23 @@ export default function CheckoutScreen() {
         }}
       >
         <TouchableOpacity
+          activeOpacity={0.7}
           onPress={() => router.back()}
           style={{
             width: 40,
             height: 40,
+            borderRadius: 20,
+            backgroundColor: '#FFFDF8',
+            borderWidth: 1,
+            borderColor: '#E5DDCD',
             alignItems: 'center',
             justifyContent: 'center',
-            marginLeft: -8,
           }}
+          accessibilityLabel="Back"
         >
-          <ChevronLeft size={26} color="#0C192B" />
+          <ArrowLeft size={20} color="#0C192B" strokeWidth={2.3} />
         </TouchableOpacity>
-        <View style={{ marginLeft: 4, flex: 1 }}>
+        <View style={{ marginLeft: 14, flex: 1 }}>
           <Text style={{ fontSize: 20, fontWeight: '800', color: '#0C192B', letterSpacing: -0.5 }}>
             Checkout Settlement
           </Text>

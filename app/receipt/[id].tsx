@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Alert, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ChevronLeft, Share2, Check, Download, MessageSquare } from 'lucide-react-native';
+import { ArrowLeft, Share2, Check, Download, MessageSquare } from 'lucide-react-native';
 import { useProperties } from '../../src/context/PropertyContext';
 import { useInvoices } from '../../src/hooks/useInvoices';
 import { useMatrix } from '../../src/hooks/useMatrix';
@@ -164,7 +164,7 @@ export default function ReceiptScreen() {
           }}
           accessibilityLabel="Back"
         >
-          <ChevronLeft size={22} color="#0C192B" strokeWidth={2.5} />
+          <ArrowLeft size={20} color="#0C192B" strokeWidth={2.3} />
         </TouchableOpacity>
 
         <Text style={{ fontSize: 18, fontWeight: '800', color: '#0C192B' }}>Receipt</Text>

@@ -15,7 +15,7 @@ import {
   AlertCircle,
   Sparkles,
   ShieldCheck,
-  ChevronLeft,
+  ArrowLeft,
   Building2,
   BedDouble,
   RefreshCw,
@@ -169,10 +169,19 @@ export default function SubscriptionScreen() {
       <View className="bg-white px-5 py-3.5 flex-row items-center justify-between border-b border-slate-200/80">
         <TouchableOpacity
           onPress={handleBack}
-          className="w-9 h-9 rounded-full bg-slate-100 items-center justify-center"
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 20,
+            backgroundColor: '#FFFDF8',
+            borderWidth: 1,
+            borderColor: '#E5DDCD',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
           activeOpacity={0.7}
         >
-          <ChevronLeft size={22} color="#334155" />
+          <ArrowLeft size={20} color="#0C192B" strokeWidth={2.3} />
         </TouchableOpacity>
         <Text className="text-base font-extrabold text-slate-900">Subscription & Access</Text>
         <TouchableOpacity

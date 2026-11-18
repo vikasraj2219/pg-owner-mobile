@@ -10,7 +10,7 @@ import {
   Share,
   Alert,
 } from 'react-native';
-import { X, ExternalLink, ShieldCheck, FileText, Share2 } from 'lucide-react-native';
+import { ArrowLeft, ExternalLink, ShieldCheck, FileText, Share2 } from 'lucide-react-native';
 
 interface IdDocumentViewerModalProps {
   visible: boolean;
@@ -72,54 +72,175 @@ export const IdDocumentViewerModal: React.FC<IdDocumentViewerModalProps> = ({
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <View className="flex-1 bg-black/85 justify-center items-center px-4 py-8">
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: 'rgba(12, 25, 43, 0.7)',
+          justifyContent: 'center',
+          alignItems: 'center',
+          paddingHorizontal: 16,
+          paddingVertical: 32,
+        }}
+      >
         {/* Card Container */}
-        <View className="w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-2xl flex-1 max-h-[85%]">
+        <View
+          style={{
+            width: '100%',
+            maxWidth: 440,
+            backgroundColor: '#FAF5EB',
+            borderRadius: 24,
+            overflow: 'hidden',
+            flex: 1,
+            maxHeight: '88%',
+            borderWidth: 1,
+            borderColor: '#E5DDCD',
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 10 },
+            shadowOpacity: 0.15,
+            shadowRadius: 20,
+            elevation: 10,
+          }}
+        >
           {/* Header */}
-          <View className="flex-row items-center justify-between px-5 py-4 border-b border-slate-100 bg-slate-50">
-            <View className="flex-1 mr-3">
-              <View className="flex-row items-center">
-                <ShieldCheck size={18} color="#0A6C50" />
-                <Text className="text-base font-black text-slate-900 ml-1.5 capitalize">
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingHorizontal: 16,
+              paddingVertical: 14,
+              borderBottomWidth: 1,
+              borderBottomColor: '#E5DDCD',
+              backgroundColor: '#FAF5EB',
+            }}
+          >
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={onClose}
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 20,
+                backgroundColor: '#FFFDF8',
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+              accessibilityLabel="Back"
+            >
+              <ArrowLeft size={20} color="#0C192B" strokeWidth={2.3} />
+            </TouchableOpacity>
+
+            <View style={{ flex: 1, marginHorizontal: 12 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <ShieldCheck size={16} color="#4F5330" />
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: '800',
+                    color: '#0C192B',
+                    marginLeft: 6,
+                    textTransform: 'capitalize',
+                  }}
+                  numberOfLines={1}
+                >
                   {docType} ID Proof
                 </Text>
               </View>
-              <Text className="text-xs font-semibold text-slate-500 mt-0.5">
+              <Text
+                style={{ fontSize: 12, fontWeight: '500', color: '#657080', marginTop: 2 }}
+                numberOfLines={1}
+              >
                 {tenantName} {maskedNumber ? `· ${maskedNumber}` : ''}
               </Text>
             </View>
 
-            <TouchableOpacity
-              activeOpacity={0.7}
-              onPress={onClose}
-              className="w-9 h-9 rounded-full bg-slate-200/80 items-center justify-center"
-            >
-              <X size={20} color="#334155" />
-            </TouchableOpacity>
+            {documentUrl ? (
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={handleShareOrOpen}
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 20,
+                  backgroundColor: '#FFFDF8',
+                  borderWidth: 1,
+                  borderColor: '#E5DDCD',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                accessibilityLabel="Share"
+              >
+                <Share2 size={18} color="#4F5330" strokeWidth={2.3} />
+              </TouchableOpacity>
+            ) : (
+              <View style={{ width: 40 }} />
+            )}
           </View>
 
           {/* Cloudinary Security Pill */}
           {isCloudinary && (
-            <View className="bg-emerald-50 px-4 py-2 flex-row items-center justify-between border-b border-emerald-100">
-              <View className="flex-row items-center">
-                <View className="w-2 h-2 rounded-full bg-emerald-500 mr-2" />
-                <Text className="text-xs font-bold text-emerald-800">
+            <View
+              style={{
+                backgroundColor: '#E8F5E9',
+                paddingHorizontal: 16,
+                paddingVertical: 8,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                borderBottomWidth: 1,
+                borderBottomColor: '#C8E6C9',
+              }}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <View
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: 4,
+                    backgroundColor: '#2E7D32',
+                    marginRight: 8,
+                  }}
+                />
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#2E7D32' }}>
                   Cloudinary Verified Storage
                 </Text>
               </View>
-              <Text className="text-[10px] font-extrabold text-emerald-600 uppercase tracking-wider">
+              <Text
+                style={{
+                  fontSize: 10,
+                  fontWeight: '800',
+                  color: '#2E7D32',
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.5,
+                }}
+              >
                 HTTPS CDN
               </Text>
             </View>
           )}
 
           {/* Image View Area */}
-          <View className="flex-1 bg-slate-900 items-center justify-center relative p-2">
+          <View
+            style={{
+              flex: 1,
+              backgroundColor: '#0C192B',
+              margin: 14,
+              borderRadius: 18,
+              alignItems: 'center',
+              justifyContent: 'center',
+              position: 'relative',
+              overflow: 'hidden',
+              borderWidth: 1,
+              borderColor: '#E5DDCD',
+            }}
+          >
             {documentUrl ? (
               <>
                 <Image
                   source={{ uri: documentUrl }}
-                  className="w-full h-full"
+                  style={{ width: '100%', height: '100%' }}
                   resizeMode="contain"
                   onLoad={() => setLoading(false)}
                   onLoadStart={() => {
@@ -135,28 +256,80 @@ export const IdDocumentViewerModal: React.FC<IdDocumentViewerModalProps> = ({
                 />
 
                 {loading && (
-                  <View className="absolute inset-0 items-center justify-center bg-black/40">
-                    <ActivityIndicator size="large" color="#ffffff" />
-                    <Text className="text-xs font-bold text-white mt-2">Loading document...</Text>
+                  <View
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: 'rgba(12, 25, 43, 0.6)',
+                    }}
+                  >
+                    <ActivityIndicator size="large" color="#FAF5EB" />
+                    <Text
+                      style={{ fontSize: 12, fontWeight: '700', color: '#FFFFFF', marginTop: 8 }}
+                    >
+                      Loading document...
+                    </Text>
                   </View>
                 )}
 
                 {hasError && (
-                  <View className="absolute inset-0 items-center justify-center bg-slate-900 px-6">
+                  <View
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      paddingHorizontal: 24,
+                      backgroundColor: '#0C192B',
+                    }}
+                  >
                     <FileText size={48} color="#94A3B8" />
-                    <Text className="text-sm font-bold text-white mt-3 text-center">
+                    <Text
+                      style={{
+                        fontSize: 14,
+                        fontWeight: '700',
+                        color: '#FFFFFF',
+                        marginTop: 12,
+                        textAlign: 'center',
+                      }}
+                    >
                       Unable to display image preview
                     </Text>
-                    <Text className="text-xs text-slate-400 mt-1 text-center">
+                    <Text
+                      style={{
+                        fontSize: 12,
+                        color: '#94A3B8',
+                        marginTop: 4,
+                        textAlign: 'center',
+                      }}
+                    >
                       Tap below to view or export the document.
                     </Text>
                   </View>
                 )}
               </>
             ) : (
-              <View className="items-center justify-center px-6">
+              <View
+                style={{ alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 }}
+              >
                 <FileText size={48} color="#94A3B8" />
-                <Text className="text-sm font-bold text-white mt-3 text-center">
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontWeight: '700',
+                    color: '#FFFFFF',
+                    marginTop: 12,
+                    textAlign: 'center',
+                  }}
+                >
                   No document URL available
                 </Text>
               </View>
@@ -164,19 +337,38 @@ export const IdDocumentViewerModal: React.FC<IdDocumentViewerModalProps> = ({
           </View>
 
           {/* Footer Actions */}
-          <View className="p-4 bg-white border-t border-slate-100 flex-row gap-3">
+          <View
+            style={{
+              padding: 16,
+              backgroundColor: '#FAF5EB',
+              borderTopWidth: 1,
+              borderTopColor: '#E5DDCD',
+              flexDirection: 'row',
+              gap: 12,
+            }}
+          >
             {documentUrl && (
               <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={handleShareOrOpen}
-                className="flex-1 bg-slate-100 border border-slate-200 py-3.5 px-4 rounded-2xl flex-row items-center justify-center"
+                style={{
+                  flex: 1,
+                  backgroundColor: '#FFFDF8',
+                  borderWidth: 1,
+                  borderColor: '#E5DDCD',
+                  height: 48,
+                  borderRadius: 9999,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
               >
                 {isWebUrl ? (
-                  <ExternalLink size={16} color="#0A6C50" />
+                  <ExternalLink size={16} color="#0C192B" />
                 ) : (
-                  <Share2 size={16} color="#0A6C50" />
+                  <Share2 size={16} color="#0C192B" />
                 )}
-                <Text className="text-sm font-bold text-[#0A6C50] ml-2">
+                <Text style={{ fontSize: 14, fontWeight: '800', color: '#0C192B', marginLeft: 8 }}>
                   {isWebUrl ? 'Open in Browser' : 'Share / Export'}
                 </Text>
               </TouchableOpacity>
@@ -185,9 +377,16 @@ export const IdDocumentViewerModal: React.FC<IdDocumentViewerModalProps> = ({
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={onClose}
-              className="flex-1 bg-[#0A6C50] py-3.5 px-4 rounded-2xl items-center justify-center shadow-sm"
+              style={{
+                flex: 1,
+                backgroundColor: '#4F5330',
+                height: 48,
+                borderRadius: 9999,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
             >
-              <Text className="text-sm font-extrabold text-white">Done</Text>
+              <Text style={{ fontSize: 14, fontWeight: '800', color: '#FFFFFF' }}>Done</Text>
             </TouchableOpacity>
           </View>
         </View>

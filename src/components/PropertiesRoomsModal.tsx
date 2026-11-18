@@ -16,7 +16,7 @@ import {
   Layers,
   Zap,
   Pencil,
-  ChevronLeft,
+  ArrowLeft,
   ChevronRight,
   DoorOpen,
   Crown,
@@ -326,9 +326,20 @@ export const PropertiesRoomsModal: React.FC<PropertiesRoomsModalProps> = ({ visi
               <View className="flex-row items-center gap-2 flex-1 mr-2">
                 <TouchableOpacity
                   onPress={handleBack}
-                  className="w-9 h-9 rounded-full bg-slate-100 items-center justify-center -ml-1"
+                  style={{
+                    width: 38,
+                    height: 38,
+                    borderRadius: 19,
+                    backgroundColor: '#FAF7F0',
+                    borderWidth: 1,
+                    borderColor: '#E5DDCD',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginRight: 6,
+                  }}
+                  accessibilityLabel="Back"
                 >
-                  <ChevronLeft size={22} color="#1E293B" />
+                  <ArrowLeft size={18} color="#0C192B" strokeWidth={2.3} />
                 </TouchableOpacity>
                 <View className="flex-1">
                   <Text className="text-lg font-black text-slate-900" numberOfLines={1}>
@@ -512,9 +523,20 @@ export const PropertiesRoomsModal: React.FC<PropertiesRoomsModalProps> = ({ visi
               <View className="flex-row items-center gap-2 flex-1 mr-2">
                 <TouchableOpacity
                   onPress={handleBack}
-                  className="w-9 h-9 rounded-full bg-slate-100 items-center justify-center -ml-1"
+                  style={{
+                    width: 38,
+                    height: 38,
+                    borderRadius: 19,
+                    backgroundColor: '#FAF7F0',
+                    borderWidth: 1,
+                    borderColor: '#E5DDCD',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginRight: 6,
+                  }}
+                  accessibilityLabel="Back"
                 >
-                  <ChevronLeft size={22} color="#1E293B" />
+                  <ArrowLeft size={18} color="#0C192B" strokeWidth={2.3} />
                 </TouchableOpacity>
                 <View className="flex-1">
                   <Text className="text-lg font-black text-slate-900" numberOfLines={1}>
@@ -658,9 +680,20 @@ export const PropertiesRoomsModal: React.FC<PropertiesRoomsModalProps> = ({ visi
               <View className="flex-row items-center gap-2 flex-1 mr-2">
                 <TouchableOpacity
                   onPress={handleBack}
-                  className="w-9 h-9 rounded-full bg-slate-100 items-center justify-center -ml-1"
+                  style={{
+                    width: 38,
+                    height: 38,
+                    borderRadius: 19,
+                    backgroundColor: '#FAF7F0',
+                    borderWidth: 1,
+                    borderColor: '#E5DDCD',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginRight: 6,
+                  }}
+                  accessibilityLabel="Back"
                 >
-                  <ChevronLeft size={22} color="#1E293B" />
+                  <ArrowLeft size={18} color="#0C192B" strokeWidth={2.3} />
                 </TouchableOpacity>
                 <View className="flex-1">
                   <Text className="text-lg font-black text-slate-900" numberOfLines={1}>

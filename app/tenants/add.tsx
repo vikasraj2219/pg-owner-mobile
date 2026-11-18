@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { ChevronLeft, Search, Check, ChevronRight, BedDouble } from 'lucide-react-native';
+import { ArrowLeft, Search, Check, ChevronRight, BedDouble } from 'lucide-react-native';
 import { useProperties } from '../../src/context/PropertyContext';
 import { useMatrix } from '../../src/hooks/useMatrix';
 import { IMatrixBed, IMatrixRoom } from '../../src/types/api';
@@ -122,15 +122,31 @@ export default function PickVacantBedScreen() {
       >
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <TouchableOpacity
+            activeOpacity={0.7}
             onPress={() => router.back()}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            style={{ padding: 4, marginLeft: -8, marginRight: 8 }}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              backgroundColor: '#FFFDF8',
+              borderWidth: 1,
+              borderColor: '#E5DDCD',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginRight: 14,
+            }}
+            accessibilityLabel="Back"
           >
-            <ChevronLeft size={24} color="#0C192B" />
+            <ArrowLeft size={20} color="#0C192B" strokeWidth={2.3} />
           </TouchableOpacity>
           <View>
-            <Text style={{ fontSize: 20, fontWeight: '800', color: '#0C192B' }}>Add tenant</Text>
-            <Text style={{ fontSize: 12, fontWeight: '500', color: '#657080', marginTop: 1 }}>
+            <Text
+              style={{ fontSize: 20, fontWeight: '800', color: '#0C192B', letterSpacing: -0.3 }}
+            >
+              Add tenant
+            </Text>
+            <Text style={{ fontSize: 12, fontWeight: '500', color: '#657080', marginTop: 2 }}>
               Step 1 of 2 · Pick a vacant bed
             </Text>
           </View>
