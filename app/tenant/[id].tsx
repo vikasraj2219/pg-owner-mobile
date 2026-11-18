@@ -41,6 +41,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { uploadKycDocumentApi } from '../../src/api/upload';
 import { IdDocumentViewerModal } from '../../src/components/IdDocumentViewerModal';
 import { BedTransferModal } from '../../src/components/BedTransferModal';
+import { DecorativeWaveFooter } from '../../src/components/DecorativeWaveFooter';
 import { useTenantDetail } from '../../src/hooks/useTenants';
 import { useMatrix } from '../../src/hooks/useMatrix';
 import { formatINR } from '../../src/utils/currency';
@@ -1772,63 +1773,69 @@ export default function TenantDetailScreen() {
           backgroundColor: '#FFFDF8',
           borderTopWidth: 1,
           borderTopColor: '#E5DDCD',
-          padding: 16,
-          flexDirection: 'row',
-          alignItems: 'center',
-          gap: 12,
+          paddingTop: 14,
+          paddingHorizontal: 16,
+          paddingBottom: 0,
         }}
       >
-        {tenant.status === 'notice_period' ? (
-          <TouchableOpacity
-            onPress={handleCancelNotice}
-            style={{
-              flex: 1,
-              paddingVertical: 14,
-              borderWidth: 1,
-              borderColor: '#FDE047',
-              borderRadius: 9999,
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: '#FEF3C7',
-            }}
-          >
-            <Text style={{ fontSize: 13, fontWeight: '800', color: '#B45309' }}>Cancel notice</Text>
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity
-            onPress={() =>
-              setNoticeModal({ visible: true, days: 30, notes: '', isSubmitting: false })
-            }
-            style={{
-              flex: 1,
-              paddingVertical: 14,
-              borderWidth: 1,
-              borderColor: '#E5DDCD',
-              borderRadius: 9999,
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: '#FFFDF8',
-            }}
-          >
-            <Text style={{ fontSize: 13, fontWeight: '800', color: '#0C192B' }}>
-              Start notice period
-            </Text>
-          </TouchableOpacity>
-        )}
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+          {tenant.status === 'notice_period' ? (
+            <TouchableOpacity
+              onPress={handleCancelNotice}
+              style={{
+                flex: 1,
+                paddingVertical: 14,
+                borderWidth: 1,
+                borderColor: '#FDE047',
+                borderRadius: 9999,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: '#FEF3C7',
+              }}
+            >
+              <Text style={{ fontSize: 13, fontWeight: '800', color: '#B45309' }}>
+                Cancel notice
+              </Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              onPress={() =>
+                setNoticeModal({ visible: true, days: 30, notes: '', isSubmitting: false })
+              }
+              style={{
+                flex: 1,
+                paddingVertical: 14,
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+                borderRadius: 9999,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: '#FFFDF8',
+              }}
+            >
+              <Text style={{ fontSize: 13, fontWeight: '800', color: '#0C192B' }}>
+                Start notice period
+              </Text>
+            </TouchableOpacity>
+          )}
 
-        <TouchableOpacity
-          onPress={() => router.push(`/checkout/${tenant._id}`)}
-          style={{
-            flex: 1,
-            paddingVertical: 14,
-            borderRadius: 9999,
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: '#4F5330',
-          }}
-        >
-          <Text style={{ fontSize: 14, fontWeight: '800', color: '#FFFFFF' }}>Checkout</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => router.push(`/checkout/${tenant._id}`)}
+            style={{
+              flex: 1,
+              paddingVertical: 14,
+              borderRadius: 9999,
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: '#4F5330',
+            }}
+          >
+            <Text style={{ fontSize: 14, fontWeight: '800', color: '#FFFFFF' }}>Checkout</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Signature Bottom Wave Footer */}
+        <DecorativeWaveFooter height={24} />
       </View>
 
       {/* Record Payment Modal */}

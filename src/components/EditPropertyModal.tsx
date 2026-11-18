@@ -33,6 +33,7 @@ import { IProperty, PropertyType } from '../types/api';
 import { updatePropertyApi, deletePropertyApi } from '../api/properties';
 import { useProperties } from '../context/PropertyContext';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
+import { DecorativeWaveFooter } from './DecorativeWaveFooter';
 
 interface EditPropertyModalProps {
   visible: boolean;
@@ -898,6 +899,8 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
               </>
             )}
           </TouchableOpacity>
+
+          <DecorativeWaveFooter height={24} style={{ marginTop: 8 }} />
         </View>
       </KeyboardAvoidingView>
     </Modal>

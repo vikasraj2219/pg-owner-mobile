@@ -15,6 +15,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useTenantDetail } from '../../../src/hooks/useTenants';
 import { updateTenantApi } from '../../../src/api/tenants';
 import { BedTransferModal } from '../../../src/components/BedTransferModal';
+import { DecorativeWaveFooter } from '../../../src/components/DecorativeWaveFooter';
 
 export default function EditTenantScreen() {
   const router = useRouter();
@@ -164,7 +165,7 @@ export default function EditTenantScreen() {
 
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 110 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 140 }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
@@ -452,6 +453,8 @@ export default function EditTenantScreen() {
         >
           <Text style={{ color: '#657080', fontWeight: '700', fontSize: 13 }}>Discard changes</Text>
         </TouchableOpacity>
+
+        <DecorativeWaveFooter height={24} style={{ marginTop: 6 }} />
       </View>
 
       {/* Unified Bed Transfer Modal */}

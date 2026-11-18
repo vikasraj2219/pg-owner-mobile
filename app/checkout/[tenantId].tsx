@@ -24,6 +24,7 @@ import { formatSafeDate } from '../../src/utils/date';
 import { getCheckoutPreviewApi, confirmCheckoutApi } from '../../src/api/checkout';
 import { CheckoutPreviewData, ISettlementStatement } from '../../src/types/api';
 import { ConfirmActionModal } from '../../src/components/ConfirmDeleteModal';
+import { DecorativeWaveFooter } from '../../src/components/DecorativeWaveFooter';
 
 export default function CheckoutScreen() {
   const { tenantId } = useLocalSearchParams<{ tenantId: string }>();
@@ -410,6 +411,8 @@ export default function CheckoutScreen() {
               Back to Bed Matrix
             </Text>
           </TouchableOpacity>
+
+          <DecorativeWaveFooter height={34} style={{ marginTop: 16 }} />
         </ScrollView>
       ) : (
         <ScrollView
@@ -792,8 +795,8 @@ export default function CheckoutScreen() {
                       borderWidth: 1,
                       alignItems: 'center',
                       justifyContent: 'center',
-                      backgroundColor: isSelected ? '#4F5330' : '#FFFDF8',
-                      borderColor: isSelected ? '#4F5330' : '#E5DDCD',
+                      backgroundColor: isSelected ? '#19D3E6' : '#FFFDF8',
+                      borderColor: isSelected ? '#19D3E6' : '#E5DDCD',
                     }}
                   >
                     <Text
@@ -801,7 +804,7 @@ export default function CheckoutScreen() {
                         fontSize: 12,
                         fontWeight: '800',
                         textTransform: 'uppercase',
-                        color: isSelected ? '#FFFFFF' : '#657080',
+                        color: isSelected ? '#0C192B' : '#657080',
                       }}
                     >
                       {mode === 'bank_transfer' ? 'Bank' : mode}
@@ -872,6 +875,8 @@ export default function CheckoutScreen() {
                 </Text>
               )}
             </TouchableOpacity>
+
+            <DecorativeWaveFooter height={34} style={{ marginTop: 20 }} />
           </View>
         </ScrollView>
       )}

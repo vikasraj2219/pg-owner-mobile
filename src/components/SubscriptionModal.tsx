@@ -22,6 +22,7 @@ import { ISubscriptionCurrent } from '../types/api';
 import { calculateDaysRemaining } from '../utils/date';
 import { RazorpayCheckoutModal } from './RazorpayCheckoutModal';
 import { ConfirmActionModal } from './ConfirmDeleteModal';
+import { DecorativeWaveFooter } from './DecorativeWaveFooter';
 
 interface SubscriptionModalProps {
   visible: boolean;
@@ -606,6 +607,8 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
           confirmLabel="Schedule Downgrade"
           cancelLabel="Keep Current Plan"
         />
+
+        <DecorativeWaveFooter height={28} />
       </View>
     </Modal>
   );

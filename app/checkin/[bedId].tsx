@@ -40,6 +40,7 @@ import { DynamicUpiQrModal } from '../../src/components/DynamicUpiQrModal';
 import { IdDocumentViewerModal } from '../../src/components/IdDocumentViewerModal';
 import { DatePickerModal } from '../../src/components/DatePickerModal';
 import { formatINR } from '../../src/utils/currency';
+import { DecorativeWaveFooter } from '../../src/components/DecorativeWaveFooter';
 
 export default function CheckinScreen() {
   const params = useLocalSearchParams<{
@@ -1121,6 +1122,8 @@ export default function CheckinScreen() {
               Check in tenant
             </Text>
           </TouchableOpacity>
+
+          <DecorativeWaveFooter height={24} style={{ marginTop: 8 }} />
         </View>
 
         {/* ======================================================== */}

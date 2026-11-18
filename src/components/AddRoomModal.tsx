@@ -32,6 +32,7 @@ import {
 import { IProperty } from '../types/api';
 import { getApiErrorMessage } from '../utils/validation';
 import { RoomSummaryCard } from './RoomSummaryCard';
+import { DecorativeWaveFooter } from './DecorativeWaveFooter';
 
 interface AddRoomModalProps {
   visible: boolean;
@@ -929,6 +930,8 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
               </>
             )}
           </TouchableOpacity>
+
+          <DecorativeWaveFooter height={24} style={{ marginTop: 8 }} />
         </View>
 
         {/* Floor Selection Dropdown Sheet Modal */}

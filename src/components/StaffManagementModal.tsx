@@ -20,6 +20,7 @@ import {
 } from '../api/team';
 import { ITeamMember, IProperty } from '../types/api';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
+import { DecorativeWaveFooter } from './DecorativeWaveFooter';
 
 interface StaffManagementModalProps {
   visible: boolean;
@@ -864,6 +865,8 @@ export const StaffManagementModal: React.FC<StaffManagementModalProps> = ({
           message={`Are you sure you want to remove ${deletingMember?.name} (${deletingMember?.role})? They will immediately lose access to your properties.`}
           confirmLabel="Remove"
         />
+
+        <DecorativeWaveFooter height={28} />
       </View>
     </Modal>
   );

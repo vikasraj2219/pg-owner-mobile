@@ -23,6 +23,7 @@ import {
 import { fetchPropertyRooms } from '../api/properties';
 import { IMeterReading, IRoom, IProperty } from '../types/api';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
+import { DecorativeWaveFooter } from './DecorativeWaveFooter';
 
 interface SubMeterModalProps {
   visible: boolean;
@@ -636,6 +637,8 @@ export const SubMeterModal: React.FC<SubMeterModalProps> = ({
           message={`Are you sure you want to delete this reading for ${deletingReading?.meterIdentifier || 'Sub-meter'} (${deletingReading?.unitsConsumed} units, ${formatINR(deletingReading?.totalAmountPaise || 0)})? This will remove tenant bill splits.`}
           confirmLabel="Delete"
         />
+
+        <DecorativeWaveFooter height={28} />
       </View>
     </Modal>
   );

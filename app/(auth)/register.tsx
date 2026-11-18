@@ -22,6 +22,7 @@ import {
   validatePassword,
   getApiErrorMessage,
 } from '../../src/utils/validation';
+import { DecorativeWaveFooter } from '../../src/components/DecorativeWaveFooter';
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -689,6 +690,8 @@ export default function RegisterScreen() {
                 </Text>
               </TouchableOpacity>
             </View>
+
+            <DecorativeWaveFooter height={36} style={{ marginTop: 16 }} />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

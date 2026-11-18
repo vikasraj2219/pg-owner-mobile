@@ -18,6 +18,7 @@ import { sendRentReminder } from '../utils/whatsapp';
 import { setTenantNoticeApi, cancelTenantNoticeApi } from '../api/notice';
 import { IdDocumentViewerModal } from './IdDocumentViewerModal';
 import { ConfirmActionModal } from './ConfirmDeleteModal';
+import { DecorativeWaveFooter } from './DecorativeWaveFooter';
 
 interface OccupiedBedSheetProps {
   visible: boolean;
@@ -275,6 +276,11 @@ export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
                   </Text>
                 </TouchableOpacity>
               )}
+
+              <DecorativeWaveFooter
+                height={24}
+                style={{ marginTop: 10, marginHorizontal: -20, marginBottom: -16 }}
+              />
             </View>
           </TouchableWithoutFeedback>
         </View>

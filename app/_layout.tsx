@@ -77,7 +77,7 @@ function NavigationGuard() {
         />
         <Stack.Screen
           name="checkout/[tenantId]"
-          options={{ presentation: 'modal', headerShown: true, title: 'Checkout Settlement' }}
+          options={{ presentation: 'card', headerShown: false }}
         />
         <Stack.Screen name="tenant/[id]" options={{ presentation: 'card', headerShown: false }} />
         <Stack.Screen

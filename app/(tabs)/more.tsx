@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Alert, Modal, Switch } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import {
   Zap,
@@ -10,7 +9,6 @@ import {
   CreditCard,
   Building,
   Users,
-  UserCheck,
   LogOut,
   ChevronRight,
   Fingerprint,
@@ -23,7 +21,6 @@ import { ExpensesModal } from '../../src/components/ExpensesModal';
 import { SubMeterModal } from '../../src/components/SubMeterModal';
 import { StaffManagementModal } from '../../src/components/StaffManagementModal';
 import { SubscriptionModal } from '../../src/components/SubscriptionModal';
-import { TenantsDirectoryModal } from '../../src/components/TenantsDirectoryModal';
 import { PropertiesRoomsModal } from '../../src/components/PropertiesRoomsModal';
 import { DpdpKycComplianceModal } from '../../src/components/DpdpKycComplianceModal';
 import { ConfirmActionModal } from '../../src/components/ConfirmDeleteModal';
@@ -32,7 +29,6 @@ import { useQuery } from '@tanstack/react-query';
 import { getCurrentSubscriptionApi } from '../../src/api/subscription';
 
 export default function MoreScreen() {
-  const router = useRouter();
   const {
     user,
     organization,
@@ -45,7 +41,6 @@ export default function MoreScreen() {
   } = useAuth();
   const { properties, selectedProperty } = useProperties();
   const [showSplashPreview, setShowSplashPreview] = useState(false);
-  const [showTenantsModal, setShowTenantsModal] = useState(false);
   const [showExpensesModal, setShowExpensesModal] = useState(false);
   const [showSubMeterModal, setShowSubMeterModal] = useState(false);
   const [showStaffModal, setShowStaffModal] = useState(false);
@@ -105,12 +100,6 @@ export default function MoreScreen() {
     {
       title: 'Operations',
       items: [
-        {
-          icon: UserCheck,
-          label: 'Tenants Directory',
-          detail: 'Search all tenants, room details & contacts',
-          onPress: () => router.push('/(tabs)/tenants' as any),
-        },
         {
           icon: Zap,
           label: 'Sub-meter Electricity Log',
@@ -453,15 +442,6 @@ export default function MoreScreen() {
       >
         <SplashScreenView onDismiss={() => setShowSplashPreview(false)} />
       </Modal>
-
-      {/* Tenants Directory Modal */}
-      <TenantsDirectoryModal
-        visible={showTenantsModal}
-        onClose={() => setShowTenantsModal(false)}
-        properties={properties}
-        selectedPropertyId={selectedProperty?._id}
-        onCheckoutTenant={id => router.push(`/checkout/${id}`)}
-      />
 
       {/* Expenses & Live P&L Modal */}
       <ExpensesModal

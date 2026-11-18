@@ -20,6 +20,7 @@ import {
   validatePincode,
   getApiErrorMessage,
 } from '../utils/validation';
+import { DecorativeWaveFooter } from './DecorativeWaveFooter';
 
 interface AddPropertyModalProps {
   visible: boolean;
@@ -284,6 +285,8 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
               <Text className="text-base font-extrabold text-white">Save property</Text>
             )}
           </TouchableOpacity>
+
+          <DecorativeWaveFooter height={30} style={{ marginTop: 14 }} />
         </ScrollView>
       </KeyboardAvoidingView>
     </Modal>

@@ -15,6 +15,7 @@ import { updateFloorApi, deleteFloorApi } from '../api/properties';
 import { useQueryClient } from '@tanstack/react-query';
 import { IMatrixFloor } from '../types/api';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
+import { DecorativeWaveFooter } from './DecorativeWaveFooter';
 
 interface EditFloorModalProps {
   visible: boolean;
@@ -229,6 +230,11 @@ export const EditFloorModal: React.FC<EditFloorModalProps> = ({
                 </>
               )}
             </TouchableOpacity>
+
+            <DecorativeWaveFooter
+              height={24}
+              style={{ marginTop: 10, marginHorizontal: -20, marginBottom: -16 }}
+            />
           </View>
         </View>
 

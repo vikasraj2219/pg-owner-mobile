@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, Alert, Linking } from 'react-
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft, Share2, Check, Download, MessageSquare } from 'lucide-react-native';
-import Svg, { Path } from 'react-native-svg';
+import { DecorativeWaveFooter } from '../../src/components/DecorativeWaveFooter';
 import { useProperties } from '../../src/context/PropertyContext';
 import { useInvoices } from '../../src/hooks/useInvoices';
 import { useMatrix } from '../../src/hooks/useMatrix';
@@ -455,20 +455,7 @@ export default function ReceiptScreen() {
         </TouchableOpacity>
 
         {/* Decorative Wave Footer matching Screenshot */}
-        <View style={{ width: '100%', height: 32, overflow: 'hidden', marginTop: 10 }}>
-          <Svg width="100%" height="32" viewBox="0 0 360 32" preserveAspectRatio="none">
-            <Path
-              d="M0,16 C90,32 180,0 270,16 C315,24 340,12 360,8 L360,32 L0,32 Z"
-              fill="#06B6D4"
-              opacity={0.35}
-            />
-            <Path
-              d="M0,22 C60,10 140,30 220,18 C280,8 320,24 360,16 L360,32 L0,32 Z"
-              fill="#4F5330"
-              opacity={0.85}
-            />
-          </Svg>
-        </View>
+        <DecorativeWaveFooter height={34} style={{ marginTop: 10 }} />
       </ScrollView>
     </SafeAreaView>
   );

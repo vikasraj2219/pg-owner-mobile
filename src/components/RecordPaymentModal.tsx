@@ -16,6 +16,7 @@ import { DueInvoiceItem, MarkPaidResponseData } from '../types/api';
 import { formatINR } from '../utils/currency';
 import { formatSafeDate } from '../utils/date';
 import { generateAndShareReceipt } from '../utils/pdfReceipt';
+import { DecorativeWaveFooter } from './DecorativeWaveFooter';
 
 interface RecordPaymentModalProps {
   visible: boolean;
@@ -367,6 +368,8 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
                 </Text>
               )}
             </TouchableOpacity>
+
+            <DecorativeWaveFooter height={24} style={{ marginTop: 8 }} />
           </ScrollView>
         </View>
       </KeyboardAvoidingView>

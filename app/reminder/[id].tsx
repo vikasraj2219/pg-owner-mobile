@@ -14,6 +14,7 @@ import { ReminderType, buildReminderMessage } from '../../src/utils/whatsapp';
 import { RentPaymentPassCard } from '../../src/components/RentPaymentPassCard';
 import { RentPaymentPassSvg } from '../../src/components/RentPaymentPassSvg';
 import { sharePaymentCardToWhatsApp } from '../../src/utils/whatsappShare';
+import { DecorativeWaveFooter } from '../../src/components/DecorativeWaveFooter';
 
 export default function SendReminderScreen() {
   const router = useRouter();
@@ -453,14 +454,14 @@ export default function SendReminderScreen() {
               borderRadius: 12,
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: selectedType === 'pre_reminder' ? '#4F5330' : 'transparent',
+              backgroundColor: selectedType === 'pre_reminder' ? '#19D3E6' : 'transparent',
             }}
           >
             <Text
               style={{
                 fontSize: 12,
                 fontWeight: selectedType === 'pre_reminder' ? '800' : '600',
-                color: selectedType === 'pre_reminder' ? '#FFFFFF' : '#657080',
+                color: selectedType === 'pre_reminder' ? '#0C192B' : '#657080',
               }}
             >
               Pre-reminder (2d)
@@ -476,14 +477,14 @@ export default function SendReminderScreen() {
               borderRadius: 12,
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: selectedType === 'due_today' ? '#4F5330' : 'transparent',
+              backgroundColor: selectedType === 'due_today' ? '#19D3E6' : 'transparent',
             }}
           >
             <Text
               style={{
                 fontSize: 12,
                 fontWeight: selectedType === 'due_today' ? '800' : '600',
-                color: selectedType === 'due_today' ? '#FFFFFF' : '#657080',
+                color: selectedType === 'due_today' ? '#0C192B' : '#657080',
               }}
             >
               Due today
@@ -499,14 +500,14 @@ export default function SendReminderScreen() {
               borderRadius: 12,
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: selectedType === 'overdue' ? '#4F5330' : 'transparent',
+              backgroundColor: selectedType === 'overdue' ? '#19D3E6' : 'transparent',
             }}
           >
             <Text
               style={{
                 fontSize: 12,
                 fontWeight: selectedType === 'overdue' ? '800' : '600',
-                color: selectedType === 'overdue' ? '#FFFFFF' : '#657080',
+                color: selectedType === 'overdue' ? '#0C192B' : '#657080',
               }}
             >
               Overdue
@@ -660,6 +661,8 @@ export default function SendReminderScreen() {
           >
             Directly opens {firstName}'s WhatsApp chat with the pass card & instant payment link.
           </Text>
+
+          <DecorativeWaveFooter height={34} style={{ marginTop: 14 }} />
         </View>
       </ScrollView>
     </SafeAreaView>

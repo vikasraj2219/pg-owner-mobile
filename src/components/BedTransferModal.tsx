@@ -37,6 +37,7 @@ import { formatINR } from '../utils/currency';
 import { formatSafeDate } from '../utils/date';
 import { calculateBedTransferProration } from '../utils/proration';
 import { DatePickerModal } from './DatePickerModal';
+import { DecorativeWaveFooter } from './DecorativeWaveFooter';
 import { IMatrixBed, IMatrixRoom, ITenantListItem } from '../types/api';
 
 interface TargetBedItem {
@@ -1155,21 +1156,21 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
                             paddingHorizontal: 12,
                             paddingVertical: 6,
                             borderRadius: 9999,
-                            backgroundColor: isSelected ? '#4F5330' : '#FFFDF8',
+                            backgroundColor: isSelected ? '#19D3E6' : '#FFFDF8',
                             borderWidth: 1,
-                            borderColor: isSelected ? '#4F5330' : '#E5DDCD',
+                            borderColor: isSelected ? '#19D3E6' : '#E5DDCD',
                           }}
                         >
                           <Building2
                             size={12}
-                            color={isSelected ? '#FFFFFF' : '#657080'}
+                            color={isSelected ? '#0C192B' : '#657080'}
                             style={{ marginRight: 6 }}
                           />
                           <Text
                             style={{
                               fontSize: 11,
                               fontWeight: '700',
-                              color: isSelected ? '#FFFFFF' : '#0C192B',
+                              color: isSelected ? '#0C192B' : '#657080',
                             }}
                           >
                             {p.name}
@@ -1230,16 +1231,16 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
                       paddingHorizontal: 12,
                       paddingVertical: 6,
                       borderRadius: 9999,
-                      backgroundColor: selectedFloorFilter === 'all' ? '#4F5330' : '#FFFDF8',
+                      backgroundColor: selectedFloorFilter === 'all' ? '#19D3E6' : '#FFFDF8',
                       borderWidth: 1,
-                      borderColor: selectedFloorFilter === 'all' ? '#4F5330' : '#E5DDCD',
+                      borderColor: selectedFloorFilter === 'all' ? '#19D3E6' : '#E5DDCD',
                     }}
                   >
                     <Text
                       style={{
                         fontSize: 11,
-                        fontWeight: '700',
-                        color: selectedFloorFilter === 'all' ? '#FFFFFF' : '#657080',
+                        fontWeight: selectedFloorFilter === 'all' ? '800' : '600',
+                        color: selectedFloorFilter === 'all' ? '#0C192B' : '#657080',
                       }}
                     >
                       All Floors ({filteredRooms.length} Rooms · {totalVacantBedsCount} Beds)
@@ -1256,16 +1257,16 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
                           paddingHorizontal: 12,
                           paddingVertical: 6,
                           borderRadius: 9999,
-                          backgroundColor: isSelected ? '#4F5330' : '#FFFDF8',
+                          backgroundColor: isSelected ? '#19D3E6' : '#FFFDF8',
                           borderWidth: 1,
-                          borderColor: isSelected ? '#4F5330' : '#E5DDCD',
+                          borderColor: isSelected ? '#19D3E6' : '#E5DDCD',
                         }}
                       >
                         <Text
                           style={{
                             fontSize: 11,
-                            fontWeight: '700',
-                            color: isSelected ? '#FFFFFF' : '#657080',
+                            fontWeight: isSelected ? '800' : '600',
+                            color: isSelected ? '#0C192B' : '#657080',
                           }}
                         >
                           {f.label} ({f.availableRoomsCount} Rooms)
@@ -1296,19 +1297,19 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
                         key={tab.key}
                         onPress={() => setSelectedSharingFilter(tab.key as any)}
                         style={{
-                          paddingHorizontal: 10,
-                          paddingVertical: 5,
-                          borderRadius: 8,
-                          backgroundColor: isSelected ? '#E5EBD8' : '#FFFDF8',
+                          paddingHorizontal: 12,
+                          paddingVertical: 6,
+                          borderRadius: 9999,
+                          backgroundColor: isSelected ? '#19D3E6' : '#FFFDF8',
                           borderWidth: 1,
-                          borderColor: isSelected ? '#4F5330' : '#E5DDCD',
+                          borderColor: isSelected ? '#19D3E6' : '#E5DDCD',
                         }}
                       >
                         <Text
                           style={{
                             fontSize: 11,
                             fontWeight: isSelected ? '800' : '600',
-                            color: isSelected ? '#4F5330' : '#657080',
+                            color: isSelected ? '#0C192B' : '#657080',
                           }}
                         >
                           {tab.label}
@@ -1593,7 +1594,7 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
 
                                 <View
                                   style={{
-                                    backgroundColor: '#4F5330',
+                                    backgroundColor: '#19D3E6',
                                     borderRadius: 9999,
                                     paddingHorizontal: 10,
                                     paddingVertical: 5,
@@ -1605,13 +1606,13 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
                                     style={{
                                       fontSize: 11,
                                       fontWeight: '800',
-                                      color: '#FFFFFF',
+                                      color: '#0C192B',
                                       marginRight: 2,
                                     }}
                                   >
                                     Select
                                   </Text>
-                                  <ChevronRight size={12} color="#FFFFFF" />
+                                  <ChevronRight size={12} color="#0C192B" />
                                 </View>
                               </TouchableOpacity>
                             );
@@ -1624,6 +1625,9 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
               )}
             </View>
           )}
+
+          {/* Decorative Bottom Wave */}
+          <DecorativeWaveFooter height={28} />
         </View>
       </KeyboardAvoidingView>
 

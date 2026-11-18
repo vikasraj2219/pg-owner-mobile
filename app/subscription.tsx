@@ -29,6 +29,7 @@ import { useProperties } from '../src/context/PropertyContext';
 import { ISubscriptionCurrent } from '../src/types/api';
 import { calculateDaysRemaining } from '../src/utils/date';
 import { SubscriptionModal } from '../src/components/SubscriptionModal';
+import { DecorativeWaveFooter } from '../src/components/DecorativeWaveFooter';
 
 export default function SubscriptionScreen() {
   const router = useRouter();
@@ -461,6 +462,8 @@ export default function SubscriptionScreen() {
               Secured by Razorpay · Enterprise Grade Multi-Tenant Encryption
             </Text>
           </View>
+
+          <DecorativeWaveFooter height={34} style={{ marginTop: 8 }} />
         </ScrollView>
       )}
 

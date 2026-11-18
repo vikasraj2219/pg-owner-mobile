@@ -10,6 +10,7 @@ import {
 import { UserPlus, X, Trash2, Wrench } from 'lucide-react-native';
 import { IMatrixBed, IMatrixRoom } from '../types/api';
 import { formatINR } from '../utils/currency';
+import { DecorativeWaveFooter } from './DecorativeWaveFooter';
 
 interface VacantBedSheetProps {
   visible: boolean;
@@ -136,6 +137,11 @@ export const VacantBedSheet: React.FC<VacantBedSheetProps> = ({
                   </TouchableOpacity>
                 )}
               </View>
+
+              <DecorativeWaveFooter
+                height={24}
+                style={{ marginTop: 10, marginHorizontal: -20, marginBottom: -16 }}
+              />
             </View>
           </TouchableWithoutFeedback>
         </View>

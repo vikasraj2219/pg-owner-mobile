@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { Wrench, CheckCircle, X, Trash2 } from 'lucide-react-native';
 import { IMatrixBed, IMatrixRoom } from '../types/api';
+import { DecorativeWaveFooter } from './DecorativeWaveFooter';
 
 interface MaintenanceBedSheetProps {
   visible: boolean;
@@ -108,6 +109,11 @@ export const MaintenanceBedSheet: React.FC<MaintenanceBedSheetProps> = ({
                   </Text>
                 </TouchableOpacity>
               )}
+
+              <DecorativeWaveFooter
+                height={24}
+                style={{ marginTop: 10, marginHorizontal: -20, marginBottom: -16 }}
+              />
             </View>
           </TouchableWithoutFeedback>
         </View>
