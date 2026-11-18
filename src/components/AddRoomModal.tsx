@@ -30,8 +30,8 @@ import {
   X,
 } from 'lucide-react-native';
 import { IProperty } from '../types/api';
-import { formatINR } from '../utils/currency';
 import { getApiErrorMessage } from '../utils/validation';
+import { RoomSummaryCard } from './RoomSummaryCard';
 
 interface AddRoomModalProps {
   visible: boolean;
@@ -175,10 +175,21 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
     }).length;
   };
 
+  // Safely parse floor integer preserving 0 (Ground Floor)
+  const parseFloorInt = (val: string, fallback = 1): number => {
+    const n = parseInt(val, 10);
+    return isNaN(n) ? fallback : n;
+  };
+
   // Automatically suggest next available room number whenever modal becomes visible
   useEffect(() => {
     if (visible) {
-      const floorInt = parseInt(floorNumber, 10) || defaultFloor || 1;
+      const parsed = parseInt(floorNumber, 10);
+      const floorInt = !isNaN(parsed)
+        ? parsed
+        : typeof defaultFloor === 'number'
+          ? defaultFloor
+          : 1;
       setFloorNumber(floorInt.toString());
       const suggested = getNextAvailableRoomNumber(floorInt, existingRooms);
       setRoomNumber(suggested);
@@ -189,7 +200,7 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
   const handleFloorChange = (newFloorText: string) => {
     setFloorNumber(newFloorText);
     const parsedFloor = parseInt(newFloorText, 10);
-    if (!isNaN(parsedFloor) && parsedFloor >= 0) {
+    if (!isNaN(parsedFloor)) {
       const suggested = getNextAvailableRoomNumber(parsedFloor, existingRooms);
       setRoomNumber(suggested);
     }
@@ -220,7 +231,6 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
   }, [roomNumber, sharingType]);
 
   const rentNumeric = parseFloat(rentPerBed.replace(/,/g, '')) || 0;
-  const totalMonthlyPotential = rentNumeric * sharingType;
 
   const handleCreate = async () => {
     const floor = parseInt(floorNumber, 10);
@@ -443,7 +453,7 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
                   }}
                   numberOfLines={1}
                 >
-                  {formatFloorLabel(parseInt(floorNumber, 10) || 1)}
+                  {formatFloorLabel(parseFloorInt(floorNumber, 1))}
                 </Text>
                 <ChevronDown size={18} color="#657080" />
               </TouchableOpacity>
@@ -826,25 +836,28 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
             </View>
           </View>
 
-          {/* Generated Beds Preview Card matching Right Screen */}
+          {/* Room Summary Card matching Reference */}
+          <RoomSummaryCard bedsCount={sharingType} rentPerBedNumeric={rentNumeric} />
+
+          {/* Generated Beds Preview Pills */}
           <View
             style={{
-              backgroundColor: '#E6FBFC',
+              backgroundColor: '#FFFDF8',
               borderWidth: 1,
-              borderColor: '#BCEEFA',
-              borderRadius: 20,
-              padding: 16,
+              borderColor: '#E5DDCD',
+              borderRadius: 18,
+              padding: 14,
               marginBottom: 20,
             }}
           >
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-              <BedDouble size={18} color="#0799AA" style={{ marginRight: 8 }} />
-              <Text style={{ fontSize: 13, fontWeight: '800', color: '#0C192B' }}>
-                This will create beds: {bedLabels.join(', ')}
+              <BedDouble size={16} color="#0D9488" style={{ marginRight: 6 }} />
+              <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#0C192B' }}>
+                This will create {sharingType} {sharingType === 1 ? 'bed' : 'beds'}:
               </Text>
             </View>
 
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
               {bedLabels.map(label => (
                 <View
                   key={label}
@@ -861,11 +874,6 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
                 </View>
               ))}
             </View>
-
-            <Text style={{ fontSize: 12, fontWeight: '600', color: '#657080' }}>
-              {sharingType} beds × {formatINR(rentNumeric * 100)} ={' '}
-              {formatINR(totalMonthlyPotential * 100)} a month when full
-            </Text>
           </View>
         </ScrollView>
 
@@ -1007,7 +1015,7 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
               <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 300 }}>
                 <View style={{ gap: 8, paddingBottom: 12 }}>
                   {dynamicFloors.map(fl => {
-                    const isSelected = parseInt(floorNumber, 10) === fl;
+                    const isSelected = parseFloorInt(floorNumber, 1) === fl;
                     const roomCount = getRoomCountForFloor(fl);
                     return (
                       <TouchableOpacity

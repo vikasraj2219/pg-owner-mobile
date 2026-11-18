@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Modal,
   View,
@@ -12,16 +12,36 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { X, DoorOpen, Trash2, Plus, Minus, AlertCircle, BedDouble } from 'lucide-react-native';
+import {
+  ArrowLeft,
+  DoorOpen,
+  DoorClosed,
+  Layers,
+  ChevronDown,
+  BedDouble,
+  Snowflake,
+  ShowerHead,
+  ArrowRight,
+  Trash2,
+  AlertTriangle,
+  X,
+  Plus,
+  Minus,
+  Check,
+} from 'lucide-react-native';
 import { useQueryClient } from '@tanstack/react-query';
-import { IMatrixRoom, IRoom } from '../types/api';
+import { IMatrixRoom, IRoom, IProperty } from '../types/api';
 import { updateRoomApi, deleteRoomApi } from '../api/properties';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
-import { formatINR } from '../utils/currency';
+import { RoomSummaryCard } from './RoomSummaryCard';
+import { formatFloorLabel } from './AddRoomModal';
 
 interface EditRoomModalProps {
   visible: boolean;
   propertyId: string;
+  property?: IProperty | null;
+  existingFloors?: number[];
+  existingRooms?: string[];
   room: IMatrixRoom | IRoom | null;
   onClose: () => void;
   onSuccess?: () => void;
@@ -30,6 +50,9 @@ interface EditRoomModalProps {
 export const EditRoomModal: React.FC<EditRoomModalProps> = ({
   visible,
   propertyId,
+  property,
+  existingFloors = [],
+  existingRooms = [],
   room,
   onClose,
   onSuccess,
@@ -38,14 +61,26 @@ export const EditRoomModal: React.FC<EditRoomModalProps> = ({
 
   const [roomNumber, setRoomNumber] = useState('');
   const [floorNumber, setFloorNumber] = useState('1');
+  const [showFloorPicker, setShowFloorPicker] = useState(false);
+  const [customFloorInput, setCustomFloorInput] = useState('');
+  const [isEnteringCustomFloor, setIsEnteringCustomFloor] = useState(false);
+
   const [sharingType, setSharingType] = useState<number>(3);
   const [showCustomSharing, setShowCustomSharing] = useState(false);
   const [rentPerBed, setRentPerBed] = useState('7500');
   const [hasAC, setHasAC] = useState(true);
   const [hasWashroom, setHasWashroom] = useState(true);
+
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showOccupiedWarningModal, setShowOccupiedWarningModal] = useState(false);
+
+  // Safely parse floor integer preserving 0 (Ground Floor)
+  const parseFloorInt = (val: string, fallback = 1): number => {
+    const n = parseInt(val, 10);
+    return isNaN(n) ? fallback : n;
+  };
 
   useEffect(() => {
     if (room && visible) {
@@ -59,8 +94,67 @@ export const EditRoomModal: React.FC<EditRoomModalProps> = ({
       const tags = room.tags || [];
       setHasAC(tags.includes('AC'));
       setHasWashroom(tags.includes('Attached Washroom') || tags.includes('Washroom'));
+      setShowFloorPicker(false);
+      setShowDeleteConfirm(false);
+      setShowOccupiedWarningModal(false);
     }
   }, [room, visible]);
+
+  // Compute dynamic floors
+  const dynamicFloors = useMemo(() => {
+    const floorSet = new Set<number>();
+
+    if (existingFloors && existingFloors.length > 0) {
+      existingFloors.forEach(f => {
+        if (typeof f === 'number' && !isNaN(f)) floorSet.add(f);
+      });
+    }
+
+    existingRooms.forEach(r => {
+      const clean = r.trim().toUpperCase();
+      if (clean.startsWith('G')) {
+        floorSet.add(0);
+      } else {
+        const match = clean.match(/^(\d+)/);
+        if (match) {
+          const num = parseInt(match[1], 10);
+          if (num >= 100) {
+            floorSet.add(Math.floor(num / 100));
+          } else if (num < 100) {
+            floorSet.add(1);
+          }
+        }
+      }
+    });
+
+    const totalFl = property?.stats?.totalFloors;
+    if (typeof totalFl === 'number' && totalFl > 0) {
+      for (let i = 1; i <= totalFl; i++) {
+        floorSet.add(i);
+      }
+    }
+
+    const cur = parseInt(floorNumber, 10);
+    if (!isNaN(cur)) floorSet.add(cur);
+    if (room && typeof room.floorNumber === 'number') floorSet.add(room.floorNumber);
+
+    if (floorSet.size <= 1) {
+      [0, 1, 2, 3].forEach(f => floorSet.add(f));
+    }
+
+    return Array.from(floorSet).sort((a, b) => a - b);
+  }, [existingFloors, existingRooms, property?.stats?.totalFloors, floorNumber, room]);
+
+  const getRoomCountForFloor = (fl: number) => {
+    return existingRooms.filter(r => {
+      const clean = r.trim().toUpperCase();
+      if (fl === 0) return clean.startsWith('G');
+      const match = clean.match(/^(\d+)/);
+      if (!match) return false;
+      const num = parseInt(match[1], 10);
+      return Math.floor(num / 100) === fl;
+    }).length;
+  };
 
   if (!visible || !room) return null;
 
@@ -70,11 +164,7 @@ export const EditRoomModal: React.FC<EditRoomModalProps> = ({
       return;
     }
 
-    const floorInt = parseInt(floorNumber.trim(), 10);
-    if (isNaN(floorInt)) {
-      Alert.alert('Invalid Floor', 'Please enter a valid floor number (e.g. 0, 1, 2).');
-      return;
-    }
+    const floorInt = parseFloorInt(floorNumber, 1);
 
     const rentNumeric = parseFloat(rentPerBed);
     if (isNaN(rentNumeric) || rentNumeric < 0) {
@@ -98,6 +188,7 @@ export const EditRoomModal: React.FC<EditRoomModalProps> = ({
 
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['matrix'] }),
+        queryClient.invalidateQueries({ queryKey: ['propertyMatrix', propertyId] }),
         queryClient.invalidateQueries({ queryKey: ['properties'] }),
         queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
       ]);
@@ -115,18 +206,14 @@ export const EditRoomModal: React.FC<EditRoomModalProps> = ({
     }
   };
 
-  const handleDelete = () => {
+  const handleDeleteClick = () => {
     const occupiedCount =
       'beds' in room && Array.isArray(room.beds)
         ? room.beds.filter(b => b.status === 'occupied').length
         : 0;
 
     if (occupiedCount > 0) {
-      Alert.alert(
-        `Can't delete Room ${room.roomNumber}`,
-        `${occupiedCount} tenant${occupiedCount === 1 ? ' is' : 's are'} staying in this room. Move or check them out first.`,
-        [{ text: 'Cancel', style: 'cancel' }],
-      );
+      setShowOccupiedWarningModal(true);
       return;
     }
 
@@ -157,8 +244,11 @@ export const EditRoomModal: React.FC<EditRoomModalProps> = ({
     }
   };
 
-  const rentNumeric = parseFloat(rentPerBed) || 0;
-  const totalPotential = rentNumeric * sharingType;
+  const rentNumeric = parseFloat(rentPerBed.replace(/,/g, '')) || 0;
+  const occupiedCount =
+    'beds' in room && Array.isArray(room.beds)
+      ? room.beds.filter(b => b.status === 'occupied').length
+      : 0;
 
   return (
     <Modal
@@ -169,70 +259,233 @@ export const EditRoomModal: React.FC<EditRoomModalProps> = ({
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        className="flex-1 bg-[#F8F9FA]"
+        style={{ flex: 1, backgroundColor: '#FAF5EB' }}
       >
-        {/* Header */}
-        <View className="px-5 pt-4 pb-3 flex-row items-center justify-between border-b border-slate-200/80 bg-white">
-          <View className="flex-row items-center">
-            <View className="w-9 h-9 rounded-full bg-emerald-50 items-center justify-center mr-3">
-              <DoorOpen size={20} color="#0A6C50" />
-            </View>
-            <View>
-              <Text className="text-lg font-extrabold text-slate-900">
-                Edit Room {room.roomNumber}
-              </Text>
-              <Text className="text-xs font-semibold text-slate-500">
-                Adjust room number, floor & bed sharing
-              </Text>
-            </View>
-          </View>
+        {/* Header matching Reference */}
+        <View
+          style={{
+            paddingHorizontal: 20,
+            paddingTop: 16,
+            paddingBottom: 14,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            borderBottomWidth: 1,
+            borderBottomColor: '#E5DDCD',
+            backgroundColor: '#FAF5EB',
+          }}
+        >
           <TouchableOpacity
+            activeOpacity={0.7}
             onPress={onClose}
-            className="w-9 h-9 rounded-full bg-slate-100 items-center justify-center"
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              backgroundColor: '#FFFDF8',
+              borderWidth: 1,
+              borderColor: '#E5DDCD',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
           >
-            <X size={20} color="#64748B" />
+            <ArrowLeft size={20} color="#0C192B" strokeWidth={2.3} />
+          </TouchableOpacity>
+
+          <View style={{ flex: 1, marginLeft: 14 }}>
+            <Text
+              style={{ fontSize: 20, fontWeight: '800', color: '#0C192B', letterSpacing: -0.3 }}
+            >
+              Edit Room {room.roomNumber}
+            </Text>
+            <Text style={{ fontSize: 12, fontWeight: '500', color: '#657080', marginTop: 2 }}>
+              Update room details and bed capacity
+            </Text>
+          </View>
+
+          {/* Small Delete Button at Top Header */}
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={handleDeleteClick}
+            disabled={isDeleting}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 12,
+              backgroundColor: '#FFF1F2',
+              borderWidth: 1,
+              borderColor: '#FECDD3',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+            accessibilityLabel="Delete room"
+          >
+            <Trash2 size={18} color="#BE123C" />
           </TouchableOpacity>
         </View>
 
-        <ScrollView className="flex-1 px-5 pt-4" showsVerticalScrollIndicator={false}>
-          {/* Room Number & Floor Grid */}
-          <View className="flex-row gap-3 mb-4">
-            <View className="flex-1">
-              <Text className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                Room Number *
-              </Text>
-              <TextInput
-                value={roomNumber}
-                onChangeText={setRoomNumber}
-                placeholder="e.g. 101"
-                className="bg-white border border-slate-300 rounded-xl px-4 py-3 font-extrabold text-slate-900 text-base shadow-xs"
-              />
+        <ScrollView
+          style={{ flex: 1, backgroundColor: '#FAF5EB' }}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 40 }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Room Preview Card */}
+          <View
+            style={{
+              backgroundColor: '#FFFDF8',
+              borderWidth: 1,
+              borderColor: '#E5DDCD',
+              borderRadius: 20,
+              padding: 14,
+              flexDirection: 'row',
+              alignItems: 'center',
+              marginBottom: 18,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.04,
+              shadowRadius: 3,
+              elevation: 1,
+            }}
+          >
+            <View
+              style={{
+                width: 48,
+                height: 48,
+                borderRadius: 14,
+                backgroundColor: '#FAF7F2',
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginRight: 14,
+              }}
+            >
+              <DoorOpen size={24} color="#4F5330" />
             </View>
-            <View className="w-32">
-              <Text className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                Floor *
+
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 17, fontWeight: '800', color: '#0C192B' }} numberOfLines={1}>
+                Room {roomNumber || room.roomNumber}
               </Text>
-              <TextInput
-                value={floorNumber}
-                onChangeText={setFloorNumber}
-                placeholder="1"
-                keyboardType="number-pad"
-                className="bg-white border border-slate-300 rounded-xl px-4 py-3 font-extrabold text-slate-900 text-base shadow-xs text-center"
-              />
+              <Text
+                style={{ fontSize: 12, fontWeight: '500', color: '#657080', marginTop: 2 }}
+                numberOfLines={1}
+              >
+                {formatFloorLabel(parseFloorInt(floorNumber, 1))} •{' '}
+                {property?.name || 'PG Property'}
+              </Text>
+            </View>
+
+            <View
+              style={{
+                backgroundColor: '#E8F5E9',
+                paddingHorizontal: 10,
+                paddingVertical: 3,
+                borderRadius: 9999,
+              }}
+            >
+              <Text style={{ fontSize: 11, fontWeight: '800', color: '#2E7D32' }}>Active</Text>
             </View>
           </View>
 
-          {/* Sharing Type Selector (1 to 6 + More) */}
-          <View className="mb-4">
-            <View className="flex-row items-center justify-between mb-1.5">
-              <Text className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                Sharing Type (Beds per Room) *
+          {/* Floor & Room Number Row */}
+          <View style={{ flexDirection: 'row', gap: 12, marginBottom: 16 }}>
+            {/* Floor Dropdown Trigger */}
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: '#0C192B', marginBottom: 8 }}>
+                Floor
               </Text>
-              <Text className="text-xs font-bold text-[#0A6C50]">
-                {sharingType} {sharingType === 1 ? 'Bed' : 'Beds'}
-              </Text>
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => {
+                  setIsEnteringCustomFloor(false);
+                  setCustomFloorInput('');
+                  setShowFloorPicker(true);
+                }}
+                style={{
+                  backgroundColor: '#FFFDF8',
+                  borderWidth: 1,
+                  borderColor: '#E5DDCD',
+                  borderRadius: 16,
+                  paddingHorizontal: 14,
+                  height: 52,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                }}
+              >
+                <Layers size={18} color="#657080" style={{ marginRight: 8 }} />
+                <Text
+                  style={{
+                    flex: 1,
+                    fontSize: 14,
+                    fontWeight: '700',
+                    color: '#0C192B',
+                  }}
+                  numberOfLines={1}
+                >
+                  {formatFloorLabel(parseFloorInt(floorNumber, 1))}
+                </Text>
+                <ChevronDown size={18} color="#657080" />
+              </TouchableOpacity>
             </View>
-            <View className="flex-row flex-wrap gap-2">
+
+            {/* Room Number Input */}
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: '#0C192B', marginBottom: 8 }}>
+                Room Number
+              </Text>
+              <View
+                style={{
+                  backgroundColor: '#FFFDF8',
+                  borderWidth: 1,
+                  borderColor: '#E5DDCD',
+                  borderRadius: 16,
+                  paddingHorizontal: 14,
+                  height: 52,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                }}
+              >
+                <DoorClosed size={18} color="#657080" style={{ marginRight: 8 }} />
+                <TextInput
+                  value={roomNumber}
+                  onChangeText={setRoomNumber}
+                  placeholder="e.g. 101"
+                  placeholderTextColor="#94A3B8"
+                  style={{
+                    flex: 1,
+                    fontSize: 15,
+                    fontWeight: '700',
+                    color: '#0C192B',
+                    paddingVertical: 0,
+                  }}
+                />
+              </View>
+            </View>
+          </View>
+
+          {/* Sharing Type (Beds per Room) */}
+          <View style={{ marginBottom: 18 }}>
+            <Text style={{ fontSize: 13, fontWeight: '700', color: '#0C192B', marginBottom: 8 }}>
+              Sharing Type (Beds per Room)
+            </Text>
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              <View
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 14,
+                  backgroundColor: '#FFFDF8',
+                  borderWidth: 1,
+                  borderColor: '#E5DDCD',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <BedDouble size={20} color="#657080" />
+              </View>
+
               {[1, 2, 3, 4].map(count => {
                 const isSelected = sharingType === count && !showCustomSharing;
                 return (
@@ -243,54 +496,97 @@ export const EditRoomModal: React.FC<EditRoomModalProps> = ({
                       setSharingType(count);
                       setShowCustomSharing(false);
                     }}
-                    className={`min-w-[48px] flex-1 py-3 rounded-xl items-center justify-center border shadow-xs ${
-                      isSelected ? 'bg-[#19D3E6] border-[#19D3E6]' : 'bg-white border-slate-300'
-                    }`}
+                    style={{
+                      flex: 1,
+                      height: 48,
+                      borderRadius: 14,
+                      borderWidth: 1,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: isSelected ? '#19D3E6' : '#FFFDF8',
+                      borderColor: isSelected ? '#19D3E6' : '#E5DDCD',
+                      shadowColor: '#000',
+                      shadowOffset: { width: 0, height: 1 },
+                      shadowOpacity: 0.03,
+                      shadowRadius: 2,
+                      elevation: 1,
+                    }}
                   >
                     <Text
-                      className={`text-base font-extrabold ${
-                        isSelected ? 'text-[#0C192B]' : 'text-slate-800'
-                      }`}
+                      style={{
+                        fontSize: 16,
+                        fontWeight: '800',
+                        color: '#0C192B',
+                      }}
                     >
                       {count}
                     </Text>
                   </TouchableOpacity>
                 );
               })}
+
               <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={() => {
                   setShowCustomSharing(true);
                   if (sharingType <= 4) setSharingType(5);
                 }}
-                className={`px-3 py-3 rounded-xl items-center justify-center border shadow-xs ${
-                  showCustomSharing ? 'bg-[#19D3E6] border-[#19D3E6]' : 'bg-white border-slate-300'
-                }`}
+                style={{
+                  paddingHorizontal: 12,
+                  height: 48,
+                  borderRadius: 14,
+                  borderWidth: 1,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: showCustomSharing ? '#19D3E6' : '#FFFDF8',
+                  borderColor: showCustomSharing ? '#19D3E6' : '#E5DDCD',
+                }}
               >
                 <Text
-                  className={`text-xs font-extrabold ${
-                    showCustomSharing ? 'text-[#0C192B]' : 'text-slate-800'
-                  }`}
+                  style={{
+                    fontSize: 12,
+                    fontWeight: '800',
+                    color: '#0C192B',
+                  }}
                 >
                   {showCustomSharing && sharingType > 4 ? `${sharingType} Beds` : '+ Custom'}
                 </Text>
               </TouchableOpacity>
             </View>
-            <Text className="text-2xs text-slate-500 font-medium mt-1.5">
-              Increasing sharing capacity automatically adds new beds. Decreasing requires vacant
-              beds.
-            </Text>
 
             {/* Custom Sharing Stepper */}
             {showCustomSharing && (
-              <View className="mt-3 flex-row items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-200">
-                <Text className="text-xs font-bold text-slate-700">Custom Bed Capacity:</Text>
-                <View className="flex-row items-center gap-2">
+              <View
+                style={{
+                  marginTop: 10,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  backgroundColor: '#FFFDF8',
+                  padding: 12,
+                  borderRadius: 14,
+                  borderWidth: 1,
+                  borderColor: '#E5DDCD',
+                }}
+              >
+                <Text style={{ fontSize: 13, fontWeight: '700', color: '#0C192B' }}>
+                  Custom Bed Capacity:
+                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                   <TouchableOpacity
                     onPress={() => setSharingType(prev => Math.max(1, prev - 1))}
-                    className="w-8 h-8 rounded-lg bg-white border border-slate-300 items-center justify-center"
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 10,
+                      backgroundColor: '#FAF5EB',
+                      borderWidth: 1,
+                      borderColor: '#E5DDCD',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
                   >
-                    <Minus size={15} color="#334155" />
+                    <Minus size={15} color="#0C192B" />
                   </TouchableOpacity>
                   <TextInput
                     value={sharingType.toString()}
@@ -300,116 +596,652 @@ export const EditRoomModal: React.FC<EditRoomModalProps> = ({
                       else if (txt === '') setSharingType(1);
                     }}
                     keyboardType="number-pad"
-                    className="w-12 h-8 bg-white border border-slate-300 rounded-lg text-center font-black text-slate-900"
+                    style={{
+                      width: 48,
+                      height: 32,
+                      backgroundColor: '#FFFDF8',
+                      borderWidth: 1,
+                      borderColor: '#E5DDCD',
+                      borderRadius: 8,
+                      textAlign: 'center',
+                      fontWeight: '800',
+                      color: '#0C192B',
+                      fontSize: 14,
+                    }}
                   />
                   <TouchableOpacity
                     onPress={() => setSharingType(prev => Math.min(20, prev + 1))}
-                    className="w-8 h-8 rounded-lg bg-white border border-slate-300 items-center justify-center"
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 10,
+                      backgroundColor: '#FAF5EB',
+                      borderWidth: 1,
+                      borderColor: '#E5DDCD',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
                   >
-                    <Plus size={15} color="#334155" />
+                    <Plus size={15} color="#0C192B" />
                   </TouchableOpacity>
                 </View>
               </View>
             )}
+          </View>
 
-            <View className="mt-2 flex-row items-start">
-              <AlertCircle size={13} color="#64748B" className="mt-0.5" />
-              <Text className="text-[11px] text-slate-500 font-medium ml-1.5 flex-1">
-                Increasing beds adds new available slots. Reducing beds safely drops only vacant
-                beds.
-              </Text>
+          {/* Amenities Toggles */}
+          <View style={{ marginBottom: 18, gap: 10 }}>
+            {/* AC Toggle */}
+            <View
+              style={{
+                backgroundColor: '#FFFDF8',
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+                borderRadius: 16,
+                paddingHorizontal: 16,
+                paddingVertical: 14,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                <View
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 10,
+                    backgroundColor: '#E6FBFC',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginRight: 12,
+                  }}
+                >
+                  <Snowflake size={18} color="#0799AA" />
+                </View>
+                <View>
+                  <Text style={{ fontSize: 14, fontWeight: '700', color: '#0C192B' }}>
+                    Air Conditioning
+                  </Text>
+                  <Text style={{ fontSize: 11, fontWeight: '500', color: '#657080', marginTop: 1 }}>
+                    Room has AC
+                  </Text>
+                </View>
+              </View>
+              <Switch
+                value={hasAC}
+                onValueChange={setHasAC}
+                trackColor={{ false: '#CBD5E1', true: '#19D3E6' }}
+                thumbColor="#FFFFFF"
+              />
+            </View>
+
+            {/* Attached Washroom Toggle */}
+            <View
+              style={{
+                backgroundColor: '#FFFDF8',
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+                borderRadius: 16,
+                paddingHorizontal: 16,
+                paddingVertical: 14,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                <View
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 10,
+                    backgroundColor: '#E6FBFC',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginRight: 12,
+                  }}
+                >
+                  <ShowerHead size={18} color="#0799AA" />
+                </View>
+                <View>
+                  <Text style={{ fontSize: 14, fontWeight: '700', color: '#0C192B' }}>
+                    Attached Washroom
+                  </Text>
+                  <Text style={{ fontSize: 11, fontWeight: '500', color: '#657080', marginTop: 1 }}>
+                    Room has attached bathroom
+                  </Text>
+                </View>
+              </View>
+              <Switch
+                value={hasWashroom}
+                onValueChange={setHasWashroom}
+                trackColor={{ false: '#CBD5E1', true: '#19D3E6' }}
+                thumbColor="#FFFFFF"
+              />
             </View>
           </View>
 
-          {/* Monthly Base Rent per bed */}
-          <View className="mb-4">
-            <Text className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-              Monthly Rent per Bed (₹) *
+          {/* Rent Per Bed Input */}
+          <View style={{ marginBottom: 18 }}>
+            <Text style={{ fontSize: 13, fontWeight: '700', color: '#0C192B', marginBottom: 8 }}>
+              Rent Per Bed
             </Text>
-            <View className="relative justify-center">
-              <Text className="absolute left-4 font-black text-slate-400 text-lg">₹</Text>
+            <View
+              style={{
+                backgroundColor: '#FFFDF8',
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+                borderRadius: 16,
+                paddingHorizontal: 14,
+                height: 52,
+                flexDirection: 'row',
+                alignItems: 'center',
+              }}
+            >
               <TextInput
                 value={rentPerBed}
                 onChangeText={setRentPerBed}
                 placeholder="7500"
+                placeholderTextColor="#94A3B8"
                 keyboardType="numeric"
-                className="bg-white border border-slate-300 rounded-xl pl-9 pr-4 py-3 font-extrabold text-slate-900 text-base shadow-xs"
+                style={{
+                  flex: 1,
+                  fontSize: 15,
+                  fontWeight: '700',
+                  color: '#0C192B',
+                  paddingVertical: 0,
+                }}
               />
+              <Text style={{ fontSize: 13, fontWeight: '600', color: '#657080' }}>₹ / month</Text>
             </View>
-            <Text className="text-2xs text-slate-400 font-medium mt-1">
-              New rent applies to new tenants. Current tenants keep theirs.
-            </Text>
           </View>
 
-          {/* Amenities Switches */}
-          <View className="bg-white border border-slate-200 rounded-xl px-4 py-3 flex-row items-center justify-between mb-2.5 shadow-xs">
-            <Text className="text-sm font-semibold text-slate-900">Air Conditioning (AC)</Text>
-            <Switch
-              value={hasAC}
-              onValueChange={setHasAC}
-              trackColor={{ false: '#CBD5E1', true: '#0A6C50' }}
-              thumbColor="#FFFFFF"
-            />
-          </View>
+          {/* Room Summary Card in place of Total Room Potential matching Reference */}
+          <RoomSummaryCard bedsCount={sharingType} rentPerBedNumeric={rentNumeric} />
+        </ScrollView>
 
-          <View className="bg-white border border-slate-200 rounded-xl px-4 py-3 flex-row items-center justify-between mb-4 shadow-xs">
-            <Text className="text-sm font-semibold text-slate-900">Attached Washroom</Text>
-            <Switch
-              value={hasWashroom}
-              onValueChange={setHasWashroom}
-              trackColor={{ false: '#CBD5E1', true: '#0A6C50' }}
-              thumbColor="#FFFFFF"
-            />
-          </View>
-
-          {/* Revenue Potential Box */}
-          <View className="bg-emerald-50/70 border border-emerald-200/70 rounded-xl p-3.5 mb-5 flex-row items-center justify-between">
-            <View className="flex-row items-center">
-              <BedDouble size={16} color="#0A6C50" />
-              <Text className="text-xs font-bold text-emerald-950 ml-2">Total Room Potential</Text>
-            </View>
-            <Text className="text-sm font-black text-[#0A6C50]">
-              {formatINR(totalPotential * 100)} / mo
-            </Text>
-          </View>
-
-          {/* Save Button */}
+        {/* Primary Save Room Changes CTA Button */}
+        <View
+          style={{
+            paddingHorizontal: 20,
+            paddingTop: 12,
+            paddingBottom: Platform.OS === 'ios' ? 28 : 16,
+            borderTopWidth: 1,
+            borderTopColor: '#E5DDCD',
+            backgroundColor: '#FAF5EB',
+          }}
+        >
           <TouchableOpacity
-            activeOpacity={0.85}
-            disabled={isSaving}
+            activeOpacity={0.88}
             onPress={handleSave}
-            className="bg-[#4F5330] rounded-xl py-3.5 items-center justify-center flex-row shadow-sm mb-4"
+            disabled={isSaving}
+            style={{
+              width: '100%',
+              backgroundColor: '#4F5330',
+              height: 52,
+              borderRadius: 16,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              shadowColor: '#4F5330',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.15,
+              shadowRadius: 4,
+              elevation: 2,
+            }}
           >
             {isSaving ? (
               <ActivityIndicator size="small" color="#FFFFFF" />
             ) : (
-              <Text className="text-white font-extrabold text-base">Save Room Changes</Text>
+              <>
+                <Text
+                  style={{
+                    color: '#FFFFFF',
+                    fontWeight: '800',
+                    fontSize: 16,
+                  }}
+                >
+                  Save Room Changes
+                </Text>
+                <ArrowRight size={18} color="#FFFFFF" strokeWidth={2.5} style={{ marginLeft: 8 }} />
+              </>
             )}
           </TouchableOpacity>
+        </View>
 
-          {/* Delete Room Button */}
-          <View className="border-t border-slate-200/80 pt-3 pb-8">
+        {/* Floor Selection Dropdown Sheet Modal */}
+        <Modal
+          visible={showFloorPicker}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowFloorPicker(false)}
+        >
+          <View
+            style={{
+              flex: 1,
+              backgroundColor: 'rgba(12, 25, 43, 0.65)',
+              justifyContent: 'flex-end',
+            }}
+          >
             <TouchableOpacity
-              activeOpacity={0.7}
-              disabled={isDeleting}
-              onPress={handleDelete}
-              className="bg-rose-50 border border-rose-200 rounded-xl py-3 items-center justify-center flex-row"
+              activeOpacity={1}
+              onPress={() => setShowFloorPicker(false)}
+              style={{ flex: 1 }}
+            />
+            <View
+              style={{
+                backgroundColor: '#FAF5EB',
+                borderTopLeftRadius: 28,
+                borderTopRightRadius: 28,
+                borderWidth: 1,
+                borderBottomWidth: 0,
+                borderColor: '#E5DDCD',
+                paddingHorizontal: 20,
+                paddingTop: 16,
+                paddingBottom: Platform.OS === 'ios' ? 36 : 24,
+                maxHeight: '75%',
+              }}
             >
-              {isDeleting ? (
-                <ActivityIndicator size="small" color="#BE123C" />
-              ) : (
-                <>
-                  <Trash2 size={16} color="#BE123C" />
-                  <Text className="text-rose-700 font-bold text-xs ml-2">
-                    Delete Room (Only if All Beds Vacant)
-                  </Text>
-                </>
-              )}
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
+              {/* Drag Indicator */}
+              <View
+                style={{
+                  width: 36,
+                  height: 4,
+                  borderRadius: 2,
+                  backgroundColor: '#D1C7B7',
+                  alignSelf: 'center',
+                  marginBottom: 16,
+                }}
+              />
 
-        {/* Beautiful Confirm Delete Modal */}
+              {/* Header */}
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: 16,
+                }}
+              >
+                <View>
+                  <Text style={{ fontSize: 18, fontWeight: '800', color: '#0C192B' }}>
+                    Select Floor
+                  </Text>
+                  <Text style={{ fontSize: 12, fontWeight: '500', color: '#657080', marginTop: 2 }}>
+                    Choose an existing floor or add a new one
+                  </Text>
+                </View>
+
+                <TouchableOpacity
+                  onPress={() => setShowFloorPicker(false)}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 16,
+                    backgroundColor: '#FFFDF8',
+                    borderWidth: 1,
+                    borderColor: '#E5DDCD',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <X size={16} color="#657080" />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 300 }}>
+                <View style={{ gap: 8, paddingBottom: 12 }}>
+                  {dynamicFloors.map(fl => {
+                    const isSelected = parseFloorInt(floorNumber, 1) === fl;
+                    const roomCount = getRoomCountForFloor(fl);
+                    return (
+                      <TouchableOpacity
+                        key={fl}
+                        activeOpacity={0.7}
+                        onPress={() => {
+                          setFloorNumber(String(fl));
+                          setShowFloorPicker(false);
+                        }}
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          paddingHorizontal: 16,
+                          paddingVertical: 14,
+                          borderRadius: 16,
+                          backgroundColor: isSelected ? '#19D3E6' : '#FFFDF8',
+                          borderWidth: 1,
+                          borderColor: isSelected ? '#19D3E6' : '#E5DDCD',
+                        }}
+                      >
+                        <Layers
+                          size={18}
+                          color={isSelected ? '#0C192B' : '#4F5330'}
+                          style={{ marginRight: 12 }}
+                        />
+                        <View style={{ flex: 1 }}>
+                          <Text
+                            style={{
+                              fontSize: 15,
+                              fontWeight: '800',
+                              color: '#0C192B',
+                            }}
+                          >
+                            {formatFloorLabel(fl)}
+                          </Text>
+                          <Text
+                            style={{
+                              fontSize: 11,
+                              fontWeight: '600',
+                              color: isSelected ? '#0C192B' : '#657080',
+                              marginTop: 2,
+                            }}
+                          >
+                            {roomCount > 0
+                              ? `${roomCount} room${roomCount > 1 ? 's' : ''} on this floor`
+                              : 'No other rooms'}
+                          </Text>
+                        </View>
+                        {isSelected && (
+                          <View
+                            style={{
+                              width: 26,
+                              height: 26,
+                              borderRadius: 13,
+                              backgroundColor: '#0C192B',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}
+                          >
+                            <Check size={15} color="#19D3E6" strokeWidth={3} />
+                          </View>
+                        )}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+
+                {/* Add Next Floor or Custom Floor Option */}
+                <View
+                  style={{
+                    marginTop: 8,
+                    borderTopWidth: 1,
+                    borderTopColor: '#E5DDCD',
+                    paddingTop: 14,
+                  }}
+                >
+                  {!isEnteringCustomFloor ? (
+                    <View style={{ flexDirection: 'row', gap: 10 }}>
+                      {(() => {
+                        const maxFloor = dynamicFloors.length > 0 ? Math.max(...dynamicFloors) : 0;
+                        const nextFloor = maxFloor + 1;
+                        return (
+                          <TouchableOpacity
+                            activeOpacity={0.8}
+                            onPress={() => {
+                              setFloorNumber(String(nextFloor));
+                              setShowFloorPicker(false);
+                            }}
+                            style={{
+                              flex: 1,
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              paddingVertical: 12,
+                              paddingHorizontal: 12,
+                              borderRadius: 14,
+                              backgroundColor: '#FFFDF8',
+                              borderWidth: 1,
+                              borderColor: '#4F5330',
+                            }}
+                          >
+                            <Plus size={16} color="#4F5330" style={{ marginRight: 6 }} />
+                            <Text style={{ fontSize: 13, fontWeight: '800', color: '#4F5330' }}>
+                              Add {formatFloorLabel(nextFloor)}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })()}
+
+                      <TouchableOpacity
+                        activeOpacity={0.8}
+                        onPress={() => setIsEnteringCustomFloor(true)}
+                        style={{
+                          paddingVertical: 12,
+                          paddingHorizontal: 14,
+                          borderRadius: 14,
+                          backgroundColor: '#FFFDF8',
+                          borderWidth: 1,
+                          borderColor: '#E5DDCD',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <Text style={{ fontSize: 13, fontWeight: '700', color: '#657080' }}>
+                          Custom #
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  ) : (
+                    <View
+                      style={{
+                        backgroundColor: '#FFFDF8',
+                        borderRadius: 14,
+                        borderWidth: 1,
+                        borderColor: '#E5DDCD',
+                        padding: 12,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 12,
+                          fontWeight: '700',
+                          color: '#0C192B',
+                          marginBottom: 8,
+                        }}
+                      >
+                        Enter Custom Floor Number
+                      </Text>
+                      <View style={{ flexDirection: 'row', gap: 10 }}>
+                        <TextInput
+                          value={customFloorInput}
+                          onChangeText={setCustomFloorInput}
+                          placeholder="e.g. 5, 6, 0"
+                          placeholderTextColor="#94A3B8"
+                          keyboardType="numeric"
+                          autoFocus
+                          style={{
+                            flex: 1,
+                            height: 44,
+                            backgroundColor: '#FAF5EB',
+                            borderRadius: 10,
+                            borderWidth: 1,
+                            borderColor: '#E5DDCD',
+                            paddingHorizontal: 12,
+                            fontSize: 15,
+                            fontWeight: '700',
+                            color: '#0C192B',
+                          }}
+                        />
+                        <TouchableOpacity
+                          activeOpacity={0.8}
+                          onPress={() => {
+                            const parsed = parseInt(customFloorInput.trim(), 10);
+                            if (!isNaN(parsed) && parsed >= 0) {
+                              setFloorNumber(String(parsed));
+                              setShowFloorPicker(false);
+                            }
+                          }}
+                          style={{
+                            backgroundColor: '#4F5330',
+                            paddingHorizontal: 16,
+                            height: 44,
+                            borderRadius: 10,
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <Text style={{ fontSize: 14, fontWeight: '800', color: '#FFFFFF' }}>
+                            Select
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  )}
+                </View>
+              </ScrollView>
+            </View>
+          </View>
+        </Modal>
+
+        {/* Modern Modal when Room Cannot Be Deleted Due to Active Tenants */}
+        <Modal
+          visible={showOccupiedWarningModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowOccupiedWarningModal(false)}
+        >
+          <View
+            style={{
+              flex: 1,
+              backgroundColor: 'rgba(12, 25, 43, 0.65)',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: 20,
+            }}
+          >
+            <View
+              style={{
+                backgroundColor: '#FFFDF8',
+                borderRadius: 24,
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+                padding: 24,
+                width: '100%',
+                maxWidth: 380,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 8 },
+                shadowOpacity: 0.15,
+                shadowRadius: 16,
+                elevation: 8,
+              }}
+            >
+              {/* Header Icon & Close */}
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: 16,
+                }}
+              >
+                <View
+                  style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 16,
+                    backgroundColor: '#FEF3C7',
+                    borderWidth: 1,
+                    borderColor: '#FDE68A',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <AlertTriangle size={24} color="#D97706" strokeWidth={2.3} />
+                </View>
+
+                <TouchableOpacity
+                  onPress={() => setShowOccupiedWarningModal(false)}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 16,
+                    backgroundColor: '#FAF5EB',
+                    borderWidth: 1,
+                    borderColor: '#E5DDCD',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <X size={16} color="#657080" strokeWidth={2.2} />
+                </TouchableOpacity>
+              </View>
+
+              {/* Title */}
+              <Text
+                style={{
+                  fontSize: 19,
+                  fontWeight: '800',
+                  color: '#0C192B',
+                  letterSpacing: -0.3,
+                  marginBottom: 8,
+                }}
+              >
+                Cannot Delete Room {room.roomNumber}
+              </Text>
+
+              {/* Description */}
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: '500',
+                  color: '#4B5563',
+                  lineHeight: 20,
+                  marginBottom: 16,
+                }}
+              >
+                <Text style={{ fontWeight: '700', color: '#0C192B' }}>
+                  {occupiedCount} tenant{occupiedCount === 1 ? ' is' : 's are'}
+                </Text>{' '}
+                currently staying in this room.
+              </Text>
+
+              {/* Guidance Box */}
+              <View
+                style={{
+                  backgroundColor: '#FFFBEB',
+                  borderWidth: 1,
+                  borderColor: '#FDE68A',
+                  borderRadius: 14,
+                  padding: 12,
+                  marginBottom: 20,
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 12.5,
+                    fontWeight: '600',
+                    color: '#92400E',
+                    lineHeight: 18,
+                  }}
+                >
+                  Please move or check out all tenants before deleting this room.
+                </Text>
+              </View>
+
+              {/* Single Primary Action Button */}
+              <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={() => setShowOccupiedWarningModal(false)}
+                style={{
+                  backgroundColor: '#4F5330',
+                  height: 48,
+                  borderRadius: 14,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Text style={{ fontSize: 15, fontWeight: '700', color: '#FFFFFF' }}>
+                  Understood
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+
+        {/* Confirm Delete Modal */}
         <ConfirmDeleteModal
           visible={showDeleteConfirm}
           onClose={() => setShowDeleteConfirm(false)}

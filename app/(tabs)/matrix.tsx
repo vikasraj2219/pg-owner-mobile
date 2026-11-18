@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Alert,
   TextInput,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useFocusEffect } from 'expo-router';
@@ -21,6 +22,8 @@ import {
   Pencil,
   Search,
   X,
+  CheckCircle2,
+  BedDouble,
 } from 'lucide-react-native';
 import { useProperties } from '../../src/context/PropertyContext';
 import { useMatrix } from '../../src/hooks/useMatrix';
@@ -102,6 +105,10 @@ export default function MatrixScreen() {
   const [isAddRoomOpen, setIsAddRoomOpen] = useState(false);
   const [roomToEdit, setRoomToEdit] = useState<IMatrixRoom | null>(null);
   const [isAddingBedRoomId, setIsAddingBedRoomId] = useState<string | null>(null);
+  const [bedAddedSuccess, setBedAddedSuccess] = useState<{
+    bedNumber: string;
+    roomNumber: string;
+  } | null>(null);
   const [bedToDelete, setBedToDelete] = useState<{ id: string; number: string } | null>(null);
   const [isDeletingBed, setIsDeletingBed] = useState(false);
 
@@ -278,7 +285,7 @@ export default function MatrixScreen() {
     try {
       const newBed = await addBedToRoomApi(effectiveMatrixPropertyId, roomId);
       await Promise.all([refetchMatrix(), refetchProperties()]);
-      Alert.alert('Bed Added', `Bed ${newBed.bedNumber} added successfully to Room ${roomNumber}.`);
+      setBedAddedSuccess({ bedNumber: newBed.bedNumber, roomNumber });
     } catch (err: unknown) {
       const msg =
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
@@ -1384,6 +1391,9 @@ export default function MatrixScreen() {
       <EditRoomModal
         visible={!!roomToEdit}
         propertyId={effectiveMatrixPropertyId || ''}
+        property={effectiveMatrixProperty}
+        existingFloors={floorsList}
+        existingRooms={existingRoomNumbers}
         room={roomToEdit}
         onClose={() => setRoomToEdit(null)}
         onSuccess={() => {
@@ -1391,6 +1401,168 @@ export default function MatrixScreen() {
           refetchProperties();
         }}
       />
+
+      {/* Modern In-App Success Modal for Bed Addition */}
+      <Modal
+        visible={!!bedAddedSuccess}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setBedAddedSuccess(null)}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: 'rgba(12, 25, 43, 0.65)',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 20,
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: '#FFFDF8',
+              borderRadius: 24,
+              borderWidth: 1,
+              borderColor: '#E5DDCD',
+              padding: 24,
+              width: '100%',
+              maxWidth: 380,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 8 },
+              shadowOpacity: 0.15,
+              shadowRadius: 16,
+              elevation: 8,
+            }}
+          >
+            {/* Header Icon & Close */}
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: 16,
+              }}
+            >
+              <View
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 16,
+                  backgroundColor: '#E6F7F2',
+                  borderWidth: 1,
+                  borderColor: '#A7F3D0',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <CheckCircle2 size={26} color="#059669" strokeWidth={2.4} />
+              </View>
+
+              <TouchableOpacity
+                onPress={() => setBedAddedSuccess(null)}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 16,
+                  backgroundColor: '#FAF5EB',
+                  borderWidth: 1,
+                  borderColor: '#E5DDCD',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <X size={16} color="#657080" strokeWidth={2.2} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Title */}
+            <Text
+              style={{
+                fontSize: 19,
+                fontWeight: '800',
+                color: '#0C192B',
+                letterSpacing: -0.3,
+                marginBottom: 8,
+              }}
+            >
+              Bed Added Successfully!
+            </Text>
+
+            {/* Description */}
+            <Text
+              style={{
+                fontSize: 14,
+                fontWeight: '500',
+                color: '#4B5563',
+                lineHeight: 20,
+                marginBottom: 16,
+              }}
+            >
+              Bed{' '}
+              <Text style={{ fontWeight: '800', color: '#0C192B' }}>
+                {bedAddedSuccess?.bedNumber}
+              </Text>{' '}
+              has been added to{' '}
+              <Text style={{ fontWeight: '800', color: '#0C192B' }}>
+                Room {bedAddedSuccess?.roomNumber}
+              </Text>{' '}
+              and is now available for tenant check-in.
+            </Text>
+
+            {/* Bed Status Card */}
+            <View
+              style={{
+                backgroundColor: '#F0FDF4',
+                borderWidth: 1,
+                borderColor: '#BBF7D0',
+                borderRadius: 14,
+                padding: 12,
+                flexDirection: 'row',
+                alignItems: 'center',
+                marginBottom: 20,
+              }}
+            >
+              <View
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 10,
+                  backgroundColor: '#DCFCE7',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginRight: 10,
+                }}
+              >
+                <BedDouble size={16} color="#15803D" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 13, fontWeight: '800', color: '#166534' }}>
+                  Bed {bedAddedSuccess?.bedNumber} • Vacant
+                </Text>
+                <Text style={{ fontSize: 11, fontWeight: '600', color: '#15803D', marginTop: 1 }}>
+                  Ready to assign to a tenant
+                </Text>
+              </View>
+            </View>
+
+            {/* Action Button */}
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => setBedAddedSuccess(null)}
+              style={{
+                backgroundColor: '#4F5330',
+                height: 48,
+                borderRadius: 14,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Text style={{ fontSize: 15, fontWeight: '700', color: '#FFFFFF' }}>Done</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       {/* Bed Deletion Confirmation Dialog */}
       <ConfirmDeleteModal

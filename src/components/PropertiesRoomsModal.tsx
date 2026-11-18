@@ -917,6 +917,9 @@ export const PropertiesRoomsModal: React.FC<PropertiesRoomsModalProps> = ({ visi
         <EditRoomModal
           visible={!!roomToEdit}
           propertyId={activePropId}
+          property={activeProperty || null}
+          existingFloors={floors.map(f => f.floorNumber)}
+          existingRooms={existingRooms}
           room={roomToEdit}
           onClose={() => setRoomToEdit(null)}
           onSuccess={() => {
