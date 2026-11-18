@@ -142,17 +142,44 @@ export const TenantsDirectoryModal: React.FC<TenantsDirectoryModalProps> = ({
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <View className="flex-1 bg-[#F8F9FA]">
+      <View style={{ flex: 1, backgroundColor: '#FAF5EB' }}>
         {/* Header */}
-        <View className="bg-white px-5 pt-4 pb-3 border-b border-slate-200/80">
-          <View className="flex-row items-center justify-between mb-3">
-            <View className="flex-row items-center gap-2.5">
-              <View className="w-10 h-10 rounded-2xl bg-[#E8F5EE] items-center justify-center">
-                <Users size={22} color="#0A6C50" strokeWidth={2.2} />
+        <View
+          style={{
+            backgroundColor: '#FAF5EB',
+            paddingHorizontal: 20,
+            paddingTop: 16,
+            paddingBottom: 12,
+            borderBottomWidth: 1,
+            borderBottomColor: '#E5DDCD',
+          }}
+        >
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: 12,
+            }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <View
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 16,
+                  backgroundColor: '#D1F4F9',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Users size={22} color="#0799AA" strokeWidth={2.2} />
               </View>
               <View>
-                <Text className="text-xl font-extrabold text-slate-900">Tenants Directory</Text>
-                <Text className="text-xs font-semibold text-slate-500">
+                <Text style={{ fontSize: 20, fontWeight: '800', color: '#0C192B' }}>
+                  Tenants Directory
+                </Text>
+                <Text style={{ fontSize: 12, fontWeight: '500', color: '#657080', marginTop: 1 }}>
                   {tenants.length} total · {activeCount} active · {noticeCount} on notice
                 </Text>
               </View>
@@ -160,47 +187,77 @@ export const TenantsDirectoryModal: React.FC<TenantsDirectoryModalProps> = ({
             <TouchableOpacity
               activeOpacity={0.7}
               onPress={onClose}
-              className="w-9 h-9 rounded-full bg-slate-100 items-center justify-center"
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 18,
+                backgroundColor: '#FFFDF8',
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
             >
-              <X size={20} color="#475569" strokeWidth={2.2} />
+              <X size={20} color="#0C192B" strokeWidth={2.2} />
             </TouchableOpacity>
           </View>
 
           {/* Search Bar */}
-          <View className="flex-row items-center bg-slate-100/90 rounded-xl px-3 py-2 border border-slate-200/60 mb-2.5">
-            <Search size={18} color="#64748B" />
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: '#FFFDF8',
+              borderRadius: 14,
+              paddingHorizontal: 12,
+              paddingVertical: 10,
+              borderWidth: 1,
+              borderColor: '#E5DDCD',
+              marginBottom: 10,
+            }}
+          >
+            <Search size={18} color="#657080" />
             <TextInput
               placeholder="Search by name, phone, bed, or room..."
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor="#8C939D"
               value={searchQuery}
               onChangeText={setSearchQuery}
-              className="flex-1 ml-2 text-sm text-slate-800"
+              style={{ flex: 1, marginLeft: 8, fontSize: 13, color: '#0C192B' }}
               clearButtonMode="while-editing"
             />
             {searchQuery.length > 0 && (
               <TouchableOpacity onPress={() => setSearchQuery('')}>
-                <X size={16} color="#94A3B8" />
+                <X size={16} color="#657080" />
               </TouchableOpacity>
             )}
           </View>
 
           {/* Property Filter (if multiple properties exist) */}
           {properties.length > 1 && (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-2">
-              <View className="flex-row gap-1.5 py-1">
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={{ marginBottom: 8 }}
+            >
+              <View style={{ flexDirection: 'row', gap: 6, paddingVertical: 2 }}>
                 <TouchableOpacity
                   activeOpacity={0.8}
                   onPress={() => setFilterPropertyId(null)}
-                  className={`px-3 py-1.5 rounded-full border ${
-                    filterPropertyId === null
-                      ? 'bg-[#0A6C50] border-[#0A6C50]'
-                      : 'bg-white border-slate-200'
-                  }`}
+                  style={{
+                    paddingHorizontal: 12,
+                    paddingVertical: 6,
+                    borderRadius: 9999,
+                    borderWidth: 1,
+                    backgroundColor: filterPropertyId === null ? '#19D3E6' : '#FFFDF8',
+                    borderColor: filterPropertyId === null ? '#19D3E6' : '#E5DDCD',
+                  }}
                 >
                   <Text
-                    className={`text-xs font-bold ${
-                      filterPropertyId === null ? 'text-white' : 'text-slate-600'
-                    }`}
+                    style={{
+                      fontSize: 12,
+                      fontWeight: filterPropertyId === null ? '800' : '600',
+                      color: filterPropertyId === null ? '#0C192B' : '#657080',
+                    }}
                   >
                     All Properties ({properties.length})
                   </Text>
@@ -211,16 +268,21 @@ export const TenantsDirectoryModal: React.FC<TenantsDirectoryModalProps> = ({
                     key={p._id}
                     activeOpacity={0.8}
                     onPress={() => setFilterPropertyId(p._id)}
-                    className={`px-3 py-1.5 rounded-full border ${
-                      filterPropertyId === p._id
-                        ? 'bg-[#0A6C50] border-[#0A6C50]'
-                        : 'bg-white border-slate-200'
-                    }`}
+                    style={{
+                      paddingHorizontal: 12,
+                      paddingVertical: 6,
+                      borderRadius: 9999,
+                      borderWidth: 1,
+                      backgroundColor: filterPropertyId === p._id ? '#19D3E6' : '#FFFDF8',
+                      borderColor: filterPropertyId === p._id ? '#19D3E6' : '#E5DDCD',
+                    }}
                   >
                     <Text
-                      className={`text-xs font-bold ${
-                        filterPropertyId === p._id ? 'text-white' : 'text-slate-600'
-                      }`}
+                      style={{
+                        fontSize: 12,
+                        fontWeight: filterPropertyId === p._id ? '800' : '600',
+                        color: filterPropertyId === p._id ? '#0C192B' : '#657080',
+                      }}
                     >
                       {p.name}
                     </Text>
@@ -231,20 +293,25 @@ export const TenantsDirectoryModal: React.FC<TenantsDirectoryModalProps> = ({
           )}
 
           {/* Status Filter Pills */}
-          <View className="flex-row gap-1.5 pt-1">
+          <View style={{ flexDirection: 'row', gap: 6, paddingTop: 4 }}>
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={() => setStatusFilter('all')}
-              className={`px-3 py-1 rounded-full border ${
-                statusFilter === 'all'
-                  ? 'bg-slate-900 border-slate-900'
-                  : 'bg-white border-slate-200'
-              }`}
+              style={{
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+                borderRadius: 9999,
+                borderWidth: 1,
+                backgroundColor: statusFilter === 'all' ? '#19D3E6' : '#FFFDF8',
+                borderColor: statusFilter === 'all' ? '#19D3E6' : '#E5DDCD',
+              }}
             >
               <Text
-                className={`text-xs font-bold ${
-                  statusFilter === 'all' ? 'text-white' : 'text-slate-600'
-                }`}
+                style={{
+                  fontSize: 12,
+                  fontWeight: statusFilter === 'all' ? '800' : '600',
+                  color: statusFilter === 'all' ? '#0C192B' : '#657080',
+                }}
               >
                 All ({tenants.length})
               </Text>
@@ -253,16 +320,21 @@ export const TenantsDirectoryModal: React.FC<TenantsDirectoryModalProps> = ({
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={() => setStatusFilter('active')}
-              className={`px-3 py-1 rounded-full border ${
-                statusFilter === 'active'
-                  ? 'bg-emerald-600 border-emerald-600'
-                  : 'bg-white border-slate-200'
-              }`}
+              style={{
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+                borderRadius: 9999,
+                borderWidth: 1,
+                backgroundColor: statusFilter === 'active' ? '#19D3E6' : '#FFFDF8',
+                borderColor: statusFilter === 'active' ? '#19D3E6' : '#E5DDCD',
+              }}
             >
               <Text
-                className={`text-xs font-bold ${
-                  statusFilter === 'active' ? 'text-white' : 'text-slate-600'
-                }`}
+                style={{
+                  fontSize: 12,
+                  fontWeight: statusFilter === 'active' ? '800' : '600',
+                  color: statusFilter === 'active' ? '#0C192B' : '#657080',
+                }}
               >
                 Active ({activeCount})
               </Text>
@@ -271,16 +343,21 @@ export const TenantsDirectoryModal: React.FC<TenantsDirectoryModalProps> = ({
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={() => setStatusFilter('notice_period')}
-              className={`px-3 py-1 rounded-full border ${
-                statusFilter === 'notice_period'
-                  ? 'bg-amber-600 border-amber-600'
-                  : 'bg-white border-slate-200'
-              }`}
+              style={{
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+                borderRadius: 9999,
+                borderWidth: 1,
+                backgroundColor: statusFilter === 'notice_period' ? '#19D3E6' : '#FFFDF8',
+                borderColor: statusFilter === 'notice_period' ? '#19D3E6' : '#E5DDCD',
+              }}
             >
               <Text
-                className={`text-xs font-bold ${
-                  statusFilter === 'notice_period' ? 'text-white' : 'text-slate-600'
-                }`}
+                style={{
+                  fontSize: 12,
+                  fontWeight: statusFilter === 'notice_period' ? '800' : '600',
+                  color: statusFilter === 'notice_period' ? '#0C192B' : '#657080',
+                }}
               >
                 Notice ({noticeCount})
               </Text>
@@ -289,16 +366,21 @@ export const TenantsDirectoryModal: React.FC<TenantsDirectoryModalProps> = ({
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={() => setStatusFilter('checked_out')}
-              className={`px-3 py-1 rounded-full border ${
-                statusFilter === 'checked_out'
-                  ? 'bg-slate-700 border-slate-700'
-                  : 'bg-white border-slate-200'
-              }`}
+              style={{
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+                borderRadius: 9999,
+                borderWidth: 1,
+                backgroundColor: statusFilter === 'checked_out' ? '#19D3E6' : '#FFFDF8',
+                borderColor: statusFilter === 'checked_out' ? '#19D3E6' : '#E5DDCD',
+              }}
             >
               <Text
-                className={`text-xs font-bold ${
-                  statusFilter === 'checked_out' ? 'text-white' : 'text-slate-600'
-                }`}
+                style={{
+                  fontSize: 12,
+                  fontWeight: statusFilter === 'checked_out' ? '800' : '600',
+                  color: statusFilter === 'checked_out' ? '#0C192B' : '#657080',
+                }}
               >
                 Past
               </Text>
@@ -308,41 +390,79 @@ export const TenantsDirectoryModal: React.FC<TenantsDirectoryModalProps> = ({
 
         {/* Content / Tenant List */}
         <ScrollView
-          className="flex-1 px-5 pt-3"
+          style={{ flex: 1, paddingHorizontal: 20, paddingTop: 14 }}
           contentContainerStyle={{ paddingBottom: 60 }}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
               refreshing={isRefetching}
               onRefresh={refetch}
-              tintColor="#0A6C50"
-              colors={['#0A6C50']}
+              tintColor="#4F5330"
+              colors={['#4F5330']}
             />
           }
         >
           {isLoading && !isRefetching ? (
-            <View className="py-20 items-center justify-center">
-              <ActivityIndicator size="large" color="#0A6C50" />
-              <Text className="text-xs font-semibold text-slate-500 mt-3">
+            <View style={{ paddingVertical: 80, alignItems: 'center', justifyContent: 'center' }}>
+              <ActivityIndicator size="large" color="#4F5330" />
+              <Text style={{ fontSize: 12, fontWeight: '600', color: '#657080', marginTop: 12 }}>
                 Loading tenants directory...
               </Text>
             </View>
           ) : filteredTenants.length === 0 ? (
-            <View className="py-20 items-center justify-center bg-white border border-slate-200/80 rounded-3xl p-8 mt-2 shadow-xs">
-              <View className="w-16 h-16 rounded-full bg-slate-100 items-center justify-center mb-4">
-                <Users size={32} color="#94A3B8" />
+            <View
+              style={{
+                paddingVertical: 60,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: '#FFFDF8',
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+                borderRadius: 24,
+                padding: 24,
+                marginTop: 8,
+              }}
+            >
+              <View
+                style={{
+                  width: 60,
+                  height: 60,
+                  borderRadius: 30,
+                  backgroundColor: '#FAF5EB',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: 16,
+                }}
+              >
+                <Users size={30} color="#657080" />
               </View>
-              <Text className="text-base font-bold text-slate-800 text-center mb-1">
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: '800',
+                  color: '#0C192B',
+                  textAlign: 'center',
+                  marginBottom: 4,
+                }}
+              >
                 No tenants found
               </Text>
-              <Text className="text-xs text-slate-500 text-center max-w-xs leading-5">
+              <Text
+                style={{
+                  fontSize: 12,
+                  color: '#657080',
+                  textAlign: 'center',
+                  maxWidth: 280,
+                  lineHeight: 18,
+                }}
+              >
                 {searchQuery
                   ? `No tenants match "${searchQuery}". Try a different name, phone, or bed number.`
                   : 'There are no tenants matching the selected filter in this property.'}
               </Text>
             </View>
           ) : (
-            <View className="gap-3">
+            <View style={{ gap: 12 }}>
               {filteredTenants.map(tenant => {
                 const initials = getInitials(tenant.fullName);
                 const bedInfo = getBedInfo(tenant);
@@ -353,40 +473,77 @@ export const TenantsDirectoryModal: React.FC<TenantsDirectoryModalProps> = ({
                 return (
                   <View
                     key={tenant._id}
-                    className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-xs"
+                    style={{
+                      backgroundColor: '#FFFDF8',
+                      borderWidth: 1,
+                      borderColor: '#E5DDCD',
+                      borderRadius: 16,
+                      padding: 16,
+                    }}
                   >
                     {/* Top Row: Avatar, Name & Status Badge */}
-                    <View className="flex-row items-center justify-between mb-3">
-                      <View className="flex-row items-center flex-1 mr-2">
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        marginBottom: 12,
+                      }}
+                    >
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          flex: 1,
+                          marginRight: 8,
+                        }}
+                      >
                         <View
-                          className={`w-11 h-11 rounded-2xl items-center justify-center mr-3 ${
-                            isOnNotice
-                              ? 'bg-amber-100 border border-amber-200'
+                          style={{
+                            width: 44,
+                            height: 44,
+                            borderRadius: 16,
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            marginRight: 12,
+                            backgroundColor: isOnNotice
+                              ? '#FEF3C7'
                               : isCheckedOut
-                                ? 'bg-slate-100 border border-slate-200'
-                                : 'bg-[#E8F5EE] border border-emerald-200'
-                          }`}
+                                ? '#FAF5EB'
+                                : '#D1F4F9',
+                            borderWidth: 1,
+                            borderColor: isOnNotice
+                              ? '#FDE047'
+                              : isCheckedOut
+                                ? '#E5DDCD'
+                                : '#A5F3FC',
+                          }}
                         >
                           <Text
-                            className={`text-sm font-extrabold ${
-                              isOnNotice
-                                ? 'text-amber-800'
-                                : isCheckedOut
-                                  ? 'text-slate-600'
-                                  : 'text-[#0A6C50]'
-                            }`}
+                            style={{
+                              fontSize: 14,
+                              fontWeight: '800',
+                              color: isOnNotice ? '#B45309' : isCheckedOut ? '#657080' : '#0799AA',
+                            }}
                           >
                             {initials}
                           </Text>
                         </View>
-                        <View className="flex-1">
+                        <View style={{ flex: 1 }}>
                           <Text
-                            className="text-base font-extrabold text-slate-900"
+                            style={{ fontSize: 16, fontWeight: '800', color: '#0C192B' }}
                             numberOfLines={1}
                           >
                             {tenant.fullName}
                           </Text>
-                          <Text className="text-xs font-semibold text-slate-500 mt-0.5">
+                          <Text
+                            style={{
+                              fontSize: 12,
+                              fontWeight: '500',
+                              color: '#657080',
+                              marginTop: 2,
+                            }}
+                          >
                             {tenant.phone}
                           </Text>
                         </View>
@@ -394,70 +551,156 @@ export const TenantsDirectoryModal: React.FC<TenantsDirectoryModalProps> = ({
 
                       {/* Status Badge */}
                       <View
-                        className={`px-2.5 py-1 rounded-full border ${
-                          isOnNotice
-                            ? 'bg-amber-50 border-amber-200'
+                        style={{
+                          paddingHorizontal: 10,
+                          paddingVertical: 4,
+                          borderRadius: 9999,
+                          borderWidth: 1,
+                          backgroundColor: isOnNotice
+                            ? '#FEF3C7'
                             : isCheckedOut
-                              ? 'bg-slate-100 border-slate-200'
-                              : 'bg-emerald-50 border-emerald-200'
-                        }`}
+                              ? '#FAF5EB'
+                              : '#F0FDF4',
+                          borderColor: isOnNotice
+                            ? '#FDE047'
+                            : isCheckedOut
+                              ? '#E5DDCD'
+                              : '#BBF7D0',
+                        }}
                       >
                         <Text
-                          className={`text-[11px] font-bold ${
-                            isOnNotice
-                              ? 'text-amber-800'
-                              : isCheckedOut
-                                ? 'text-slate-600'
-                                : 'text-emerald-800'
-                          }`}
+                          style={{
+                            fontSize: 11,
+                            fontWeight: '700',
+                            color: isOnNotice ? '#B45309' : isCheckedOut ? '#657080' : '#15803D',
+                          }}
                         >
-                          {isOnNotice
-                            ? '🟡 On Notice'
-                            : isCheckedOut
-                              ? '⚪ Checked Out'
-                              : '🟢 Active'}
+                          {isOnNotice ? 'On Notice' : isCheckedOut ? 'Checked Out' : 'Active'}
                         </Text>
                       </View>
                     </View>
 
                     {/* Room & Bed Pill */}
-                    <View className="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 flex-row items-center justify-between mb-3">
-                      <View className="flex-row items-center flex-1 mr-2">
-                        <Building size={14} color="#64748B" />
-                        <Text className="text-xs font-bold text-slate-700 ml-1.5" numberOfLines={1}>
+                    <View
+                      style={{
+                        backgroundColor: '#FAF5EB',
+                        borderWidth: 1,
+                        borderColor: '#E5DDCD',
+                        borderRadius: 12,
+                        paddingHorizontal: 12,
+                        paddingVertical: 8,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        marginBottom: 12,
+                      }}
+                    >
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          flex: 1,
+                          marginRight: 8,
+                        }}
+                      >
+                        <Building size={14} color="#657080" />
+                        <Text
+                          style={{
+                            fontSize: 12,
+                            fontWeight: '700',
+                            color: '#0C192B',
+                            marginLeft: 6,
+                          }}
+                          numberOfLines={1}
+                        >
                           {bedInfo}
                         </Text>
                       </View>
-                      <Text className="text-[11px] font-semibold text-slate-400" numberOfLines={1}>
+                      <Text
+                        style={{ fontSize: 11, fontWeight: '600', color: '#657080' }}
+                        numberOfLines={1}
+                      >
                         {propName}
                       </Text>
                     </View>
 
                     {/* Financial & KYC Info Row */}
-                    <View className="flex-row items-center justify-between border-t border-slate-100 pt-2.5 mb-3">
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        borderTopWidth: 1,
+                        borderTopColor: '#F0ECE1',
+                        paddingTop: 10,
+                        marginBottom: 12,
+                      }}
+                    >
                       <View>
-                        <Text className="text-[11px] font-medium text-slate-500 uppercase">
+                        <Text
+                          style={{
+                            fontSize: 10.5,
+                            fontWeight: '600',
+                            color: '#657080',
+                            textTransform: 'uppercase',
+                          }}
+                        >
                           Monthly Rent
                         </Text>
-                        <Text className="text-sm font-extrabold text-slate-900 mt-0.5">
+                        <Text
+                          style={{
+                            fontSize: 14,
+                            fontWeight: '800',
+                            color: '#0C192B',
+                            marginTop: 2,
+                          }}
+                        >
                           {formatINR(tenant.monthlyRentPaise)}
                         </Text>
                       </View>
 
-                      <View className="items-center">
-                        <Text className="text-[11px] font-medium text-slate-500 uppercase">
+                      <View style={{ alignItems: 'center' }}>
+                        <Text
+                          style={{
+                            fontSize: 10.5,
+                            fontWeight: '600',
+                            color: '#657080',
+                            textTransform: 'uppercase',
+                          }}
+                        >
                           Deposit Paid
                         </Text>
-                        <Text className="text-sm font-extrabold text-[#0A6C50] mt-0.5">
+                        <Text
+                          style={{
+                            fontSize: 14,
+                            fontWeight: '800',
+                            color: '#4F5330',
+                            marginTop: 2,
+                          }}
+                        >
                           {formatINR(tenant.depositPaidPaise || tenant.depositPaise)}
                         </Text>
                       </View>
 
-                      <View className="items-end">
-                        <Text className="text-[11px] font-medium text-slate-500 uppercase">
+                      <View style={{ alignItems: 'flex-end' }}>
+                        <Text
+                          style={{
+                            fontSize: 10.5,
+                            fontWeight: '600',
+                            color: '#657080',
+                            textTransform: 'uppercase',
+                          }}
+                        >
                           Joined
                         </Text>
-                        <Text className="text-xs font-semibold text-slate-700 mt-0.5">
+                        <Text
+                          style={{
+                            fontSize: 12,
+                            fontWeight: '600',
+                            color: '#0C192B',
+                            marginTop: 2,
+                          }}
+                        >
                           {formatSafeDate(tenant.joinedDate || tenant.createdAt)}
                         </Text>
                       </View>
@@ -465,11 +708,29 @@ export const TenantsDirectoryModal: React.FC<TenantsDirectoryModalProps> = ({
 
                     {/* KYC Badge & Emergency Contact (if available) */}
                     {(tenant.kycMaskedNumber || tenant.emergencyPhone) && (
-                      <View className="flex-row items-center justify-between bg-slate-50/80 rounded-lg px-2.5 py-1.5 mb-3">
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          backgroundColor: '#FAF5EB',
+                          borderRadius: 8,
+                          paddingHorizontal: 10,
+                          paddingVertical: 6,
+                          marginBottom: 12,
+                        }}
+                      >
                         {tenant.kycMaskedNumber ? (
-                          <View className="flex-row items-center">
-                            <ShieldCheck size={12} color="#0A6C50" />
-                            <Text className="text-[11px] font-medium text-slate-600 ml-1">
+                          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            <ShieldCheck size={12} color="#4F5330" />
+                            <Text
+                              style={{
+                                fontSize: 11,
+                                fontWeight: '500',
+                                color: '#657080',
+                                marginLeft: 4,
+                              }}
+                            >
                               {tenant.kycDocType ? tenant.kycDocType.toUpperCase() : 'KYC'}:{' '}
                               {tenant.kycMaskedNumber}
                             </Text>
@@ -479,7 +740,7 @@ export const TenantsDirectoryModal: React.FC<TenantsDirectoryModalProps> = ({
                         )}
 
                         {tenant.emergencyPhone && (
-                          <Text className="text-[11px] font-medium text-slate-500">
+                          <Text style={{ fontSize: 11, fontWeight: '500', color: '#657080' }}>
                             Emergency: {tenant.emergencyPhone}
                           </Text>
                         )}
@@ -487,23 +748,60 @@ export const TenantsDirectoryModal: React.FC<TenantsDirectoryModalProps> = ({
                     )}
 
                     {/* Action Buttons: Call, WhatsApp, Checkout */}
-                    <View className="flex-row items-center gap-2 pt-1 border-t border-slate-100">
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 8,
+                        paddingTop: 8,
+                        borderTopWidth: 1,
+                        borderTopColor: '#F0ECE1',
+                      }}
+                    >
                       <TouchableOpacity
                         activeOpacity={0.8}
                         onPress={() => handleCall(tenant.phone)}
-                        className="flex-1 bg-slate-100/90 py-2.5 px-3 rounded-xl flex-row items-center justify-center gap-1.5"
+                        style={{
+                          flex: 1,
+                          backgroundColor: '#FFFDF8',
+                          borderWidth: 1,
+                          borderColor: '#E5DDCD',
+                          paddingVertical: 10,
+                          paddingHorizontal: 12,
+                          borderRadius: 12,
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: 6,
+                        }}
                       >
-                        <Phone size={15} color="#334155" />
-                        <Text className="text-xs font-bold text-slate-800">Call</Text>
+                        <Phone size={15} color="#0C192B" />
+                        <Text style={{ fontSize: 12, fontWeight: '700', color: '#0C192B' }}>
+                          Call
+                        </Text>
                       </TouchableOpacity>
 
                       <TouchableOpacity
                         activeOpacity={0.8}
                         onPress={() => handleWhatsApp(tenant.phone, tenant.fullName)}
-                        className="flex-1 bg-emerald-50 border border-emerald-200 py-2.5 px-3 rounded-xl flex-row items-center justify-center gap-1.5"
+                        style={{
+                          flex: 1,
+                          backgroundColor: '#F0FDF4',
+                          borderWidth: 1,
+                          borderColor: '#BBF7D0',
+                          paddingVertical: 10,
+                          paddingHorizontal: 12,
+                          borderRadius: 12,
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: 6,
+                        }}
                       >
-                        <MessageSquare size={15} color="#0A6C50" />
-                        <Text className="text-xs font-bold text-[#0A6C50]">WhatsApp</Text>
+                        <MessageSquare size={15} color="#15803D" />
+                        <Text style={{ fontSize: 12, fontWeight: '700', color: '#15803D' }}>
+                          WhatsApp
+                        </Text>
                       </TouchableOpacity>
 
                       {onCheckoutTenant && !isCheckedOut && (
@@ -513,9 +811,21 @@ export const TenantsDirectoryModal: React.FC<TenantsDirectoryModalProps> = ({
                             onClose();
                             onCheckoutTenant(tenant._id);
                           }}
-                          className="bg-slate-50 border border-slate-200 py-2.5 px-3 rounded-xl flex-row items-center justify-center"
+                          style={{
+                            backgroundColor: '#FFF1F2',
+                            borderWidth: 1,
+                            borderColor: '#FECDD3',
+                            paddingVertical: 10,
+                            paddingHorizontal: 12,
+                            borderRadius: 12,
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
                         >
-                          <Text className="text-xs font-bold text-slate-600">Checkout</Text>
+                          <Text style={{ fontSize: 12, fontWeight: '700', color: '#BE123C' }}>
+                            Checkout
+                          </Text>
                         </TouchableOpacity>
                       )}
                     </View>

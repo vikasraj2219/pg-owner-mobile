@@ -108,34 +108,61 @@ export default function PickVacantBedScreen() {
   };
 
   return (
-    <SafeAreaView edges={['top']} className="flex-1 bg-white">
+    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: '#FAF5EB' }}>
       {/* Header */}
-      <View className="px-5 pt-3 pb-3 border-b border-slate-100">
-        <View className="flex-row items-center">
+      <View
+        style={{
+          paddingHorizontal: 20,
+          paddingTop: 12,
+          paddingBottom: 12,
+          borderBottomWidth: 1,
+          borderBottomColor: '#E5DDCD',
+          backgroundColor: '#FAF5EB',
+        }}
+      >
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <TouchableOpacity
             onPress={() => router.back()}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            className="p-1 -ml-2 mr-2"
+            style={{ padding: 4, marginLeft: -8, marginRight: 8 }}
           >
-            <ChevronLeft size={24} color="#0F172A" />
+            <ChevronLeft size={24} color="#0C192B" />
           </TouchableOpacity>
           <View>
-            <Text className="text-xl font-black text-slate-900">Add tenant</Text>
-            <Text className="text-xs font-semibold text-slate-500">
+            <Text style={{ fontSize: 20, fontWeight: '800', color: '#0C192B' }}>Add tenant</Text>
+            <Text style={{ fontSize: 12, fontWeight: '500', color: '#657080', marginTop: 1 }}>
               Step 1 of 2 · Pick a vacant bed
             </Text>
           </View>
         </View>
 
         {/* Search Bar */}
-        <View className="flex-row items-center bg-slate-50 border border-slate-200 rounded-2xl px-3.5 py-2.5 mt-3">
-          <Search size={18} color="#94A3B8" />
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor: '#FFFDF8',
+            borderWidth: 1,
+            borderColor: '#E5DDCD',
+            borderRadius: 16,
+            paddingHorizontal: 14,
+            paddingVertical: 10,
+            marginTop: 12,
+          }}
+        >
+          <Search size={18} color="#657080" />
           <TextInput
             value={searchQuery}
             onChangeText={setSearchQuery}
             placeholder="Search name, phone or bed"
-            placeholderTextColor="#94A3B8"
-            className="flex-1 ml-2.5 text-sm font-medium text-slate-900"
+            placeholderTextColor="#8C939D"
+            style={{
+              flex: 1,
+              marginLeft: 10,
+              fontSize: 14,
+              fontWeight: '500',
+              color: '#0C192B',
+            }}
           />
         </View>
 
@@ -143,21 +170,32 @@ export default function PickVacantBedScreen() {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          className="flex-row mt-3 -mx-5 px-5"
+          style={{
+            flexDirection: 'row',
+            marginTop: 12,
+            marginHorizontal: -20,
+            paddingHorizontal: 20,
+          }}
           contentContainerStyle={{ paddingRight: 30 }}
         >
           <TouchableOpacity
             onPress={() => setSelectedFloor('all')}
-            className={`px-4 py-2 rounded-full border mr-2 ${
-              selectedFloor === 'all'
-                ? 'bg-[#19D3E6] border-[#19D3E6]'
-                : 'bg-white border-slate-200'
-            }`}
+            style={{
+              paddingHorizontal: 16,
+              paddingVertical: 8,
+              borderRadius: 9999,
+              borderWidth: 1,
+              marginRight: 8,
+              backgroundColor: selectedFloor === 'all' ? '#19D3E6' : '#FFFDF8',
+              borderColor: selectedFloor === 'all' ? '#19D3E6' : '#E5DDCD',
+            }}
           >
             <Text
-              className={`text-xs ${
-                selectedFloor === 'all' ? 'font-black text-[#0C192B]' : 'font-bold text-slate-700'
-              }`}
+              style={{
+                fontSize: 12,
+                fontWeight: selectedFloor === 'all' ? '800' : '600',
+                color: selectedFloor === 'all' ? '#0C192B' : '#657080',
+              }}
             >
               All floors
             </Text>
@@ -167,18 +205,22 @@ export default function PickVacantBedScreen() {
             <TouchableOpacity
               key={floorNum}
               onPress={() => setSelectedFloor(floorNum)}
-              className={`px-4 py-2 rounded-full border mr-2 ${
-                selectedFloor === floorNum
-                  ? 'bg-[#19D3E6] border-[#19D3E6]'
-                  : 'bg-white border-slate-200'
-              }`}
+              style={{
+                paddingHorizontal: 16,
+                paddingVertical: 8,
+                borderRadius: 9999,
+                borderWidth: 1,
+                marginRight: 8,
+                backgroundColor: selectedFloor === floorNum ? '#19D3E6' : '#FFFDF8',
+                borderColor: selectedFloor === floorNum ? '#19D3E6' : '#E5DDCD',
+              }}
             >
               <Text
-                className={`text-xs ${
-                  selectedFloor === floorNum
-                    ? 'font-black text-[#0C192B]'
-                    : 'font-bold text-slate-700'
-                }`}
+                style={{
+                  fontSize: 12,
+                  fontWeight: selectedFloor === floorNum ? '800' : '600',
+                  color: selectedFloor === floorNum ? '#0C192B' : '#657080',
+                }}
               >
                 Floor {floorNum}
               </Text>
@@ -189,53 +231,90 @@ export default function PickVacantBedScreen() {
 
       {/* Vacant Beds List Grouped by Room */}
       {isLoading ? (
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#0B6645" />
-          <Text className="text-xs font-medium text-slate-400 mt-2">Checking vacant beds...</Text>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <ActivityIndicator size="large" color="#4F5330" />
+          <Text style={{ fontSize: 12, fontWeight: '500', color: '#657080', marginTop: 8 }}>
+            Checking vacant beds...
+          </Text>
         </View>
       ) : filteredRooms.length === 0 ? (
-        <View className="flex-1 items-center justify-center px-6">
+        <View
+          style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 }}
+        >
           <BedDouble size={48} color="#CBD5E1" />
-          <Text className="text-base font-bold text-slate-800 text-center mt-3">
+          <Text
+            style={{
+              fontSize: 16,
+              fontWeight: '700',
+              color: '#0C192B',
+              textAlign: 'center',
+              marginTop: 12,
+            }}
+          >
             No vacant beds available
           </Text>
-          <Text className="text-xs text-slate-500 text-center mt-1">
+          <Text style={{ fontSize: 12, color: '#657080', textAlign: 'center', marginTop: 4 }}>
             All beds in this PG are currently occupied or under maintenance.
           </Text>
         </View>
       ) : (
-        <ScrollView className="flex-1 px-5 pt-4" contentContainerStyle={{ paddingBottom: 110 }}>
+        <ScrollView
+          style={{ flex: 1, paddingHorizontal: 20, paddingTop: 16 }}
+          contentContainerStyle={{ paddingBottom: 110 }}
+        >
           {filteredRooms.map(({ room, vacantBeds }) => (
-            <View key={room._id} className="mb-6">
+            <View key={room._id} style={{ marginBottom: 24 }}>
               {/* Room Header */}
-              <Text className="text-xs font-black text-[#0B6645] uppercase tracking-wider mb-2.5">
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: '800',
+                  color: '#4F5330',
+                  textTransform: 'uppercase',
+                  letterSpacing: 1,
+                  marginBottom: 10,
+                }}
+              >
                 ROOM {room.roomNumber} · FLOOR {room.floorNumber}
               </Text>
 
               {/* Beds Grid / Row */}
-              <View className="flex-row flex-wrap -mx-1.5">
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -6 }}>
                 {vacantBeds.map(bed => {
                   const isSelected = selectedBedItem?.bed._id === bed._id;
                   const rent = room.baseRentPaisePerBed || 0;
 
                   return (
-                    <View key={bed._id} className="w-1/2 px-1.5 mb-3">
+                    <View
+                      key={bed._id}
+                      style={{ width: '50%', paddingHorizontal: 6, marginBottom: 12 }}
+                    >
                       <TouchableOpacity
                         onPress={() => setSelectedBedItem({ bed, room })}
                         activeOpacity={0.8}
-                        className={`p-3.5 rounded-2xl border ${
-                          isSelected
-                            ? 'bg-[#F0FDF4] border-[#0B6645] border-2 shadow-sm'
-                            : 'bg-white border-dashed border-teal-300'
-                        }`}
+                        style={{
+                          padding: 14,
+                          borderRadius: 16,
+                          borderWidth: isSelected ? 2 : 1,
+                          borderStyle: isSelected ? 'solid' : 'dashed',
+                          borderColor: isSelected ? '#4F5330' : '#E5DDCD',
+                          backgroundColor: isSelected ? '#F0FDF4' : '#FFFDF8',
+                        }}
                       >
-                        <View className="flex-row items-center justify-between mb-1">
-                          <Text className="text-base font-black text-slate-900">
+                        <View
+                          style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            marginBottom: 4,
+                          }}
+                        >
+                          <Text style={{ fontSize: 16, fontWeight: '800', color: '#0C192B' }}>
                             {bed.bedNumber}
                           </Text>
-                          {isSelected && <Check size={18} color="#0B6645" strokeWidth={3} />}
+                          {isSelected && <Check size={18} color="#4F5330" strokeWidth={3} />}
                         </View>
-                        <Text className="text-xs font-semibold text-slate-600">
+                        <Text style={{ fontSize: 12, fontWeight: '500', color: '#657080' }}>
                           {sharingLabel(room.sharingType)} · {formatINR(rent)}
                         </Text>
                       </TouchableOpacity>
@@ -250,17 +329,46 @@ export default function PickVacantBedScreen() {
 
       {/* Sticky Bottom Bar */}
       {selectedBedItem && (
-        <View className="absolute bottom-0 left-0 right-0 bg-white border-t border-slate-100 p-4 shadow-2xl elevation-10">
-          <Text className="text-center text-xs font-bold text-slate-700 mb-2">
+        <View
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            backgroundColor: '#FFFDF8',
+            borderTopWidth: 1,
+            borderTopColor: '#E5DDCD',
+            padding: 16,
+          }}
+        >
+          <Text
+            style={{
+              textAlign: 'center',
+              fontSize: 12,
+              fontWeight: '700',
+              color: '#0C192B',
+              marginBottom: 8,
+            }}
+          >
             Bed {selectedBedItem.bed.bedNumber} selected ·{' '}
             {formatINR(selectedBedItem.room.baseRentPaisePerBed || 0)} a month
           </Text>
           <TouchableOpacity
             onPress={handleContinue}
-            className="w-full bg-[#4F5330] py-3.5 rounded-full items-center justify-center flex-row shadow-md"
+            style={{
+              width: '100%',
+              backgroundColor: '#4F5330',
+              paddingVertical: 14,
+              borderRadius: 9999,
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexDirection: 'row',
+            }}
           >
             <ChevronRight size={18} color="#FFFFFF" strokeWidth={2.5} />
-            <Text className="text-white font-black text-sm ml-1">Continue to check-in</Text>
+            <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 14, marginLeft: 4 }}>
+              Continue to check-in
+            </Text>
           </TouchableOpacity>
         </View>
       )}

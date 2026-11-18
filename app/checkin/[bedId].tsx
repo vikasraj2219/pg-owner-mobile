@@ -415,54 +415,87 @@ export default function CheckinScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-[#F8F9FA]" edges={['top']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#FAF5EB' }} edges={['top']}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        className="flex-1"
+        style={{ flex: 1 }}
       >
         {/* Top Header matching Page 15: Bed 201-A, Floor 2 */}
-        <View className="px-4 py-3 flex-row items-center border-b border-slate-200/80 bg-white">
+        <View
+          style={{
+            paddingHorizontal: 16,
+            paddingVertical: 12,
+            flexDirection: 'row',
+            alignItems: 'center',
+            borderBottomWidth: 1,
+            borderBottomColor: '#E5DDCD',
+            backgroundColor: '#FAF5EB',
+          }}
+        >
           <TouchableOpacity
             onPress={() => router.back()}
             disabled={isUploading}
-            className="w-10 h-10 items-center justify-center -ml-2 rounded-full active:bg-slate-100"
+            style={{
+              width: 40,
+              height: 40,
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginLeft: -8,
+            }}
           >
-            <ChevronLeft size={26} color="#0F172A" />
+            <ChevronLeft size={26} color="#0C192B" />
           </TouchableOpacity>
 
-          <View className="ml-1 flex-1">
-            <Text
-              className="text-base font-extrabold text-slate-900 tracking-tight"
-              numberOfLines={1}
-            >
+          <View style={{ marginLeft: 4, flex: 1 }}>
+            <Text style={{ fontSize: 16, fontWeight: '800', color: '#0C192B' }} numberOfLines={1}>
               {displayRoom ? `${displayRoom} · ` : ''}Bed {displayBed}
             </Text>
-            <Text className="text-xs font-semibold text-slate-500">
+            <Text style={{ fontSize: 12, fontWeight: '500', color: '#657080' }}>
               Floor {displayFloor}
               {displaySharing ? ` · ${displaySharing}` : ''}
             </Text>
           </View>
 
-          {/* 3 Steps Progress Pill matching Page 15, 17, 18 */}
-          <View className="flex-row items-center bg-slate-100 px-3 py-1.5 rounded-full gap-2">
+          {/* 3 Steps Progress Pill */}
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: '#FFFDF8',
+              borderWidth: 1,
+              borderColor: '#E5DDCD',
+              paddingHorizontal: 12,
+              paddingVertical: 6,
+              borderRadius: 9999,
+              gap: 8,
+            }}
+          >
             <Text
-              className={`text-xs font-black ${isIdStepDone ? 'text-[#0A6C50]' : 'text-slate-500'}`}
+              style={{
+                fontSize: 12,
+                fontWeight: '800',
+                color: isIdStepDone ? '#4F5330' : '#657080',
+              }}
             >
               ID {isIdStepDone ? '✓' : ''}
             </Text>
-            <Text className="text-slate-300 font-bold">·</Text>
+            <Text style={{ color: '#E5DDCD', fontWeight: '700' }}>·</Text>
             <Text
-              className={`text-xs font-black ${
-                isTenantStepDone ? 'text-[#0A6C50]' : 'text-slate-500'
-              }`}
+              style={{
+                fontSize: 12,
+                fontWeight: '800',
+                color: isTenantStepDone ? '#4F5330' : '#657080',
+              }}
             >
               Tenant {isTenantStepDone ? '✓' : ''}
             </Text>
-            <Text className="text-slate-300 font-bold">·</Text>
+            <Text style={{ color: '#E5DDCD', fontWeight: '700' }}>·</Text>
             <Text
-              className={`text-xs font-black ${
-                isMoneyStepDone ? 'text-[#0A6C50]' : 'text-slate-500'
-              }`}
+              style={{
+                fontSize: 12,
+                fontWeight: '800',
+                color: isMoneyStepDone ? '#4F5330' : '#657080',
+              }}
             >
               Money {isMoneyStepDone ? '✓' : ''}
             </Text>
@@ -470,60 +503,123 @@ export default function CheckinScreen() {
         </View>
 
         <ScrollView
-          className="flex-1 px-5 pt-4"
+          style={{ flex: 1, paddingHorizontal: 20, paddingTop: 16 }}
           contentContainerStyle={{ paddingBottom: 130 }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
           {/* ======================================================== */}
-          {/* 1 · ID PROOF & KYC (Page 15 & Page 18)                   */}
+          {/* 1 · ID PROOF & KYC                                       */}
           {/* ======================================================== */}
-          <View className="mb-6">
-            <Text className="text-xs font-black text-[#0A6C50] tracking-wider mb-2.5">
+          <View style={{ marginBottom: 24 }}>
+            <Text
+              style={{
+                fontSize: 12,
+                fontWeight: '800',
+                color: '#4F5330',
+                letterSpacing: 1,
+                marginBottom: 10,
+              }}
+            >
               1 · ID PROOF
             </Text>
 
             {!idSnapped ? (
-              // Uncaptured State matching Page 15
               <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={handleCaptureId}
-                className="border-2 border-dashed border-slate-300 rounded-2xl p-6 items-center justify-center bg-white shadow-xs"
+                style={{
+                  borderWidth: 1.5,
+                  borderStyle: 'dashed',
+                  borderColor: '#E5DDCD',
+                  borderRadius: 16,
+                  padding: 24,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: '#FFFDF8',
+                }}
               >
-                <View className="w-12 h-12 rounded-full bg-slate-100 items-center justify-center mb-2.5">
-                  <Camera size={26} color="#0A6C50" strokeWidth={2} />
+                <View
+                  style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 24,
+                    backgroundColor: '#FAF5EB',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: 10,
+                  }}
+                >
+                  <Camera size={26} color="#4F5330" strokeWidth={2} />
                 </View>
-                <Text className="text-base font-black text-slate-800">Snap Aadhaar / ID</Text>
-                <Text className="text-xs font-medium text-slate-400 mt-1">
+                <Text style={{ fontSize: 16, fontWeight: '800', color: '#0C192B' }}>
+                  Snap Aadhaar / ID
+                </Text>
+                <Text style={{ fontSize: 12, fontWeight: '500', color: '#657080', marginTop: 4 }}>
                   Compressed under 200 KB · stored privately
                 </Text>
               </TouchableOpacity>
             ) : (
-              // Captured State matching Page 18 & 54
-              <View className="border border-[#A7F3D0] bg-[#F0FDF4] rounded-2xl p-4 flex-row items-center justify-between shadow-xs">
+              <View
+                style={{
+                  borderWidth: 1,
+                  borderColor: '#E5DDCD',
+                  backgroundColor: '#FFFDF8',
+                  borderRadius: 16,
+                  padding: 16,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                }}
+              >
                 <TouchableOpacity
                   activeOpacity={0.7}
                   onPress={() => setShowIdPreview(true)}
-                  className="flex-row items-center flex-1 mr-2"
+                  style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}
                 >
                   {idImageUri ? (
                     <Image
                       source={{ uri: idImageUri }}
-                      className="w-14 h-14 rounded-xl bg-slate-200 mr-3.5"
+                      style={{
+                        width: 56,
+                        height: 56,
+                        borderRadius: 12,
+                        backgroundColor: '#FAF5EB',
+                        marginRight: 14,
+                      }}
                     />
                   ) : (
-                    <View className="w-14 h-14 rounded-xl bg-[#E8F5EE] items-center justify-center mr-3.5">
-                      <ShieldCheck size={28} color="#0A6C50" />
+                    <View
+                      style={{
+                        width: 56,
+                        height: 56,
+                        borderRadius: 12,
+                        backgroundColor: '#FAF5EB',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginRight: 14,
+                      }}
+                    >
+                      <ShieldCheck size={28} color="#4F5330" />
                     </View>
                   )}
-                  <View className="flex-1">
-                    <View className="flex-row items-center">
-                      <Text className="text-base font-black text-slate-900 mr-1.5">
+                  <View style={{ flex: 1 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      <Text
+                        style={{
+                          fontSize: 16,
+                          fontWeight: '800',
+                          color: '#0C192B',
+                          marginRight: 6,
+                        }}
+                      >
                         ID captured
                       </Text>
-                      <Eye size={16} color="#0A6C50" />
+                      <Eye size={16} color="#4F5330" />
                     </View>
-                    <Text className="text-xs font-bold text-[#0A6C50] mt-0.5">
+                    <Text
+                      style={{ fontSize: 12, fontWeight: '700', color: '#4F5330', marginTop: 2 }}
+                    >
                       {idImageSizeKb} KB · Tap to view
                     </Text>
                   </View>
@@ -532,139 +628,265 @@ export default function CheckinScreen() {
                 <TouchableOpacity
                   activeOpacity={0.8}
                   onPress={handleCaptureId}
-                  className="bg-white border border-slate-200 px-3.5 py-2 rounded-xl"
+                  style={{
+                    backgroundColor: '#FAF5EB',
+                    borderWidth: 1,
+                    borderColor: '#E5DDCD',
+                    paddingHorizontal: 14,
+                    paddingVertical: 8,
+                    borderRadius: 12,
+                  }}
                 >
-                  <Text className="text-xs font-bold text-slate-700">Retake</Text>
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#0C192B' }}>Retake</Text>
                 </TouchableOpacity>
               </View>
             )}
 
-            {/* Inline ID photo error if touched and missing (Page 16) */}
             {touched.idPhoto && !idSnapped && (
-              <Text className="text-xs font-semibold text-red-500 mt-1.5 ml-1">
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: '600',
+                  color: '#BE123C',
+                  marginTop: 6,
+                  marginLeft: 4,
+                }}
+              >
                 ID photo is required
               </Text>
             )}
 
-            {/* DPDP Consent Checkbox matching Page 15, 16, 18 */}
+            {/* DPDP Consent Checkbox */}
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={() => setAgreesToIdStorage(!agreesToIdStorage)}
-              className="flex-row items-center mt-3.5 px-1 py-1"
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                marginTop: 14,
+                paddingHorizontal: 4,
+                paddingVertical: 4,
+              }}
             >
               <View
-                className={`w-5 h-5 rounded-md border items-center justify-center mr-2.5 ${
-                  agreesToIdStorage ? 'bg-[#0A6C50] border-[#0A6C50]' : 'border-slate-300 bg-white'
-                }`}
+                style={{
+                  width: 20,
+                  height: 20,
+                  borderRadius: 6,
+                  borderWidth: 1,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginRight: 10,
+                  backgroundColor: agreesToIdStorage ? '#4F5330' : '#FFFDF8',
+                  borderColor: agreesToIdStorage ? '#4F5330' : '#E5DDCD',
+                }}
               >
                 {agreesToIdStorage && <Check size={14} color="#FFFFFF" strokeWidth={3} />}
               </View>
-              <Text className="text-xs font-medium text-slate-600 flex-1">
-                Tenant agrees to ID storage · <Text className="font-bold">required</Text>
+              <Text style={{ fontSize: 12, fontWeight: '500', color: '#0C192B', flex: 1 }}>
+                Tenant agrees to ID storage · <Text style={{ fontWeight: '800' }}>required</Text>
               </Text>
             </TouchableOpacity>
 
-            {/* Inline Consent Error (Page 16) */}
             {touched.consent && !agreesToIdStorage && (
-              <Text className="text-xs font-semibold text-red-500 mt-1 ml-1">
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: '600',
+                  color: '#BE123C',
+                  marginTop: 4,
+                  marginLeft: 4,
+                }}
+              >
                 Consent is required to store the ID
               </Text>
             )}
           </View>
 
           {/* ======================================================== */}
-          {/* 2 · TENANT (Page 15 & Page 16)                           */}
+          {/* 2 · TENANT                                               */}
           {/* ======================================================== */}
-          <View className="mb-6">
-            <Text className="text-xs font-black text-[#0A6C50] tracking-wider mb-2.5">
+          <View style={{ marginBottom: 24 }}>
+            <Text
+              style={{
+                fontSize: 12,
+                fontWeight: '800',
+                color: '#4F5330',
+                letterSpacing: 1,
+                marginBottom: 10,
+              }}
+            >
               2 · TENANT
             </Text>
 
             {/* Full Name */}
-            <View className="mb-3.5">
-              <Text className="text-xs font-bold text-slate-700 mb-1.5">Full name</Text>
+            <View style={{ marginBottom: 14 }}>
+              <Text style={{ fontSize: 12, fontWeight: '700', color: '#0C192B', marginBottom: 6 }}>
+                Full name
+              </Text>
               <TextInput
                 value={fullName}
                 onChangeText={setFullName}
                 placeholder="e.g. Rahul Verma"
-                placeholderTextColor="#94A3B8"
-                className={`bg-white border rounded-xl px-4 py-3.5 text-base text-slate-900 shadow-xs ${
-                  touched.name && !nameValidation.isValid ? 'border-red-400' : 'border-slate-200'
-                }`}
+                placeholderTextColor="#8C939D"
+                style={{
+                  backgroundColor: '#FFFDF8',
+                  borderWidth: 1,
+                  borderColor: touched.name && !nameValidation.isValid ? '#BE123C' : '#E5DDCD',
+                  borderRadius: 14,
+                  paddingHorizontal: 16,
+                  paddingVertical: 14,
+                  fontSize: 15,
+                  color: '#0C192B',
+                }}
               />
               {touched.name && !nameValidation.isValid && (
-                <Text className="text-xs font-semibold text-red-500 mt-1 ml-1">
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontWeight: '600',
+                    color: '#BE123C',
+                    marginTop: 4,
+                    marginLeft: 4,
+                  }}
+                >
                   {nameValidation.error || 'Required'}
                 </Text>
               )}
             </View>
 
             {/* Phone & Emergency Phone Row */}
-            <View className="flex-row gap-3">
-              <View className="flex-1">
-                <Text className="text-xs font-bold text-slate-700 mb-1.5">Phone</Text>
+            <View style={{ flexDirection: 'row', gap: 12 }}>
+              <View style={{ flex: 1 }}>
+                <Text
+                  style={{ fontSize: 12, fontWeight: '700', color: '#0C192B', marginBottom: 6 }}
+                >
+                  Phone
+                </Text>
                 <TextInput
                   value={phone}
                   onChangeText={setPhone}
                   placeholder="10 digits"
-                  placeholderTextColor="#94A3B8"
+                  placeholderTextColor="#8C939D"
                   keyboardType="phone-pad"
                   maxLength={10}
-                  className={`bg-white border rounded-xl px-4 py-3.5 text-base text-slate-900 shadow-xs ${
-                    touched.phone && !phoneValidation.isValid
-                      ? 'border-red-400'
-                      : 'border-slate-200'
-                  }`}
+                  style={{
+                    backgroundColor: '#FFFDF8',
+                    borderWidth: 1,
+                    borderColor: touched.phone && !phoneValidation.isValid ? '#BE123C' : '#E5DDCD',
+                    borderRadius: 14,
+                    paddingHorizontal: 16,
+                    paddingVertical: 14,
+                    fontSize: 15,
+                    color: '#0C192B',
+                  }}
                 />
                 {touched.phone && !phoneValidation.isValid && (
-                  <Text className="text-xs font-semibold text-red-500 mt-1 ml-1">
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      fontWeight: '600',
+                      color: '#BE123C',
+                      marginTop: 4,
+                      marginLeft: 4,
+                    }}
+                  >
                     Enter 10 digits
                   </Text>
                 )}
               </View>
 
-              <View className="flex-1">
-                <Text className="text-xs font-bold text-slate-700 mb-1.5">Emergency phone</Text>
+              <View style={{ flex: 1 }}>
+                <Text
+                  style={{ fontSize: 12, fontWeight: '700', color: '#0C192B', marginBottom: 6 }}
+                >
+                  Emergency phone
+                </Text>
                 <TextInput
                   value={emergencyPhone}
                   onChangeText={setEmergencyPhone}
                   placeholder="Optional"
-                  placeholderTextColor="#94A3B8"
+                  placeholderTextColor="#8C939D"
                   keyboardType="phone-pad"
                   maxLength={10}
-                  className="bg-white border border-slate-200 rounded-xl px-4 py-3.5 text-base text-slate-900 shadow-xs"
+                  style={{
+                    backgroundColor: '#FFFDF8',
+                    borderWidth: 1,
+                    borderColor: '#E5DDCD',
+                    borderRadius: 14,
+                    paddingHorizontal: 16,
+                    paddingVertical: 14,
+                    fontSize: 15,
+                    color: '#0C192B',
+                  }}
                 />
               </View>
             </View>
           </View>
 
           {/* ======================================================== */}
-          {/* 3 · MONEY & PRORATION (Page 15, 18, 20)                 */}
+          {/* 3 · MONEY & PRORATION                                    */}
           {/* ======================================================== */}
-          <View className="mb-6">
-            <Text className="text-xs font-black text-[#0A6C50] tracking-wider mb-2.5">
+          <View style={{ marginBottom: 24 }}>
+            <Text
+              style={{
+                fontSize: 12,
+                fontWeight: '800',
+                color: '#4F5330',
+                letterSpacing: 1,
+                marginBottom: 10,
+              }}
+            >
               3 · MONEY
             </Text>
 
             {/* Rent & Deposit Inputs Row */}
-            <View className="flex-row gap-3 mb-3.5">
-              <View className="flex-1">
-                <Text className="text-xs font-bold text-slate-700 mb-1.5">Monthly rent (₹)</Text>
+            <View style={{ flexDirection: 'row', gap: 12, marginBottom: 14 }}>
+              <View style={{ flex: 1 }}>
+                <Text
+                  style={{ fontSize: 12, fontWeight: '700', color: '#0C192B', marginBottom: 6 }}
+                >
+                  Monthly rent (₹)
+                </Text>
                 <TextInput
                   value={monthlyRent}
                   onChangeText={setMonthlyRent}
                   keyboardType="numeric"
-                  className="bg-white border border-slate-200 rounded-xl px-4 py-3.5 text-base font-bold text-slate-900 shadow-xs"
+                  style={{
+                    backgroundColor: '#FFFDF8',
+                    borderWidth: 1,
+                    borderColor: '#E5DDCD',
+                    borderRadius: 14,
+                    paddingHorizontal: 16,
+                    paddingVertical: 14,
+                    fontSize: 16,
+                    fontWeight: '700',
+                    color: '#0C192B',
+                  }}
                 />
               </View>
 
-              <View className="flex-1">
-                <Text className="text-xs font-bold text-slate-700 mb-1.5">Deposit (₹)</Text>
+              <View style={{ flex: 1 }}>
+                <Text
+                  style={{ fontSize: 12, fontWeight: '700', color: '#0C192B', marginBottom: 6 }}
+                >
+                  Deposit (₹)
+                </Text>
                 <TextInput
                   value={deposit}
                   onChangeText={setDeposit}
                   keyboardType="numeric"
-                  className="bg-white border border-slate-200 rounded-xl px-4 py-3.5 text-base font-bold text-slate-900 shadow-xs"
+                  style={{
+                    backgroundColor: '#FFFDF8',
+                    borderWidth: 1,
+                    borderColor: '#E5DDCD',
+                    borderRadius: 14,
+                    paddingHorizontal: 16,
+                    paddingVertical: 14,
+                    fontSize: 16,
+                    fontWeight: '700',
+                    color: '#0C192B',
+                  }}
                 />
               </View>
             </View>
@@ -673,58 +895,138 @@ export default function CheckinScreen() {
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={() => setShowCalendarModal(true)}
-              className="bg-white border border-slate-200 rounded-2xl px-4 py-3.5 flex-row items-center justify-between mb-3.5 shadow-xs"
+              style={{
+                backgroundColor: '#FFFDF8',
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+                borderRadius: 16,
+                paddingHorizontal: 16,
+                paddingVertical: 14,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: 14,
+              }}
             >
-              <View className="flex-row items-center flex-1 mr-2">
-                <View className="w-9 h-9 rounded-full bg-emerald-50 items-center justify-center mr-3">
-                  <Calendar size={18} color="#0A6C50" />
+              <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>
+                <View
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 18,
+                    backgroundColor: '#FAF5EB',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginRight: 12,
+                  }}
+                >
+                  <Calendar size={18} color="#4F5330" />
                 </View>
                 <View>
-                  <Text className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                  <Text
+                    style={{
+                      fontSize: 11,
+                      fontWeight: '700',
+                      color: '#657080',
+                      textTransform: 'uppercase',
+                      letterSpacing: 0.5,
+                    }}
+                  >
                     Joining date (Tap to change)
                   </Text>
-                  <Text className="text-sm font-black text-slate-900 mt-0.5">
+                  <Text style={{ fontSize: 14, fontWeight: '800', color: '#0C192B', marginTop: 2 }}>
                     {dayOfMonth} {currentMonthName} {joinDate.getFullYear()}
                   </Text>
                 </View>
               </View>
-              <View className="bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 flex-row items-center">
-                <Calendar size={13} color="#475569" />
-                <Text className="text-xs font-bold text-slate-700 ml-1.5">Choose</Text>
+              <View
+                style={{
+                  backgroundColor: '#FAF5EB',
+                  paddingHorizontal: 12,
+                  paddingVertical: 6,
+                  borderRadius: 12,
+                  borderWidth: 1,
+                  borderColor: '#E5DDCD',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                }}
+              >
+                <Calendar size={13} color="#0C192B" />
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#0C192B', marginLeft: 6 }}>
+                  Choose
+                </Text>
               </View>
             </TouchableOpacity>
 
             {/* Join-Date Billing Cycle Card */}
-            <View className="bg-[#E8F5EE] border border-[#A7F3D0] rounded-2xl p-4 mb-4">
-              <View className="flex-row items-center justify-between mb-1.5">
-                <Text className="text-xs font-extrabold text-[#0A6C50]">
+            <View
+              style={{
+                backgroundColor: '#F4F8EC',
+                borderWidth: 1,
+                borderColor: '#D9E8CE',
+                borderRadius: 16,
+                padding: 16,
+                marginBottom: 16,
+              }}
+            >
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: 6,
+                }}
+              >
+                <Text style={{ fontSize: 12, fontWeight: '800', color: '#4F5330' }}>
                   Cycle: {cycleDateRange} (1 Full Month)
                 </Text>
-                <Text className="text-[11px] font-bold text-emerald-800 bg-emerald-100/90 px-2 py-0.5 rounded-full">
+                <Text
+                  style={{
+                    fontSize: 11,
+                    fontWeight: '700',
+                    color: '#4F5330',
+                    backgroundColor: '#E2ECCF',
+                    paddingHorizontal: 8,
+                    paddingVertical: 2,
+                    borderRadius: 9999,
+                  }}
+                >
                   Join-Date Billing
                 </Text>
               </View>
-              <Text className="text-sm font-black text-slate-900">
+              <Text style={{ fontSize: 14, fontWeight: '800', color: '#0C192B' }}>
                 Advance due now: {formatINR(totalAdvance * 100)}{' '}
-                <Text className="text-xs font-normal text-slate-500">
+                <Text style={{ fontSize: 12, fontWeight: '400', color: '#657080' }}>
                   (deposit + 1st month rent)
                 </Text>
               </Text>
-              <Text className="text-[11px] font-semibold text-emerald-800/80 mt-1">
+              <Text style={{ fontSize: 11.5, fontWeight: '600', color: '#4F5330', marginTop: 4 }}>
                 First rent: {formatINR(monthlyRentAmount * 100)} · Next rent due on{' '}
                 {nextDueDateFormatted}
               </Text>
             </View>
 
-            {/* Payment Method Action Row matching Page 15 & 20 */}
-            <View className="flex-row gap-3">
+            {/* Payment Method Action Row */}
+            <View style={{ flexDirection: 'row', gap: 12 }}>
               <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={() => setShowUpiModal(true)}
-                className="flex-1 bg-white border border-slate-200 py-3.5 rounded-xl flex-row items-center justify-center shadow-xs"
+                style={{
+                  flex: 1,
+                  backgroundColor: '#FFFDF8',
+                  borderWidth: 1,
+                  borderColor: '#E5DDCD',
+                  paddingVertical: 14,
+                  borderRadius: 12,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
               >
-                <QrCode size={18} color="#0A6C50" />
-                <Text className="text-xs font-extrabold text-[#0A6C50] ml-2">Show UPI QR</Text>
+                <QrCode size={18} color="#4F5330" />
+                <Text style={{ fontSize: 12, fontWeight: '800', color: '#4F5330', marginLeft: 8 }}>
+                  Show UPI QR
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -733,19 +1035,30 @@ export default function CheckinScreen() {
                   setAdvanceCollected(!advanceCollected);
                   if (!advanceCollected) setPaymentMode('cash');
                 }}
-                className={`flex-1 py-3.5 rounded-xl flex-row items-center justify-center border shadow-xs ${
-                  advanceCollected ? 'bg-[#19D3E6] border-[#19D3E6]' : 'bg-white border-slate-200'
-                }`}
+                style={{
+                  flex: 1,
+                  paddingVertical: 14,
+                  borderRadius: 12,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderWidth: 1,
+                  backgroundColor: advanceCollected ? '#19D3E6' : '#FFFDF8',
+                  borderColor: advanceCollected ? '#19D3E6' : '#E5DDCD',
+                }}
               >
                 <Check
                   size={16}
-                  color={advanceCollected ? '#0C192B' : '#64748B'}
+                  color={advanceCollected ? '#0C192B' : '#657080'}
                   strokeWidth={2.5}
                 />
                 <Text
-                  className={`text-xs font-extrabold ml-1.5 ${
-                    advanceCollected ? 'text-[#0C192B]' : 'text-slate-700'
-                  }`}
+                  style={{
+                    fontSize: 12,
+                    fontWeight: '800',
+                    marginLeft: 6,
+                    color: advanceCollected ? '#0C192B' : '#657080',
+                  }}
                 >
                   Cash received
                 </Text>
@@ -755,11 +1068,27 @@ export default function CheckinScreen() {
         </ScrollView>
 
         {/* ======================================================== */}
-        {/* BOTTOM FIXED CTA BAR (Page 15, 16, 18)                  */}
+        {/* BOTTOM FIXED CTA BAR                                    */}
         {/* ======================================================== */}
-        <View className="px-5 py-3.5 bg-white border-t border-slate-200/80 shadow-lg">
+        <View
+          style={{
+            paddingHorizontal: 20,
+            paddingVertical: 14,
+            backgroundColor: '#FFFDF8',
+            borderTopWidth: 1,
+            borderTopColor: '#E5DDCD',
+          }}
+        >
           {!isFormReady && (
-            <Text className="text-xs font-semibold text-slate-400 text-center mb-2">
+            <Text
+              style={{
+                fontSize: 12,
+                fontWeight: '600',
+                color: '#657080',
+                textAlign: 'center',
+                marginBottom: 8,
+              }}
+            >
               Add ID photo, name and phone to continue
             </Text>
           )}
@@ -768,12 +1097,21 @@ export default function CheckinScreen() {
             activeOpacity={0.8}
             onPress={handleCheckinSubmit}
             disabled={!isFormReady || isUploading}
-            className={`w-full py-4 rounded-2xl items-center justify-center shadow-sm ${
-              isFormReady ? 'bg-[#4F5330]' : 'bg-slate-200'
-            }`}
+            style={{
+              width: '100%',
+              paddingVertical: 16,
+              borderRadius: 9999,
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: isFormReady ? '#4F5330' : '#E5DDCD',
+            }}
           >
             <Text
-              className={`text-base font-extrabold ${isFormReady ? 'text-white' : 'text-slate-400'}`}
+              style={{
+                fontSize: 16,
+                fontWeight: '800',
+                color: isFormReady ? '#FFFFFF' : '#657080',
+              }}
             >
               Check in tenant
             </Text>
@@ -781,71 +1119,176 @@ export default function CheckinScreen() {
         </View>
 
         {/* ======================================================== */}
-        {/* MODAL 1: Uploading Progress (Page 18)                   */}
+        {/* MODAL 1: Uploading Progress                              */}
         {/* ======================================================== */}
         <Modal visible={isUploading} transparent animationType="fade">
-          <View className="flex-1 bg-black/60 items-center justify-center px-6">
-            <View className="w-full bg-white rounded-3xl p-6 shadow-xl">
-              <Text className="text-lg font-black text-slate-900 mb-1">Uploading ID photo</Text>
-              <Text className="text-xs font-bold text-slate-400 mb-4">
+          <View
+            style={{
+              flex: 1,
+              backgroundColor: 'rgba(0,0,0,0.6)',
+              alignItems: 'center',
+              justifyContent: 'center',
+              paddingHorizontal: 24,
+            }}
+          >
+            <View
+              style={{
+                width: '100%',
+                backgroundColor: '#FFFDF8',
+                borderRadius: 24,
+                padding: 24,
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+              }}
+            >
+              <Text style={{ fontSize: 18, fontWeight: '800', color: '#0C192B', marginBottom: 4 }}>
+                Uploading ID photo
+              </Text>
+              <Text style={{ fontSize: 12, fontWeight: '700', color: '#657080', marginBottom: 16 }}>
                 Compressed 2.4 MB → {idImageSizeKb} KB
               </Text>
 
               {/* Progress Bar */}
-              <View className="w-full h-3 bg-slate-100 rounded-full overflow-hidden mb-2">
+              <View
+                style={{
+                  width: '100%',
+                  height: 12,
+                  backgroundColor: '#FAF5EB',
+                  borderRadius: 9999,
+                  overflow: 'hidden',
+                  marginBottom: 8,
+                  borderWidth: 1,
+                  borderColor: '#E5DDCD',
+                }}
+              >
                 <View
-                  className="h-full bg-[#0A6C50] rounded-full"
-                  style={{ width: `${uploadProgress}%` }}
+                  style={{
+                    height: '100%',
+                    backgroundColor: '#4F5330',
+                    borderRadius: 9999,
+                    width: `${uploadProgress}%`,
+                  }}
                 />
               </View>
 
-              <Text className="text-xs font-extrabold text-[#0A6C50] text-right mb-4">
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: '800',
+                  color: '#4F5330',
+                  textAlign: 'right',
+                  marginBottom: 16,
+                }}
+              >
                 Uploading… {uploadProgress}%
               </Text>
 
-              <View className="bg-slate-50 p-3.5 rounded-xl border border-slate-100 mb-4">
-                <Text className="text-xs font-bold text-slate-700">
+              <View
+                style={{
+                  backgroundColor: '#FAF5EB',
+                  padding: 14,
+                  borderRadius: 12,
+                  borderWidth: 1,
+                  borderColor: '#E5DDCD',
+                  marginBottom: 16,
+                }}
+              >
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#0C192B' }}>
                   Create tenant and first invoice
                 </Text>
-                <Text className="text-[11px] text-slate-400 mt-1">
+                <Text style={{ fontSize: 11, color: '#657080', marginTop: 4 }}>
                   Keep the app open. Slow signal may take a moment.
                 </Text>
               </View>
 
               <TouchableOpacity
                 onPress={() => setIsUploading(false)}
-                className="py-2.5 items-center justify-center"
+                style={{ paddingVertical: 10, alignItems: 'center', justifyContent: 'center' }}
               >
-                <Text className="text-xs font-bold text-slate-400">Cancel</Text>
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#657080' }}>Cancel</Text>
               </TouchableOpacity>
             </View>
           </View>
         </Modal>
 
         {/* ======================================================== */}
-        {/* MODAL 2: Upload Failed / Error (Page 19)                */}
+        {/* MODAL 2: Upload Failed / Error                           */}
         {/* ======================================================== */}
         <Modal visible={showErrorModal} transparent animationType="fade">
-          <View className="flex-1 bg-black/60 items-center justify-center px-6">
-            <View className="w-full bg-white rounded-3xl p-6 shadow-xl items-center">
-              <View className="w-14 h-14 rounded-full bg-red-100 items-center justify-center mb-3">
-                <AlertCircle size={30} color="#DC2626" />
+          <View
+            style={{
+              flex: 1,
+              backgroundColor: 'rgba(0,0,0,0.6)',
+              alignItems: 'center',
+              justifyContent: 'center',
+              paddingHorizontal: 24,
+            }}
+          >
+            <View
+              style={{
+                width: '100%',
+                backgroundColor: '#FFFDF8',
+                borderRadius: 24,
+                padding: 24,
+                alignItems: 'center',
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+              }}
+            >
+              <View
+                style={{
+                  width: 56,
+                  height: 56,
+                  borderRadius: 28,
+                  backgroundColor: '#FFF1F2',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: 12,
+                }}
+              >
+                <AlertCircle size={30} color="#BE123C" />
               </View>
 
-              <Text className="text-xl font-black text-slate-900 mb-1.5 text-center">
+              <Text
+                style={{
+                  fontSize: 20,
+                  fontWeight: '800',
+                  color: '#0C192B',
+                  marginBottom: 6,
+                  textAlign: 'center',
+                }}
+              >
                 Upload failed
               </Text>
-              <Text className="text-xs font-medium text-slate-500 text-center mb-6 leading-relaxed">
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: '500',
+                  color: '#657080',
+                  textAlign: 'center',
+                  marginBottom: 24,
+                  lineHeight: 18,
+                }}
+              >
                 {uploadError || 'Your form is saved. Check your signal and try again.'}
               </Text>
 
-              <View className="w-full flex-row gap-3">
+              <View style={{ width: '100%', flexDirection: 'row', gap: 12 }}>
                 <TouchableOpacity
                   activeOpacity={0.8}
                   onPress={() => setShowErrorModal(false)}
-                  className="flex-1 py-3.5 bg-slate-100 rounded-xl items-center justify-center"
+                  style={{
+                    flex: 1,
+                    paddingVertical: 14,
+                    backgroundColor: '#FAF5EB',
+                    borderWidth: 1,
+                    borderColor: '#E5DDCD',
+                    borderRadius: 12,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
                 >
-                  <Text className="text-sm font-bold text-slate-700">Cancel</Text>
+                  <Text style={{ fontSize: 14, fontWeight: '700', color: '#0C192B' }}>Cancel</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -854,10 +1297,22 @@ export default function CheckinScreen() {
                     setShowErrorModal(false);
                     handleCheckinSubmit();
                   }}
-                  className="flex-1 py-3.5 bg-[#0A6C50] rounded-xl flex-row items-center justify-center"
+                  style={{
+                    flex: 1,
+                    paddingVertical: 14,
+                    backgroundColor: '#4F5330',
+                    borderRadius: 12,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
                 >
                   <RefreshCw size={16} color="#FFFFFF" />
-                  <Text className="text-sm font-bold text-white ml-2">Retry</Text>
+                  <Text
+                    style={{ fontSize: 14, fontWeight: '800', color: '#FFFFFF', marginLeft: 8 }}
+                  >
+                    Retry
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -890,29 +1345,63 @@ export default function CheckinScreen() {
           animationType="fade"
           onRequestClose={() => setShowPhotoOptionsModal(false)}
         >
-          <View className="flex-1 bg-black/50 justify-end">
-            <View className="bg-white rounded-t-3xl p-6 pb-8 shadow-2xl">
-              <View className="items-center mb-4">
-                <View className="w-12 h-1 rounded-full bg-slate-300" />
+          <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}>
+            <View
+              style={{
+                backgroundColor: '#FFFDF8',
+                borderTopLeftRadius: 24,
+                borderTopRightRadius: 24,
+                padding: 24,
+                paddingBottom: 32,
+                borderTopWidth: 1,
+                borderTopColor: '#E5DDCD',
+              }}
+            >
+              <View style={{ alignItems: 'center', marginBottom: 16 }}>
+                <View
+                  style={{ width: 48, height: 4, borderRadius: 9999, backgroundColor: '#E5DDCD' }}
+                />
               </View>
 
-              <Text className="text-lg font-black text-slate-900 mb-1">Upload ID Document</Text>
-              <Text className="text-xs text-slate-500 mb-5">
+              <Text style={{ fontSize: 18, fontWeight: '800', color: '#0C192B', marginBottom: 4 }}>
+                Upload ID Document
+              </Text>
+              <Text style={{ fontSize: 12, color: '#657080', marginBottom: 20 }}>
                 Capture Aadhaar or Government ID directly or choose from photos
               </Text>
 
-              <View className="gap-3 mb-4">
+              <View style={{ gap: 12, marginBottom: 16 }}>
                 <TouchableOpacity
                   activeOpacity={0.8}
                   onPress={handleLaunchCamera}
-                  className="bg-[#E8F5EE] border border-[#A7F3D0] p-4 rounded-2xl flex-row items-center"
+                  style={{
+                    backgroundColor: '#FAF5EB',
+                    borderWidth: 1,
+                    borderColor: '#E5DDCD',
+                    padding: 16,
+                    borderRadius: 16,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                  }}
                 >
-                  <View className="w-10 h-10 rounded-full bg-[#0A6C50] items-center justify-center mr-3.5">
+                  <View
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: 20,
+                      backgroundColor: '#4F5330',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginRight: 14,
+                    }}
+                  >
                     <Camera size={20} color="#FFFFFF" />
                   </View>
-                  <View className="flex-1">
-                    <Text className="text-sm font-black text-slate-900">Take Photo (Camera)</Text>
-                    <Text className="text-xs text-slate-500 mt-0.5">
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontSize: 14, fontWeight: '800', color: '#0C192B' }}>
+                      Take Photo (Camera)
+                    </Text>
+                    <Text style={{ fontSize: 12, color: '#657080', marginTop: 2 }}>
                       Snap directly with your device camera
                     </Text>
                   </View>
@@ -921,14 +1410,34 @@ export default function CheckinScreen() {
                 <TouchableOpacity
                   activeOpacity={0.8}
                   onPress={handleLaunchGallery}
-                  className="bg-slate-50 border border-slate-200 p-4 rounded-2xl flex-row items-center"
+                  style={{
+                    backgroundColor: '#FAF5EB',
+                    borderWidth: 1,
+                    borderColor: '#E5DDCD',
+                    padding: 16,
+                    borderRadius: 16,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                  }}
                 >
-                  <View className="w-10 h-10 rounded-full bg-slate-200 items-center justify-center mr-3.5">
-                    <ImageIcon size={20} color="#334155" />
+                  <View
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: 20,
+                      backgroundColor: '#E5DDCD',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginRight: 14,
+                    }}
+                  >
+                    <ImageIcon size={20} color="#0C192B" />
                   </View>
-                  <View className="flex-1">
-                    <Text className="text-sm font-black text-slate-900">Choose from Photos</Text>
-                    <Text className="text-xs text-slate-500 mt-0.5">
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontSize: 14, fontWeight: '800', color: '#0C192B' }}>
+                      Choose from Photos
+                    </Text>
+                    <Text style={{ fontSize: 12, color: '#657080', marginTop: 2 }}>
                       Select image or WhatsApp photo from gallery
                     </Text>
                   </View>
@@ -938,74 +1447,17 @@ export default function CheckinScreen() {
               <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={() => setShowPhotoOptionsModal(false)}
-                className="py-3 items-center justify-center rounded-xl bg-slate-100"
+                style={{
+                  paddingVertical: 14,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: 16,
+                  backgroundColor: '#FAF5EB',
+                  borderWidth: 1,
+                  borderColor: '#E5DDCD',
+                }}
               >
-                <Text className="text-sm font-bold text-slate-700">Cancel</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
-
-        {/* ======================================================== */}
-        {/* MODAL 3.5: Photo Upload Source (Camera vs Gallery)        */}
-        {/* ======================================================== */}
-        <Modal
-          visible={showPhotoOptionsModal}
-          transparent
-          animationType="fade"
-          onRequestClose={() => setShowPhotoOptionsModal(false)}
-        >
-          <View className="flex-1 bg-black/50 justify-end">
-            <View className="bg-white rounded-t-3xl p-6 pb-8 shadow-2xl">
-              <View className="items-center mb-4">
-                <View className="w-12 h-1 rounded-full bg-slate-300" />
-              </View>
-
-              <Text className="text-lg font-black text-slate-900 mb-1">Upload ID Document</Text>
-              <Text className="text-xs text-slate-500 mb-5">
-                Capture Aadhaar or Government ID directly or choose from photos
-              </Text>
-
-              <View className="gap-3 mb-4">
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={handleLaunchCamera}
-                  className="bg-[#E8F5EE] border border-[#A7F3D0] p-4 rounded-2xl flex-row items-center"
-                >
-                  <View className="w-10 h-10 rounded-full bg-[#0A6C50] items-center justify-center mr-3.5">
-                    <Camera size={20} color="#FFFFFF" />
-                  </View>
-                  <View className="flex-1">
-                    <Text className="text-sm font-black text-slate-900">Take Photo (Camera)</Text>
-                    <Text className="text-xs text-slate-500 mt-0.5">
-                      Snap directly with your device camera
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={handleLaunchGallery}
-                  className="bg-slate-50 border border-slate-200 p-4 rounded-2xl flex-row items-center"
-                >
-                  <View className="w-10 h-10 rounded-full bg-slate-200 items-center justify-center mr-3.5">
-                    <ImageIcon size={20} color="#334155" />
-                  </View>
-                  <View className="flex-1">
-                    <Text className="text-sm font-black text-slate-900">Choose from Photos</Text>
-                    <Text className="text-xs text-slate-500 mt-0.5">
-                      Select image or WhatsApp photo from gallery
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              </View>
-
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={() => setShowPhotoOptionsModal(false)}
-                className="py-3 items-center justify-center rounded-xl bg-slate-100"
-              >
-                <Text className="text-sm font-bold text-slate-700">Cancel</Text>
+                <Text style={{ fontSize: 13, fontWeight: '700', color: '#0C192B' }}>Cancel</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -1015,36 +1467,82 @@ export default function CheckinScreen() {
         {/* MODAL 4: Camera Permission Dialog (Page 55)              */}
         {/* ======================================================== */}
         <Modal visible={showCameraPermissionModal} transparent animationType="fade">
-          <View className="flex-1 bg-black/60 items-center justify-center px-6">
-            <View className="w-full bg-white rounded-3xl p-6 shadow-xl">
-              <View className="w-12 h-12 rounded-full bg-[#E8F5EE] items-center justify-center mb-3">
-                <Camera size={26} color="#0A6C50" />
+          <View
+            style={{
+              flex: 1,
+              backgroundColor: 'rgba(0,0,0,0.6)',
+              alignItems: 'center',
+              justifyContent: 'center',
+              paddingHorizontal: 24,
+            }}
+          >
+            <View
+              style={{
+                width: '100%',
+                backgroundColor: '#FFFDF8',
+                borderRadius: 24,
+                padding: 24,
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+              }}
+            >
+              <View
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 24,
+                  backgroundColor: '#FAF5EB',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: 12,
+                }}
+              >
+                <Camera size={26} color="#4F5330" />
               </View>
 
-              <Text className="text-lg font-black text-slate-900 mb-1.5">Allow camera access</Text>
-              <Text className="text-xs font-medium text-slate-500 mb-4 leading-relaxed">
+              <Text style={{ fontSize: 18, fontWeight: '800', color: '#0C192B', marginBottom: 6 }}>
+                Allow camera access
+              </Text>
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: '500',
+                  color: '#657080',
+                  marginBottom: 16,
+                  lineHeight: 18,
+                }}
+              >
                 PG Manager uses your camera only when you capture a photo:
               </Text>
 
-              <View className="gap-2 mb-6">
-                <Text className="text-xs font-semibold text-slate-700">
+              <View style={{ gap: 8, marginBottom: 24 }}>
+                <Text style={{ fontSize: 12, fontWeight: '600', color: '#0C192B' }}>
                   • ID proof when checking in a tenant
                 </Text>
-                <Text className="text-xs font-semibold text-slate-700">
+                <Text style={{ fontSize: 12, fontWeight: '600', color: '#0C192B' }}>
                   • Meter dial photo as proof of a reading
                 </Text>
-                <Text className="text-xs font-semibold text-slate-700">
+                <Text style={{ fontSize: 12, fontWeight: '600', color: '#0C192B' }}>
                   • Receipts for expenses
                 </Text>
               </View>
 
-              <View className="flex-row gap-3">
+              <View style={{ flexDirection: 'row', gap: 12 }}>
                 <TouchableOpacity
                   activeOpacity={0.8}
                   onPress={() => setShowCameraPermissionModal(false)}
-                  className="flex-1 py-3 bg-slate-100 rounded-xl items-center justify-center"
+                  style={{
+                    flex: 1,
+                    paddingVertical: 12,
+                    backgroundColor: '#FAF5EB',
+                    borderWidth: 1,
+                    borderColor: '#E5DDCD',
+                    borderRadius: 12,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
                 >
-                  <Text className="text-xs font-bold text-slate-600">Not now</Text>
+                  <Text style={{ fontSize: 13, fontWeight: '700', color: '#657080' }}>Not now</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -1053,9 +1551,18 @@ export default function CheckinScreen() {
                     setShowCameraPermissionModal(false);
                     Linking.openSettings();
                   }}
-                  className="flex-1 py-3 bg-[#0A6C50] rounded-xl items-center justify-center"
+                  style={{
+                    flex: 1,
+                    paddingVertical: 12,
+                    backgroundColor: '#4F5330',
+                    borderRadius: 12,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
                 >
-                  <Text className="text-xs font-bold text-white">Allow camera</Text>
+                  <Text style={{ fontSize: 13, fontWeight: '800', color: '#FFFFFF' }}>
+                    Allow camera
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -1063,24 +1570,49 @@ export default function CheckinScreen() {
         </Modal>
 
         {/* ======================================================== */}
-        {/* MODAL 5: Check-in Success & WhatsApp (Page 21)          */}
+        {/* MODAL 5: Check-in Success & WhatsApp                     */}
         {/* ======================================================== */}
         <Modal visible={!!successData} transparent animationType="slide">
-          <View className="flex-1 bg-black/60 justify-end">
-            <View className="bg-white rounded-t-3xl p-6 pt-5 pb-10">
-              <View className="items-center mb-4">
-                <View className="w-12 h-1.5 rounded-full bg-slate-300" />
+          <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' }}>
+            <View
+              style={{
+                backgroundColor: '#FFFDF8',
+                borderTopLeftRadius: 24,
+                borderTopRightRadius: 24,
+                padding: 24,
+                paddingTop: 20,
+                paddingBottom: 40,
+                borderTopWidth: 1,
+                borderTopColor: '#E5DDCD',
+              }}
+            >
+              <View style={{ alignItems: 'center', marginBottom: 16 }}>
+                <View
+                  style={{ width: 48, height: 5, borderRadius: 9999, backgroundColor: '#E5DDCD' }}
+                />
               </View>
 
-              <View className="items-center mb-4">
-                <View className="w-16 h-16 rounded-full bg-[#E8F5EE] items-center justify-center mb-2">
-                  <Check size={36} color="#0A6C50" strokeWidth={3} />
+              <View style={{ alignItems: 'center', marginBottom: 16 }}>
+                <View
+                  style={{
+                    width: 64,
+                    height: 64,
+                    borderRadius: 32,
+                    backgroundColor: '#F0FDF4',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: 8,
+                  }}
+                >
+                  <Check size={36} color="#4F5330" strokeWidth={3} />
                 </View>
-                <Text className="text-sm font-bold text-slate-500">
+                <Text style={{ fontSize: 14, fontWeight: '700', color: '#657080' }}>
                   {successData?.tenant.fullName} checked in to
                 </Text>
-                <Text className="text-3xl font-black text-slate-900 mt-0.5">{displayBed}</Text>
-                <Text className="text-xs font-bold text-[#0A6C50] mt-1">
+                <Text style={{ fontSize: 28, fontWeight: '800', color: '#0C192B', marginTop: 2 }}>
+                  {displayBed}
+                </Text>
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#4F5330', marginTop: 4 }}>
                   Bed is now occupied · First invoice #
                   {successData?.invoice?.invoiceNumber || 'INV-001'} (
                   {formatINR(successData?.invoice?.totalAmountPaise || monthlyRentAmount * 100)})
@@ -1088,34 +1620,74 @@ export default function CheckinScreen() {
                 </Text>
               </View>
 
-              {/* WhatsApp Card matching Page 21 */}
-              <View className="bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-5">
-                <Text className="text-xs font-extrabold text-slate-800 mb-1.5">
+              {/* WhatsApp Card */}
+              <View
+                style={{
+                  backgroundColor: '#FAF5EB',
+                  borderWidth: 1,
+                  borderColor: '#E5DDCD',
+                  borderRadius: 16,
+                  padding: 16,
+                  marginBottom: 20,
+                }}
+              >
+                <Text
+                  style={{ fontSize: 12, fontWeight: '800', color: '#0C192B', marginBottom: 6 }}
+                >
                   Send welcome message on WhatsApp?
                 </Text>
-                <View className="bg-white p-3 rounded-xl border border-slate-200">
-                  <Text className="text-xs font-medium text-slate-600 leading-relaxed">
+                <View
+                  style={{
+                    backgroundColor: '#FFFDF8',
+                    padding: 12,
+                    borderRadius: 12,
+                    borderWidth: 1,
+                    borderColor: '#E5DDCD',
+                  }}
+                >
+                  <Text
+                    style={{ fontSize: 12, fontWeight: '500', color: '#657080', lineHeight: 18 }}
+                  >
                     {whatsappWelcomeText}
                   </Text>
                 </View>
               </View>
 
-              <View className="gap-3">
+              <View style={{ gap: 12 }}>
                 <TouchableOpacity
                   activeOpacity={0.8}
                   onPress={handleSendWhatsApp}
-                  className="w-full py-4 bg-[#25D366] rounded-2xl flex-row items-center justify-center shadow-sm"
+                  style={{
+                    width: '100%',
+                    paddingVertical: 16,
+                    backgroundColor: '#25D366',
+                    borderRadius: 9999,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
                 >
                   <Send size={18} color="#FFFFFF" />
-                  <Text className="text-sm font-black text-white ml-2">Send on WhatsApp</Text>
+                  <Text
+                    style={{ fontSize: 14, fontWeight: '800', color: '#FFFFFF', marginLeft: 8 }}
+                  >
+                    Send on WhatsApp
+                  </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   activeOpacity={0.8}
                   onPress={() => router.replace('/(tabs)/matrix')}
-                  className="w-full py-3 items-center justify-center"
+                  style={{
+                    width: '100%',
+                    paddingVertical: 12,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
                 >
-                  <Text className="text-xs font-bold text-slate-400">Skip for now</Text>
+                  <Text style={{ fontSize: 13, fontWeight: '700', color: '#657080' }}>
+                    Skip for now
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>

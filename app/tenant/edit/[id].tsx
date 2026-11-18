@@ -137,116 +137,235 @@ export default function EditTenantScreen() {
 
   if (isLoading || !tenant) {
     return (
-      <SafeAreaView edges={['top']} className="flex-1 bg-white items-center justify-center">
-        <ActivityIndicator size="large" color="#0B6645" />
+      <SafeAreaView
+        edges={['top']}
+        style={{
+          flex: 1,
+          backgroundColor: '#FAF5EB',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <ActivityIndicator size="large" color="#4F5330" />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView edges={['top']} className="flex-1 bg-white">
+    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: '#FAF5EB' }}>
       {/* Header */}
-      <View className="px-5 pt-3 pb-3 border-b border-slate-100 flex-row items-center">
+      <View
+        style={{
+          paddingHorizontal: 20,
+          paddingTop: 12,
+          paddingBottom: 12,
+          borderBottomWidth: 1,
+          borderBottomColor: '#E5DDCD',
+          backgroundColor: '#FAF5EB',
+          flexDirection: 'row',
+          alignItems: 'center',
+        }}
+      >
         <TouchableOpacity
           onPress={() => router.back()}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          className="p-1 -ml-2 mr-2"
+          style={{ padding: 4, marginLeft: -8, marginRight: 8 }}
         >
-          <ChevronLeft size={24} color="#0F172A" />
+          <ChevronLeft size={24} color="#0C192B" />
         </TouchableOpacity>
         <View>
-          <Text className="text-xl font-black text-slate-900">Edit tenant</Text>
-          <Text className="text-xs font-semibold text-slate-500">
+          <Text style={{ fontSize: 20, fontWeight: '800', color: '#0C192B' }}>Edit tenant</Text>
+          <Text style={{ fontSize: 12, fontWeight: '500', color: '#657080', marginTop: 1 }}>
             {tenant.fullName} · Bed {currentBedNumber}
           </Text>
         </View>
       </View>
 
-      <ScrollView className="flex-1 px-5 pt-5" contentContainerStyle={{ paddingBottom: 120 }}>
+      <ScrollView
+        style={{ flex: 1, backgroundColor: '#FAF5EB' }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 140 }}
+      >
         {/* Full Name */}
-        <View className="mb-4">
-          <Text className="text-xs font-bold text-slate-700 mb-1.5">Full name</Text>
+        <View style={{ marginBottom: 16 }}>
+          <Text style={{ fontSize: 12, fontWeight: '700', color: '#0C192B', marginBottom: 6 }}>
+            Full name
+          </Text>
           <TextInput
             value={fullName}
             onChangeText={setFullName}
             placeholder="e.g. Rahul Verma"
-            className="bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm font-semibold text-slate-900"
+            placeholderTextColor="#8C939D"
+            style={{
+              backgroundColor: '#FFFDF8',
+              borderWidth: 1,
+              borderColor: '#E5DDCD',
+              borderRadius: 16,
+              paddingHorizontal: 16,
+              paddingVertical: 14,
+              fontSize: 14,
+              fontWeight: '600',
+              color: '#0C192B',
+            }}
           />
         </View>
 
         {/* Phone & Emergency Phone in Two Columns */}
-        <View className="flex-row space-x-3 mb-4">
-          <View className="flex-1 mr-2">
-            <Text className="text-xs font-bold text-slate-700 mb-1.5">Phone</Text>
+        <View style={{ flexDirection: 'row', gap: 12, marginBottom: 16 }}>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 12, fontWeight: '700', color: '#0C192B', marginBottom: 6 }}>
+              Phone
+            </Text>
             <TextInput
               value={phone}
               onChangeText={setPhone}
               keyboardType="phone-pad"
               placeholder="98765 43210"
-              className="bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm font-semibold text-slate-900"
+              placeholderTextColor="#8C939D"
+              style={{
+                backgroundColor: '#FFFDF8',
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+                borderRadius: 16,
+                paddingHorizontal: 16,
+                paddingVertical: 14,
+                fontSize: 14,
+                fontWeight: '600',
+                color: '#0C192B',
+              }}
             />
           </View>
 
-          <View className="flex-1 ml-2">
-            <Text className="text-xs font-bold text-slate-700 mb-1.5">Emergency phone</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 12, fontWeight: '700', color: '#0C192B', marginBottom: 6 }}>
+              Emergency phone
+            </Text>
             <TextInput
               value={emergencyPhone}
               onChangeText={setEmergencyPhone}
               keyboardType="phone-pad"
               placeholder="98480 11223"
-              className="bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm font-semibold text-slate-900"
+              placeholderTextColor="#8C939D"
+              style={{
+                backgroundColor: '#FFFDF8',
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+                borderRadius: 16,
+                paddingHorizontal: 16,
+                paddingVertical: 14,
+                fontSize: 14,
+                fontWeight: '600',
+                color: '#0C192B',
+              }}
             />
           </View>
         </View>
 
         {/* Email */}
-        <View className="mb-4">
-          <Text className="text-xs font-bold text-slate-700 mb-1.5">Email (optional)</Text>
+        <View style={{ marginBottom: 16 }}>
+          <Text style={{ fontSize: 12, fontWeight: '700', color: '#0C192B', marginBottom: 6 }}>
+            Email (optional)
+          </Text>
           <TextInput
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
             placeholder="rahul.verma@mail.com"
-            className="bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm font-semibold text-slate-900"
+            placeholderTextColor="#8C939D"
+            style={{
+              backgroundColor: '#FFFDF8',
+              borderWidth: 1,
+              borderColor: '#E5DDCD',
+              borderRadius: 16,
+              paddingHorizontal: 16,
+              paddingVertical: 14,
+              fontSize: 14,
+              fontWeight: '600',
+              color: '#0C192B',
+            }}
           />
         </View>
 
         {/* Monthly Rent & Deposit in Two Columns */}
-        <View className="flex-row space-x-3 mb-1">
-          <View className="flex-1 mr-2">
-            <Text className="text-xs font-bold text-slate-700 mb-1.5">Monthly rent (₹)</Text>
+        <View style={{ flexDirection: 'row', gap: 12, marginBottom: 8 }}>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 12, fontWeight: '700', color: '#0C192B', marginBottom: 6 }}>
+              Monthly rent (₹)
+            </Text>
             <TextInput
               value={rentRupees}
               onChangeText={setRentRupees}
               keyboardType="numeric"
               placeholder="8500"
-              className="bg-slate-50 border border-[#0B6645] rounded-2xl px-4 py-3.5 text-base font-bold text-slate-900"
+              placeholderTextColor="#8C939D"
+              style={{
+                backgroundColor: '#FFFDF8',
+                borderWidth: 1,
+                borderColor: '#4F5330',
+                borderRadius: 16,
+                paddingHorizontal: 16,
+                paddingVertical: 14,
+                fontSize: 16,
+                fontWeight: '700',
+                color: '#0C192B',
+              }}
             />
             {Number(rentRupees) !== originalRentRupees && originalRentRupees > 0 && (
-              <Text className="text-xs font-bold text-[#0B6645] mt-1 ml-1">
+              <Text
+                style={{
+                  fontSize: 11.5,
+                  fontWeight: '700',
+                  color: '#4F5330',
+                  marginTop: 4,
+                  marginLeft: 4,
+                }}
+              >
                 Was {formatINR(originalRentRupees * 100)}
               </Text>
             )}
           </View>
 
-          <View className="flex-1 ml-2">
-            <Text className="text-xs font-bold text-slate-700 mb-1.5">Deposit (₹)</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 12, fontWeight: '700', color: '#0C192B', marginBottom: 6 }}>
+              Deposit (₹)
+            </Text>
             <TextInput
               value={depositRupees}
               onChangeText={setDepositRupees}
               keyboardType="numeric"
               placeholder="17000"
-              className="bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-base font-bold text-slate-900"
+              placeholderTextColor="#8C939D"
+              style={{
+                backgroundColor: '#FFFDF8',
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+                borderRadius: 16,
+                paddingHorizontal: 16,
+                paddingVertical: 14,
+                fontSize: 16,
+                fontWeight: '700',
+                color: '#0C192B',
+              }}
             />
           </View>
         </View>
 
         {/* Joining Date */}
-        <View className="mb-5 mt-3">
-          <Text className="text-xs font-bold text-slate-700 mb-1.5">Joining date</Text>
-          <View className="bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5">
-            <Text className="text-sm font-semibold text-slate-800">
+        <View style={{ marginBottom: 20, marginTop: 12 }}>
+          <Text style={{ fontSize: 12, fontWeight: '700', color: '#0C192B', marginBottom: 6 }}>
+            Joining date
+          </Text>
+          <View
+            style={{
+              backgroundColor: '#FAF5EB',
+              borderWidth: 1,
+              borderColor: '#E5DDCD',
+              borderRadius: 16,
+              paddingHorizontal: 16,
+              paddingVertical: 14,
+            }}
+          >
+            <Text style={{ fontSize: 14, fontWeight: '600', color: '#0C192B' }}>
               {formatSafeDate(tenant.joinedDate || tenant.createdAt)}
             </Text>
           </View>
@@ -256,50 +375,109 @@ export default function EditTenantScreen() {
         <TouchableOpacity
           onPress={() => setIsMoveBedModalVisible(true)}
           activeOpacity={0.7}
-          className="bg-white border border-slate-200 rounded-2xl p-4 flex-row items-center justify-between mb-5 shadow-sm"
+          style={{
+            backgroundColor: '#FFFDF8',
+            borderWidth: 1,
+            borderColor: '#E5DDCD',
+            borderRadius: 16,
+            padding: 16,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: 20,
+          }}
         >
-          <View className="flex-row items-center flex-1">
-            <View className="w-10 h-10 rounded-full bg-teal-50 items-center justify-center mr-3">
-              <Repeat size={18} color="#0B6645" />
+          <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+            <View
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 20,
+                backgroundColor: '#D1F4F9',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginRight: 12,
+              }}
+            >
+              <Repeat size={18} color="#0799AA" />
             </View>
             <View>
-              <Text className="text-sm font-bold text-slate-900">Move to another bed</Text>
-              <Text className="text-xs font-semibold text-slate-500 mt-0.5">
+              <Text style={{ fontSize: 14, fontWeight: '700', color: '#0C192B' }}>
+                Move to another bed
+              </Text>
+              <Text style={{ fontSize: 12, fontWeight: '500', color: '#657080', marginTop: 2 }}>
                 Currently {currentBedNumber}
               </Text>
             </View>
           </View>
-          <ChevronRight size={18} color="#94A3B8" />
+          <ChevronRight size={18} color="#657080" />
         </TouchableOpacity>
 
         {/* Rent Changes Notice Alert Callout */}
-        <View className="bg-[#EFF6FF] border border-[#BFDBFE] rounded-2xl p-4 flex-row items-start mb-6">
-          <Info size={18} color="#2563EB" style={{ marginTop: 2, marginRight: 10 }} />
-          <Text className="text-xs text-[#1E40AF] font-medium leading-relaxed flex-1">
-            Rent changes apply from the next invoice (Nov). Past invoices stay as they are.
+        <View
+          style={{
+            backgroundColor: '#F4F8EC',
+            borderWidth: 1,
+            borderColor: '#D9E8CE',
+            borderRadius: 16,
+            padding: 14,
+            flexDirection: 'row',
+            alignItems: 'flex-start',
+            marginBottom: 24,
+          }}
+        >
+          <Info size={18} color="#4F5330" style={{ marginTop: 2, marginRight: 10 }} />
+          <Text
+            style={{ fontSize: 12, color: '#4F5330', fontWeight: '500', lineHeight: 18, flex: 1 }}
+          >
+            Rent changes apply from the next invoice. Past invoices stay as they are.
           </Text>
         </View>
       </ScrollView>
 
       {/* Bottom Buttons */}
-      <View className="absolute bottom-0 left-0 right-0 bg-white border-t border-slate-100 p-5 shadow-xl elevation-10">
+      <View
+        style={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          backgroundColor: '#FFFDF8',
+          borderTopWidth: 1,
+          borderTopColor: '#E5DDCD',
+          padding: 16,
+        }}
+      >
         <TouchableOpacity
           onPress={handleSave}
           disabled={isSaving}
-          className="w-full bg-[#4F5330] py-3.5 rounded-full items-center justify-center mb-2.5 shadow-sm"
+          style={{
+            width: '100%',
+            backgroundColor: '#4F5330',
+            paddingVertical: 14,
+            borderRadius: 9999,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: 10,
+          }}
         >
           {isSaving ? (
             <ActivityIndicator size="small" color="#FFFFFF" />
           ) : (
-            <Text className="text-white font-black text-sm">Save changes</Text>
+            <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 14 }}>Save changes</Text>
           )}
         </TouchableOpacity>
 
         <TouchableOpacity
           onPress={() => router.back()}
-          className="w-full py-2 items-center justify-center"
+          style={{
+            width: '100%',
+            paddingVertical: 8,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
         >
-          <Text className="text-slate-600 font-bold text-sm">Discard changes</Text>
+          <Text style={{ color: '#657080', fontWeight: '700', fontSize: 13 }}>Discard changes</Text>
         </TouchableOpacity>
       </View>
 
@@ -310,53 +488,93 @@ export default function EditTenantScreen() {
         animationType="slide"
         onRequestClose={() => setIsMoveBedModalVisible(false)}
       >
-        <View className="flex-1 bg-black/50 justify-end">
-          <View className="bg-white rounded-t-3xl p-6 max-h-[80%]">
-            <View className="flex-row items-center justify-between pb-3 border-b border-slate-100 mb-3">
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}>
+          <View
+            style={{
+              backgroundColor: '#FFFDF8',
+              borderTopLeftRadius: 24,
+              borderTopRightRadius: 24,
+              padding: 24,
+              maxHeight: '80%',
+              borderTopWidth: 1,
+              borderTopColor: '#E5DDCD',
+            }}
+          >
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                paddingBottom: 12,
+                borderBottomWidth: 1,
+                borderBottomColor: '#F0ECE1',
+                marginBottom: 12,
+              }}
+            >
               <View>
-                <Text className="text-lg font-black text-slate-900">Select Vacant Bed</Text>
-                <Text className="text-xs text-slate-500 font-medium">
+                <Text style={{ fontSize: 18, fontWeight: '800', color: '#0C192B' }}>
+                  Select Vacant Bed
+                </Text>
+                <Text style={{ fontSize: 12, color: '#657080', fontWeight: '500', marginTop: 2 }}>
                   Transfer {tenant.fullName} from Bed {currentBedNumber}
                 </Text>
               </View>
-              <TouchableOpacity onPress={() => setIsMoveBedModalVisible(false)} className="p-1">
-                <X size={20} color="#64748B" />
+              <TouchableOpacity
+                onPress={() => setIsMoveBedModalVisible(false)}
+                style={{ padding: 4 }}
+              >
+                <X size={20} color="#657080" />
               </TouchableOpacity>
             </View>
 
             {isMovingBed ? (
-              <View className="py-12 items-center justify-center">
-                <ActivityIndicator size="large" color="#0B6645" />
-                <Text className="text-xs font-bold text-slate-500 mt-2">Transferring bed...</Text>
+              <View style={{ paddingVertical: 48, alignItems: 'center', justifyContent: 'center' }}>
+                <ActivityIndicator size="large" color="#4F5330" />
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#657080', marginTop: 8 }}>
+                  Transferring bed...
+                </Text>
               </View>
             ) : vacantBedsList.length === 0 ? (
-              <View className="py-12 items-center justify-center">
+              <View style={{ paddingVertical: 48, alignItems: 'center', justifyContent: 'center' }}>
                 <BedDouble size={40} color="#CBD5E1" />
-                <Text className="text-sm font-bold text-slate-700 mt-2">
+                <Text style={{ fontSize: 14, fontWeight: '700', color: '#0C192B', marginTop: 8 }}>
                   No other vacant beds available
                 </Text>
               </View>
             ) : (
-              <ScrollView className="divide-y divide-slate-100">
-                {vacantBedsList.map(({ bed, room }) => (
+              <ScrollView style={{ maxHeight: 360 }}>
+                {vacantBedsList.map(({ bed, room }, idx) => (
                   <TouchableOpacity
                     key={bed._id}
                     onPress={() => handleSelectNewBed(bed._id, bed.bedNumber)}
-                    className="py-3.5 flex-row items-center justify-between"
+                    style={{
+                      paddingVertical: 14,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      borderBottomWidth: idx < vacantBedsList.length - 1 ? 1 : 0,
+                      borderBottomColor: '#F0ECE1',
+                    }}
                   >
                     <View>
-                      <Text className="text-base font-black text-slate-900">
+                      <Text style={{ fontSize: 15, fontWeight: '800', color: '#0C192B' }}>
                         Bed {bed.bedNumber}
                       </Text>
-                      <Text className="text-xs font-semibold text-slate-500">
+                      <Text
+                        style={{ fontSize: 12, fontWeight: '500', color: '#657080', marginTop: 2 }}
+                      >
                         Room {room.roomNumber} · Floor {room.floorNumber}
                       </Text>
                     </View>
-                    <View className="items-end">
-                      <Text className="text-sm font-black text-[#0B6645]">
+                    <View style={{ alignItems: 'flex-end' }}>
+                      <Text style={{ fontSize: 14, fontWeight: '800', color: '#4F5330' }}>
                         {formatINR(room.baseRentPaisePerBed || 0)}
                       </Text>
-                      <Text className="text-[11px] font-bold text-slate-400">Tap to move</Text>
+                      <Text
+                        style={{ fontSize: 11, fontWeight: '700', color: '#657080', marginTop: 2 }}
+                      >
+                        Tap to move
+                      </Text>
                     </View>
                   </TouchableOpacity>
                 ))}

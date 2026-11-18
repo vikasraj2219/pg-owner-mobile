@@ -119,72 +119,153 @@ export default function CheckoutScreen() {
     : 'PG Bed';
 
   return (
-    <SafeAreaView className="flex-1 bg-[#F8F9FA]" edges={['top']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#FAF5EB' }} edges={['top']}>
       {/* Top Header */}
-      <View className="px-4 py-2 flex-row items-center border-b border-slate-200/60 bg-[#F8F9FA]">
+      <View
+        style={{
+          paddingHorizontal: 16,
+          paddingVertical: 12,
+          flexDirection: 'row',
+          alignItems: 'center',
+          borderBottomWidth: 1,
+          borderBottomColor: '#E5DDCD',
+          backgroundColor: '#FAF5EB',
+        }}
+      >
         <TouchableOpacity
           onPress={() => router.back()}
-          className="w-10 h-10 items-center justify-center -ml-2"
+          style={{
+            width: 40,
+            height: 40,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginLeft: -8,
+          }}
         >
-          <ChevronLeft size={28} color="#0F172A" />
+          <ChevronLeft size={26} color="#0C192B" />
         </TouchableOpacity>
-        <View className="ml-1 flex-1">
-          <Text className="text-xl font-extrabold text-slate-900 tracking-tight">
+        <View style={{ marginLeft: 4, flex: 1 }}>
+          <Text style={{ fontSize: 20, fontWeight: '800', color: '#0C192B', letterSpacing: -0.5 }}>
             Checkout Settlement
           </Text>
-          <Text className="text-xs font-medium text-slate-500 mt-0.5">
+          <Text style={{ fontSize: 12, fontWeight: '500', color: '#657080', marginTop: 2 }}>
             {preview ? `${preview.tenant.fullName} · ${bedLabel}` : 'Loading tenant...'}
           </Text>
         </View>
       </View>
 
       {isLoading ? (
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#0A6C50" />
-          <Text className="text-slate-500 font-medium text-sm mt-3">
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <ActivityIndicator size="large" color="#4F5330" />
+          <Text style={{ color: '#657080', fontWeight: '500', fontSize: 14, marginTop: 12 }}>
             Loading settlement details…
           </Text>
         </View>
       ) : errorMessage ? (
-        <View className="flex-1 items-center justify-center p-6">
-          <Text className="text-rose-600 font-bold text-base mb-2">Error</Text>
-          <Text className="text-slate-600 text-sm text-center mb-4">{errorMessage}</Text>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+          <Text style={{ color: '#BE123C', fontWeight: '700', fontSize: 16, marginBottom: 8 }}>
+            Error
+          </Text>
+          <Text style={{ color: '#657080', fontSize: 14, textAlign: 'center', marginBottom: 16 }}>
+            {errorMessage}
+          </Text>
           <TouchableOpacity
             onPress={() => router.back()}
-            className="bg-slate-200 px-5 py-2.5 rounded-xl"
+            style={{
+              backgroundColor: '#E5DDCD',
+              paddingHorizontal: 20,
+              paddingVertical: 10,
+              borderRadius: 12,
+            }}
           >
-            <Text className="font-bold text-slate-800 text-sm">Go Back</Text>
+            <Text style={{ fontWeight: '700', color: '#0C192B', fontSize: 14 }}>Go Back</Text>
           </TouchableOpacity>
         </View>
       ) : settlementResult ? (
         /* Settlement Complete Card */
-        <View className="flex-1 p-6 justify-center items-center">
-          <View className="w-16 h-16 rounded-full bg-emerald-100 items-center justify-center mb-4">
-            <CheckCircle2 size={36} color="#0A6C50" />
+        <View style={{ flex: 1, padding: 24, justifyContent: 'center', alignItems: 'center' }}>
+          <View
+            style={{
+              width: 64,
+              height: 64,
+              borderRadius: 32,
+              backgroundColor: '#F0FDF4',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: 16,
+            }}
+          >
+            <CheckCircle2 size={36} color="#4F5330" />
           </View>
-          <Text className="text-2xl font-black text-slate-900 text-center mb-1">
+          <Text
+            style={{
+              fontSize: 24,
+              fontWeight: '800',
+              color: '#0C192B',
+              textAlign: 'center',
+              marginBottom: 4,
+            }}
+          >
             Settlement Completed!
           </Text>
-          <Text className="text-sm font-semibold text-slate-500 text-center mb-6">
+          <Text
+            style={{
+              fontSize: 14,
+              fontWeight: '600',
+              color: '#657080',
+              textAlign: 'center',
+              marginBottom: 24,
+            }}
+          >
             Statement #{settlementResult.settlementNumber}
           </Text>
 
-          <View className="w-full bg-white rounded-2xl p-5 border border-slate-200/80 mb-6 shadow-xs">
-            <View className="flex-row justify-between mb-2 pb-2 border-b border-slate-100">
-              <Text className="text-sm text-slate-500">Security Deposit</Text>
-              <Text className="text-sm font-bold text-[#0A6C50]">
+          <View
+            style={{
+              width: '100%',
+              backgroundColor: '#FFFDF8',
+              borderRadius: 16,
+              padding: 20,
+              borderWidth: 1,
+              borderColor: '#E5DDCD',
+              marginBottom: 24,
+            }}
+          >
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                marginBottom: 8,
+                paddingBottom: 8,
+                borderBottomWidth: 1,
+                borderBottomColor: '#F0ECE1',
+              }}
+            >
+              <Text style={{ fontSize: 14, color: '#657080' }}>Security Deposit</Text>
+              <Text style={{ fontSize: 14, fontWeight: '700', color: '#4F5330' }}>
                 +{formatINR(settlementResult.depositPaidPaise)}
               </Text>
             </View>
-            <View className="flex-row justify-between mb-2 pb-2 border-b border-slate-100">
-              <Text className="text-sm text-slate-500">Total Deductions</Text>
-              <Text className="text-sm font-bold text-rose-600">
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                marginBottom: 8,
+                paddingBottom: 8,
+                borderBottomWidth: 1,
+                borderBottomColor: '#F0ECE1',
+              }}
+            >
+              <Text style={{ fontSize: 14, color: '#657080' }}>Total Deductions</Text>
+              <Text style={{ fontSize: 14, fontWeight: '700', color: '#BE123C' }}>
                 -{formatINR(settlementResult.totalDeductionsPaise)}
               </Text>
             </View>
-            <View className="flex-row justify-between pt-1">
-              <Text className="text-base font-extrabold text-slate-900">Net Refund Paid</Text>
-              <Text className="text-lg font-black text-[#0A6C50]">
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingTop: 4 }}>
+              <Text style={{ fontSize: 16, fontWeight: '800', color: '#0C192B' }}>
+                Net Refund Paid
+              </Text>
+              <Text style={{ fontSize: 18, fontWeight: '800', color: '#4F5330' }}>
                 {formatINR(settlementResult.netRefundPaise)}
               </Text>
             </View>
@@ -192,84 +273,178 @@ export default function CheckoutScreen() {
 
           <TouchableOpacity
             activeOpacity={0.85}
-            className="w-full bg-[#4F5330] rounded-2xl py-4 items-center justify-center shadow-xs"
+            style={{
+              width: '100%',
+              backgroundColor: '#4F5330',
+              borderRadius: 9999,
+              paddingVertical: 16,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
             onPress={() => router.replace('/(tabs)/matrix')}
           >
-            <Text className="text-white font-extrabold text-base">Back to Bed Matrix</Text>
+            <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 16 }}>
+              Back to Bed Matrix
+            </Text>
           </TouchableOpacity>
         </View>
       ) : (
-        <ScrollView className="flex-1 px-5 pt-4" showsVerticalScrollIndicator={false}>
-          <View className="bg-white rounded-2xl p-5 border border-slate-200/80 mb-4 shadow-xs">
-            <Text className="text-sm font-semibold text-slate-500 mb-1">Settlement Breakdown</Text>
-            <Text className="text-xl font-extrabold text-slate-900 mb-4">
+        <ScrollView
+          style={{ flex: 1, paddingHorizontal: 20, paddingTop: 16 }}
+          showsVerticalScrollIndicator={false}
+        >
+          <View
+            style={{
+              backgroundColor: '#FFFDF8',
+              borderRadius: 16,
+              padding: 20,
+              borderWidth: 1,
+              borderColor: '#E5DDCD',
+              marginBottom: 16,
+            }}
+          >
+            <Text style={{ fontSize: 14, fontWeight: '600', color: '#657080', marginBottom: 4 }}>
+              Settlement Breakdown
+            </Text>
+            <Text style={{ fontSize: 20, fontWeight: '800', color: '#0C192B', marginBottom: 16 }}>
               {preview?.tenant.fullName} · {bedLabel}
             </Text>
 
-            <View className="border-b border-slate-100 pb-3 mb-4">
-              <View className="flex-row justify-between mb-2">
-                <Text className="text-sm text-slate-500">Security Deposit Paid</Text>
-                <Text className="text-sm font-bold text-[#0A6C50]">+{formatINR(depositPaise)}</Text>
+            <View
+              style={{
+                borderBottomWidth: 1,
+                borderBottomColor: '#F0ECE1',
+                paddingBottom: 12,
+                marginBottom: 16,
+              }}
+            >
+              <View
+                style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}
+              >
+                <Text style={{ fontSize: 14, color: '#657080' }}>Security Deposit Paid</Text>
+                <Text style={{ fontSize: 14, fontWeight: '700', color: '#4F5330' }}>
+                  +{formatINR(depositPaise)}
+                </Text>
               </View>
-              <View className="flex-row justify-between mb-2">
-                <Text className="text-sm text-slate-500">Unpaid Invoices</Text>
-                <Text className="text-sm font-bold text-slate-700">
+              <View
+                style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}
+              >
+                <Text style={{ fontSize: 14, color: '#657080' }}>Unpaid Invoices</Text>
+                <Text style={{ fontSize: 14, fontWeight: '700', color: '#0C192B' }}>
                   -{formatINR(unpaidInvoicesPaise)}
                 </Text>
               </View>
-              <View className="flex-row justify-between mb-2">
-                <Text className="text-sm text-slate-500">Damage / Repair</Text>
-                <Text className="text-sm font-bold text-rose-600">-{formatINR(damagePaise)}</Text>
+              <View
+                style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}
+              >
+                <Text style={{ fontSize: 14, color: '#657080' }}>Damage / Repair</Text>
+                <Text style={{ fontSize: 14, fontWeight: '700', color: '#BE123C' }}>
+                  -{formatINR(damagePaise)}
+                </Text>
               </View>
-              <View className="flex-row justify-between">
-                <Text className="text-sm text-slate-500">Unbilled Electricity</Text>
-                <Text className="text-sm font-bold text-rose-600">
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                <Text style={{ fontSize: 14, color: '#657080' }}>Unbilled Electricity</Text>
+                <Text style={{ fontSize: 14, fontWeight: '700', color: '#BE123C' }}>
                   -{formatINR(electricityPaise)}
                 </Text>
               </View>
             </View>
 
-            <Text className="text-xs font-bold text-slate-700 uppercase mb-1.5">
+            <Text
+              style={{
+                fontSize: 12,
+                fontWeight: '700',
+                color: '#0C192B',
+                textTransform: 'uppercase',
+                marginBottom: 6,
+              }}
+            >
               Damage / Repair Deductions (₹)
             </Text>
             <TextInput
-              className="border border-slate-200 rounded-xl px-4 py-3 mb-4 text-slate-900 bg-white shadow-xs text-base"
+              style={{
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+                borderRadius: 12,
+                paddingHorizontal: 16,
+                paddingVertical: 12,
+                marginBottom: 16,
+                color: '#0C192B',
+                backgroundColor: '#FAF5EB',
+                fontSize: 16,
+              }}
               placeholder="0"
+              placeholderTextColor="#8C939D"
               keyboardType="numeric"
               value={damageDeductions}
               onChangeText={setDamageDeductions}
             />
 
-            <Text className="text-xs font-bold text-slate-700 uppercase mb-1.5">
+            <Text
+              style={{
+                fontSize: 12,
+                fontWeight: '700',
+                color: '#0C192B',
+                textTransform: 'uppercase',
+                marginBottom: 6,
+              }}
+            >
               Unbilled Electricity / EB Deductions (₹)
             </Text>
             <TextInput
-              className="border border-slate-200 rounded-xl px-4 py-3 mb-4 text-slate-900 bg-white shadow-xs text-base"
+              style={{
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+                borderRadius: 12,
+                paddingHorizontal: 16,
+                paddingVertical: 12,
+                marginBottom: 16,
+                color: '#0C192B',
+                backgroundColor: '#FAF5EB',
+                fontSize: 16,
+              }}
               placeholder="0"
+              placeholderTextColor="#8C939D"
               keyboardType="numeric"
               value={electricityDeductions}
               onChangeText={setElectricityDeductions}
             />
 
             {/* Payment Method Selector */}
-            <Text className="text-xs font-bold text-slate-700 uppercase mb-2">
+            <Text
+              style={{
+                fontSize: 12,
+                fontWeight: '700',
+                color: '#0C192B',
+                textTransform: 'uppercase',
+                marginBottom: 8,
+              }}
+            >
               Refund Payment Mode
             </Text>
-            <View className="flex-row gap-2 mb-5">
+            <View style={{ flexDirection: 'row', gap: 8, marginBottom: 20 }}>
               {(['upi', 'cash', 'bank_transfer'] as const).map(mode => (
                 <TouchableOpacity
                   key={mode}
                   onPress={() => setPaymentMode(mode)}
-                  className={`flex-1 py-2.5 rounded-xl border items-center justify-center ${
-                    paymentMode === mode
-                      ? 'bg-[#E6F4EA] border-[#0A6C50]'
-                      : 'bg-slate-50 border-slate-200'
-                  }`}
+                  style={{
+                    flex: 1,
+                    paddingVertical: 10,
+                    borderRadius: 12,
+                    borderWidth: 1,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: paymentMode === mode ? '#19D3E6' : '#FAF5EB',
+                    borderColor: paymentMode === mode ? '#19D3E6' : '#E5DDCD',
+                  }}
                 >
                   <Text
-                    className={`text-xs font-bold uppercase ${
-                      paymentMode === mode ? 'text-[#0A6C50]' : 'text-slate-600'
-                    }`}
+                    style={{
+                      fontSize: 12,
+                      fontWeight: '800',
+                      textTransform: 'uppercase',
+                      color: paymentMode === mode ? '#0C192B' : '#657080',
+                    }}
                   >
                     {mode === 'bank_transfer' ? 'Bank' : mode}
                   </Text>
@@ -277,28 +452,55 @@ export default function CheckoutScreen() {
               ))}
             </View>
 
-            <View className="bg-[#ECFDF5] border border-[#6EE7B7] p-4 rounded-xl flex-row justify-between items-center mb-6">
+            <View
+              style={{
+                backgroundColor: '#F4F8EC',
+                borderWidth: 1,
+                borderColor: '#D9E8CE',
+                padding: 16,
+                borderRadius: 12,
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: 24,
+              }}
+            >
               <View>
-                <Text className="text-xs font-bold text-[#0A6C50] uppercase tracking-wider">
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontWeight: '700',
+                    color: '#4F5330',
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.5,
+                  }}
+                >
                   Net Refundable
                 </Text>
-                <Text className="text-2xl font-black text-[#0A6C50]">
+                <Text style={{ fontSize: 24, fontWeight: '800', color: '#4F5330', marginTop: 2 }}>
                   {formatINR(netRefundPaise)}
                 </Text>
               </View>
-              <FileCheck size={28} color="#0A6C50" />
+              <FileCheck size={28} color="#4F5330" />
             </View>
 
             <TouchableOpacity
               activeOpacity={0.85}
               disabled={isSubmitting}
-              className="bg-[#4F5330] rounded-xl py-4 items-center shadow-xs"
+              style={{
+                backgroundColor: '#4F5330',
+                borderRadius: 9999,
+                paddingVertical: 16,
+                alignItems: 'center',
+              }}
               onPress={handleConfirmVacate}
             >
               {isSubmitting ? (
                 <ActivityIndicator size="small" color="#FFFFFF" />
               ) : (
-                <Text className="text-white font-extrabold text-base">Confirm Vacate & Settle</Text>
+                <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 16 }}>
+                  Confirm Vacate & Settle
+                </Text>
               )}
             </TouchableOpacity>
           </View>
