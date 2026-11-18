@@ -1358,6 +1358,188 @@ export default function TenantDetailScreen() {
                 </View>
               </View>
             )}
+
+            {/* Quick Bed Transfer Action Row */}
+            <TouchableOpacity
+              onPress={() => setShowTransferModal(true)}
+              activeOpacity={0.7}
+              style={{
+                backgroundColor: '#FFFDF8',
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+                borderRadius: 18,
+                padding: 16,
+                marginBottom: 16,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.03,
+                shadowRadius: 2,
+                elevation: 1,
+              }}
+            >
+              <View
+                style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 10 }}
+              >
+                <View
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 20,
+                    backgroundColor: '#F4F8EC',
+                    borderWidth: 1,
+                    borderColor: '#D9E8CE',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginRight: 12,
+                  }}
+                >
+                  <Repeat size={18} color="#4F5330" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 14, fontWeight: '800', color: '#0C192B' }}>
+                    Transfer to Another Bed
+                  </Text>
+                  <Text style={{ fontSize: 12, fontWeight: '500', color: '#657080', marginTop: 2 }}>
+                    Currently Bed {bedInfo.bedNumber} · ₹
+                    {Math.round((tenant.monthlyRentPaise || 0) / 100).toLocaleString('en-IN')}/mo
+                  </Text>
+                </View>
+              </View>
+              <ChevronRight size={18} color="#657080" />
+            </TouchableOpacity>
+
+            {/* Bed Transfer History (if any) */}
+            {tenant.transferHistory && tenant.transferHistory.length > 0 && (
+              <View
+                style={{
+                  backgroundColor: '#FFFDF8',
+                  borderWidth: 1,
+                  borderColor: '#E5DDCD',
+                  borderRadius: 18,
+                  padding: 16,
+                  marginBottom: 16,
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: 0.03,
+                  shadowRadius: 2,
+                  elevation: 1,
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontWeight: '800',
+                    color: '#657080',
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.5,
+                    marginBottom: 12,
+                  }}
+                >
+                  Bed Transfer History ({tenant.transferHistory.length})
+                </Text>
+
+                <View style={{ gap: 10 }}>
+                  {tenant.transferHistory.map((item, idx) => (
+                    <View
+                      key={item._id || idx}
+                      style={{
+                        backgroundColor: '#FAF5EB',
+                        borderWidth: 1,
+                        borderColor: '#E5DDCD',
+                        borderRadius: 14,
+                        padding: 12,
+                      }}
+                    >
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          marginBottom: 6,
+                        }}
+                      >
+                        <Text style={{ fontSize: 11, fontWeight: '600', color: '#657080' }}>
+                          {formatSafeDate(item.effectiveDate || item.transferDate)}
+                        </Text>
+                        <View
+                          style={{
+                            paddingHorizontal: 6,
+                            paddingVertical: 1,
+                            borderRadius: 4,
+                            backgroundColor:
+                              item.status === 'completed'
+                                ? '#E8F5E9'
+                                : item.status === 'scheduled'
+                                  ? '#FEF3C7'
+                                  : '#FEE2E2',
+                          }}
+                        >
+                          <Text
+                            style={{
+                              fontSize: 10,
+                              fontWeight: '800',
+                              color:
+                                item.status === 'completed'
+                                  ? '#2E7D32'
+                                  : item.status === 'scheduled'
+                                    ? '#B45309'
+                                    : '#DC2626',
+                            }}
+                          >
+                            {item.status.toUpperCase()}
+                          </Text>
+                        </View>
+                      </View>
+
+                      <Text style={{ fontSize: 13, fontWeight: '800', color: '#0C192B' }}>
+                        Bed {item.fromBed?.bedNumber || 'Previous'} → Bed{' '}
+                        {item.toBed?.bedNumber || 'New'}
+                      </Text>
+
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          gap: 8,
+                          marginTop: 4,
+                        }}
+                      >
+                        <Text style={{ fontSize: 12, fontWeight: '600', color: '#657080' }}>
+                          ₹{Math.round(item.previousRentPaise / 100).toLocaleString('en-IN')} → ₹
+                          {Math.round(item.newRentPaise / 100).toLocaleString('en-IN')}/mo
+                        </Text>
+                        <Text style={{ fontSize: 11, fontWeight: '500', color: '#4F5330' }}>
+                          (
+                          {item.effectiveType === 'immediate'
+                            ? 'Immediate'
+                            : item.effectiveType === 'next_month'
+                              ? 'Next Month'
+                              : 'Custom Date'}
+                          )
+                        </Text>
+                      </View>
+
+                      {item.notes ? (
+                        <Text
+                          style={{
+                            fontSize: 11,
+                            fontWeight: '500',
+                            color: '#657080',
+                            marginTop: 4,
+                            fontStyle: 'italic',
+                          }}
+                        >
+                          "{item.notes}"
+                        </Text>
+                      ) : null}
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
           </View>
         )}
 
