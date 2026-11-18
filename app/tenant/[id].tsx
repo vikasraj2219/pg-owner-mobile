@@ -2396,6 +2396,7 @@ export default function TenantDetailScreen() {
           visible={showTransferModal}
           onClose={() => setShowTransferModal(false)}
           tenant={tenant}
+          propertyId={propertyId}
           onTransferSuccess={() => {
             void refetch();
           }}

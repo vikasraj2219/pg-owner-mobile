@@ -60,6 +60,7 @@ interface BedTransferModalProps {
   visible: boolean;
   onClose: () => void;
   tenant: ITenantListItem;
+  propertyId?: string;
   onTransferSuccess?: () => void;
 }
 
@@ -67,6 +68,7 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
   visible,
   onClose,
   tenant,
+  propertyId: passedPropertyId,
   onTransferSuccess,
 }) => {
   const queryClient = useQueryClient();
@@ -83,16 +85,17 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
     return (t.property as any)?._id || (t.property as any)?.id || '';
   };
 
-  // Best fallback property ID
+  // Best fallback property ID - never use 'all' for single property matrix query
   const defaultPropertyId = useMemo(() => {
-    return (
-      getTenantPropertyId(tenant) ||
-      selectedProperty?._id ||
-      globalSelectedPropertyId ||
-      properties[0]?._id ||
-      ''
-    );
-  }, [tenant, selectedProperty, globalSelectedPropertyId, properties]);
+    if (passedPropertyId && passedPropertyId !== 'all') return passedPropertyId;
+    const fromTenant = getTenantPropertyId(tenant);
+    if (fromTenant && fromTenant !== 'all') return fromTenant;
+    if (globalSelectedPropertyId && globalSelectedPropertyId !== 'all')
+      return globalSelectedPropertyId;
+    if (selectedProperty?._id && selectedProperty._id !== 'all') return selectedProperty._id;
+    if (properties.length > 0) return properties[0]._id;
+    return '';
+  }, [passedPropertyId, tenant, selectedProperty, globalSelectedPropertyId, properties]);
 
   // Selected target property
   const [selectedPropertyId, setSelectedPropertyId] = useState<string>(defaultPropertyId);
@@ -101,9 +104,10 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
   useEffect(() => {
     if (visible) {
       const pId =
+        (passedPropertyId && passedPropertyId !== 'all' ? passedPropertyId : '') ||
         getTenantPropertyId(tenant) ||
+        (globalSelectedPropertyId !== 'all' ? globalSelectedPropertyId : '') ||
         selectedProperty?._id ||
-        globalSelectedPropertyId ||
         properties[0]?._id ||
         '';
       setSelectedPropertyId(pId);
@@ -116,7 +120,7 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
       setGenerateAdjustmentInvoice(true);
       setTransferNotes('');
     }
-  }, [visible, tenant, selectedProperty, globalSelectedPropertyId, properties]);
+  }, [visible, passedPropertyId, tenant, selectedProperty, globalSelectedPropertyId, properties]);
 
   const activePropertyId = selectedPropertyId || defaultPropertyId;
 
@@ -127,6 +131,13 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
     isFetching: isMatrixFetching,
     refetch: matrixRefetch,
   } = useMatrix(activePropertyId || null);
+
+  // Trigger matrix refetch when modal becomes visible or property changes
+  useEffect(() => {
+    if (visible && activePropertyId) {
+      void matrixRefetch();
+    }
+  }, [visible, activePropertyId, matrixRefetch]);
 
   // Flow State
   const [selectedTargetBed, setSelectedTargetBed] = useState<TargetBedItem | null>(null);
@@ -166,7 +177,10 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
     matrixData.floors.forEach(floor => {
       (floor.rooms || []).forEach(room => {
         const availableBeds = (room.beds || []).filter(
-          bed => bed.status === 'available' && bed._id !== currentBedId,
+          bed =>
+            (bed.status || '').toLowerCase() === 'available' &&
+            bed._id !== currentBedId &&
+            bed.bedNumber !== currentBedNumber,
         );
 
         list.push({
@@ -397,12 +411,23 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
           justifyContent: 'flex-end',
         }}
       >
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={() => {
+            if (selectedTargetBed) {
+              setSelectedTargetBed(null);
+            } else {
+              onClose();
+            }
+          }}
+          style={{ flex: 1 }}
+        />
         <View
           style={{
+            height: '88%',
             backgroundColor: '#FAF5EB',
             borderTopLeftRadius: 28,
             borderTopRightRadius: 28,
-            maxHeight: '92%',
             borderTopWidth: 1,
             borderTopColor: '#E5DDCD',
             overflow: 'hidden',
@@ -1097,7 +1122,7 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
             </ScrollView>
           ) : (
             /* STEP 1: ROOMS & BEDS SELECTION LIST */
-            <View style={{ flex: 1, minHeight: 460 }}>
+            <View style={{ flex: 1 }}>
               {/* Optional Property Switcher (if owner has multiple properties) */}
               {properties.length > 1 && (
                 <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 6 }}>

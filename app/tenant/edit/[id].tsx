@@ -460,6 +460,9 @@ export default function EditTenantScreen() {
           visible={isMoveBedModalVisible}
           onClose={() => setIsMoveBedModalVisible(false)}
           tenant={tenant as any}
+          propertyId={
+            typeof tenant?.property === 'object' ? (tenant.property as any)?._id : tenant?.property
+          }
           onTransferSuccess={() => {
             void refetch();
           }}
