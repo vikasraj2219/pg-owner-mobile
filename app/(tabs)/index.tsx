@@ -447,8 +447,8 @@ export default function PulseScreen() {
                     </Text>
                   </TouchableOpacity>
                 ) : (
-                  <View style={{ gap: 14 }}>
-                    {properties.slice(0, 3).map((prop, idx) => {
+                  <View style={{ gap: 12 }}>
+                    {properties.slice(0, 3).map(prop => {
                       const pTotal = prop.stats?.totalBeds || 0;
                       const pOccupied = prop.stats?.occupiedBeds || 0;
                       const pRate =
@@ -459,7 +459,7 @@ export default function PulseScreen() {
                         prop.city ||
                         prop.address ||
                         (prop.type === 'girls' ? 'Girls PG' : 'Boys PG');
-                      const barFillColor = idx % 2 === 0 ? '#19D3E6' : '#4F5330';
+                      const isSelected = selectedPropertyId === prop._id;
 
                       return (
                         <TouchableOpacity
@@ -467,6 +467,18 @@ export default function PulseScreen() {
                           activeOpacity={0.85}
                           onPress={() => {
                             void setSelectedPropertyId(prop._id);
+                          }}
+                          style={{
+                            backgroundColor: '#FFFDF8',
+                            borderWidth: 1,
+                            borderColor: isSelected ? '#19D3E6' : '#E5DDCD',
+                            borderRadius: 20,
+                            padding: 16,
+                            shadowColor: '#000',
+                            shadowOffset: { width: 0, height: 1 },
+                            shadowOpacity: 0.03,
+                            shadowRadius: 3,
+                            elevation: 1,
                           }}
                         >
                           <View
@@ -487,39 +499,80 @@ export default function PulseScreen() {
                             >
                               <View
                                 style={{
-                                  width: 48,
-                                  height: 48,
-                                  backgroundColor: '#D1F4F9',
-                                  borderRadius: 16,
+                                  width: 44,
+                                  height: 44,
+                                  backgroundColor: isSelected ? '#19D3E6' : '#FAF5EB',
+                                  borderRadius: 14,
+                                  borderWidth: 1,
+                                  borderColor: isSelected ? '#19D3E6' : '#E5DDCD',
                                   alignItems: 'center',
                                   justifyContent: 'center',
                                 }}
                               >
-                                <Building2 size={24} color="#4F5330" strokeWidth={2.2} />
+                                <Building2
+                                  size={22}
+                                  color={isSelected ? '#0C192B' : '#4F5330'}
+                                  strokeWidth={2.2}
+                                />
                               </View>
                               <View style={{ flex: 1 }}>
-                                <Text
-                                  style={{ fontSize: 15, fontWeight: '800', color: '#0C192B' }}
-                                  numberOfLines={1}
+                                <View
+                                  style={{
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    gap: 6,
+                                  }}
                                 >
-                                  {prop.name}
-                                </Text>
+                                  <Text
+                                    style={{ fontSize: 15, fontWeight: '800', color: '#0C192B' }}
+                                    numberOfLines={1}
+                                  >
+                                    {prop.name}
+                                  </Text>
+                                  {isSelected && (
+                                    <View
+                                      style={{
+                                        backgroundColor: '#F0FDF4',
+                                        borderWidth: 1,
+                                        borderColor: '#BBF7D0',
+                                        paddingHorizontal: 7,
+                                        paddingVertical: 1.5,
+                                        borderRadius: 9999,
+                                      }}
+                                    >
+                                      <Text
+                                        style={{
+                                          fontSize: 10,
+                                          fontWeight: '700',
+                                          color: '#15803D',
+                                        }}
+                                      >
+                                        Active
+                                      </Text>
+                                    </View>
+                                  )}
+                                </View>
                                 <Text
                                   style={{
-                                    fontSize: 13,
+                                    fontSize: 12,
                                     fontWeight: '500',
                                     color: '#657080',
-                                    marginTop: 1,
+                                    marginTop: 2,
                                   }}
                                   numberOfLines={1}
                                 >
-                                  {location}
+                                  {location} · {pOccupied}/{pTotal} beds
                                 </Text>
                               </View>
                             </View>
-                            <Text style={{ fontSize: 16, fontWeight: '800', color: '#0C192B' }}>
-                              {pRate}%
-                            </Text>
+                            <View style={{ alignItems: 'flex-end' }}>
+                              <Text style={{ fontSize: 16, fontWeight: '800', color: '#0C192B' }}>
+                                {pRate}%
+                              </Text>
+                              <Text style={{ fontSize: 11, fontWeight: '500', color: '#657080' }}>
+                                Occupancy
+                              </Text>
+                            </View>
                           </View>
 
                           {/* Progress bar */}
@@ -529,7 +582,7 @@ export default function PulseScreen() {
                               height: 6,
                               backgroundColor: '#EAE3D3',
                               borderRadius: 9999,
-                              marginTop: 10,
+                              marginTop: 12,
                               overflow: 'hidden',
                             }}
                           >
@@ -537,7 +590,7 @@ export default function PulseScreen() {
                               style={{
                                 width: `${Math.min(100, Math.max(0, pRate))}%`,
                                 height: '100%',
-                                backgroundColor: barFillColor,
+                                backgroundColor: isSelected ? '#19D3E6' : '#4F5330',
                                 borderRadius: 9999,
                               }}
                             />

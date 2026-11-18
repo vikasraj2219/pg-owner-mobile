@@ -29,6 +29,8 @@ import {
   User,
   Eye,
   ImageIcon,
+  Calendar,
+  Wallet,
 } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
@@ -503,42 +505,80 @@ export default function TenantDetailScreen() {
 
   return (
     <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: '#FAF5EB' }}>
-      {/* Top Header */}
+      {/* Top Header matching Edit Property / Add Room design */}
       <View
         style={{
           paddingHorizontal: 20,
-          paddingTop: 12,
-          paddingBottom: 12,
+          paddingTop: 16,
+          paddingBottom: 14,
           flexDirection: 'row',
           alignItems: 'center',
-          justifyContent: 'space-between',
           borderBottomWidth: 1,
           borderBottomColor: '#E5DDCD',
           backgroundColor: '#FAF5EB',
         }}
       >
         <TouchableOpacity
+          activeOpacity={0.7}
           onPress={() => router.back()}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          style={{ padding: 4, marginLeft: -8 }}
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 12,
+            backgroundColor: '#FFFDF8',
+            borderWidth: 1,
+            borderColor: '#E5DDCD',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+          accessibilityLabel="Back"
         >
-          <ChevronLeft size={24} color="#0C192B" />
+          <ChevronLeft size={20} color="#0C192B" strokeWidth={2.3} />
         </TouchableOpacity>
-        <Text style={{ fontSize: 18, fontWeight: '800', color: '#0C192B' }}>Tenant</Text>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+
+        <View style={{ flex: 1, marginLeft: 14 }}>
+          <Text style={{ fontSize: 20, fontWeight: '800', color: '#0C192B', letterSpacing: -0.3 }}>
+            Tenant Details
+          </Text>
+          <Text style={{ fontSize: 12, fontWeight: '500', color: '#657080', marginTop: 2 }}>
+            {tenant.fullName} · Bed {bedInfo.bedNumber}
+          </Text>
+        </View>
+
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <TouchableOpacity
+            activeOpacity={0.7}
             onPress={() => router.push(`/tenant/edit/${tenant._id}` as any)}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            style={{ padding: 6 }}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 12,
+              backgroundColor: '#FFFDF8',
+              borderWidth: 1,
+              borderColor: '#E5DDCD',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+            accessibilityLabel="Edit tenant"
           >
-            <Edit2 size={20} color="#4F5330" />
+            <Edit2 size={18} color="#4F5330" />
           </TouchableOpacity>
           <TouchableOpacity
+            activeOpacity={0.7}
             onPress={() => setIsActionSheetVisible(true)}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            style={{ padding: 6 }}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 12,
+              backgroundColor: '#FFFDF8',
+              borderWidth: 1,
+              borderColor: '#E5DDCD',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+            accessibilityLabel="More options"
           >
-            <MoreVertical size={20} color="#657080" />
+            <MoreVertical size={18} color="#657080" />
           </TouchableOpacity>
         </View>
       </View>
@@ -793,64 +833,96 @@ export default function TenantDetailScreen() {
         {/* TAB 1: OVERVIEW */}
         {activeTab === 'overview' && (
           <View style={{ paddingHorizontal: 20, paddingTop: 16 }}>
-            {/* 3 Metrics Cards */}
+            {/* 3 Metrics Cards matching Image 1 */}
             <View style={{ flexDirection: 'row', gap: 10, marginBottom: 18 }}>
+              {/* Monthly Rent Card */}
               <View
                 style={{
                   flex: 1,
-                  backgroundColor: '#FFFDF8',
+                  backgroundColor: '#F0F9FF',
                   borderWidth: 1,
-                  borderColor: '#E5DDCD',
+                  borderColor: '#E0F2FE',
                   borderRadius: 16,
                   padding: 12,
                 }}
               >
-                <Text style={{ fontSize: 11, fontWeight: '600', color: '#657080' }}>
-                  Monthly rent
-                </Text>
-                <Text style={{ fontSize: 16, fontWeight: '800', color: '#0C192B', marginTop: 4 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Calendar size={14} color="#0284C7" strokeWidth={2.5} />
+                  <Text
+                    style={{ fontSize: 11, fontWeight: '600', color: '#0C192B', marginLeft: 5 }}
+                    numberOfLines={1}
+                  >
+                    Monthly Rent
+                  </Text>
+                </View>
+                <Text
+                  style={{ fontSize: 17, fontWeight: '800', color: '#0C192B', marginTop: 8 }}
+                  numberOfLines={1}
+                >
                   {formatINR(tenant.monthlyRentPaise || 0)}
                 </Text>
               </View>
 
+              {/* Deposit Held Card */}
               <View
                 style={{
                   flex: 1,
-                  backgroundColor: '#FFFDF8',
+                  backgroundColor: '#F0FDFA',
                   borderWidth: 1,
-                  borderColor: '#E5DDCD',
+                  borderColor: '#CCFBF1',
                   borderRadius: 16,
                   padding: 12,
                 }}
               >
-                <Text style={{ fontSize: 11, fontWeight: '600', color: '#657080' }}>
-                  Deposit held
-                </Text>
-                <Text style={{ fontSize: 16, fontWeight: '800', color: '#0C192B', marginTop: 4 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Wallet size={14} color="#0891B2" strokeWidth={2.5} />
+                  <Text
+                    style={{ fontSize: 11, fontWeight: '600', color: '#0C192B', marginLeft: 5 }}
+                    numberOfLines={1}
+                  >
+                    Deposit Held
+                  </Text>
+                </View>
+                <Text
+                  style={{ fontSize: 17, fontWeight: '800', color: '#0C192B', marginTop: 8 }}
+                  numberOfLines={1}
+                >
                   {formatINR(tenant.depositPaise || 0)}
                 </Text>
               </View>
 
+              {/* Balance Due Card */}
               <View
                 style={{
                   flex: 1,
-                  backgroundColor: '#FFFDF8',
+                  backgroundColor: balanceDuePaise > 0 ? '#FEF2F2' : '#F0FDF4',
                   borderWidth: 1,
-                  borderColor: '#E5DDCD',
+                  borderColor: balanceDuePaise > 0 ? '#FECACA' : '#DCFCE7',
                   borderRadius: 16,
                   padding: 12,
                 }}
               >
-                <Text style={{ fontSize: 11, fontWeight: '600', color: '#657080' }}>
-                  Balance due
-                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <AlertTriangle
+                    size={14}
+                    color={balanceDuePaise > 0 ? '#DC2626' : '#15803D'}
+                    strokeWidth={2.5}
+                  />
+                  <Text
+                    style={{ fontSize: 11, fontWeight: '600', color: '#0C192B', marginLeft: 5 }}
+                    numberOfLines={1}
+                  >
+                    Balance Due
+                  </Text>
+                </View>
                 <Text
                   style={{
-                    fontSize: 16,
+                    fontSize: 17,
                     fontWeight: '800',
-                    color: balanceDuePaise > 0 ? '#BE123C' : '#15803D',
-                    marginTop: 4,
+                    color: balanceDuePaise > 0 ? '#DC2626' : '#15803D',
+                    marginTop: 8,
                   }}
+                  numberOfLines={1}
                 >
                   {formatINR(balanceDuePaise)}
                 </Text>
@@ -1355,7 +1427,7 @@ export default function TenantDetailScreen() {
               backgroundColor: '#FEF3C7',
             }}
           >
-            <Text style={{ fontSize: 13, fontWeight: '700', color: '#B45309' }}>Cancel notice</Text>
+            <Text style={{ fontSize: 13, fontWeight: '800', color: '#B45309' }}>Cancel notice</Text>
           </TouchableOpacity>
         ) : (
           <TouchableOpacity
@@ -1373,7 +1445,7 @@ export default function TenantDetailScreen() {
               backgroundColor: '#FFFDF8',
             }}
           >
-            <Text style={{ fontSize: 13, fontWeight: '700', color: '#657080' }}>
+            <Text style={{ fontSize: 13, fontWeight: '800', color: '#0C192B' }}>
               Start notice period
             </Text>
           </TouchableOpacity>
@@ -1384,15 +1456,13 @@ export default function TenantDetailScreen() {
           style={{
             flex: 1,
             paddingVertical: 14,
-            borderWidth: 1,
-            borderColor: '#FECDD3',
             borderRadius: 9999,
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: '#FFF1F2',
+            backgroundColor: '#4F5330',
           }}
         >
-          <Text style={{ fontSize: 13, fontWeight: '700', color: '#BE123C' }}>Checkout</Text>
+          <Text style={{ fontSize: 14, fontWeight: '800', color: '#FFFFFF' }}>Checkout</Text>
         </TouchableOpacity>
       </View>
 

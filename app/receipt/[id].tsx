@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Alert, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ChevronLeft, Share2 } from 'lucide-react-native';
+import { ChevronLeft, Share2, Check, Download, MessageSquare } from 'lucide-react-native';
 import { useProperties } from '../../src/context/PropertyContext';
 import { useInvoices } from '../../src/hooks/useInvoices';
 import { useMatrix } from '../../src/hooks/useMatrix';
@@ -38,21 +38,23 @@ export default function ReceiptScreen() {
     return invoices.find(inv => inv._id === params.id || inv.invoiceNumber === params.id) || null;
   }, [invoices, params.id]);
 
-  // Derived receipt details with safe defaults matching Image 1
+  // Derived receipt details with safe defaults
   const propertyName =
-    params.propertyName || invoice?.property?.name || selectedProperty?.name || 'Sri Sai Boys PG';
+    params.propertyName || invoice?.property?.name || selectedProperty?.name || 'Property-1';
 
   const propertyAddress =
-    params.propertyAddress || selectedProperty?.address || 'Madhapur, Hyderabad';
+    params.propertyAddress || selectedProperty?.address || 'Chanda Nagar, Hyderabad, 500050';
 
   const receiptNo =
     params.receiptNo ||
-    (invoice?.invoiceNumber ? invoice.invoiceNumber.replace('INV-', 'RCP-') : 'RCP-2026-0142');
+    (invoice?.invoiceNumber
+      ? invoice.invoiceNumber.replace('INV-', 'RCP-')
+      : 'RCP-202611-B92A-0002');
 
   const rawDate = params.date || invoice?.paidAt || invoice?.dueDate || new Date().toISOString();
   const formattedDate = formatSafeDate(rawDate);
 
-  const tenantName = params.tenantName || invoice?.tenant?.fullName || 'Rahul Verma';
+  const tenantName = params.tenantName || invoice?.tenant?.fullName || 'Tenant - 1';
 
   // Robust Room & Bed resolution - guaranteed to NEVER show just "Bed"
   const resolvedBed = useMemo(() => {
@@ -62,8 +64,8 @@ export default function ReceiptScreen() {
       tenantName,
       currentBed: invoice?.tenant?.currentBed,
       matrixData,
-      defaultRoom: '201',
-      defaultBed: '201-A',
+      defaultRoom: '101',
+      defaultBed: '101-A',
     });
   }, [params.bedNo, invoice, tenantName, matrixData]);
 
@@ -74,13 +76,13 @@ export default function ReceiptScreen() {
     return 'October 2026 rent';
   }, [params.forMonth, invoice]);
 
-  const method = params.method || invoice?.paymentMethod?.toUpperCase() || 'UPI';
+  const method = params.method || invoice?.paymentMethod?.toUpperCase() || 'CASH';
 
   const amountPaise = useMemo(() => {
     if (params.amountPaise) return parseInt(params.amountPaise, 10);
     if (invoice?.amountPaidPaise) return invoice.amountPaidPaise;
     if (invoice?.totalAmountPaise) return invoice.totalAmountPaise;
-    return 850000;
+    return 1000000;
   }, [params.amountPaise, invoice]);
 
   const shareData = useMemo(
@@ -118,119 +120,336 @@ export default function ReceiptScreen() {
     }
   };
 
+  const handleShareWhatsApp = async () => {
+    try {
+      const msg = `*Rent Payment Receipt*\n\nReceipt No: ${receiptNo}\nProperty: ${propertyName}\nTenant: ${tenantName}\nRoom & Bed: ${resolvedBed.formattedLabel}\nFor: ${forMonth}\nAmount Received: ${formatINR(amountPaise)}\nMethod: ${method}\nDate: ${formattedDate}\n\nThank you for your payment!`;
+      const url = `whatsapp://send?text=${encodeURIComponent(msg)}`;
+      const canOpen = await Linking.canOpenURL(url);
+      if (canOpen) {
+        await Linking.openURL(url);
+      } else {
+        await Linking.openURL(`https://wa.me/?text=${encodeURIComponent(msg)}`);
+      }
+    } catch (_e) {
+      Alert.alert('Error', 'Unable to open WhatsApp.');
+    }
+  };
+
   return (
-    <SafeAreaView className="flex-1 bg-[#EEF2F6]" edges={['top']}>
-      {/* Top Header matching Image 1: seamless background, bold title */}
-      <View className="px-4 py-3 flex-row items-center bg-[#EEF2F6]">
+    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: '#FAF5EB' }}>
+      {/* Top Header matching Screenshot */}
+      <View
+        style={{
+          paddingHorizontal: 20,
+          paddingTop: 12,
+          paddingBottom: 12,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          backgroundColor: '#FAF5EB',
+        }}
+      >
         <TouchableOpacity
           onPress={() => router.back()}
-          className="w-10 h-10 items-center justify-center -ml-2 rounded-full active:bg-slate-300/60"
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 20,
+            backgroundColor: '#FFFDF8',
+            borderWidth: 1,
+            borderColor: '#E5DDCD',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+          accessibilityLabel="Back"
         >
-          <ChevronLeft size={28} color="#0F172A" strokeWidth={2.5} />
+          <ChevronLeft size={22} color="#0C192B" strokeWidth={2.5} />
         </TouchableOpacity>
-        <Text className="text-xl font-black text-slate-900 tracking-tight ml-1">Receipt</Text>
+
+        <Text style={{ fontSize: 18, fontWeight: '800', color: '#0C192B' }}>Receipt</Text>
+
+        <TouchableOpacity
+          onPress={handleSharePdf}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 20,
+            backgroundColor: '#FFFDF8',
+            borderWidth: 1,
+            borderColor: '#E5DDCD',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+          accessibilityLabel="Share"
+        >
+          <Share2 size={18} color="#0C192B" strokeWidth={2.2} />
+        </TouchableOpacity>
       </View>
 
       <ScrollView
-        className="flex-1 px-4 pt-2"
-        contentContainerStyle={{ paddingBottom: 40 }}
+        style={{ flex: 1, backgroundColor: '#FAF5EB' }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Floating Receipt Card matching Image 1 Pixel-for-Pixel */}
-        <View className="bg-white rounded-3xl p-6 border border-slate-200/90 shadow-md mb-6">
-          {/* Card Header: Original Nilaaya Logo Squircle + PG Name + Address */}
-          <View className="flex-row items-center">
-            <View className="mr-3.5">
-              <AppLogo size={48} variant="green" />
+        {/* Top Hero Card: Payment Received! */}
+        <View
+          style={{
+            backgroundColor: '#FFFDF8',
+            borderWidth: 1,
+            borderColor: '#E5DDCD',
+            borderRadius: 24,
+            paddingVertical: 20,
+            paddingHorizontal: 20,
+            alignItems: 'center',
+            marginBottom: 14,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.03,
+            shadowRadius: 3,
+            elevation: 1,
+          }}
+        >
+          <View
+            style={{
+              width: 48,
+              height: 48,
+              borderRadius: 24,
+              backgroundColor: '#15803D',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: 10,
+            }}
+          >
+            <Check size={26} color="#FFFFFF" strokeWidth={3} />
+          </View>
+          <Text style={{ fontSize: 18, fontWeight: '800', color: '#0C192B' }}>
+            Payment Received!
+          </Text>
+          <Text style={{ fontSize: 12, fontWeight: '500', color: '#657080', marginTop: 3 }}>
+            Rent payment has been successfully received
+          </Text>
+        </View>
+
+        {/* Receipt Details Card */}
+        <View
+          style={{
+            backgroundColor: '#FFFDF8',
+            borderWidth: 1,
+            borderColor: '#E5DDCD',
+            borderRadius: 24,
+            padding: 20,
+            marginBottom: 14,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.03,
+            shadowRadius: 3,
+            elevation: 1,
+          }}
+        >
+          {/* Property Row */}
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={{ marginRight: 14 }}>
+              <AppLogo size={52} variant="green" />
             </View>
-            <View className="flex-1">
-              <Text className="text-lg font-black text-slate-900 leading-tight">
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 17, fontWeight: '800', color: '#0C192B', lineHeight: 22 }}>
                 {propertyName}
               </Text>
-              <Text className="text-xs font-semibold text-slate-500 mt-0.5">{propertyAddress}</Text>
+              <Text style={{ fontSize: 12, fontWeight: '500', color: '#657080', marginTop: 2 }}>
+                {propertyAddress}
+              </Text>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  backgroundColor: '#F0FDF4',
+                  borderWidth: 1,
+                  borderColor: '#BBF7D0',
+                  paddingHorizontal: 10,
+                  paddingVertical: 3,
+                  borderRadius: 9999,
+                  alignSelf: 'flex-start',
+                  marginTop: 6,
+                }}
+              >
+                <Check size={12} color="#15803D" strokeWidth={3} />
+                <Text style={{ fontSize: 11, fontWeight: '800', color: '#15803D', marginLeft: 4 }}>
+                  Paid
+                </Text>
+              </View>
             </View>
           </View>
 
-          {/* Green Divider Accent Bar with generous separation */}
+          {/* Dashed Separator Line */}
           <View
             style={{
-              height: 3,
-              backgroundColor: '#0A6C50',
-              borderRadius: 2,
-              marginTop: 18,
-              marginBottom: 20,
+              height: 1,
+              borderTopWidth: 1,
+              borderTopColor: '#E5DDCD',
+              borderStyle: 'dashed',
+              marginVertical: 16,
             }}
           />
 
-          {/* Receipt Title & PAID Status Badge */}
-          <Text className="text-lg font-black text-slate-900 text-center mb-2 tracking-tight">
-            Rent Payment Receipt
-          </Text>
-
-          <View className="items-center mb-5">
-            <View className="bg-[#E8F5EE] border border-[#A7F3D0] px-4 py-1 rounded-full">
-              <Text className="text-xs font-black text-[#0A6C50] tracking-wider">PAID</Text>
-            </View>
-          </View>
-
-          {/* Key-Value Details Rows with Dashed Borders */}
-          <View className="space-y-0.5 mb-2">
-            <View className="flex-row items-center justify-between py-3 border-b border-dashed border-slate-200">
-              <Text className="text-sm font-semibold text-slate-500">Receipt no.</Text>
-              <Text className="text-sm font-black text-slate-900">{receiptNo}</Text>
+          {/* Key-Value Detail Rows */}
+          <View style={{ gap: 12 }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <Text style={{ fontSize: 13, fontWeight: '500', color: '#657080' }}>Receipt No.</Text>
+              <Text style={{ fontSize: 13, fontWeight: '800', color: '#0C192B' }}>{receiptNo}</Text>
             </View>
 
-            <View className="flex-row items-center justify-between py-3 border-b border-dashed border-slate-200">
-              <Text className="text-sm font-semibold text-slate-500">Date</Text>
-              <Text className="text-sm font-black text-slate-900">{formattedDate}</Text>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <Text style={{ fontSize: 13, fontWeight: '500', color: '#657080' }}>Date</Text>
+              <Text style={{ fontSize: 13, fontWeight: '800', color: '#0C192B' }}>
+                {formattedDate}
+              </Text>
             </View>
 
-            <View className="flex-row items-center justify-between py-3 border-b border-dashed border-slate-200">
-              <Text className="text-sm font-semibold text-slate-500">Tenant</Text>
-              <Text className="text-sm font-black text-slate-900">{tenantName}</Text>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <Text style={{ fontSize: 13, fontWeight: '500', color: '#657080' }}>Tenant</Text>
+              <Text style={{ fontSize: 13, fontWeight: '800', color: '#0C192B' }}>
+                {tenantName}
+              </Text>
             </View>
 
-            <View className="flex-row items-center justify-between py-3 border-b border-dashed border-slate-200">
-              <Text className="text-sm font-semibold text-slate-500">Room & bed</Text>
-              <Text className="text-sm font-black text-slate-900">
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <Text style={{ fontSize: 13, fontWeight: '500', color: '#657080' }}>Room & Bed</Text>
+              <Text style={{ fontSize: 13, fontWeight: '800', color: '#0C192B' }}>
                 {resolvedBed.formattedLabel}
               </Text>
             </View>
 
-            <View className="flex-row items-center justify-between py-3 border-b border-dashed border-slate-200">
-              <Text className="text-sm font-semibold text-slate-500">For</Text>
-              <Text className="text-sm font-black text-slate-900">{forMonth}</Text>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <Text style={{ fontSize: 13, fontWeight: '500', color: '#657080' }}>For</Text>
+              <Text style={{ fontSize: 13, fontWeight: '800', color: '#0C192B' }}>{forMonth}</Text>
             </View>
 
-            <View className="flex-row items-center justify-between py-3 border-b border-dashed border-slate-200">
-              <Text className="text-sm font-semibold text-slate-500">Method</Text>
-              <Text className="text-sm font-black text-slate-900">{method}</Text>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <Text style={{ fontSize: 13, fontWeight: '500', color: '#657080' }}>Method</Text>
+              <Text style={{ fontSize: 13, fontWeight: '800', color: '#0C192B' }}>{method}</Text>
             </View>
           </View>
+        </View>
 
-          {/* Amount Received Total Row */}
-          <View className="flex-row items-center justify-between py-4">
-            <Text className="text-base font-bold text-slate-700">Amount received</Text>
-            <Text className="text-3xl font-black text-[#0A6C50] tracking-tight">
-              {formatINR(amountPaise)}
-            </Text>
-          </View>
+        {/* Amount Received Card */}
+        <View
+          style={{
+            backgroundColor: '#F0FDF4',
+            borderWidth: 1,
+            borderColor: '#DCFCE7',
+            borderRadius: 18,
+            paddingHorizontal: 18,
+            paddingVertical: 14,
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: 12,
+          }}
+        >
+          <Text style={{ fontSize: 15, fontWeight: '800', color: '#0C192B' }}>Amount Received</Text>
+          <Text style={{ fontSize: 24, fontWeight: '800', color: '#15803D' }}>
+            {formatINR(amountPaise)}
+          </Text>
+        </View>
 
-          {/* Footer Notice */}
-          <Text className="text-xs font-medium text-slate-400 text-center mt-3 leading-relaxed">
+        {/* Computer generated notice */}
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: 20,
+          }}
+        >
+          <Check size={13} color="#15803D" strokeWidth={3} />
+          <Text style={{ fontSize: 11, fontWeight: '500', color: '#657080', marginLeft: 4 }}>
             Computer generated receipt. No signature required.
           </Text>
         </View>
 
-        {/* Action Button: Share PDF */}
+        {/* Two Action Buttons */}
         <TouchableOpacity
           activeOpacity={0.85}
           onPress={handleSharePdf}
-          className="w-full py-4 bg-[#4F5330] rounded-2xl flex-row items-center justify-center shadow-sm"
+          style={{
+            width: '100%',
+            paddingVertical: 15,
+            backgroundColor: '#4F5330',
+            borderRadius: 9999,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: 10,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.08,
+            shadowRadius: 2,
+            elevation: 2,
+          }}
         >
-          <Share2 size={19} color="#FFFFFF" strokeWidth={2.3} />
-          <Text className="text-base font-extrabold text-white ml-2.5">Share Receipt PDF</Text>
+          <Download size={18} color="#FFFFFF" strokeWidth={2.5} />
+          <Text style={{ fontSize: 14, fontWeight: '800', color: '#FFFFFF', marginLeft: 8 }}>
+            Download Receipt PDF
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          activeOpacity={0.85}
+          onPress={handleShareWhatsApp}
+          style={{
+            width: '100%',
+            paddingVertical: 15,
+            backgroundColor: '#FFFDF8',
+            borderWidth: 1,
+            borderColor: '#E5DDCD',
+            borderRadius: 9999,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <MessageSquare size={18} color="#15803D" />
+          <Text style={{ fontSize: 14, fontWeight: '800', color: '#0C192B', marginLeft: 8 }}>
+            Share via WhatsApp
+          </Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
