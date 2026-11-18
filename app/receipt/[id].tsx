@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, Alert, Linking } from 'react-
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft, Share2, Check, Download, MessageSquare } from 'lucide-react-native';
+import Svg, { Path } from 'react-native-svg';
 import { useProperties } from '../../src/context/PropertyContext';
 import { useInvoices } from '../../src/hooks/useInvoices';
 import { useMatrix } from '../../src/hooks/useMatrix';
@@ -193,13 +194,13 @@ export default function ReceiptScreen() {
         contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Top Hero Card: Payment Received! */}
+        {/* Top Hero Card: Payment Received! matching Screenshot */}
         <View
           style={{
-            backgroundColor: '#FFFDF8',
+            backgroundColor: '#F0FDF4',
             borderWidth: 1,
-            borderColor: '#E5DDCD',
-            borderRadius: 24,
+            borderColor: '#DCFCE7',
+            borderRadius: 22,
             paddingVertical: 20,
             paddingHorizontal: 20,
             alignItems: 'center',
@@ -213,16 +214,16 @@ export default function ReceiptScreen() {
         >
           <View
             style={{
-              width: 48,
-              height: 48,
-              borderRadius: 24,
-              backgroundColor: '#15803D',
+              width: 46,
+              height: 46,
+              borderRadius: 23,
+              backgroundColor: '#16A34A',
               alignItems: 'center',
               justifyContent: 'center',
               marginBottom: 10,
             }}
           >
-            <Check size={26} color="#FFFFFF" strokeWidth={3} />
+            <Check size={24} color="#FFFFFF" strokeWidth={3} />
           </View>
           <Text style={{ fontSize: 18, fontWeight: '800', color: '#0C192B' }}>
             Payment Received!
@@ -232,13 +233,13 @@ export default function ReceiptScreen() {
           </Text>
         </View>
 
-        {/* Receipt Details Card */}
+        {/* Receipt Details Card matching Screenshot */}
         <View
           style={{
-            backgroundColor: '#FFFDF8',
+            backgroundColor: '#FFFFFF',
             borderWidth: 1,
-            borderColor: '#E5DDCD',
-            borderRadius: 24,
+            borderColor: '#F0ECE4',
+            borderRadius: 22,
             padding: 20,
             marginBottom: 14,
             shadowColor: '#000',
@@ -369,13 +370,13 @@ export default function ReceiptScreen() {
           </View>
         </View>
 
-        {/* Amount Received Card */}
+        {/* Amount Received Card matching Screenshot */}
         <View
           style={{
-            backgroundColor: '#F0FDF4',
+            backgroundColor: '#EBFDF2',
             borderWidth: 1,
-            borderColor: '#DCFCE7',
-            borderRadius: 18,
+            borderColor: '#BBF7D0',
+            borderRadius: 16,
             paddingHorizontal: 18,
             paddingVertical: 14,
             flexDirection: 'row',
@@ -417,7 +418,7 @@ export default function ReceiptScreen() {
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'center',
-            marginBottom: 10,
+            marginBottom: 12,
             shadowColor: '#000',
             shadowOffset: { width: 0, height: 1 },
             shadowOpacity: 0.08,
@@ -444,6 +445,7 @@ export default function ReceiptScreen() {
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'center',
+            marginBottom: 20,
           }}
         >
           <MessageSquare size={18} color="#15803D" />
@@ -451,6 +453,22 @@ export default function ReceiptScreen() {
             Share via WhatsApp
           </Text>
         </TouchableOpacity>
+
+        {/* Decorative Wave Footer matching Screenshot */}
+        <View style={{ width: '100%', height: 32, overflow: 'hidden', marginTop: 10 }}>
+          <Svg width="100%" height="32" viewBox="0 0 360 32" preserveAspectRatio="none">
+            <Path
+              d="M0,16 C90,32 180,0 270,16 C315,24 340,12 360,8 L360,32 L0,32 Z"
+              fill="#06B6D4"
+              opacity={0.35}
+            />
+            <Path
+              d="M0,22 C60,10 140,30 220,18 C280,8 320,24 360,16 L360,32 L0,32 Z"
+              fill="#4F5330"
+              opacity={0.85}
+            />
+          </Svg>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );

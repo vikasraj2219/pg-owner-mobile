@@ -26,6 +26,8 @@ import {
   Info,
   Check,
   Building2,
+  DoorClosed,
+  RefreshCw,
 } from 'lucide-react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import { useProperties } from '../context/PropertyContext';
@@ -44,6 +46,16 @@ interface TargetBedItem {
   floorLabel?: string;
 }
 
+interface RoomWithBedsItem {
+  room: IMatrixRoom;
+  floorNumber: number;
+  floorLabel?: string;
+  sharingType: number;
+  baseRentPaisePerBed: number;
+  availableBeds: IMatrixBed[];
+  totalBedsCount: number;
+}
+
 interface BedTransferModalProps {
   visible: boolean;
   onClose: () => void;
@@ -58,15 +70,63 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
   onTransferSuccess,
 }) => {
   const queryClient = useQueryClient();
-  const { properties } = useProperties();
+  const {
+    properties,
+    selectedProperty,
+    selectedPropertyId: globalSelectedPropertyId,
+  } = useProperties();
 
-  // Selected target property (defaults to tenant's current property)
-  const tenantPropertyId =
-    typeof tenant?.property === 'object' ? tenant.property?._id : tenant?.property;
-  const [selectedPropertyId, setSelectedPropertyId] = useState<string>(tenantPropertyId || '');
+  // Helper to extract property ID reliably from tenant object or string
+  const getTenantPropertyId = (t?: ITenantListItem): string => {
+    if (!t?.property) return '';
+    if (typeof t.property === 'string') return t.property;
+    return (t.property as any)?._id || (t.property as any)?.id || '';
+  };
+
+  // Best fallback property ID
+  const defaultPropertyId = useMemo(() => {
+    return (
+      getTenantPropertyId(tenant) ||
+      selectedProperty?._id ||
+      globalSelectedPropertyId ||
+      properties[0]?._id ||
+      ''
+    );
+  }, [tenant, selectedProperty, globalSelectedPropertyId, properties]);
+
+  // Selected target property
+  const [selectedPropertyId, setSelectedPropertyId] = useState<string>(defaultPropertyId);
+
+  // Synchronize property ID whenever modal opens or tenant loads
+  useEffect(() => {
+    if (visible) {
+      const pId =
+        getTenantPropertyId(tenant) ||
+        selectedProperty?._id ||
+        globalSelectedPropertyId ||
+        properties[0]?._id ||
+        '';
+      setSelectedPropertyId(pId);
+      setSelectedTargetBed(null);
+      setBedSearchQuery('');
+      setSelectedFloorFilter('all');
+      setSelectedSharingFilter('all');
+      setEffectiveType('immediate');
+      setCustomEffectiveDate(new Date());
+      setGenerateAdjustmentInvoice(true);
+      setTransferNotes('');
+    }
+  }, [visible, tenant, selectedProperty, globalSelectedPropertyId, properties]);
+
+  const activePropertyId = selectedPropertyId || defaultPropertyId;
 
   // Matrix of available beds for selected target property
-  const { matrixData, refetch: matrixRefetch } = useMatrix(selectedPropertyId || null);
+  const {
+    matrixData,
+    isLoading: isMatrixLoading,
+    isFetching: isMatrixFetching,
+    refetch: matrixRefetch,
+  } = useMatrix(activePropertyId || null);
 
   // Flow State
   const [selectedTargetBed, setSelectedTargetBed] = useState<TargetBedItem | null>(null);
@@ -90,82 +150,96 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
   const [generateAdjustmentInvoice, setGenerateAdjustmentInvoice] = useState(true);
   const [transferNotes, setTransferNotes] = useState('');
 
-  // Reset or init property selection when modal becomes visible
-  useEffect(() => {
-    if (visible) {
-      const pId = typeof tenant?.property === 'object' ? tenant.property?._id : tenant?.property;
-      setSelectedPropertyId(pId || '');
-      setSelectedTargetBed(null);
-      setBedSearchQuery('');
-      setSelectedFloorFilter('all');
-      setSelectedSharingFilter('all');
-      setEffectiveType('immediate');
-      setCustomEffectiveDate(new Date());
-      setGenerateAdjustmentInvoice(true);
-      setTransferNotes('');
-    }
-  }, [visible, tenant]);
-
   const currentBedNumber = tenant?.currentBed?.bedNumber || 'Unknown';
-  const currentBedId = tenant?.currentBed?._id;
+  const currentBedId = useMemo(() => {
+    if (!tenant?.currentBed) return null;
+    return typeof tenant.currentBed === 'object'
+      ? (tenant.currentBed as any)._id || (tenant.currentBed as any).id
+      : tenant.currentBed;
+  }, [tenant]);
 
-  // Extract all vacant beds in matrix
-  const allVacantBeds: TargetBedItem[] = useMemo(() => {
+  // Extract all rooms with their available beds from matrix
+  const allRoomsWithBeds: RoomWithBedsItem[] = useMemo(() => {
     if (!matrixData?.floors) return [];
-    const list: TargetBedItem[] = [];
+    const list: RoomWithBedsItem[] = [];
 
     matrixData.floors.forEach(floor => {
-      floor.rooms?.forEach(room => {
-        room.beds?.forEach(bed => {
-          if (bed.status === 'available' && bed._id !== currentBedId) {
-            list.push({
-              bed,
-              room,
-              floorNumber: floor.floorNumber,
-              floorLabel: floor.floorLabel,
-            });
-          }
+      (floor.rooms || []).forEach(room => {
+        const availableBeds = (room.beds || []).filter(
+          bed => bed.status === 'available' && bed._id !== currentBedId,
+        );
+
+        list.push({
+          room,
+          floorNumber: floor.floorNumber,
+          floorLabel: floor.floorLabel,
+          sharingType: room.sharingType || (room.beds ? room.beds.length : 1),
+          baseRentPaisePerBed: room.baseRentPaisePerBed || originalRentRupees * 100,
+          availableBeds,
+          totalBedsCount: room.beds?.length || 0,
         });
       });
     });
-    return list;
-  }, [matrixData, currentBedId]);
+
+    return list.sort((a, b) => {
+      if (a.floorNumber !== b.floorNumber) return a.floorNumber - b.floorNumber;
+      return a.room.roomNumber.localeCompare(b.room.roomNumber, undefined, { numeric: true });
+    });
+  }, [matrixData, currentBedId, originalRentRupees]);
+
+  // Total vacant beds count across all rooms
+  const totalVacantBedsCount = useMemo(() => {
+    return allRoomsWithBeds.reduce((acc, r) => acc + r.availableBeds.length, 0);
+  }, [allRoomsWithBeds]);
 
   // Unique floors available in matrix
   const availableFloors = useMemo(() => {
     if (!matrixData?.floors) return [];
-    return matrixData.floors.map(f => ({
-      floorNumber: f.floorNumber,
-      label: f.floorNumber === 0 ? 'Ground Floor' : `Floor ${f.floorNumber}`,
-    }));
-  }, [matrixData]);
+    return matrixData.floors.map(f => {
+      const roomsOnThisFloor = allRoomsWithBeds.filter(
+        r => r.floorNumber === f.floorNumber && r.availableBeds.length > 0,
+      );
+      return {
+        floorNumber: f.floorNumber,
+        label: f.floorNumber === 0 ? 'Ground Floor' : `Floor ${f.floorNumber}`,
+        availableRoomsCount: roomsOnThisFloor.length,
+      };
+    });
+  }, [matrixData, allRoomsWithBeds]);
 
-  // Filtered vacant beds
-  const filteredBeds = useMemo(() => {
-    return allVacantBeds.filter(item => {
+  // Filtered rooms (must have at least 1 available bed, and match search/floor/sharing)
+  const filteredRooms = useMemo(() => {
+    return allRoomsWithBeds.filter(item => {
+      // Must have vacant beds to be eligible for transfer
+      if (item.availableBeds.length === 0) return false;
+
+      // Search query filter (matches room number or any bed number)
       if (bedSearchQuery.trim()) {
         const q = bedSearchQuery.trim().toLowerCase();
-        const bedMatch = (item.bed.bedNumber || '').toLowerCase().includes(q);
         const roomMatch = (item.room.roomNumber || '').toLowerCase().includes(q);
-        if (!bedMatch && !roomMatch) return false;
+        const bedMatch = item.availableBeds.some(b =>
+          (b.bedNumber || '').toLowerCase().includes(q),
+        );
+        if (!roomMatch && !bedMatch) return false;
       }
 
+      // Floor filter
       if (selectedFloorFilter !== 'all' && item.floorNumber !== selectedFloorFilter) {
         return false;
       }
 
+      // Sharing filter
       if (selectedSharingFilter !== 'all') {
-        const bedCount = item.room.beds?.length || 1;
         if (selectedSharingFilter === 4) {
-          if (bedCount < 4) return false;
-        } else if (bedCount !== selectedSharingFilter) {
+          if (item.sharingType < 4) return false;
+        } else if (item.sharingType !== selectedSharingFilter) {
           return false;
         }
       }
 
       return true;
     });
-  }, [allVacantBeds, bedSearchQuery, selectedFloorFilter, selectedSharingFilter]);
+  }, [allRoomsWithBeds, bedSearchQuery, selectedFloorFilter, selectedSharingFilter]);
 
   // When a bed is picked, verify real-time availability and init rent
   const handleSelectBed = async (item: TargetBedItem) => {
@@ -174,15 +248,15 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
     setRealtimeVerified(false);
 
     const defaultRentPaise =
-      item.bed.baseRentPaise ?? item.room.baseRentPaisePerBed ?? tenant.monthlyRentPaise ?? 0;
+      item.bed.baseRentPaise ?? item.room.baseRentPaisePerBed ?? tenant?.monthlyRentPaise ?? 0;
     setTargetNewRentRupees(Math.round(defaultRentPaise / 100).toString());
 
     try {
       const refreshed = await matrixRefetch();
       let isStillVacant = false;
       refreshed.data?.floors?.forEach(f => {
-        f.rooms?.forEach(r => {
-          r.beds?.forEach(b => {
+        (f.rooms || []).forEach(r => {
+          (r.beds || []).forEach(b => {
             if (b._id === item.bed._id && b.status === 'available') {
               isStillVacant = true;
             }
@@ -240,11 +314,13 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
       return;
     }
 
+    const tenantPropId = getTenantPropertyId(tenant);
+
     setIsSubmitting(true);
     try {
       await moveBedApi(tenant._id, {
         newBedId: selectedTargetBed.bed._id,
-        targetPropertyId: selectedPropertyId !== tenantPropertyId ? selectedPropertyId : undefined,
+        targetPropertyId: selectedPropertyId !== tenantPropId ? selectedPropertyId : undefined,
         effectiveType,
         effectiveDate: calculatedEffectiveDate.toISOString(),
         newMonthlyRentPaise: targetRentPaise,
@@ -366,13 +442,13 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
               )}
               <View style={{ flex: 1 }}>
                 <Text style={{ fontSize: 17, fontWeight: '800', color: '#0C192B' }}>
-                  {selectedTargetBed ? 'Configure Bed Transfer' : 'Transfer Bed / Move Tenant'}
+                  {selectedTargetBed ? 'Configure Bed Transfer' : 'Select Destination Room & Bed'}
                 </Text>
                 <Text
                   style={{ fontSize: 12, color: '#657080', fontWeight: '500', marginTop: 1 }}
                   numberOfLines={1}
                 >
-                  {tenant?.fullName} · Currently Bed {currentBedNumber} (₹{originalRentRupees}/mo)
+                  {tenant?.fullName} · Current: Bed {currentBedNumber} (₹{originalRentRupees}/mo)
                 </Text>
               </View>
             </View>
@@ -577,8 +653,8 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
                     <TrendingDown size={16} color="#2E7D32" style={{ marginRight: 6 }} />
                     <Text style={{ fontSize: 12, fontWeight: '700', color: '#2E7D32' }}>
                       Rent reduces by ₹
-                      {(originalRentRupees - parsedTargetRentRupees).toLocaleString('en-IN')}
-                      /mo (from ₹{originalRentRupees.toLocaleString('en-IN')} to ₹
+                      {(originalRentRupees - parsedTargetRentRupees).toLocaleString('en-IN')}/mo
+                      (from ₹{originalRentRupees.toLocaleString('en-IN')} to ₹
                       {parsedTargetRentRupees.toLocaleString('en-IN')})
                     </Text>
                   </View>
@@ -598,8 +674,8 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
                     <TrendingUp size={16} color="#1D4ED8" style={{ marginRight: 6 }} />
                     <Text style={{ fontSize: 12, fontWeight: '700', color: '#1D4ED8' }}>
                       Rent increases by ₹
-                      {(parsedTargetRentRupees - originalRentRupees).toLocaleString('en-IN')}
-                      /mo (from ₹{originalRentRupees.toLocaleString('en-IN')} to ₹
+                      {(parsedTargetRentRupees - originalRentRupees).toLocaleString('en-IN')}/mo
+                      (from ₹{originalRentRupees.toLocaleString('en-IN')} to ₹
                       {parsedTargetRentRupees.toLocaleString('en-IN')})
                     </Text>
                   </View>
@@ -1020,7 +1096,7 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
               </View>
             </ScrollView>
           ) : (
-            /* STEP 1: Bed Selection List with Filters */
+            /* STEP 1: ROOMS & BEDS SELECTION LIST */
             <View style={{ flex: 1, minHeight: 460 }}>
               {/* Optional Property Switcher (if owner has multiple properties) */}
               {properties.length > 1 && (
@@ -1043,7 +1119,7 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
                     contentContainerStyle={{ gap: 8 }}
                   >
                     {properties.map(p => {
-                      const isSelected = p._id === selectedPropertyId;
+                      const isSelected = p._id === activePropertyId;
                       return (
                         <TouchableOpacity
                           key={p._id}
@@ -1103,7 +1179,7 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
                       fontWeight: '500',
                       padding: 0,
                     }}
-                    placeholder="Search room or bed number (e.g. 101, B)..."
+                    placeholder="Search room number (e.g. 101) or bed (e.g. A)..."
                     placeholderTextColor="#94A3B8"
                     value={bedSearchQuery}
                     onChangeText={setBedSearchQuery}
@@ -1141,12 +1217,11 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
                         color: selectedFloorFilter === 'all' ? '#FFFFFF' : '#657080',
                       }}
                     >
-                      All Floors ({allVacantBeds.length})
+                      All Floors ({filteredRooms.length} Rooms · {totalVacantBedsCount} Beds)
                     </Text>
                   </TouchableOpacity>
 
                   {availableFloors.map(f => {
-                    const count = allVacantBeds.filter(b => b.floorNumber === f.floorNumber).length;
                     const isSelected = selectedFloorFilter === f.floorNumber;
                     return (
                       <TouchableOpacity
@@ -1168,7 +1243,7 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
                             color: isSelected ? '#FFFFFF' : '#657080',
                           }}
                         >
-                          {f.label} ({count})
+                          {f.label} ({f.availableRoomsCount} Rooms)
                         </Text>
                       </TouchableOpacity>
                     );
@@ -1219,14 +1294,24 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
                 </ScrollView>
               </View>
 
-              {/* Available Beds List */}
-              {filteredBeds.length === 0 ? (
+              {/* Loading State */}
+              {isMatrixLoading || isMatrixFetching ? (
+                <View style={{ padding: 48, alignItems: 'center', justifyContent: 'center' }}>
+                  <ActivityIndicator size="large" color="#4F5330" />
+                  <Text
+                    style={{ fontSize: 13, fontWeight: '700', color: '#657080', marginTop: 12 }}
+                  >
+                    Loading rooms and available beds…
+                  </Text>
+                </View>
+              ) : filteredRooms.length === 0 ? (
+                /* Empty State */
                 <View style={{ padding: 48, alignItems: 'center', justifyContent: 'center' }}>
                   <BedDouble size={36} color="#CBD5E1" />
                   <Text
-                    style={{ fontSize: 14, fontWeight: '700', color: '#0C192B', marginTop: 10 }}
+                    style={{ fontSize: 15, fontWeight: '800', color: '#0C192B', marginTop: 10 }}
                   >
-                    No vacant beds found
+                    No rooms with vacant beds found
                   </Text>
                   <Text
                     style={{
@@ -1239,124 +1324,275 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
                   >
                     Try adjusting the floor or sharing filter, or check another property.
                   </Text>
+                  <TouchableOpacity
+                    onPress={() => matrixRefetch()}
+                    style={{
+                      marginTop: 14,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      paddingHorizontal: 16,
+                      paddingVertical: 8,
+                      borderRadius: 9999,
+                      backgroundColor: '#FAF5EB',
+                      borderWidth: 1,
+                      borderColor: '#E5DDCD',
+                    }}
+                  >
+                    <RefreshCw size={14} color="#4F5330" style={{ marginRight: 6 }} />
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#4F5330' }}>
+                      Refresh Rooms & Beds
+                    </Text>
+                  </TouchableOpacity>
                 </View>
               ) : (
+                /* Room Cards List */
                 <ScrollView
                   style={{ flex: 1 }}
-                  contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 30, gap: 10 }}
+                  contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 30, gap: 12 }}
                   showsVerticalScrollIndicator={false}
                 >
-                  {filteredBeds.map(item => {
-                    const bedRentPaise =
-                      item.bed.baseRentPaise ??
-                      item.room.baseRentPaisePerBed ??
-                      originalRentRupees * 100;
-                    const bedRentRupees = Math.round(bedRentPaise / 100);
-                    const diffRupees = bedRentRupees - originalRentRupees;
+                  {filteredRooms.map(item => {
+                    const roomRentPaise = item.room.baseRentPaisePerBed || originalRentRupees * 100;
 
                     return (
-                      <TouchableOpacity
-                        key={item.bed._id}
-                        onPress={() => handleSelectBed(item)}
-                        activeOpacity={0.7}
+                      <View
+                        key={item.room._id}
                         style={{
                           backgroundColor: '#FFFDF8',
                           borderWidth: 1,
                           borderColor: '#E5DDCD',
-                          borderRadius: 16,
-                          padding: 14,
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
+                          borderRadius: 18,
+                          padding: 16,
                           shadowColor: '#000',
                           shadowOffset: { width: 0, height: 1 },
                           shadowOpacity: 0.03,
-                          shadowRadius: 2,
+                          shadowRadius: 3,
                           elevation: 1,
                         }}
                       >
-                        <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-                          <View
-                            style={{
-                              width: 44,
-                              height: 44,
-                              borderRadius: 12,
-                              backgroundColor: '#F4F8EC',
-                              borderWidth: 1,
-                              borderColor: '#D9E8CE',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              marginRight: 12,
-                            }}
-                          >
-                            <BedDouble size={20} color="#4F5330" />
-                          </View>
-
-                          <View style={{ flex: 1, marginRight: 8 }}>
-                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                              <Text style={{ fontSize: 15, fontWeight: '800', color: '#0C192B' }}>
-                                Bed {item.bed.bedNumber}
-                              </Text>
-                              <View
-                                style={{
-                                  backgroundColor: '#E8F5E9',
-                                  paddingHorizontal: 6,
-                                  paddingVertical: 1,
-                                  borderRadius: 4,
-                                }}
-                              >
-                                <Text style={{ fontSize: 10, fontWeight: '800', color: '#2E7D32' }}>
-                                  VACANT
-                                </Text>
-                              </View>
-                            </View>
-
-                            <Text
-                              style={{
-                                fontSize: 12,
-                                fontWeight: '500',
-                                color: '#657080',
-                                marginTop: 2,
-                              }}
-                            >
-                              Room {item.room.roomNumber} ·{' '}
-                              {item.floorNumber === 0
-                                ? 'Ground Floor'
-                                : `Floor ${item.floorNumber}`}{' '}
-                              · {item.room.beds?.length || 1}-share
-                            </Text>
-
+                        {/* Room Header Row */}
+                        <View
+                          style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            paddingBottom: 12,
+                            borderBottomWidth: 1,
+                            borderBottomColor: '#F0ECE1',
+                          }}
+                        >
+                          <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
                             <View
                               style={{
-                                flexDirection: 'row',
+                                width: 38,
+                                height: 38,
+                                borderRadius: 12,
+                                backgroundColor: '#F4F8EC',
+                                borderWidth: 1,
+                                borderColor: '#D9E8CE',
                                 alignItems: 'center',
-                                marginTop: 4,
-                                gap: 6,
+                                justifyContent: 'center',
+                                marginRight: 10,
                               }}
                             >
-                              <Text style={{ fontSize: 13, fontWeight: '700', color: '#4F5330' }}>
-                                {formatINR(bedRentPaise)}/mo
+                              <DoorClosed size={18} color="#4F5330" />
+                            </View>
+                            <View>
+                              <Text style={{ fontSize: 16, fontWeight: '800', color: '#0C192B' }}>
+                                Room {item.room.roomNumber}
                               </Text>
+                              <Text
+                                style={{
+                                  fontSize: 12,
+                                  fontWeight: '500',
+                                  color: '#657080',
+                                  marginTop: 1,
+                                }}
+                              >
+                                {item.floorNumber === 0
+                                  ? 'Ground Floor'
+                                  : `Floor ${item.floorNumber}`}{' '}
+                                · {item.sharingType}-Share
+                              </Text>
+                            </View>
+                          </View>
 
-                              {diffRupees < 0 ? (
-                                <Text style={{ fontSize: 11, fontWeight: '700', color: '#2E7D32' }}>
-                                  · ₹{Math.abs(diffRupees).toLocaleString('en-IN')} cheaper
-                                </Text>
-                              ) : diffRupees > 0 ? (
-                                <Text style={{ fontSize: 11, fontWeight: '700', color: '#1D4ED8' }}>
-                                  · +₹{diffRupees.toLocaleString('en-IN')} higher
-                                </Text>
-                              ) : (
-                                <Text style={{ fontSize: 11, fontWeight: '600', color: '#657080' }}>
-                                  · Same rent
-                                </Text>
-                              )}
+                          <View style={{ alignItems: 'flex-end' }}>
+                            <Text style={{ fontSize: 14, fontWeight: '800', color: '#4F5330' }}>
+                              {formatINR(roomRentPaise)}/mo
+                            </Text>
+                            <View
+                              style={{
+                                backgroundColor: '#E8F5E9',
+                                paddingHorizontal: 8,
+                                paddingVertical: 2,
+                                borderRadius: 6,
+                                marginTop: 3,
+                              }}
+                            >
+                              <Text style={{ fontSize: 10, fontWeight: '800', color: '#2E7D32' }}>
+                                {item.availableBeds.length} Available Bed
+                                {item.availableBeds.length > 1 ? 's' : ''}
+                              </Text>
                             </View>
                           </View>
                         </View>
 
-                        <ChevronRight size={18} color="#657080" />
-                      </TouchableOpacity>
+                        {/* Available Beds inside this Room */}
+                        <View style={{ paddingTop: 12, gap: 8 }}>
+                          <Text
+                            style={{
+                              fontSize: 11,
+                              fontWeight: '700',
+                              color: '#657080',
+                              textTransform: 'uppercase',
+                              letterSpacing: 0.5,
+                              marginBottom: 2,
+                            }}
+                          >
+                            Choose Bed to Move:
+                          </Text>
+
+                          {item.availableBeds.map(bed => {
+                            const bedRentPaise =
+                              bed.baseRentPaise ?? roomRentPaise ?? originalRentRupees * 100;
+                            const bedRentRupees = Math.round(bedRentPaise / 100);
+                            const diffRupees = bedRentRupees - originalRentRupees;
+
+                            return (
+                              <TouchableOpacity
+                                key={bed._id}
+                                onPress={() =>
+                                  handleSelectBed({
+                                    bed,
+                                    room: item.room,
+                                    floorNumber: item.floorNumber,
+                                    floorLabel: item.floorLabel,
+                                  })
+                                }
+                                activeOpacity={0.75}
+                                style={{
+                                  flexDirection: 'row',
+                                  alignItems: 'center',
+                                  justifyContent: 'space-between',
+                                  backgroundColor: '#FAF5EB',
+                                  borderWidth: 1,
+                                  borderColor: '#E5DDCD',
+                                  borderRadius: 14,
+                                  paddingVertical: 10,
+                                  paddingHorizontal: 12,
+                                }}
+                              >
+                                <View
+                                  style={{
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    flex: 1,
+                                    marginRight: 8,
+                                  }}
+                                >
+                                  <View
+                                    style={{
+                                      width: 30,
+                                      height: 30,
+                                      borderRadius: 15,
+                                      backgroundColor: '#FFFDF8',
+                                      borderWidth: 1,
+                                      borderColor: '#E5DDCD',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      marginRight: 10,
+                                    }}
+                                  >
+                                    <BedDouble size={15} color="#4F5330" />
+                                  </View>
+
+                                  <View>
+                                    <Text
+                                      style={{ fontSize: 14, fontWeight: '800', color: '#0C192B' }}
+                                    >
+                                      Bed {bed.bedNumber}
+                                    </Text>
+                                    <View
+                                      style={{
+                                        flexDirection: 'row',
+                                        alignItems: 'center',
+                                        marginTop: 2,
+                                        gap: 6,
+                                      }}
+                                    >
+                                      <Text
+                                        style={{
+                                          fontSize: 12,
+                                          fontWeight: '700',
+                                          color: '#4F5330',
+                                        }}
+                                      >
+                                        ₹{bedRentRupees.toLocaleString('en-IN')}/mo
+                                      </Text>
+
+                                      {diffRupees < 0 ? (
+                                        <Text
+                                          style={{
+                                            fontSize: 11,
+                                            fontWeight: '700',
+                                            color: '#2E7D32',
+                                          }}
+                                        >
+                                          · ₹{Math.abs(diffRupees).toLocaleString('en-IN')} cheaper
+                                        </Text>
+                                      ) : diffRupees > 0 ? (
+                                        <Text
+                                          style={{
+                                            fontSize: 11,
+                                            fontWeight: '700',
+                                            color: '#1D4ED8',
+                                          }}
+                                        >
+                                          · +₹{diffRupees.toLocaleString('en-IN')} higher
+                                        </Text>
+                                      ) : (
+                                        <Text
+                                          style={{
+                                            fontSize: 11,
+                                            fontWeight: '600',
+                                            color: '#657080',
+                                          }}
+                                        >
+                                          · Same rent
+                                        </Text>
+                                      )}
+                                    </View>
+                                  </View>
+                                </View>
+
+                                <View
+                                  style={{
+                                    backgroundColor: '#4F5330',
+                                    borderRadius: 9999,
+                                    paddingHorizontal: 10,
+                                    paddingVertical: 5,
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                  }}
+                                >
+                                  <Text
+                                    style={{
+                                      fontSize: 11,
+                                      fontWeight: '800',
+                                      color: '#FFFFFF',
+                                      marginRight: 2,
+                                    }}
+                                  >
+                                    Select
+                                  </Text>
+                                  <ChevronRight size={12} color="#FFFFFF" />
+                                </View>
+                              </TouchableOpacity>
+                            );
+                          })}
+                        </View>
+                      </View>
                     );
                   })}
                 </ScrollView>

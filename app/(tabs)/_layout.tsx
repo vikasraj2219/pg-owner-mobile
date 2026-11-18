@@ -15,7 +15,7 @@ export default function TabsLayout() {
   const renderTabIcon = (IconComponent: LucideIcon, focused: boolean) => {
     return (
       <IconComponent
-        color={focused ? '#4F5330' : '#8C95A0'}
+        color={focused ? '#0284C7' : '#8C95A0'}
         size={22}
         strokeWidth={focused ? 2.5 : 1.9}
       />
@@ -26,7 +26,7 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#4F5330',
+        tabBarActiveTintColor: '#0284C7',
         tabBarInactiveTintColor: '#8C95A0',
         tabBarStyle: {
           backgroundColor: '#FFFFFF',

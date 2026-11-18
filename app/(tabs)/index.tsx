@@ -448,9 +448,11 @@ export default function PulseScreen() {
                   </TouchableOpacity>
                 ) : (
                   <View style={{ gap: 12 }}>
-                    {properties.slice(0, 3).map(prop => {
+                    {properties.slice(0, 4).map(prop => {
                       const pTotal = prop.stats?.totalBeds || 0;
                       const pOccupied = prop.stats?.occupiedBeds || 0;
+                      const pVacant = Math.max(0, pTotal - pOccupied);
+                      const pRooms = prop.stats?.totalRooms || 0;
                       const pRate =
                         pTotal > 0
                           ? Math.round((pOccupied / pTotal) * 100)
@@ -470,17 +472,18 @@ export default function PulseScreen() {
                           }}
                           style={{
                             backgroundColor: '#FFFDF8',
-                            borderWidth: 1,
+                            borderWidth: 1.5,
                             borderColor: isSelected ? '#19D3E6' : '#E5DDCD',
-                            borderRadius: 20,
+                            borderRadius: 22,
                             padding: 16,
                             shadowColor: '#000',
-                            shadowOffset: { width: 0, height: 1 },
-                            shadowOpacity: 0.03,
-                            shadowRadius: 3,
-                            elevation: 1,
+                            shadowOffset: { width: 0, height: 2 },
+                            shadowOpacity: 0.04,
+                            shadowRadius: 4,
+                            elevation: 2,
                           }}
                         >
+                          {/* Top Row: Icon, Name, Active Pill, Occupancy */}
                           <View
                             style={{
                               flexDirection: 'row',
@@ -494,7 +497,7 @@ export default function PulseScreen() {
                                 alignItems: 'center',
                                 gap: 12,
                                 flex: 1,
-                                marginRight: 12,
+                                marginRight: 10,
                               }}
                             >
                               <View
@@ -524,7 +527,7 @@ export default function PulseScreen() {
                                   }}
                                 >
                                   <Text
-                                    style={{ fontSize: 15, fontWeight: '800', color: '#0C192B' }}
+                                    style={{ fontSize: 16, fontWeight: '800', color: '#0C192B' }}
                                     numberOfLines={1}
                                   >
                                     {prop.name}
@@ -535,19 +538,19 @@ export default function PulseScreen() {
                                         backgroundColor: '#F0FDF4',
                                         borderWidth: 1,
                                         borderColor: '#BBF7D0',
-                                        paddingHorizontal: 7,
-                                        paddingVertical: 1.5,
+                                        paddingHorizontal: 8,
+                                        paddingVertical: 2,
                                         borderRadius: 9999,
                                       }}
                                     >
                                       <Text
                                         style={{
                                           fontSize: 10,
-                                          fontWeight: '700',
+                                          fontWeight: '800',
                                           color: '#15803D',
                                         }}
                                       >
-                                        Active
+                                        Selected
                                       </Text>
                                     </View>
                                   )}
@@ -561,15 +564,16 @@ export default function PulseScreen() {
                                   }}
                                   numberOfLines={1}
                                 >
-                                  {location} · {pOccupied}/{pTotal} beds
+                                  {location}
                                 </Text>
                               </View>
                             </View>
+
                             <View style={{ alignItems: 'flex-end' }}>
-                              <Text style={{ fontSize: 16, fontWeight: '800', color: '#0C192B' }}>
+                              <Text style={{ fontSize: 17, fontWeight: '900', color: '#0C192B' }}>
                                 {pRate}%
                               </Text>
-                              <Text style={{ fontSize: 11, fontWeight: '500', color: '#657080' }}>
+                              <Text style={{ fontSize: 11, fontWeight: '600', color: '#657080' }}>
                                 Occupancy
                               </Text>
                             </View>
@@ -583,6 +587,7 @@ export default function PulseScreen() {
                               backgroundColor: '#EAE3D3',
                               borderRadius: 9999,
                               marginTop: 12,
+                              marginBottom: 12,
                               overflow: 'hidden',
                             }}
                           >
@@ -594,6 +599,34 @@ export default function PulseScreen() {
                                 borderRadius: 9999,
                               }}
                             />
+                          </View>
+
+                          {/* Mini Stat Pills Row */}
+                          <View
+                            style={{
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              backgroundColor: '#FAF5EB',
+                              borderRadius: 12,
+                              paddingVertical: 8,
+                              paddingHorizontal: 12,
+                            }}
+                          >
+                            <Text style={{ fontSize: 12, fontWeight: '600', color: '#657080' }}>
+                              Rooms:{' '}
+                              <Text style={{ fontWeight: '800', color: '#0C192B' }}>{pRooms}</Text>
+                            </Text>
+                            <Text style={{ fontSize: 12, fontWeight: '600', color: '#657080' }}>
+                              Occupied:{' '}
+                              <Text style={{ fontWeight: '800', color: '#15803D' }}>
+                                {pOccupied}
+                              </Text>
+                            </Text>
+                            <Text style={{ fontSize: 12, fontWeight: '600', color: '#657080' }}>
+                              Vacant:{' '}
+                              <Text style={{ fontWeight: '800', color: '#0284C7' }}>{pVacant}</Text>
+                            </Text>
                           </View>
                         </TouchableOpacity>
                       );

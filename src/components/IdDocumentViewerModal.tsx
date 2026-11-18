@@ -221,11 +221,11 @@ export const IdDocumentViewerModal: React.FC<IdDocumentViewerModalProps> = ({
             </View>
           )}
 
-          {/* Image View Area */}
+          {/* Image View Area with App Palette */}
           <View
             style={{
               flex: 1,
-              backgroundColor: '#0C192B',
+              backgroundColor: '#F5EFE0',
               margin: 14,
               borderRadius: 18,
               alignItems: 'center',
@@ -265,12 +265,12 @@ export const IdDocumentViewerModal: React.FC<IdDocumentViewerModalProps> = ({
                       bottom: 0,
                       alignItems: 'center',
                       justifyContent: 'center',
-                      backgroundColor: 'rgba(12, 25, 43, 0.6)',
+                      backgroundColor: 'rgba(250, 245, 235, 0.9)',
                     }}
                   >
-                    <ActivityIndicator size="large" color="#FAF5EB" />
+                    <ActivityIndicator size="large" color="#4F5330" />
                     <Text
-                      style={{ fontSize: 12, fontWeight: '700', color: '#FFFFFF', marginTop: 8 }}
+                      style={{ fontSize: 12, fontWeight: '700', color: '#0C192B', marginTop: 8 }}
                     >
                       Loading document...
                     </Text>
@@ -288,15 +288,15 @@ export const IdDocumentViewerModal: React.FC<IdDocumentViewerModalProps> = ({
                       alignItems: 'center',
                       justifyContent: 'center',
                       paddingHorizontal: 24,
-                      backgroundColor: '#0C192B',
+                      backgroundColor: '#FAF5EB',
                     }}
                   >
-                    <FileText size={48} color="#94A3B8" />
+                    <FileText size={48} color="#657080" />
                     <Text
                       style={{
                         fontSize: 14,
                         fontWeight: '700',
-                        color: '#FFFFFF',
+                        color: '#0C192B',
                         marginTop: 12,
                         textAlign: 'center',
                       }}
@@ -306,7 +306,7 @@ export const IdDocumentViewerModal: React.FC<IdDocumentViewerModalProps> = ({
                     <Text
                       style={{
                         fontSize: 12,
-                        color: '#94A3B8',
+                        color: '#657080',
                         marginTop: 4,
                         textAlign: 'center',
                       }}
@@ -320,12 +320,12 @@ export const IdDocumentViewerModal: React.FC<IdDocumentViewerModalProps> = ({
               <View
                 style={{ alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 }}
               >
-                <FileText size={48} color="#94A3B8" />
+                <FileText size={48} color="#657080" />
                 <Text
                   style={{
                     fontSize: 14,
                     fontWeight: '700',
-                    color: '#FFFFFF',
+                    color: '#0C192B',
                     marginTop: 12,
                     textAlign: 'center',
                   }}

@@ -487,22 +487,22 @@ export default function CheckoutScreen() {
             <View
               style={{
                 flex: 1,
-                backgroundColor: '#F0FDFA',
+                backgroundColor: '#F0F6FF',
                 borderWidth: 1,
-                borderColor: '#99F6E4',
-                borderRadius: 16,
-                paddingVertical: 12,
-                paddingHorizontal: 10,
+                borderColor: '#DCE8FA',
+                borderRadius: 18,
+                paddingVertical: 14,
+                paddingHorizontal: 12,
               }}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
-                <Wallet size={13} color="#0D9488" />
+                <Wallet size={15} color="#0284C7" strokeWidth={2.4} />
                 <Text
                   style={{
-                    fontSize: 10.5,
-                    fontWeight: '700',
-                    color: '#0D9488',
-                    marginLeft: 4,
+                    fontSize: 11,
+                    fontWeight: '600',
+                    color: '#1E293B',
+                    marginLeft: 6,
                   }}
                   numberOfLines={1}
                 >
@@ -511,10 +511,11 @@ export default function CheckoutScreen() {
               </View>
               <Text
                 style={{
-                  fontSize: 15,
+                  fontSize: 16,
                   fontWeight: '800',
                   color: '#0C192B',
                   letterSpacing: -0.3,
+                  marginTop: 4,
                 }}
                 numberOfLines={1}
               >
@@ -529,19 +530,19 @@ export default function CheckoutScreen() {
                 backgroundColor: '#FEF2F2',
                 borderWidth: 1,
                 borderColor: '#FECACA',
-                borderRadius: 16,
-                paddingVertical: 12,
-                paddingHorizontal: 10,
+                borderRadius: 18,
+                paddingVertical: 14,
+                paddingHorizontal: 12,
               }}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
-                <AlertTriangle size={13} color="#DC2626" />
+                <AlertTriangle size={15} color="#DC2626" strokeWidth={2.4} />
                 <Text
                   style={{
-                    fontSize: 10.5,
-                    fontWeight: '700',
-                    color: '#DC2626',
-                    marginLeft: 4,
+                    fontSize: 11,
+                    fontWeight: '600',
+                    color: '#1E293B',
+                    marginLeft: 6,
                   }}
                   numberOfLines={1}
                 >
@@ -550,10 +551,11 @@ export default function CheckoutScreen() {
               </View>
               <Text
                 style={{
-                  fontSize: 15,
+                  fontSize: 16,
                   fontWeight: '800',
                   color: '#DC2626',
                   letterSpacing: -0.3,
+                  marginTop: 4,
                 }}
                 numberOfLines={1}
               >
@@ -565,22 +567,22 @@ export default function CheckoutScreen() {
             <View
               style={{
                 flex: 1,
-                backgroundColor: '#F0F9FF',
+                backgroundColor: '#F0FDF4',
                 borderWidth: 1,
-                borderColor: '#BAE6FD',
-                borderRadius: 16,
-                paddingVertical: 12,
-                paddingHorizontal: 10,
+                borderColor: '#DCFCE7',
+                borderRadius: 18,
+                paddingVertical: 14,
+                paddingHorizontal: 12,
               }}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
-                <Calendar size={13} color="#0284C7" />
+                <Calendar size={15} color="#15803D" strokeWidth={2.4} />
                 <Text
                   style={{
-                    fontSize: 10.5,
-                    fontWeight: '700',
-                    color: '#0284C7',
-                    marginLeft: 4,
+                    fontSize: 11,
+                    fontWeight: '600',
+                    color: '#1E293B',
+                    marginLeft: 6,
                   }}
                   numberOfLines={1}
                 >
@@ -589,10 +591,12 @@ export default function CheckoutScreen() {
               </View>
               <Text
                 style={{
-                  fontSize: 15,
+                  fontSize: 16,
                   fontWeight: '800',
-                  color: '#0369A1',
+                  color:
+                    (preview?.estimatedRefundPaise || netRefundPaise) > 0 ? '#15803D' : '#0C192B',
                   letterSpacing: -0.3,
+                  marginTop: 4,
                 }}
                 numberOfLines={1}
               >

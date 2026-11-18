@@ -218,10 +218,12 @@ export default function TenantDetailScreen() {
     const propName = propertyObj?.name || 'PG Living';
     const upi = propertyObj?.upiVpa || '';
 
+    const targetId = dueInvoice?._id || tenant._id || (tenant as any)?.id || id;
+
     router.push({
       pathname: '/reminder/[id]',
       params: {
-        id: dueInvoice?._id || tenant._id,
+        id: targetId,
         tenantName: tenant.fullName,
         phone: tenant.phone || '',
         bedNo: bedInfo.formattedLabel || `Bed ${bedInfo.bedNumber}`,
@@ -990,24 +992,25 @@ export default function TenantDetailScreen() {
               <View
                 style={{
                   flex: 1,
-                  backgroundColor: '#F0F9FF',
+                  backgroundColor: '#F0F6FF',
                   borderWidth: 1,
-                  borderColor: '#E0F2FE',
-                  borderRadius: 16,
-                  padding: 12,
+                  borderColor: '#DCE8FA',
+                  borderRadius: 18,
+                  paddingVertical: 14,
+                  paddingHorizontal: 12,
                 }}
               >
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Calendar size={14} color="#0284C7" strokeWidth={2.5} />
+                  <Calendar size={15} color="#0284C7" strokeWidth={2.4} />
                   <Text
-                    style={{ fontSize: 11, fontWeight: '600', color: '#0C192B', marginLeft: 5 }}
+                    style={{ fontSize: 12, fontWeight: '600', color: '#1E293B', marginLeft: 6 }}
                     numberOfLines={1}
                   >
                     Monthly Rent
                   </Text>
                 </View>
                 <Text
-                  style={{ fontSize: 17, fontWeight: '800', color: '#0C192B', marginTop: 8 }}
+                  style={{ fontSize: 18, fontWeight: '800', color: '#0C192B', marginTop: 10 }}
                   numberOfLines={1}
                 >
                   {formatINR(tenant.monthlyRentPaise || 0)}
@@ -1018,24 +1021,25 @@ export default function TenantDetailScreen() {
               <View
                 style={{
                   flex: 1,
-                  backgroundColor: '#F0FDFA',
+                  backgroundColor: '#F0F6FF',
                   borderWidth: 1,
-                  borderColor: '#CCFBF1',
-                  borderRadius: 16,
-                  padding: 12,
+                  borderColor: '#DCE8FA',
+                  borderRadius: 18,
+                  paddingVertical: 14,
+                  paddingHorizontal: 12,
                 }}
               >
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Wallet size={14} color="#0891B2" strokeWidth={2.5} />
+                  <Wallet size={15} color="#0284C7" strokeWidth={2.4} />
                   <Text
-                    style={{ fontSize: 11, fontWeight: '600', color: '#0C192B', marginLeft: 5 }}
+                    style={{ fontSize: 12, fontWeight: '600', color: '#1E293B', marginLeft: 6 }}
                     numberOfLines={1}
                   >
                     Deposit Held
                   </Text>
                 </View>
                 <Text
-                  style={{ fontSize: 17, fontWeight: '800', color: '#0C192B', marginTop: 8 }}
+                  style={{ fontSize: 18, fontWeight: '800', color: '#0C192B', marginTop: 10 }}
                   numberOfLines={1}
                 >
                   {formatINR(tenant.depositPaise || 0)}
@@ -1049,18 +1053,24 @@ export default function TenantDetailScreen() {
                   backgroundColor: balanceDuePaise > 0 ? '#FEF2F2' : '#F0FDF4',
                   borderWidth: 1,
                   borderColor: balanceDuePaise > 0 ? '#FECACA' : '#DCFCE7',
-                  borderRadius: 16,
-                  padding: 12,
+                  borderRadius: 18,
+                  paddingVertical: 14,
+                  paddingHorizontal: 12,
                 }}
               >
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                   <AlertTriangle
-                    size={14}
+                    size={15}
                     color={balanceDuePaise > 0 ? '#DC2626' : '#15803D'}
-                    strokeWidth={2.5}
+                    strokeWidth={2.4}
                   />
                   <Text
-                    style={{ fontSize: 11, fontWeight: '600', color: '#0C192B', marginLeft: 5 }}
+                    style={{
+                      fontSize: 12,
+                      fontWeight: '600',
+                      color: '#1E293B',
+                      marginLeft: 6,
+                    }}
                     numberOfLines={1}
                   >
                     Balance Due
@@ -1068,10 +1078,10 @@ export default function TenantDetailScreen() {
                 </View>
                 <Text
                   style={{
-                    fontSize: 17,
+                    fontSize: 18,
                     fontWeight: '800',
                     color: balanceDuePaise > 0 ? '#DC2626' : '#15803D',
-                    marginTop: 8,
+                    marginTop: 10,
                   }}
                   numberOfLines={1}
                 >
@@ -1176,188 +1186,6 @@ export default function TenantDetailScreen() {
                 </Text>
               </View>
             </View>
-
-            {/* Quick Bed Transfer Action Row */}
-            <TouchableOpacity
-              onPress={() => setShowTransferModal(true)}
-              activeOpacity={0.7}
-              style={{
-                backgroundColor: '#FFFDF8',
-                borderWidth: 1,
-                borderColor: '#E5DDCD',
-                borderRadius: 18,
-                padding: 16,
-                marginBottom: 16,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: 0.03,
-                shadowRadius: 2,
-                elevation: 1,
-              }}
-            >
-              <View
-                style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 10 }}
-              >
-                <View
-                  style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 20,
-                    backgroundColor: '#F4F8EC',
-                    borderWidth: 1,
-                    borderColor: '#D9E8CE',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginRight: 12,
-                  }}
-                >
-                  <Repeat size={18} color="#4F5330" />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 14, fontWeight: '800', color: '#0C192B' }}>
-                    Transfer to Another Bed
-                  </Text>
-                  <Text style={{ fontSize: 12, fontWeight: '500', color: '#657080', marginTop: 2 }}>
-                    Currently Bed {bedInfo.bedNumber} · ₹
-                    {Math.round((tenant.monthlyRentPaise || 0) / 100).toLocaleString('en-IN')}/mo
-                  </Text>
-                </View>
-              </View>
-              <ChevronRight size={18} color="#657080" />
-            </TouchableOpacity>
-
-            {/* Bed Transfer History (if any) */}
-            {tenant.transferHistory && tenant.transferHistory.length > 0 && (
-              <View
-                style={{
-                  backgroundColor: '#FFFDF8',
-                  borderWidth: 1,
-                  borderColor: '#E5DDCD',
-                  borderRadius: 18,
-                  padding: 16,
-                  marginBottom: 16,
-                  shadowColor: '#000',
-                  shadowOffset: { width: 0, height: 1 },
-                  shadowOpacity: 0.03,
-                  shadowRadius: 2,
-                  elevation: 1,
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: 12,
-                    fontWeight: '800',
-                    color: '#657080',
-                    textTransform: 'uppercase',
-                    letterSpacing: 0.5,
-                    marginBottom: 12,
-                  }}
-                >
-                  Bed Transfer History ({tenant.transferHistory.length})
-                </Text>
-
-                <View style={{ gap: 10 }}>
-                  {tenant.transferHistory.map((item, idx) => (
-                    <View
-                      key={item._id || idx}
-                      style={{
-                        backgroundColor: '#FAF5EB',
-                        borderWidth: 1,
-                        borderColor: '#E5DDCD',
-                        borderRadius: 14,
-                        padding: 12,
-                      }}
-                    >
-                      <View
-                        style={{
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          marginBottom: 6,
-                        }}
-                      >
-                        <Text style={{ fontSize: 11, fontWeight: '600', color: '#657080' }}>
-                          {formatSafeDate(item.effectiveDate || item.transferDate)}
-                        </Text>
-                        <View
-                          style={{
-                            paddingHorizontal: 6,
-                            paddingVertical: 1,
-                            borderRadius: 4,
-                            backgroundColor:
-                              item.status === 'completed'
-                                ? '#E8F5E9'
-                                : item.status === 'scheduled'
-                                  ? '#FEF3C7'
-                                  : '#FEE2E2',
-                          }}
-                        >
-                          <Text
-                            style={{
-                              fontSize: 10,
-                              fontWeight: '800',
-                              color:
-                                item.status === 'completed'
-                                  ? '#2E7D32'
-                                  : item.status === 'scheduled'
-                                    ? '#B45309'
-                                    : '#DC2626',
-                            }}
-                          >
-                            {item.status.toUpperCase()}
-                          </Text>
-                        </View>
-                      </View>
-
-                      <Text style={{ fontSize: 13, fontWeight: '800', color: '#0C192B' }}>
-                        Bed {item.fromBed?.bedNumber || 'Previous'} → Bed{' '}
-                        {item.toBed?.bedNumber || 'New'}
-                      </Text>
-
-                      <View
-                        style={{
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          gap: 8,
-                          marginTop: 4,
-                        }}
-                      >
-                        <Text style={{ fontSize: 12, fontWeight: '600', color: '#657080' }}>
-                          ₹{Math.round(item.previousRentPaise / 100).toLocaleString('en-IN')} → ₹
-                          {Math.round(item.newRentPaise / 100).toLocaleString('en-IN')}/mo
-                        </Text>
-                        <Text style={{ fontSize: 11, fontWeight: '500', color: '#4F5330' }}>
-                          (
-                          {item.effectiveType === 'immediate'
-                            ? 'Immediate'
-                            : item.effectiveType === 'next_month'
-                              ? 'Next Month'
-                              : 'Custom Date'}
-                          )
-                        </Text>
-                      </View>
-
-                      {item.notes ? (
-                        <Text
-                          style={{
-                            fontSize: 11,
-                            fontWeight: '500',
-                            color: '#657080',
-                            marginTop: 4,
-                            fontStyle: 'italic',
-                          }}
-                        >
-                          "{item.notes}"
-                        </Text>
-                      ) : null}
-                    </View>
-                  ))}
-                </View>
-              </View>
-            )}
 
             {/* Quick Bed Transfer Action Row */}
             <TouchableOpacity
@@ -1778,7 +1606,7 @@ export default function TenantDetailScreen() {
                     style={{
                       width: '100%',
                       height: 200,
-                      backgroundColor: '#0C192B',
+                      backgroundColor: '#F5EFE0',
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
@@ -1790,10 +1618,12 @@ export default function TenantDetailScreen() {
                     />
                   </View>
 
-                  {/* Tap to view overlay banner */}
+                  {/* Tap to view overlay banner with App Colors */}
                   <View
                     style={{
-                      backgroundColor: 'rgba(12, 25, 43, 0.9)',
+                      backgroundColor: '#FAF5EB',
+                      borderTopWidth: 1,
+                      borderTopColor: '#E5DDCD',
                       paddingHorizontal: 16,
                       paddingVertical: 10,
                       flexDirection: 'row',
@@ -1802,8 +1632,8 @@ export default function TenantDetailScreen() {
                     }}
                   >
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                      <Eye size={15} color="#FFFFFF" />
-                      <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFFFFF' }}>
+                      <Eye size={15} color="#4F5330" />
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: '#0C192B' }}>
                         Tap to view full screen
                       </Text>
                     </View>
