@@ -26,6 +26,8 @@ import {
   Sparkles,
   Plus,
   Minus,
+  Check,
+  X,
 } from 'lucide-react-native';
 import { IProperty } from '../types/api';
 import { formatINR } from '../utils/currency';
@@ -36,6 +38,7 @@ interface AddRoomModalProps {
   onClose: () => void;
   property: IProperty | null;
   existingRooms?: string[];
+  existingFloors?: number[];
   defaultFloor?: number;
   onSubmit: (payload: {
     floorNumber: number;
@@ -45,6 +48,20 @@ interface AddRoomModalProps {
     tags: string[];
   }) => Promise<unknown>;
   isSubmitting: boolean;
+}
+
+/**
+ * Formats floor index into readable title (e.g. 0 -> "Ground Floor", 1 -> "1st Floor")
+ */
+export function formatFloorLabel(floor: number): string {
+  if (floor === 0) return 'Ground Floor';
+  if (floor < 0) return `Basement ${Math.abs(floor)}`;
+  const j = floor % 10;
+  const k = floor % 100;
+  if (j === 1 && k !== 11) return `${floor}st Floor`;
+  if (j === 2 && k !== 12) return `${floor}nd Floor`;
+  if (j === 3 && k !== 13) return `${floor}rd Floor`;
+  return `${floor}th Floor`;
 }
 
 /**
@@ -80,17 +97,83 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
   onClose,
   property,
   existingRooms = [],
+  existingFloors = [],
   defaultFloor = 1,
   onSubmit,
   isSubmitting,
 }) => {
   const [floorNumber, setFloorNumber] = useState(defaultFloor.toString());
+  const [showFloorPicker, setShowFloorPicker] = useState(false);
+  const [customFloorInput, setCustomFloorInput] = useState('');
+  const [isEnteringCustomFloor, setIsEnteringCustomFloor] = useState(false);
   const [roomNumber, setRoomNumber] = useState('');
   const [sharingType, setSharingType] = useState<number>(3);
   const [showCustomSharing, setShowCustomSharing] = useState(false);
   const [hasAC, setHasAC] = useState(true);
   const [hasWashroom, setHasWashroom] = useState(true);
   const [rentPerBed, setRentPerBed] = useState('7500');
+
+  // Compute dynamic floors available in this property
+  const dynamicFloors = useMemo(() => {
+    const floorSet = new Set<number>();
+
+    // Add explicitly provided existing floors
+    if (existingFloors && existingFloors.length > 0) {
+      existingFloors.forEach(f => {
+        if (typeof f === 'number' && !isNaN(f)) floorSet.add(f);
+      });
+    }
+
+    // Invert/parse from existing rooms (e.g. "G01" -> 0, "101" -> 1, "205" -> 2)
+    existingRooms.forEach(room => {
+      const clean = room.trim().toUpperCase();
+      if (clean.startsWith('G')) {
+        floorSet.add(0);
+      } else {
+        const match = clean.match(/^(\d+)/);
+        if (match) {
+          const num = parseInt(match[1], 10);
+          if (num >= 100) {
+            floorSet.add(Math.floor(num / 100));
+          } else if (num < 100) {
+            floorSet.add(1);
+          }
+        }
+      }
+    });
+
+    // Total floors if declared on property
+    const totalFl = property?.stats?.totalFloors;
+    if (typeof totalFl === 'number' && totalFl > 0) {
+      for (let i = 1; i <= totalFl; i++) {
+        floorSet.add(i);
+      }
+    }
+
+    // Always include current floor & default floor
+    const cur = parseInt(floorNumber, 10);
+    if (!isNaN(cur)) floorSet.add(cur);
+    if (typeof defaultFloor === 'number') floorSet.add(defaultFloor);
+
+    // If still empty or minimal, supply standard starter floors [0, 1, 2, 3]
+    if (floorSet.size <= 1) {
+      [0, 1, 2, 3].forEach(f => floorSet.add(f));
+    }
+
+    return Array.from(floorSet).sort((a, b) => a - b);
+  }, [existingFloors, existingRooms, property?.stats?.totalFloors, floorNumber, defaultFloor]);
+
+  // Count existing rooms per floor for descriptive display
+  const getRoomCountForFloor = (fl: number) => {
+    return existingRooms.filter(r => {
+      const clean = r.trim().toUpperCase();
+      if (fl === 0) return clean.startsWith('G');
+      const match = clean.match(/^(\d+)/);
+      if (!match) return false;
+      const num = parseInt(match[1], 10);
+      return Math.floor(num / 100) === fl;
+    }).length;
+  };
 
   // Automatically suggest next available room number whenever modal becomes visible
   useEffect(() => {
@@ -327,12 +410,18 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
 
           {/* Floor & Room Number Row matching Right Screen */}
           <View style={{ flexDirection: 'row', gap: 12, marginBottom: 16 }}>
-            {/* Floor Selection */}
+            {/* Floor Selection Dropdown Trigger */}
             <View style={{ flex: 1 }}>
               <Text style={{ fontSize: 13, fontWeight: '700', color: '#0C192B', marginBottom: 8 }}>
                 Floor
               </Text>
-              <View
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => {
+                  setIsEnteringCustomFloor(false);
+                  setCustomFloorInput('');
+                  setShowFloorPicker(true);
+                }}
                 style={{
                   backgroundColor: '#FFFDF8',
                   borderWidth: 1,
@@ -345,22 +434,19 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
                 }}
               >
                 <Layers size={18} color="#657080" style={{ marginRight: 8 }} />
-                <TextInput
-                  value={floorNumber}
-                  onChangeText={handleFloorChange}
-                  placeholder="1"
-                  placeholderTextColor="#94A3B8"
-                  keyboardType="numeric"
+                <Text
                   style={{
                     flex: 1,
                     fontSize: 14,
                     fontWeight: '700',
                     color: '#0C192B',
-                    paddingVertical: 0,
                   }}
-                />
+                  numberOfLines={1}
+                >
+                  {formatFloorLabel(parseInt(floorNumber, 10) || 1)}
+                </Text>
                 <ChevronDown size={18} color="#657080" />
-              </View>
+              </TouchableOpacity>
             </View>
 
             {/* Room Number Input */}
@@ -836,6 +922,293 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
             )}
           </TouchableOpacity>
         </View>
+
+        {/* Floor Selection Dropdown Sheet Modal */}
+        <Modal
+          visible={showFloorPicker}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowFloorPicker(false)}
+        >
+          <View
+            style={{
+              flex: 1,
+              backgroundColor: 'rgba(12, 25, 43, 0.65)',
+              justifyContent: 'flex-end',
+            }}
+          >
+            <TouchableOpacity
+              activeOpacity={1}
+              onPress={() => setShowFloorPicker(false)}
+              style={{ flex: 1 }}
+            />
+            <View
+              style={{
+                backgroundColor: '#FAF5EB',
+                borderTopLeftRadius: 28,
+                borderTopRightRadius: 28,
+                borderWidth: 1,
+                borderBottomWidth: 0,
+                borderColor: '#E5DDCD',
+                paddingHorizontal: 20,
+                paddingTop: 16,
+                paddingBottom: Platform.OS === 'ios' ? 36 : 24,
+                maxHeight: '75%',
+              }}
+            >
+              {/* Drag Indicator */}
+              <View
+                style={{
+                  width: 36,
+                  height: 4,
+                  borderRadius: 2,
+                  backgroundColor: '#D1C7B7',
+                  alignSelf: 'center',
+                  marginBottom: 16,
+                }}
+              />
+
+              {/* Header */}
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: 16,
+                }}
+              >
+                <View>
+                  <Text style={{ fontSize: 18, fontWeight: '800', color: '#0C192B' }}>
+                    Select Floor
+                  </Text>
+                  <Text style={{ fontSize: 12, fontWeight: '500', color: '#657080', marginTop: 2 }}>
+                    Choose an existing floor or add a new one
+                  </Text>
+                </View>
+
+                <TouchableOpacity
+                  onPress={() => setShowFloorPicker(false)}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 16,
+                    backgroundColor: '#FFFDF8',
+                    borderWidth: 1,
+                    borderColor: '#E5DDCD',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <X size={16} color="#657080" />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 300 }}>
+                <View style={{ gap: 8, paddingBottom: 12 }}>
+                  {dynamicFloors.map(fl => {
+                    const isSelected = parseInt(floorNumber, 10) === fl;
+                    const roomCount = getRoomCountForFloor(fl);
+                    return (
+                      <TouchableOpacity
+                        key={fl}
+                        activeOpacity={0.7}
+                        onPress={() => {
+                          handleFloorChange(String(fl));
+                          setShowFloorPicker(false);
+                        }}
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          paddingHorizontal: 16,
+                          paddingVertical: 14,
+                          borderRadius: 16,
+                          backgroundColor: isSelected ? '#19D3E6' : '#FFFDF8',
+                          borderWidth: 1,
+                          borderColor: isSelected ? '#19D3E6' : '#E5DDCD',
+                        }}
+                      >
+                        <Layers
+                          size={18}
+                          color={isSelected ? '#0C192B' : '#4F5330'}
+                          style={{ marginRight: 12 }}
+                        />
+                        <View style={{ flex: 1 }}>
+                          <Text
+                            style={{
+                              fontSize: 15,
+                              fontWeight: '800',
+                              color: '#0C192B',
+                            }}
+                          >
+                            {formatFloorLabel(fl)}
+                          </Text>
+                          <Text
+                            style={{
+                              fontSize: 11,
+                              fontWeight: '600',
+                              color: isSelected ? '#0C192B' : '#657080',
+                              marginTop: 2,
+                            }}
+                          >
+                            {roomCount > 0
+                              ? `${roomCount} room${roomCount > 1 ? 's' : ''} in floor`
+                              : 'No rooms yet'}
+                          </Text>
+                        </View>
+                        {isSelected && (
+                          <View
+                            style={{
+                              width: 26,
+                              height: 26,
+                              borderRadius: 13,
+                              backgroundColor: '#0C192B',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}
+                          >
+                            <Check size={15} color="#19D3E6" strokeWidth={3} />
+                          </View>
+                        )}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+
+                {/* Add Next Floor or Custom Floor Option */}
+                <View
+                  style={{
+                    marginTop: 8,
+                    borderTopWidth: 1,
+                    borderTopColor: '#E5DDCD',
+                    paddingTop: 14,
+                  }}
+                >
+                  {!isEnteringCustomFloor ? (
+                    <View style={{ flexDirection: 'row', gap: 10 }}>
+                      {/* Quick Add Next Floor button */}
+                      {(() => {
+                        const maxFloor = dynamicFloors.length > 0 ? Math.max(...dynamicFloors) : 0;
+                        const nextFloor = maxFloor + 1;
+                        return (
+                          <TouchableOpacity
+                            activeOpacity={0.8}
+                            onPress={() => {
+                              handleFloorChange(String(nextFloor));
+                              setShowFloorPicker(false);
+                            }}
+                            style={{
+                              flex: 1,
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              paddingVertical: 12,
+                              paddingHorizontal: 12,
+                              borderRadius: 14,
+                              backgroundColor: '#FFFDF8',
+                              borderWidth: 1,
+                              borderColor: '#4F5330',
+                            }}
+                          >
+                            <Plus size={16} color="#4F5330" style={{ marginRight: 6 }} />
+                            <Text style={{ fontSize: 13, fontWeight: '800', color: '#4F5330' }}>
+                              Add {formatFloorLabel(nextFloor)}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })()}
+
+                      {/* Custom Floor Number Button */}
+                      <TouchableOpacity
+                        activeOpacity={0.8}
+                        onPress={() => setIsEnteringCustomFloor(true)}
+                        style={{
+                          paddingVertical: 12,
+                          paddingHorizontal: 14,
+                          borderRadius: 14,
+                          backgroundColor: '#FFFDF8',
+                          borderWidth: 1,
+                          borderColor: '#E5DDCD',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <Text style={{ fontSize: 13, fontWeight: '700', color: '#657080' }}>
+                          Custom #
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  ) : (
+                    <View
+                      style={{
+                        backgroundColor: '#FFFDF8',
+                        borderRadius: 14,
+                        borderWidth: 1,
+                        borderColor: '#E5DDCD',
+                        padding: 12,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 12,
+                          fontWeight: '700',
+                          color: '#0C192B',
+                          marginBottom: 8,
+                        }}
+                      >
+                        Enter Custom Floor Number
+                      </Text>
+                      <View style={{ flexDirection: 'row', gap: 10 }}>
+                        <TextInput
+                          value={customFloorInput}
+                          onChangeText={setCustomFloorInput}
+                          placeholder="e.g. 5, 6, 0"
+                          placeholderTextColor="#94A3B8"
+                          keyboardType="numeric"
+                          autoFocus
+                          style={{
+                            flex: 1,
+                            height: 44,
+                            backgroundColor: '#FAF5EB',
+                            borderRadius: 10,
+                            borderWidth: 1,
+                            borderColor: '#E5DDCD',
+                            paddingHorizontal: 12,
+                            fontSize: 15,
+                            fontWeight: '700',
+                            color: '#0C192B',
+                          }}
+                        />
+                        <TouchableOpacity
+                          activeOpacity={0.8}
+                          onPress={() => {
+                            const parsed = parseInt(customFloorInput.trim(), 10);
+                            if (!isNaN(parsed) && parsed >= 0) {
+                              handleFloorChange(String(parsed));
+                              setShowFloorPicker(false);
+                            }
+                          }}
+                          style={{
+                            backgroundColor: '#4F5330',
+                            paddingHorizontal: 16,
+                            height: 44,
+                            borderRadius: 10,
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <Text style={{ fontSize: 14, fontWeight: '800', color: '#FFFFFF' }}>
+                            Select
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  )}
+                </View>
+              </ScrollView>
+            </View>
+          </View>
+        </Modal>
       </KeyboardAvoidingView>
     </Modal>
   );

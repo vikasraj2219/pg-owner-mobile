@@ -907,6 +907,7 @@ export const PropertiesRoomsModal: React.FC<PropertiesRoomsModalProps> = ({ visi
           onClose={() => setShowAddRoom(false)}
           property={activeProperty || null}
           existingRooms={existingRooms}
+          existingFloors={floors.map(f => f.floorNumber)}
           defaultFloor={addRoomDefaultFloor}
           onSubmit={addRoomMutation.mutateAsync}
           isSubmitting={addRoomMutation.isPending}

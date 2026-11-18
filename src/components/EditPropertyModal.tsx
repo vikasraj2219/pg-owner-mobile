@@ -17,7 +17,6 @@ import {
   Building,
   Pencil,
   MapPin,
-  ChevronDown,
   Mail,
   QrCode,
   Copy,
@@ -26,6 +25,8 @@ import {
   ArrowRight,
   Trash2,
   Navigation,
+  AlertTriangle,
+  X,
 } from 'lucide-react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import { IProperty, PropertyType } from '../types/api';
@@ -59,6 +60,7 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showOccupiedWarningModal, setShowOccupiedWarningModal] = useState(false);
 
   useEffect(() => {
     if (property && visible) {
@@ -153,10 +155,7 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
   const handleDeleteClick = () => {
     const occupiedCount = property.stats?.occupiedBeds || 0;
     if (occupiedCount > 0) {
-      Alert.alert(
-        "Can't delete this property",
-        `${occupiedCount} tenant(s) are staying at ${property.name}. Please check them out first before deleting this property.`,
-      );
+      setShowOccupiedWarningModal(true);
       return;
     }
 
@@ -244,20 +243,24 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
             </Text>
           </View>
 
-          <View
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={handleDeleteClick}
+            disabled={isDeleting}
             style={{
               width: 40,
               height: 40,
               borderRadius: 12,
-              backgroundColor: '#FFFDF8',
+              backgroundColor: '#FFF1F2',
               borderWidth: 1,
-              borderColor: '#E5DDCD',
+              borderColor: '#FECDD3',
               alignItems: 'center',
               justifyContent: 'center',
             }}
+            accessibilityLabel="Delete property"
           >
-            <Building2 size={20} color="#4F5330" />
-          </View>
+            <Trash2 size={18} color="#BE123C" />
+          </TouchableOpacity>
         </View>
 
         <ScrollView
@@ -432,8 +435,8 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
                       flexDirection: 'row',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      backgroundColor: isSelected ? '#4F5330' : '#FFFDF8',
-                      borderColor: isSelected ? '#4F5330' : '#E5DDCD',
+                      backgroundColor: isSelected ? '#19D3E6' : '#FFFDF8',
+                      borderColor: isSelected ? '#19D3E6' : '#E5DDCD',
                       shadowColor: '#000',
                       shadowOffset: { width: 0, height: 1 },
                       shadowOpacity: 0.03,
@@ -446,7 +449,7 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
                       style={{
                         fontSize: 13,
                         fontWeight: '800',
-                        color: isSelected ? '#FFFFFF' : '#0C192B',
+                        color: isSelected ? '#0C192B' : '#0C192B',
                       }}
                     >
                       {item.label}
@@ -528,7 +531,6 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
                     paddingVertical: 0,
                   }}
                 />
-                <ChevronDown size={18} color="#657080" />
               </View>
             </View>
 
@@ -693,30 +695,155 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
               Keep your property details updated for accurate reports and billing.
             </Text>
           </View>
+        </ScrollView>
 
-          {/* Destructive Actions Row: Delete Property */}
-          <View style={{ paddingTop: 4, paddingBottom: 16 }}>
-            <TouchableOpacity
-              onPress={handleDeleteClick}
-              disabled={isDeleting}
+        {/* Modern Modal when Property Cannot Be Deleted Due to Active Tenants */}
+        <Modal
+          visible={showOccupiedWarningModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowOccupiedWarningModal(false)}
+        >
+          <View
+            style={{
+              flex: 1,
+              backgroundColor: 'rgba(12, 25, 43, 0.65)',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: 20,
+            }}
+          >
+            <View
               style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                paddingVertical: 14,
-                borderRadius: 16,
                 backgroundColor: '#FFFDF8',
+                borderRadius: 24,
                 borderWidth: 1,
-                borderColor: '#FECDD3',
+                borderColor: '#E5DDCD',
+                padding: 24,
+                width: '100%',
+                maxWidth: 380,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 8 },
+                shadowOpacity: 0.15,
+                shadowRadius: 16,
+                elevation: 8,
               }}
             >
-              <Trash2 size={16} color="#BE123C" />
-              <Text style={{ fontSize: 13, fontWeight: '700', color: '#BE123C', marginLeft: 8 }}>
-                Delete property
+              {/* Header Icon & Close */}
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: 16,
+                }}
+              >
+                <View
+                  style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 16,
+                    backgroundColor: '#FEF3C7',
+                    borderWidth: 1,
+                    borderColor: '#FDE68A',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <AlertTriangle size={24} color="#D97706" strokeWidth={2.3} />
+                </View>
+
+                <TouchableOpacity
+                  onPress={() => setShowOccupiedWarningModal(false)}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 16,
+                    backgroundColor: '#FAF5EB',
+                    borderWidth: 1,
+                    borderColor: '#E5DDCD',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <X size={16} color="#657080" strokeWidth={2.2} />
+                </TouchableOpacity>
+              </View>
+
+              {/* Title */}
+              <Text
+                style={{
+                  fontSize: 19,
+                  fontWeight: '800',
+                  color: '#0C192B',
+                  letterSpacing: -0.3,
+                  marginBottom: 8,
+                }}
+              >
+                Cannot Delete Property
               </Text>
-            </TouchableOpacity>
+
+              {/* Description */}
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: '500',
+                  color: '#4B5563',
+                  lineHeight: 20,
+                  marginBottom: 16,
+                }}
+              >
+                <Text style={{ fontWeight: '700', color: '#0C192B' }}>
+                  {property.stats?.occupiedBeds || 1} tenant(s)
+                </Text>{' '}
+                are currently staying at{' '}
+                <Text style={{ fontWeight: '700', color: '#0C192B' }}>{property.name}</Text>.
+              </Text>
+
+              {/* Guidance Box */}
+              <View
+                style={{
+                  backgroundColor: '#FFFBEB',
+                  borderWidth: 1,
+                  borderColor: '#FDE68A',
+                  borderRadius: 14,
+                  padding: 12,
+                  marginBottom: 20,
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 12.5,
+                    fontWeight: '600',
+                    color: '#92400E',
+                    lineHeight: 18,
+                  }}
+                >
+                  To protect active tenant leases and billing records, please checkout or transfer
+                  all occupants before deleting this property.
+                </Text>
+              </View>
+
+              {/* Single Primary Action Button */}
+              <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={() => setShowOccupiedWarningModal(false)}
+                style={{
+                  backgroundColor: '#4F5330',
+                  height: 48,
+                  borderRadius: 14,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Text style={{ fontSize: 15, fontWeight: '700', color: '#FFFFFF' }}>
+                  Understood
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </ScrollView>
+        </Modal>
 
         {/* Beautiful Delete Property Confirmation Modal */}
         <ConfirmDeleteModal

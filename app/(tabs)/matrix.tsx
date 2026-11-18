@@ -1297,6 +1297,7 @@ export default function MatrixScreen() {
         onClose={() => setIsAddRoomOpen(false)}
         property={effectiveMatrixProperty}
         existingRooms={existingRoomNumbers}
+        existingFloors={floorsList}
         defaultFloor={typeof selectedFloor === 'number' ? selectedFloor : floorsList[0] || 1}
         onSubmit={payload => createRoom(payload)}
         isSubmitting={isCreatingRoom}
