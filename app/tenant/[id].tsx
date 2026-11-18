@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -32,12 +32,15 @@ import {
   ImageIcon,
   Calendar,
   Wallet,
+  ChevronRight,
+  X,
 } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { useQueryClient } from '@tanstack/react-query';
 import { uploadKycDocumentApi } from '../../src/api/upload';
 import { IdDocumentViewerModal } from '../../src/components/IdDocumentViewerModal';
+import { BedTransferModal } from '../../src/components/BedTransferModal';
 import { useTenantDetail } from '../../src/hooks/useTenants';
 import { useMatrix } from '../../src/hooks/useMatrix';
 import { formatINR } from '../../src/utils/currency';
@@ -51,6 +54,7 @@ import {
   setTenantNoticeApi,
   cancelTenantNoticeApi,
   updateTenantApi,
+  cancelScheduledTransferApi,
 } from '../../src/api/tenants';
 import { DueInvoiceItem, MarkPaidResponseData } from '../../src/types/api';
 import { generateAndShareReceipt } from '../../src/utils/pdfReceipt';
@@ -59,11 +63,19 @@ type DetailTab = 'overview' | 'payments' | 'id_proof';
 
 export default function TenantDetailScreen() {
   const router = useRouter();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, openTransfer } = useLocalSearchParams<{ id: string; openTransfer?: string }>();
   const queryClient = useQueryClient();
 
   const [activeTab, setActiveTab] = useState<DetailTab>('overview');
   const [isActionSheetVisible, setIsActionSheetVisible] = useState(false);
+  const [showTransferModal, setShowTransferModal] = useState(false);
+
+  useEffect(() => {
+    if (openTransfer === 'true') {
+      setShowTransferModal(true);
+    }
+  }, [openTransfer]);
+
   const [selectedInvoiceForPayment, setSelectedInvoiceForPayment] = useState<DueInvoiceItem | null>(
     null,
   );
@@ -307,6 +319,41 @@ export default function TenantDetailScreen() {
     } catch (err: any) {
       Alert.alert('Error', err?.response?.data?.message || 'Could not cancel notice period.');
     }
+  };
+
+  // Cancel scheduled bed transfer
+  const handleCancelScheduledTransfer = () => {
+    if (!tenant?._id) return;
+    Alert.alert(
+      'Cancel Scheduled Transfer',
+      'Are you sure you want to cancel the scheduled bed transfer? The reserved bed will be made available again.',
+      [
+        { text: 'Keep Transfer', style: 'cancel' },
+        {
+          text: 'Yes, Cancel Transfer',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await cancelScheduledTransferApi(tenant._id);
+              queryClient.invalidateQueries({ queryKey: ['tenants'] });
+              queryClient.invalidateQueries({ queryKey: ['matrix'] });
+              queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+              queryClient.invalidateQueries({ queryKey: ['tenant', id] });
+              void refetch();
+              Alert.alert(
+                'Transfer Cancelled',
+                'The scheduled bed transfer was cancelled successfully.',
+              );
+            } catch (err: any) {
+              Alert.alert(
+                'Error',
+                err?.response?.data?.message || 'Could not cancel scheduled transfer.',
+              );
+            }
+          },
+        },
+      ],
+    );
   };
 
   // Process & save ID document
@@ -850,6 +897,93 @@ export default function TenantDetailScreen() {
         {/* TAB 1: OVERVIEW */}
         {activeTab === 'overview' && (
           <View style={{ paddingHorizontal: 20, paddingTop: 16 }}>
+            {/* Scheduled Bed Transfer Card (if active) */}
+            {tenant.scheduledTransfer && (
+              <View
+                style={{
+                  backgroundColor: '#FFFBEB',
+                  borderWidth: 1,
+                  borderColor: '#FDE68A',
+                  borderRadius: 18,
+                  padding: 16,
+                  marginBottom: 16,
+                }}
+              >
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    marginBottom: 8,
+                  }}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Clock size={16} color="#B45309" style={{ marginRight: 6 }} />
+                    <Text
+                      style={{
+                        fontSize: 12,
+                        fontWeight: '800',
+                        color: '#B45309',
+                        textTransform: 'uppercase',
+                        letterSpacing: 0.5,
+                      }}
+                    >
+                      Scheduled Bed Transfer
+                    </Text>
+                  </View>
+
+                  <View
+                    style={{
+                      backgroundColor: '#FEF3C7',
+                      paddingHorizontal: 8,
+                      paddingVertical: 2,
+                      borderRadius: 6,
+                    }}
+                  >
+                    <Text style={{ fontSize: 10, fontWeight: '800', color: '#B45309' }}>
+                      RESERVED
+                    </Text>
+                  </View>
+                </View>
+
+                <Text style={{ fontSize: 15, fontWeight: '800', color: '#0C192B' }}>
+                  Moving to Bed {tenant.scheduledTransfer.targetBed?.bedNumber || 'New Bed'}
+                  {tenant.scheduledTransfer.targetRoom?.roomNumber
+                    ? ` (Room ${tenant.scheduledTransfer.targetRoom.roomNumber})`
+                    : ''}
+                </Text>
+
+                <Text style={{ fontSize: 12, fontWeight: '500', color: '#657080', marginTop: 4 }}>
+                  Effective from {formatSafeDate(tenant.scheduledTransfer.effectiveDate)} · New
+                  rent:{' '}
+                  <Text style={{ fontWeight: '700', color: '#0C192B' }}>
+                    {formatINR(tenant.scheduledTransfer.newMonthlyRentPaise)}/mo
+                  </Text>
+                </Text>
+
+                <TouchableOpacity
+                  onPress={handleCancelScheduledTransfer}
+                  style={{
+                    marginTop: 12,
+                    paddingVertical: 8,
+                    paddingHorizontal: 12,
+                    borderRadius: 10,
+                    backgroundColor: '#FEF2F2',
+                    borderWidth: 1,
+                    borderColor: '#FECACA',
+                    alignSelf: 'flex-start',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                  }}
+                >
+                  <X size={14} color="#DC2626" style={{ marginRight: 4 }} />
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#DC2626' }}>
+                    Cancel Scheduled Transfer
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
             {/* 3 Metrics Cards matching Image 1 */}
             <View style={{ flexDirection: 'row', gap: 10, marginBottom: 18 }}>
               {/* Monthly Rent Card */}
@@ -1042,6 +1176,188 @@ export default function TenantDetailScreen() {
                 </Text>
               </View>
             </View>
+
+            {/* Quick Bed Transfer Action Row */}
+            <TouchableOpacity
+              onPress={() => setShowTransferModal(true)}
+              activeOpacity={0.7}
+              style={{
+                backgroundColor: '#FFFDF8',
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+                borderRadius: 18,
+                padding: 16,
+                marginBottom: 16,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.03,
+                shadowRadius: 2,
+                elevation: 1,
+              }}
+            >
+              <View
+                style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 10 }}
+              >
+                <View
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 20,
+                    backgroundColor: '#F4F8EC',
+                    borderWidth: 1,
+                    borderColor: '#D9E8CE',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginRight: 12,
+                  }}
+                >
+                  <Repeat size={18} color="#4F5330" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 14, fontWeight: '800', color: '#0C192B' }}>
+                    Transfer to Another Bed
+                  </Text>
+                  <Text style={{ fontSize: 12, fontWeight: '500', color: '#657080', marginTop: 2 }}>
+                    Currently Bed {bedInfo.bedNumber} · ₹
+                    {Math.round((tenant.monthlyRentPaise || 0) / 100).toLocaleString('en-IN')}/mo
+                  </Text>
+                </View>
+              </View>
+              <ChevronRight size={18} color="#657080" />
+            </TouchableOpacity>
+
+            {/* Bed Transfer History (if any) */}
+            {tenant.transferHistory && tenant.transferHistory.length > 0 && (
+              <View
+                style={{
+                  backgroundColor: '#FFFDF8',
+                  borderWidth: 1,
+                  borderColor: '#E5DDCD',
+                  borderRadius: 18,
+                  padding: 16,
+                  marginBottom: 16,
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: 0.03,
+                  shadowRadius: 2,
+                  elevation: 1,
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontWeight: '800',
+                    color: '#657080',
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.5,
+                    marginBottom: 12,
+                  }}
+                >
+                  Bed Transfer History ({tenant.transferHistory.length})
+                </Text>
+
+                <View style={{ gap: 10 }}>
+                  {tenant.transferHistory.map((item, idx) => (
+                    <View
+                      key={item._id || idx}
+                      style={{
+                        backgroundColor: '#FAF5EB',
+                        borderWidth: 1,
+                        borderColor: '#E5DDCD',
+                        borderRadius: 14,
+                        padding: 12,
+                      }}
+                    >
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          marginBottom: 6,
+                        }}
+                      >
+                        <Text style={{ fontSize: 11, fontWeight: '600', color: '#657080' }}>
+                          {formatSafeDate(item.effectiveDate || item.transferDate)}
+                        </Text>
+                        <View
+                          style={{
+                            paddingHorizontal: 6,
+                            paddingVertical: 1,
+                            borderRadius: 4,
+                            backgroundColor:
+                              item.status === 'completed'
+                                ? '#E8F5E9'
+                                : item.status === 'scheduled'
+                                  ? '#FEF3C7'
+                                  : '#FEE2E2',
+                          }}
+                        >
+                          <Text
+                            style={{
+                              fontSize: 10,
+                              fontWeight: '800',
+                              color:
+                                item.status === 'completed'
+                                  ? '#2E7D32'
+                                  : item.status === 'scheduled'
+                                    ? '#B45309'
+                                    : '#DC2626',
+                            }}
+                          >
+                            {item.status.toUpperCase()}
+                          </Text>
+                        </View>
+                      </View>
+
+                      <Text style={{ fontSize: 13, fontWeight: '800', color: '#0C192B' }}>
+                        Bed {item.fromBed?.bedNumber || 'Previous'} → Bed{' '}
+                        {item.toBed?.bedNumber || 'New'}
+                      </Text>
+
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          gap: 8,
+                          marginTop: 4,
+                        }}
+                      >
+                        <Text style={{ fontSize: 12, fontWeight: '600', color: '#657080' }}>
+                          ₹{Math.round(item.previousRentPaise / 100).toLocaleString('en-IN')} → ₹
+                          {Math.round(item.newRentPaise / 100).toLocaleString('en-IN')}/mo
+                        </Text>
+                        <Text style={{ fontSize: 11, fontWeight: '500', color: '#4F5330' }}>
+                          (
+                          {item.effectiveType === 'immediate'
+                            ? 'Immediate'
+                            : item.effectiveType === 'next_month'
+                              ? 'Next Month'
+                              : 'Custom Date'}
+                          )
+                        </Text>
+                      </View>
+
+                      {item.notes ? (
+                        <Text
+                          style={{
+                            fontSize: 11,
+                            fontWeight: '500',
+                            color: '#657080',
+                            marginTop: 4,
+                            fontStyle: 'italic',
+                          }}
+                        >
+                          "{item.notes}"
+                        </Text>
+                      ) : null}
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
           </View>
         )}
 
@@ -1608,7 +1924,7 @@ export default function TenantDetailScreen() {
             <TouchableOpacity
               onPress={() => {
                 setIsActionSheetVisible(false);
-                router.push(`/tenant/edit/${tenant._id}?moveBed=true` as any);
+                setShowTransferModal(true);
               }}
               style={{
                 flexDirection: 'row',
@@ -1620,7 +1936,7 @@ export default function TenantDetailScreen() {
             >
               <Repeat size={20} color="#4F5330" />
               <Text style={{ fontSize: 14, fontWeight: '700', color: '#0C192B', marginLeft: 14 }}>
-                Move to another bed
+                Change Bed / Transfer Bed
               </Text>
             </TouchableOpacity>
 
@@ -2061,6 +2377,18 @@ export default function TenantDetailScreen() {
         docType={tenant?.kycDocType || 'Aadhaar'}
         maskedNumber={tenant?.kycMaskedNumber}
       />
+
+      {/* Bed Transfer Modal */}
+      {tenant && (
+        <BedTransferModal
+          visible={showTransferModal}
+          onClose={() => setShowTransferModal(false)}
+          tenant={tenant}
+          onTransferSuccess={() => {
+            void refetch();
+          }}
+        />
+      )}
     </SafeAreaView>
   );
 }

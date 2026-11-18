@@ -20,8 +20,12 @@ export interface UpdateTenantPayload {
 
 export interface MoveBedPayload {
   newBedId: string;
+  targetPropertyId?: string;
   notes?: string;
   newMonthlyRentPaise?: Paise;
+  effectiveType?: 'immediate' | 'next_month' | 'custom';
+  effectiveDate?: string;
+  generateAdjustmentInvoice?: boolean;
 }
 
 export interface NoticePayload {
@@ -86,5 +90,12 @@ export { setTenantNoticeApi, cancelTenantNoticeApi } from './notice';
 
 export const vacateTenantApi = async (id: string, payload: VacatePayload): Promise<any> => {
   const response = await apiClient.post<ApiResponse<any>>(`/tenants/${id}/vacate`, payload);
+  return response.data.data;
+};
+
+export const cancelScheduledTransferApi = async (id: string): Promise<any> => {
+  const response = await apiClient.post<ApiResponse<any>>(
+    `/tenants/${id}/cancel-scheduled-transfer`,
+  );
   return response.data.data;
 };

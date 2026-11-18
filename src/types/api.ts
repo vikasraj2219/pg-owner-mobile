@@ -72,7 +72,44 @@ export interface IRoom {
   updatedAt?: string;
 }
 
-export type BedStatus = 'available' | 'occupied' | 'notice_period' | 'maintenance';
+export type BedStatus = 'available' | 'occupied' | 'notice_period' | 'maintenance' | 'reserved';
+
+export interface IBedTransferHistoryItem {
+  _id?: string;
+  fromBed?: { _id: string; bedNumber: string };
+  toBed?: { _id: string; bedNumber: string };
+  fromRoom?: { _id: string; roomNumber: string; floorNumber: number };
+  toRoom?: { _id: string; roomNumber: string; floorNumber: number };
+  fromProperty?: { _id: string; name: string };
+  toProperty?: { _id: string; name: string };
+  previousRentPaise: number;
+  newRentPaise: number;
+  effectiveDate: string;
+  transferDate?: string;
+  effectiveType: 'immediate' | 'next_month' | 'custom';
+  proratedAdjustmentPaise?: number;
+  notes?: string;
+  status: 'completed' | 'scheduled' | 'cancelled';
+}
+
+export interface IScheduledTransfer {
+  targetBed?: { _id: string; bedNumber: string; status?: string; baseRentPaise?: number };
+  targetRoom?: {
+    _id: string;
+    roomNumber: string;
+    floorNumber: number;
+    sharingType?: number;
+    baseRentPaisePerBed?: number;
+  };
+  targetProperty?: { _id: string; name: string };
+  newMonthlyRentPaise: number;
+  effectiveDate: string;
+  effectiveType: 'immediate' | 'next_month' | 'custom';
+  proratedAdjustmentPaise?: number;
+  generateAdjustmentInvoice?: boolean;
+  notes?: string;
+  scheduledAt?: string;
+}
 
 export interface IBed {
   _id: string;
@@ -104,6 +141,8 @@ export interface ITenant {
   kycDocUrl?: string;
   kycConsent: boolean;
   status: 'active' | 'notice_period' | 'checked_out';
+  scheduledTransfer?: IScheduledTransfer;
+  transferHistory?: IBedTransferHistoryItem[];
   createdAt?: string;
 }
 
@@ -144,6 +183,8 @@ export interface ITenantListItem {
   kycDocUrl?: string;
   kycConsent: boolean;
   status: 'active' | 'notice_period' | 'checked_out';
+  scheduledTransfer?: IScheduledTransfer;
+  transferHistory?: IBedTransferHistoryItem[];
   joinedDate?: string;
   createdAt?: string;
   updatedAt?: string;

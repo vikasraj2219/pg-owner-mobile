@@ -8,7 +8,8 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { MessageSquare, X, LogOut, Clock, ShieldCheck } from 'lucide-react-native';
+import { MessageSquare, X, LogOut, Clock, ShieldCheck, Repeat } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { IMatrixBed, IMatrixRoom } from '../types/api';
 import { formatINR } from '../utils/currency';
@@ -37,6 +38,7 @@ export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
   onViewProfile,
   onCheckout,
 }) => {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const [isUpdatingNotice, setIsUpdatingNotice] = useState(false);
   const [showNoticeConfirm, setShowNoticeConfirm] = useState(false);
@@ -201,6 +203,24 @@ export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
                   <Text className="text-base font-extrabold text-white">View dues & profile</Text>
                 </TouchableOpacity>
               </View>
+
+              {/* Change Bed / Transfer Bed Button */}
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => {
+                  onClose();
+                  router.push({
+                    pathname: '/tenant/[id]',
+                    params: { id: tenant._id, openTransfer: 'true' },
+                  } as any);
+                }}
+                className="w-full bg-[#FAF7F2] border border-[#D0D7B4] rounded-2xl py-3.5 flex-row items-center justify-center mb-2.5 shadow-xs"
+              >
+                <Repeat size={18} color="#4F5330" />
+                <Text className="text-sm font-bold text-[#4F5330] ml-2">
+                  Change Bed / Transfer Bed
+                </Text>
+              </TouchableOpacity>
 
               {/* View ID Proof / Cloudinary Document Button */}
               {tenant.kycDocUrl ? (
