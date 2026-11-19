@@ -122,6 +122,7 @@ export default function TenantDetailScreen() {
   // Real Tenant Profile Photo state
   const [showTenantPhotoModal, setShowTenantPhotoModal] = useState(false);
   const [isUpdatingTenantPhoto, setIsUpdatingTenantPhoto] = useState(false);
+  const [overridePhotoUrl, setOverridePhotoUrl] = useState<string | null | undefined>(undefined);
 
   // Fetch tenant details
   const { tenant, invoices, deposits, payments, balanceDuePaise, isLoading, refetch } =
@@ -306,6 +307,7 @@ export default function TenantDetailScreen() {
       queryClient.invalidateQueries({ queryKey: ['tenants'] });
       queryClient.invalidateQueries({ queryKey: ['matrix'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['tenant-detail', id] });
       queryClient.invalidateQueries({ queryKey: ['tenant', id] });
       void refetch();
 
@@ -339,6 +341,7 @@ export default function TenantDetailScreen() {
       queryClient.invalidateQueries({ queryKey: ['tenants'] });
       queryClient.invalidateQueries({ queryKey: ['matrix'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['tenant-detail', id] });
       queryClient.invalidateQueries({ queryKey: ['tenant', id] });
       void refetch();
       setShowCancelNoticeConfirm(false);
@@ -371,6 +374,7 @@ export default function TenantDetailScreen() {
       queryClient.invalidateQueries({ queryKey: ['tenants'] });
       queryClient.invalidateQueries({ queryKey: ['matrix'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['tenant-detail', id] });
       queryClient.invalidateQueries({ queryKey: ['tenant', id] });
       void refetch();
       setShowCancelTransferConfirm(false);
@@ -425,6 +429,7 @@ export default function TenantDetailScreen() {
 
       queryClient.invalidateQueries({ queryKey: ['tenants'] });
       queryClient.invalidateQueries({ queryKey: ['matrix'] });
+      queryClient.invalidateQueries({ queryKey: ['tenant-detail', id] });
       queryClient.invalidateQueries({ queryKey: ['tenant', id] });
       void refetch();
       setSuccessModal({
@@ -589,21 +594,37 @@ export default function TenantDetailScreen() {
 
   const handleUpdateTenantPhoto = async (uri: string) => {
     if (!tenant) return;
+    setOverridePhotoUrl(uri);
     try {
       setIsUpdatingTenantPhoto(true);
       const uploadedUrl = await uploadTenantPhotoApi(
         uri,
         `${tenant.fullName.trim().replace(/\s+/g, '_')}_photo.jpg`,
       );
+      setOverridePhotoUrl(uploadedUrl);
       await updateTenantApi(tenant._id, { photoUrl: uploadedUrl });
+
+      queryClient.setQueryData(['tenant-detail', id], (old: any) => {
+        if (!old?.tenant) return old;
+        return {
+          ...old,
+          tenant: {
+            ...old.tenant,
+            photoUrl: uploadedUrl,
+          },
+        };
+      });
+
       await refetch();
+      queryClient.invalidateQueries({ queryKey: ['tenant-detail', id] });
       queryClient.invalidateQueries({ queryKey: ['tenants'] });
       queryClient.invalidateQueries({ queryKey: ['matrix'] });
+      queryClient.invalidateQueries({ queryKey: ['tenant-detail', id] });
       queryClient.invalidateQueries({ queryKey: ['tenant', id] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       Alert.alert('Photo Updated', 'Tenant profile photo has been updated successfully.');
     } catch (err: any) {
-      Alert.alert('Upload Error', err?.message || 'Could not update profile photo.');
+      Alert.alert('Notice', err?.message || 'Using local photo preview.');
     } finally {
       setIsUpdatingTenantPhoto(false);
     }
@@ -611,12 +632,25 @@ export default function TenantDetailScreen() {
 
   const handleRemoveTenantPhoto = async () => {
     if (!tenant) return;
+    setOverridePhotoUrl('');
     try {
       setIsUpdatingTenantPhoto(true);
       await updateTenantApi(tenant._id, { photoUrl: '' });
+      queryClient.setQueryData(['tenant-detail', id], (old: any) => {
+        if (!old?.tenant) return old;
+        return {
+          ...old,
+          tenant: {
+            ...old.tenant,
+            photoUrl: undefined,
+          },
+        };
+      });
       await refetch();
+      queryClient.invalidateQueries({ queryKey: ['tenant-detail', id] });
       queryClient.invalidateQueries({ queryKey: ['tenants'] });
       queryClient.invalidateQueries({ queryKey: ['matrix'] });
+      queryClient.invalidateQueries({ queryKey: ['tenant-detail', id] });
       queryClient.invalidateQueries({ queryKey: ['tenant', id] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       Alert.alert('Photo Removed', 'Tenant picture reverted to default avatar.');
@@ -744,7 +778,9 @@ export default function TenantDetailScreen() {
                 borderRadius: 34,
                 backgroundColor: '#FAF5EB',
                 borderWidth: 1.5,
-                borderColor: tenant.photoUrl ? '#19D3E6' : '#E5DDCD',
+                borderColor: (overridePhotoUrl !== undefined ? overridePhotoUrl : tenant.photoUrl)
+                  ? '#19D3E6'
+                  : '#E5DDCD',
                 overflow: 'hidden',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -755,7 +791,18 @@ export default function TenantDetailScreen() {
                 <ActivityIndicator size="small" color="#4F5330" />
               ) : (
                 <Image
-                  source={getTenantAvatar(tenant)}
+                  key={
+                    overridePhotoUrl !== undefined
+                      ? overridePhotoUrl
+                      : tenant.photoUrl || 'tenant-avatar'
+                  }
+                  source={getTenantAvatar({
+                    ...tenant,
+                    photoUrl:
+                      overridePhotoUrl !== undefined
+                        ? overridePhotoUrl || undefined
+                        : tenant.photoUrl,
+                  })}
                   style={{ width: '100%', height: '100%' }}
                   resizeMode="cover"
                 />
@@ -2018,7 +2065,18 @@ export default function TenantDetailScreen() {
                 }}
               >
                 <Image
-                  source={getTenantAvatar(tenant)}
+                  key={
+                    overridePhotoUrl !== undefined
+                      ? overridePhotoUrl
+                      : tenant.photoUrl || 'tenant-action-avatar'
+                  }
+                  source={getTenantAvatar({
+                    ...tenant,
+                    photoUrl:
+                      overridePhotoUrl !== undefined
+                        ? overridePhotoUrl || undefined
+                        : tenant.photoUrl,
+                  })}
                   style={{ width: '100%', height: '100%' }}
                   resizeMode="cover"
                 />

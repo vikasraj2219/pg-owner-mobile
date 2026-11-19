@@ -74,6 +74,8 @@ export default function EditTenantScreen() {
   }, [tenant]);
 
   const handlePhotoSelected = async (uri: string) => {
+    // Instant optimistic preview
+    setPhotoUrl(uri);
     try {
       setIsUploadingPhoto(true);
       const uploadedUrl = await uploadTenantPhotoApi(
@@ -119,6 +121,20 @@ export default function EditTenantScreen() {
         photoUrl: photoUrl !== null ? photoUrl : undefined,
       });
 
+      queryClient.setQueryData(['tenant-detail', id], (old: any) => {
+        if (!old?.tenant) return old;
+        return {
+          ...old,
+          tenant: {
+            ...old.tenant,
+            fullName: fullName.trim(),
+            phone: phone.trim(),
+            photoUrl: photoUrl || undefined,
+          },
+        };
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['tenant-detail', id] });
       queryClient.invalidateQueries({ queryKey: ['tenants'] });
       queryClient.invalidateQueries({ queryKey: ['tenant', id] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
@@ -229,6 +245,7 @@ export default function EditTenantScreen() {
               <ActivityIndicator size="small" color="#4F5330" />
             ) : (
               <Image
+                key={photoUrl || 'edit-avatar'}
                 source={getTenantAvatar({ ...tenant, photoUrl: photoUrl || undefined })}
                 style={{ width: '100%', height: '100%' }}
                 resizeMode="cover"

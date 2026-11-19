@@ -412,6 +412,7 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
           `Bed transfer from Bed ${currentBedNumber} to Bed ${selectedTargetBed.bed.bedNumber}`,
       });
 
+      queryClient.invalidateQueries({ queryKey: ['tenant-detail', tenant._id] });
       queryClient.invalidateQueries({ queryKey: ['tenant', tenant._id] });
       queryClient.invalidateQueries({ queryKey: ['tenants'] });
       queryClient.invalidateQueries({ queryKey: ['matrix'] });

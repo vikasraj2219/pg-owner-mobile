@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, Search, Check, ChevronRight, BedDouble } from 'lucide-react-native';
+import { ArrowLeft, Search, Check, BedDouble } from 'lucide-react-native';
 import { useProperties } from '../../src/context/PropertyContext';
 import { useMatrix } from '../../src/hooks/useMatrix';
 import { IMatrixBed, IMatrixRoom } from '../../src/types/api';
@@ -378,11 +378,9 @@ export default function PickVacantBedScreen() {
               borderRadius: 9999,
               alignItems: 'center',
               justifyContent: 'center',
-              flexDirection: 'row',
             }}
           >
-            <ChevronRight size={18} color="#FFFFFF" strokeWidth={2.5} />
-            <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 14, marginLeft: 4 }}>
+            <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 14 }}>
               Continue to check-in
             </Text>
           </TouchableOpacity>

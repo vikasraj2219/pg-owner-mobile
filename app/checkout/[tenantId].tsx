@@ -111,6 +111,7 @@ export default function CheckoutScreen() {
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
       queryClient.invalidateQueries({ queryKey: ['properties'] });
+      queryClient.invalidateQueries({ queryKey: ['tenant-detail', tenantId] });
       queryClient.invalidateQueries({ queryKey: ['tenant', tenantId] });
     } catch (err: unknown) {
       const msg =

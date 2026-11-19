@@ -30,7 +30,7 @@ export function useTenantDetail(tenantId?: string) {
     queryKey: ['tenant-detail', tenantId],
     queryFn: () => fetchTenantByIdApi(tenantId!),
     enabled: Boolean(tenantId),
-    staleTime: 1000 * 30,
+    staleTime: 0,
     refetchOnMount: 'always',
   });
 

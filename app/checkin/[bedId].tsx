@@ -794,6 +794,7 @@ export default function CheckinScreen() {
               >
                 {tenantPhotoUri ? (
                   <Image
+                    key={tenantPhotoUri}
                     source={{ uri: tenantPhotoUri }}
                     style={{ width: '100%', height: '100%' }}
                   />

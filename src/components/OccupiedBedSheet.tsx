@@ -84,6 +84,7 @@ export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
         queryClient.invalidateQueries({ queryKey: ['matrix'] });
         queryClient.invalidateQueries({ queryKey: ['tenants'] });
         queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+        queryClient.invalidateQueries({ queryKey: ['tenant-detail', tenant._id] });
         queryClient.invalidateQueries({ queryKey: ['tenant', tenant._id] });
         setShowNoticeConfirm(false);
         setNoticeSuccess({
@@ -105,6 +106,7 @@ export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
         queryClient.invalidateQueries({ queryKey: ['matrix'] });
         queryClient.invalidateQueries({ queryKey: ['tenants'] });
         queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+        queryClient.invalidateQueries({ queryKey: ['tenant-detail', tenant._id] });
         queryClient.invalidateQueries({ queryKey: ['tenant', tenant._id] });
         setShowNoticeConfirm(false);
         setNoticeSuccess({
