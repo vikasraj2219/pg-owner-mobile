@@ -30,10 +30,10 @@ export const DecorativeWaveFooter: React.FC<DecorativeWaveFooterProps> = ({
       ]}
     >
       <Svg width="100%" height={height} viewBox="0 0 360 44" preserveAspectRatio="none">
-        {/* Cyan wave layer emerging from center-left and sweeping up to top-right */}
-        <Path d="M110,44 C180,42 250,22 360,6 L360,44 L110,44 Z" fill="#19D3E6" />
-        {/* Olive green wave layer starting high on left, dipping in center, and tapering at bottom-right */}
-        <Path d="M0,18 C50,30 110,40 180,40 C250,40 310,36 360,32 L360,44 L0,44 Z" fill="#4F5330" />
+        {/* Cyan wave layer emerging from center-left (~38% width) and sweeping up to top-right */}
+        <Path d="M135,44 C190,42 260,20 360,6 L360,44 L135,44 Z" fill="#19D3E6" />
+        {/* Olive green wave layer starting high on left, dipping in center-left (~38% width), and gently tapering at bottom-right */}
+        <Path d="M0,16 C45,28 90,41 140,41 C210,41 290,36 360,30 L360,44 L0,44 Z" fill="#4F5330" />
       </Svg>
     </View>
   );

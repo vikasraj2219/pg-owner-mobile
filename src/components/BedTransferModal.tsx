@@ -10,6 +10,7 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  StyleSheet,
 } from 'react-native';
 import {
   X,
@@ -473,7 +474,7 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
               onClose();
             }
           }}
-          style={{ flex: 1 }}
+          style={StyleSheet.absoluteFillObject}
         />
         <View
           style={{
