@@ -108,3 +108,52 @@ export const calculateDaysRemaining = (
     return 0;
   }
 };
+
+/**
+ * Calculates the next billing cycle start date for a tenant based on their joining date / billing cycle day.
+ * - Each tenant's billing cycle recurs monthly on the day they joined.
+ * - The current billing month completes on (cycleDay - 1), and the new billing cycle starts on cycleDay.
+ * - For transfers between beds with different rents, the transfer can take effect only once the current
+ *   month is completed (i.e. starting from this next billing cycle date).
+ */
+export const getNextBillingCycleDate = (
+  joinedDateInput?: string | number | Date | null,
+  referenceDateInput: Date = new Date(),
+): Date => {
+  const ref = new Date(referenceDateInput);
+  let cycleDay = 1;
+
+  if (joinedDateInput) {
+    try {
+      const jd = new Date(joinedDateInput);
+      if (!isNaN(jd.getTime())) {
+        cycleDay = jd.getDate();
+      }
+    } catch {
+      cycleDay = 1;
+    }
+  }
+
+  const currentYear = ref.getFullYear();
+  const currentMonth = ref.getMonth();
+  const currentDay = ref.getDate();
+
+  let targetYear = currentYear;
+  let targetMonth = currentMonth;
+
+  // If today is already on or past the cycleDay, the current month's cycle finishes in the following month
+  if (currentDay >= cycleDay) {
+    targetMonth += 1;
+  }
+
+  if (targetMonth > 11) {
+    targetYear += Math.floor(targetMonth / 12);
+    targetMonth = targetMonth % 12;
+  }
+
+  // Clamp to maximum days in the target month (e.g. day 31 in February or 30-day months)
+  const daysInMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
+  const clampedDay = Math.min(cycleDay, daysInMonth);
+
+  return new Date(targetYear, targetMonth, clampedDay, 0, 0, 0, 0);
+};

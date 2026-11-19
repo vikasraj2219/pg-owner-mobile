@@ -35,7 +35,7 @@ import { useProperties } from '../context/PropertyContext';
 import { useMatrix } from '../hooks/useMatrix';
 import { moveBedApi } from '../api/tenants';
 import { formatINR } from '../utils/currency';
-import { formatSafeDate } from '../utils/date';
+import { formatSafeDate, getNextBillingCycleDate } from '../utils/date';
 import { calculateBedTransferProration } from '../utils/proration';
 import { DatePickerModal } from './DatePickerModal';
 import { DecorativeWaveFooter } from './DecorativeWaveFooter';
@@ -305,17 +305,34 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
     }
   };
 
+  // Tenant's billing cycle recurring date based on joined date
+  const tenantCycleDay = useMemo(() => {
+    if (tenant?.joinedDate) {
+      try {
+        const jd = new Date(tenant.joinedDate);
+        if (!isNaN(jd.getTime())) return jd.getDate();
+      } catch {
+        // fallback
+      }
+    }
+    return 1;
+  }, [tenant?.joinedDate]);
+
+  const nextBillingCycleDate = useMemo(() => {
+    return getNextBillingCycleDate(tenant?.joinedDate);
+  }, [tenant?.joinedDate]);
+
   // Compute calculated effective date
   const calculatedEffectiveDate = useMemo(() => {
     const now = new Date();
     if (effectiveType === 'next_month') {
-      return new Date(now.getFullYear(), now.getMonth() + 1, 1, 0, 0, 0, 0);
+      return nextBillingCycleDate;
     }
     if (effectiveType === 'custom') {
       return customEffectiveDate;
     }
     return now;
-  }, [effectiveType, customEffectiveDate]);
+  }, [effectiveType, nextBillingCycleDate, customEffectiveDate]);
 
   // Compute live proration & rent comparison
   const parsedTargetRentRupees = parseFloat(targetNewRentRupees) || 0;
@@ -324,13 +341,12 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
   const isSameRent = targetRentPaise === fromRentPaise;
   const isDifferentRent = !isSameRent;
 
-  // Minimum allowed date for different rent bed transfers (after current month completes)
+  // Minimum allowed date for different rent bed transfers (strictly after current month/cycle completes)
   const minDateForDifferentRent = useMemo(() => {
-    const now = new Date();
-    return new Date(now.getFullYear(), now.getMonth() + 1, 1, 0, 0, 0, 0);
-  }, []);
+    return nextBillingCycleDate;
+  }, [nextBillingCycleDate]);
 
-  // When rent differs, immediate transfers are disallowed; auto-switch to next month
+  // When rent differs, immediate transfers are disallowed; auto-switch to next billing cycle
   useEffect(() => {
     if (isDifferentRent && effectiveType === 'immediate') {
       setEffectiveType('next_month');
@@ -359,7 +375,7 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
       if (effectiveType === 'immediate') {
         Alert.alert(
           'Transfer Date Restricted',
-          `Transfers to a bed with different rent (${formatINR(fromRentPaise)} → ${formatINR(targetRentPaise)}) can only take effect after completing the current month / after tenant due date. Please select "From Next Month" or a custom date after the current month.`,
+          `Transfers to a bed with different rent (${formatINR(fromRentPaise)} → ${formatINR(targetRentPaise)}) can only take effect after completing the current month (on next billing cycle ${formatSafeDate(nextBillingCycleDate)}). For same-rent beds, transfer can happen anytime.`,
         );
         return;
       }
@@ -370,7 +386,7 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
       ) {
         Alert.alert(
           'Invalid Effective Date',
-          `Transfers between beds with different rent (higher or lower) must take effect after the current month completes (${formatSafeDate(minDateForDifferentRent)} or later).`,
+          `Transfers between beds with different rent (higher or lower) must take effect after the current billing month completes (Next billing cycle: ${formatSafeDate(minDateForDifferentRent)} or later). Same-rent beds can be transferred anytime.`,
         );
         return;
       }
@@ -426,12 +442,6 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
       setIsSubmitting(false);
     }
   };
-
-  const nextMonthName = useMemo(() => {
-    const d = new Date();
-    d.setMonth(d.getMonth() + 1);
-    return d.toLocaleString('en-IN', { month: 'short' });
-  }, []);
 
   return (
     <Modal
@@ -935,7 +945,7 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
                       if (isDifferentRent) {
                         Alert.alert(
                           'Immediate Transfer Restricted',
-                          'Transfers between beds with different rent (higher or lower) can only take effect after completing the current month / after the tenant due date.',
+                          `Transfers between beds with different rent (higher or lower) can only take effect after completing the current month (Next billing cycle: ${formatSafeDate(nextBillingCycleDate)}). Same-rent beds can be transferred anytime.`,
                         );
                         return;
                       }
@@ -959,7 +969,7 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
                         : effectiveType === 'immediate'
                           ? '#19D3E6'
                           : '#E5DDCD',
-                      opacity: isDifferentRent ? 0.6 : 1,
+                      opacity: isDifferentRent ? 0.65 : 1,
                     }}
                   >
                     <View
@@ -993,7 +1003,7 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
                         >
                           Immediately (Today)
                         </Text>
-                        {isDifferentRent && (
+                        {isDifferentRent ? (
                           <Text
                             style={{
                               fontSize: 11,
@@ -1002,7 +1012,19 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
                               marginTop: 2,
                             }}
                           >
-                            Locked · Allowed after current month completes / due date
+                            Locked · Allowed after current month completes (
+                            {formatSafeDate(nextBillingCycleDate)})
+                          </Text>
+                        ) : (
+                          <Text
+                            style={{
+                              fontSize: 11,
+                              fontWeight: '500',
+                              color: '#15803D',
+                              marginTop: 2,
+                            }}
+                          >
+                            Same rent · Can transfer anytime immediately
                           </Text>
                         )}
                       </View>
@@ -1012,7 +1034,7 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
                     )}
                   </TouchableOpacity>
 
-                  {/* Option 2: From Next Month */}
+                  {/* Option 2: From Next Billing Cycle */}
                   <TouchableOpacity
                     onPress={() => setEffectiveType('next_month')}
                     activeOpacity={0.7}
@@ -1041,20 +1063,20 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
                             color: '#0C192B',
                           }}
                         >
-                          From Next Month (1st {nextMonthName})
+                          From Next Billing Cycle ({formatSafeDate(nextBillingCycleDate)})
                         </Text>
-                        {isDifferentRent && (
-                          <Text
-                            style={{
-                              fontSize: 11,
-                              fontWeight: '600',
-                              color: '#0C192B',
-                              marginTop: 1,
-                            }}
-                          >
-                            Recommended · Starts after completing current month
-                          </Text>
-                        )}
+                        <Text
+                          style={{
+                            fontSize: 11,
+                            fontWeight: '600',
+                            color: '#0C192B',
+                            marginTop: 1,
+                          }}
+                        >
+                          {isDifferentRent
+                            ? `Recommended · Takes effect after current month completes (cycle day ${tenantCycleDay})`
+                            : `Next billing cycle starts on day ${tenantCycleDay}`}
+                        </Text>
                       </View>
                     </View>
                     {effectiveType === 'next_month' && (

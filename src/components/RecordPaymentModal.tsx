@@ -17,6 +17,7 @@ import { formatINR } from '../utils/currency';
 import { formatSafeDate } from '../utils/date';
 import { generateAndShareReceipt } from '../utils/pdfReceipt';
 import { DecorativeWaveFooter } from './DecorativeWaveFooter';
+import { SuccessActionModal } from './SuccessActionModal';
 
 interface RecordPaymentModalProps {
   visible: boolean;
@@ -45,6 +46,11 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
   const [transactionRef, setTransactionRef] = useState('');
   const [notes, setNotes] = useState('');
   const [shareReceipt, setShareReceipt] = useState(true);
+  const [paymentSuccessData, setPaymentSuccessData] = useState<{
+    receiptNumber: string;
+    tenantName: string;
+    amountPaise: number;
+  } | null>(null);
 
   const balanceDuePaise = invoice?.balanceDuePaise ?? invoice?.totalAmountPaise ?? 0;
 
@@ -111,13 +117,11 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
         });
       }
 
-      Alert.alert(
-        'Payment Recorded! 🎉',
-        `Receipt ${receiptNumber} generated for ${invoice.tenant?.fullName}.\nAmount: ${formatINR(
-          currentPayablePaise,
-        )}`,
-      );
-      onClose();
+      setPaymentSuccessData({
+        receiptNumber,
+        tenantName: invoice.tenant?.fullName || 'Tenant',
+        amountPaise: currentPayablePaise,
+      });
     } catch (err: unknown) {
       const message =
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
@@ -372,6 +376,22 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
             <DecorativeWaveFooter height={24} style={{ marginTop: 8 }} />
           </ScrollView>
         </View>
+
+        {/* Modern In-App Success Feedback Modal */}
+        <SuccessActionModal
+          visible={!!paymentSuccessData}
+          onClose={() => {
+            setPaymentSuccessData(null);
+            onClose();
+          }}
+          title="Payment Recorded! 🎉"
+          message={`Payment of ${formatINR(paymentSuccessData?.amountPaise || 0)} has been recorded for ${paymentSuccessData?.tenantName}. Receipt ${paymentSuccessData?.receiptNumber} generated.`}
+          highlightCard={{
+            icon: <Receipt size={16} color="#15803D" />,
+            title: `Receipt ${paymentSuccessData?.receiptNumber}`,
+            subtitle: `${paymentSuccessData?.tenantName} · ${formatINR(paymentSuccessData?.amountPaise || 0)}`,
+          }}
+        />
       </KeyboardAvoidingView>
     </Modal>
   );

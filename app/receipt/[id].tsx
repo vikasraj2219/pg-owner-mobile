@@ -439,8 +439,8 @@ export default function ReceiptScreen() {
             width: '100%',
             paddingVertical: 15,
             backgroundColor: '#FFFDF8',
-            borderWidth: 1,
-            borderColor: '#E5DDCD',
+            borderWidth: 1.5,
+            borderColor: '#E8DFC9',
             borderRadius: 9999,
             flexDirection: 'row',
             alignItems: 'center',
@@ -448,14 +448,17 @@ export default function ReceiptScreen() {
             marginBottom: 20,
           }}
         >
-          <MessageSquare size={18} color="#15803D" />
+          <MessageSquare size={18} color="#25D366" />
           <Text style={{ fontSize: 14, fontWeight: '800', color: '#0C192B', marginLeft: 8 }}>
             Share via WhatsApp
           </Text>
         </TouchableOpacity>
 
         {/* Decorative Wave Footer matching Screenshot */}
-        <DecorativeWaveFooter height={34} style={{ marginTop: 10 }} />
+        <DecorativeWaveFooter
+          height={42}
+          style={{ marginTop: 14, marginHorizontal: -20, marginBottom: -40 }}
+        />
       </ScrollView>
     </SafeAreaView>
   );

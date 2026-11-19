@@ -18,6 +18,7 @@ import { sendRentReminder } from '../utils/whatsapp';
 import { setTenantNoticeApi, cancelTenantNoticeApi } from '../api/notice';
 import { ConfirmActionModal } from './ConfirmDeleteModal';
 import { DecorativeWaveFooter } from './DecorativeWaveFooter';
+import { SuccessActionModal } from './SuccessActionModal';
 
 interface OccupiedBedSheetProps {
   visible: boolean;
@@ -41,6 +42,15 @@ export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
   const queryClient = useQueryClient();
   const [isUpdatingNotice, setIsUpdatingNotice] = useState(false);
   const [showNoticeConfirm, setShowNoticeConfirm] = useState(false);
+  const [noticeSuccess, setNoticeSuccess] = useState<{
+    title: string;
+    message: string;
+    highlightCard?: {
+      icon?: React.ReactNode;
+      title: string;
+      subtitle?: string;
+    };
+  } | null>(null);
 
   if (!bed || !room || !bed.currentTenant) return null;
 
@@ -83,7 +93,15 @@ export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
         queryClient.invalidateQueries({ queryKey: ['dashboard'] });
         queryClient.invalidateQueries({ queryKey: ['tenant', tenant._id] });
         setShowNoticeConfirm(false);
-        onClose();
+        setNoticeSuccess({
+          title: 'Notice Period Cancelled',
+          message: `Notice period has been cancelled for ${tenant.fullName}. Bed ${bed.bedNumber} is restored to active status.`,
+          highlightCard: {
+            icon: <Clock size={16} color="#15803D" />,
+            title: `${tenant.fullName} · Bed ${bed.bedNumber}`,
+            subtitle: 'Active Occupancy Restored',
+          },
+        });
       } else {
         const vacateDate = new Date();
         vacateDate.setDate(vacateDate.getDate() + 30);
@@ -96,7 +114,15 @@ export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
         queryClient.invalidateQueries({ queryKey: ['dashboard'] });
         queryClient.invalidateQueries({ queryKey: ['tenant', tenant._id] });
         setShowNoticeConfirm(false);
-        onClose();
+        setNoticeSuccess({
+          title: 'Notice Period Set!',
+          message: `${tenant.fullName} is now on a 30-day notice period. Bed ${bed.bedNumber} is marked on Notice.`,
+          highlightCard: {
+            icon: <Clock size={16} color="#B45309" />,
+            title: `30 Days Notice · Bed ${bed.bedNumber}`,
+            subtitle: `Vacate Date: ${formatSafeDate(vacateDate)}`,
+          },
+        });
       }
     } catch (err: unknown) {
       const msg =
@@ -264,8 +290,8 @@ export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
 
               {/* Exactly ONE clean Decorative Wave Footer */}
               <DecorativeWaveFooter
-                height={24}
-                style={{ marginTop: 12, marginHorizontal: -20, marginBottom: -16 }}
+                height={32}
+                style={{ marginTop: 12, marginHorizontal: -20, marginBottom: -24 }}
               />
             </View>
           </TouchableWithoutFeedback>
@@ -287,6 +313,18 @@ export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
             : `Put ${tenant.fullName} on a 30-day notice period? Bed ${bed.bedNumber} will be marked on Notice.`
         }
         confirmLabel={isOnNotice ? 'Restore Bed' : 'Mark Notice (30 Days)'}
+      />
+
+      {/* Notice Action Success Feedback Modal */}
+      <SuccessActionModal
+        visible={!!noticeSuccess}
+        onClose={() => {
+          setNoticeSuccess(null);
+          onClose();
+        }}
+        title={noticeSuccess?.title || ''}
+        message={noticeSuccess?.message || ''}
+        highlightCard={noticeSuccess?.highlightCard}
       />
     </Modal>
   );
@@ -436,7 +474,7 @@ const styles = StyleSheet.create({
   viewProfileButton: {
     flex: 1,
     height: 48,
-    borderRadius: 14,
+    borderRadius: 9999,
     backgroundColor: '#4F5330',
     alignItems: 'center',
     justifyContent: 'center',
@@ -453,9 +491,9 @@ const styles = StyleSheet.create({
   },
   noticeButton: {
     width: '100%',
-    height: 44,
-    borderRadius: 14,
-    borderWidth: 1,
+    height: 48,
+    borderRadius: 9999,
+    borderWidth: 1.5,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -468,10 +506,10 @@ const styles = StyleSheet.create({
   },
   checkoutButton: {
     width: '100%',
-    height: 44,
-    borderRadius: 14,
+    height: 48,
+    borderRadius: 9999,
     backgroundColor: '#FFF1F2',
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: '#FECDD3',
     flexDirection: 'row',
     alignItems: 'center',

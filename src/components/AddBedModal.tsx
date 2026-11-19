@@ -16,6 +16,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { IMatrixRoom, BedStatus } from '../types/api';
 import { formatINR } from '../utils/currency';
 import { DecorativeWaveFooter } from './DecorativeWaveFooter';
+import { SuccessActionModal } from './SuccessActionModal';
 
 interface AddBedModalProps {
   visible: boolean;
@@ -37,6 +38,7 @@ export const AddBedModal: React.FC<AddBedModalProps> = ({
   const [rent, setRent] = useState('');
   const [status, setStatus] = useState<BedStatus>('available');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [addedBedSuccess, setAddedBedSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     if (room && visible) {
@@ -87,9 +89,7 @@ export const AddBedModal: React.FC<AddBedModalProps> = ({
         queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
       ]);
 
-      Alert.alert('Bed Added', `Bed ${bedLabel.trim()} added to Room ${room.roomNumber}.`);
-      onSuccess?.();
-      onClose();
+      setAddedBedSuccess(bedLabel.trim());
     } catch (err: unknown) {
       const msg =
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
@@ -239,7 +239,7 @@ export const AddBedModal: React.FC<AddBedModalProps> = ({
               activeOpacity={0.85}
               onPress={handleSubmit}
               disabled={isSubmitting}
-              className="w-full bg-[#0A6C50] py-3.5 rounded-xl items-center justify-center shadow-xs"
+              className="w-full bg-[#4F5330] py-3.5 rounded-full items-center justify-center shadow-xs"
             >
               {isSubmitting ? (
                 <ActivityIndicator size="small" color="#FFFFFF" />
@@ -254,6 +254,23 @@ export const AddBedModal: React.FC<AddBedModalProps> = ({
             />
           </View>
         </View>
+
+        {/* Modern In-App Success Feedback Modal */}
+        <SuccessActionModal
+          visible={!!addedBedSuccess}
+          onClose={() => {
+            setAddedBedSuccess(null);
+            onSuccess?.();
+            onClose();
+          }}
+          title="Bed Added Successfully!"
+          message={`Bed ${addedBedSuccess} has been added to Room ${room?.roomNumber}.`}
+          highlightCard={{
+            icon: <BedIcon size={16} color="#15803D" />,
+            title: `Bed ${addedBedSuccess} · Room ${room?.roomNumber}`,
+            subtitle: `Rent ₹${rent}/mo · ${status === 'maintenance' ? 'Maintenance' : 'Available'}`,
+          }}
+        />
       </KeyboardAvoidingView>
     </Modal>
   );

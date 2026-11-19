@@ -48,7 +48,8 @@ import { formatINR } from '../../src/utils/currency';
 import { formatSafeDate, formatDayMonth, formatSafeMonthYear } from '../../src/utils/date';
 import { resolveRoomAndBed } from '../../src/utils/bedResolution';
 import { RecordPaymentModal } from '../../src/components/RecordPaymentModal';
-import { ConfirmDeleteModal } from '../../src/components/ConfirmDeleteModal';
+import { ConfirmDeleteModal, ConfirmActionModal } from '../../src/components/ConfirmDeleteModal';
+import { SuccessActionModal } from '../../src/components/SuccessActionModal';
 import { markInvoicePaidApi } from '../../src/api/invoices';
 import {
   deleteTenantApi,
@@ -88,6 +89,24 @@ export default function TenantDetailScreen() {
     days: 30,
     notes: '',
     isSubmitting: false,
+  });
+  const [showCancelNoticeConfirm, setShowCancelNoticeConfirm] = useState(false);
+  const [showCancelTransferConfirm, setShowCancelTransferConfirm] = useState(false);
+
+  // Modern success feedback modal
+  const [successModal, setSuccessModal] = useState<{
+    visible: boolean;
+    title: string;
+    message: string;
+    highlightCard?: {
+      icon?: React.ReactNode;
+      title: string;
+      subtitle?: string;
+    };
+  }>({
+    visible: false,
+    title: '',
+    message: '',
   });
 
   // Delete modals
@@ -287,30 +306,39 @@ export default function TenantDetailScreen() {
         notes: noticeModal.notes || `Vacate notice period of ${noticeModal.days} days`,
       });
 
+      const daysCount = noticeModal.days;
       setNoticeModal({ visible: false, days: 30, notes: '', isSubmitting: false });
       queryClient.invalidateQueries({ queryKey: ['tenants'] });
       queryClient.invalidateQueries({ queryKey: ['matrix'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       queryClient.invalidateQueries({ queryKey: ['tenant', id] });
       void refetch();
-      Alert.alert(
-        'Notice Period Set',
-        `${tenant.fullName} is now on ${noticeModal.days} days notice.`,
-      );
-      Alert.alert(
-        'Notice Period Set',
-        `${tenant.fullName} is now on ${noticeModal.days} days notice.`,
-      );
+
+      setSuccessModal({
+        visible: true,
+        title: 'Notice Period Set!',
+        message: `${tenant.fullName} is now on a ${daysCount}-day notice period. Expected departure date is ${formatSafeDate(vacateDate)}.`,
+        highlightCard: {
+          icon: <Clock size={16} color="#B45309" />,
+          title: `${daysCount} Days Notice · Bed ${bedInfo.bedNumber}`,
+          subtitle: `Vacate Date: ${formatSafeDate(vacateDate)}`,
+        },
+      });
     } catch (err: any) {
       setNoticeModal(prev => ({ ...prev, isSubmitting: false }));
       Alert.alert('Error', err?.response?.data?.message || 'Could not start notice period.');
     }
   };
 
-  // Cancel notice
-  const handleCancelNotice = async () => {
-    if (!tenant) return;
+  // Trigger cancel notice confirmation
+  const handleCancelNotice = () => {
     setIsActionSheetVisible(false);
+    setShowCancelNoticeConfirm(true);
+  };
+
+  // Execute cancel notice after confirmation
+  const handleExecuteCancelNotice = async () => {
+    if (!tenant) return;
     try {
       await cancelTenantNoticeApi(tenant._id);
       queryClient.invalidateQueries({ queryKey: ['tenants'] });
@@ -318,45 +346,49 @@ export default function TenantDetailScreen() {
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       queryClient.invalidateQueries({ queryKey: ['tenant', id] });
       void refetch();
-      Alert.alert('Notice Canceled', `Notice period removed for ${tenant.fullName}.`);
+      setShowCancelNoticeConfirm(false);
+      setSuccessModal({
+        visible: true,
+        title: 'Notice Period Cancelled',
+        message: `Notice period has been removed for ${tenant.fullName}. Bed ${bedInfo.bedNumber} is restored to active status.`,
+        highlightCard: {
+          icon: <Clock size={16} color="#15803D" />,
+          title: `${tenant.fullName} · Bed ${bedInfo.bedNumber}`,
+          subtitle: 'Active Occupancy Restored',
+        },
+      });
     } catch (err: any) {
+      setShowCancelNoticeConfirm(false);
       Alert.alert('Error', err?.response?.data?.message || 'Could not cancel notice period.');
     }
   };
 
-  // Cancel scheduled bed transfer
+  // Trigger cancel scheduled bed transfer confirmation
   const handleCancelScheduledTransfer = () => {
+    setShowCancelTransferConfirm(true);
+  };
+
+  // Execute cancel scheduled transfer after confirmation
+  const handleExecuteCancelScheduledTransfer = async () => {
     if (!tenant?._id) return;
-    Alert.alert(
-      'Cancel Scheduled Transfer',
-      'Are you sure you want to cancel the scheduled bed transfer? The reserved bed will be made available again.',
-      [
-        { text: 'Keep Transfer', style: 'cancel' },
-        {
-          text: 'Yes, Cancel Transfer',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await cancelScheduledTransferApi(tenant._id);
-              queryClient.invalidateQueries({ queryKey: ['tenants'] });
-              queryClient.invalidateQueries({ queryKey: ['matrix'] });
-              queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-              queryClient.invalidateQueries({ queryKey: ['tenant', id] });
-              void refetch();
-              Alert.alert(
-                'Transfer Cancelled',
-                'The scheduled bed transfer was cancelled successfully.',
-              );
-            } catch (err: any) {
-              Alert.alert(
-                'Error',
-                err?.response?.data?.message || 'Could not cancel scheduled transfer.',
-              );
-            }
-          },
-        },
-      ],
-    );
+    try {
+      await cancelScheduledTransferApi(tenant._id);
+      queryClient.invalidateQueries({ queryKey: ['tenants'] });
+      queryClient.invalidateQueries({ queryKey: ['matrix'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['tenant', id] });
+      void refetch();
+      setShowCancelTransferConfirm(false);
+      setSuccessModal({
+        visible: true,
+        title: 'Transfer Cancelled',
+        message:
+          'The scheduled bed transfer was cancelled successfully and the reserved bed has been made available again.',
+      });
+    } catch (err: any) {
+      setShowCancelTransferConfirm(false);
+      Alert.alert('Error', err?.response?.data?.message || 'Could not cancel scheduled transfer.');
+    }
   };
 
   // Process & save ID document
@@ -400,7 +432,16 @@ export default function TenantDetailScreen() {
       queryClient.invalidateQueries({ queryKey: ['matrix'] });
       queryClient.invalidateQueries({ queryKey: ['tenant', id] });
       void refetch();
-      Alert.alert('ID Proof Updated', 'ID proof document has been updated and saved successfully.');
+      setSuccessModal({
+        visible: true,
+        title: 'ID Proof Updated!',
+        message: 'Tenant KYC ID proof document has been uploaded and saved successfully.',
+        highlightCard: {
+          icon: <ShieldCheck size={16} color="#15803D" />,
+          title: tenant.fullName,
+          subtitle: 'ID Document Verified & Stored',
+        },
+      });
     } catch (err: any) {
       Alert.alert('Update Failed', err?.message || 'Failed to update photo.');
     } finally {
@@ -2227,14 +2268,14 @@ export default function TenantDetailScreen() {
                 style={{
                   flex: 1,
                   paddingVertical: 12,
-                  borderWidth: 1,
-                  borderColor: '#E5DDCD',
+                  borderWidth: 1.5,
+                  borderColor: '#E8DFC9',
                   borderRadius: 9999,
                   alignItems: 'center',
                   backgroundColor: '#FFFDF8',
                 }}
               >
-                <Text style={{ fontSize: 13, fontWeight: '700', color: '#657080' }}>Cancel</Text>
+                <Text style={{ fontSize: 13, fontWeight: '700', color: '#0C192B' }}>Cancel</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -2258,6 +2299,8 @@ export default function TenantDetailScreen() {
                 )}
               </TouchableOpacity>
             </View>
+
+            <DecorativeWaveFooter height={20} style={{ marginTop: 14 }} />
           </View>
         </View>
       </Modal>
@@ -2409,6 +2452,41 @@ export default function TenantDetailScreen() {
           }}
         />
       )}
+
+      {/* Confirmation Modal for Cancelling Notice Period */}
+      {tenant && (
+        <ConfirmActionModal
+          visible={showCancelNoticeConfirm}
+          onClose={() => setShowCancelNoticeConfirm(false)}
+          onConfirm={handleExecuteCancelNotice}
+          variant="warning"
+          icon={<Clock size={28} color="#D97706" strokeWidth={2.3} />}
+          title="Cancel Notice Period?"
+          message={`Remove notice period for ${tenant.fullName}? The bed status will return to active occupied.`}
+          confirmLabel="Restore Bed"
+        />
+      )}
+
+      {/* Confirmation Modal for Cancelling Scheduled Bed Transfer */}
+      <ConfirmActionModal
+        visible={showCancelTransferConfirm}
+        onClose={() => setShowCancelTransferConfirm(false)}
+        onConfirm={handleExecuteCancelScheduledTransfer}
+        variant="danger"
+        icon={<Repeat size={28} color="#DC2626" strokeWidth={2.3} />}
+        title="Cancel Scheduled Transfer?"
+        message="Are you sure you want to cancel the scheduled bed transfer? The reserved bed will be made available again for other tenants."
+        confirmLabel="Yes, Cancel Transfer"
+      />
+
+      {/* Unified Modern In-App Success Modal */}
+      <SuccessActionModal
+        visible={successModal.visible}
+        onClose={() => setSuccessModal(prev => ({ ...prev, visible: false }))}
+        title={successModal.title}
+        message={successModal.message}
+        highlightCard={successModal.highlightCard}
+      />
     </SafeAreaView>
   );
 }

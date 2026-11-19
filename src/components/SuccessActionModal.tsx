@@ -190,8 +190,8 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     backgroundColor: '#4F5330',
-    height: 48,
-    borderRadius: 14,
+    height: 50,
+    borderRadius: 9999,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#4F5330',

@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Trash2, AlertTriangle, CheckCircle2, X } from 'lucide-react-native';
+import { DecorativeWaveFooter } from './DecorativeWaveFooter';
 
 export type ConfirmVariant = 'danger' | 'warning' | 'primary' | 'success';
 
@@ -96,14 +97,14 @@ export const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
       <TouchableWithoutFeedback onPress={isLoading ? undefined : onClose}>
         <View className="flex-1 bg-black/60 items-center justify-center p-5">
           <TouchableWithoutFeedback onPress={e => e.stopPropagation()}>
-            <View className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl relative">
+            <View className="bg-[#FFFDF8] border border-[#E5DDCD] rounded-3xl p-6 w-full max-w-sm shadow-2xl relative">
               {/* Close (X) button at top right */}
               {!isLoading && (
                 <TouchableOpacity
                   onPress={onClose}
-                  className="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 items-center justify-center"
+                  className="absolute top-4 right-4 w-8 h-8 rounded-full bg-[#FAF5EB] border border-[#E5DDCD] items-center justify-center"
                 >
-                  <X size={16} color="#64748B" />
+                  <X size={16} color="#657080" />
                 </TouchableOpacity>
               )}
 
@@ -115,17 +116,17 @@ export const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
               </View>
 
               {/* Title */}
-              <Text className="text-xl font-black text-slate-900 text-center mb-2">{title}</Text>
+              <Text className="text-xl font-black text-[#0C192B] text-center mb-2">{title}</Text>
 
               {/* Message */}
-              <Text className="text-sm font-medium text-slate-600 text-center mb-5 leading-relaxed">
+              <Text className="text-sm font-medium text-[#657080] text-center mb-5 leading-relaxed">
                 {message}
               </Text>
 
               {/* Optional Name Confirmation Input */}
               {requiresInput && (
                 <View className="mb-5">
-                  <Text className="text-2xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+                  <Text className="text-2xs font-bold text-[#657080] uppercase tracking-wider mb-1.5">
                     Type &quot;{requiresInput}&quot; to confirm:
                   </Text>
                   <TextInput
@@ -135,7 +136,7 @@ export const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
                     placeholderTextColor="#94A3B8"
                     autoCapitalize="none"
                     autoCorrect={false}
-                    className="bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 font-bold text-slate-900 text-sm"
+                    className="bg-[#FAF5EB] border border-[#E5DDCD] rounded-xl px-4 py-3 font-bold text-[#0C192B] text-sm"
                   />
                 </View>
               )}
@@ -146,16 +147,16 @@ export const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
                   activeOpacity={0.8}
                   onPress={onClose}
                   disabled={isLoading}
-                  className="flex-1 py-3.5 rounded-2xl bg-slate-100 border border-slate-200 items-center justify-center"
+                  className="flex-1 py-3.5 rounded-full bg-[#FFFDF8] border-[1.5px] border-[#E8DFC9] items-center justify-center"
                 >
-                  <Text className="text-sm font-bold text-slate-700">{cancelLabel}</Text>
+                  <Text className="text-sm font-bold text-[#0C192B]">{cancelLabel}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   activeOpacity={0.8}
                   onPress={onConfirm}
                   disabled={isLoading || !isInputValid}
-                  className={`flex-1 py-3.5 rounded-2xl items-center justify-center shadow-xs ${
+                  className={`flex-1 py-3.5 rounded-full items-center justify-center shadow-xs ${
                     isInputValid ? currentVariant.buttonBg : currentVariant.buttonDisabledBg
                   }`}
                 >
@@ -166,6 +167,8 @@ export const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
                   )}
                 </TouchableOpacity>
               </View>
+
+              <DecorativeWaveFooter height={20} style={{ marginTop: 14 }} />
             </View>
           </TouchableWithoutFeedback>
         </View>

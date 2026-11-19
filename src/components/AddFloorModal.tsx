@@ -159,7 +159,7 @@ export const AddFloorModal: React.FC<AddFloorModalProps> = ({
               activeOpacity={0.85}
               onPress={handleSubmit}
               disabled={isSubmitting}
-              className="w-full bg-[#0A6C50] py-3.5 rounded-xl items-center justify-center shadow-xs"
+              className="w-full bg-[#4F5330] py-3.5 rounded-full items-center justify-center shadow-xs"
             >
               {isSubmitting ? (
                 <ActivityIndicator size="small" color="#FFFFFF" />

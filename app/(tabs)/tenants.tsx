@@ -44,7 +44,9 @@ import { formatINR } from '../../src/utils/currency';
 import { formatDayMonth } from '../../src/utils/date';
 import { openWhatsApp } from '../../src/utils/whatsapp';
 import { PropertySwitcherModal } from '../../src/components/PropertySwitcherModal';
-import { ConfirmDeleteModal } from '../../src/components/ConfirmDeleteModal';
+import { ConfirmDeleteModal, ConfirmActionModal } from '../../src/components/ConfirmDeleteModal';
+import { SuccessActionModal } from '../../src/components/SuccessActionModal';
+import { DecorativeWaveFooter } from '../../src/components/DecorativeWaveFooter';
 
 type FilterTab = 'all' | 'active' | 'notice_period' | 'checked_out';
 
@@ -101,6 +103,24 @@ export default function TenantsScreen() {
     days: 30,
     notes: '',
     isSubmitting: false,
+  });
+
+  const [confirmCancelNoticeTenant, setConfirmCancelNoticeTenant] =
+    useState<ITenantListItem | null>(null);
+
+  const [successModal, setSuccessModal] = useState<{
+    visible: boolean;
+    title: string;
+    message: string;
+    highlightCard?: {
+      icon?: React.ReactNode;
+      title: string;
+      subtitle?: string;
+    };
+  }>({
+    visible: false,
+    title: '',
+    message: '',
   });
 
   // Undo toast state
@@ -267,6 +287,7 @@ export default function TenantsScreen() {
         notes: noticeModal.notes || `Vacate notice period of ${noticeModal.days} days`,
       });
 
+      const daysCount = noticeModal.days;
       setNoticeModal({
         visible: false,
         tenant: null,
@@ -278,26 +299,50 @@ export default function TenantsScreen() {
       queryClient.invalidateQueries({ queryKey: ['matrix'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       void refetch();
-      Alert.alert(
-        'Notice Period Set',
-        `${tenant.fullName} is now on ${noticeModal.days} days notice.`,
-      );
+
+      setSuccessModal({
+        visible: true,
+        title: 'Notice Period Set!',
+        message: `${tenant.fullName} is now on a ${daysCount}-day notice period. Expected departure date is ${formatDayMonth(vacateDate)}.`,
+        highlightCard: {
+          icon: <Clock size={16} color="#B45309" />,
+          title: `${daysCount} Days Notice`,
+          subtitle: `${tenant.fullName} · Vacate: ${formatDayMonth(vacateDate)}`,
+        },
+      });
     } catch (err: any) {
       setNoticeModal(prev => ({ ...prev, isSubmitting: false }));
       Alert.alert('Error', err?.response?.data?.message || 'Could not set notice period.');
     }
   };
 
-  const handleCancelNotice = async (tenant: ITenantListItem) => {
+  const handleCancelNotice = (tenant: ITenantListItem) => {
     setActionSheetTenant(null);
+    setConfirmCancelNoticeTenant(tenant);
+  };
+
+  const handleExecuteCancelNotice = async () => {
+    if (!confirmCancelNoticeTenant) return;
+    const targetTenant = confirmCancelNoticeTenant;
     try {
-      await cancelTenantNoticeApi(tenant._id);
+      await cancelTenantNoticeApi(targetTenant._id);
       queryClient.invalidateQueries({ queryKey: ['tenants'] });
       queryClient.invalidateQueries({ queryKey: ['matrix'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       void refetch();
-      Alert.alert('Notice Canceled', `Notice period removed for ${tenant.fullName}.`);
+      setConfirmCancelNoticeTenant(null);
+      setSuccessModal({
+        visible: true,
+        title: 'Notice Period Cancelled',
+        message: `Notice period has been cancelled for ${targetTenant.fullName}. Status restored to active.`,
+        highlightCard: {
+          icon: <Clock size={16} color="#15803D" />,
+          title: targetTenant.fullName,
+          subtitle: 'Active Occupancy Restored',
+        },
+      });
     } catch (err: any) {
+      setConfirmCancelNoticeTenant(null);
       Alert.alert('Error', err?.response?.data?.message || 'Could not cancel notice period.');
     }
   };
@@ -1237,15 +1282,15 @@ export default function TenantsScreen() {
                     alignItems: 'center',
                     justifyContent: 'center',
                     marginRight: d === 45 ? 0 : 8,
-                    backgroundColor: noticeModal.days === d ? '#4F5330' : '#FAF7F2',
-                    borderColor: noticeModal.days === d ? '#4F5330' : '#E5DDCD',
+                    backgroundColor: noticeModal.days === d ? '#19D3E6' : '#FAF7F2',
+                    borderColor: noticeModal.days === d ? '#19D3E6' : '#E5DDCD',
                   }}
                 >
                   <Text
                     style={{
                       fontSize: 13,
                       fontWeight: '700',
-                      color: noticeModal.days === d ? '#FFFFFF' : '#657080',
+                      color: '#0C192B',
                     }}
                   >
                     {d} days
@@ -1281,14 +1326,15 @@ export default function TenantsScreen() {
                 style={{
                   flex: 1,
                   paddingVertical: 12,
-                  borderWidth: 1,
-                  borderColor: '#E5DDCD',
+                  borderWidth: 1.5,
+                  borderColor: '#E8DFC9',
                   borderRadius: 9999,
                   alignItems: 'center',
+                  backgroundColor: '#FFFDF8',
                   marginRight: 8,
                 }}
               >
-                <Text style={{ fontSize: 13, fontWeight: '700', color: '#657080' }}>Cancel</Text>
+                <Text style={{ fontSize: 13, fontWeight: '700', color: '#0C192B' }}>Cancel</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -1306,15 +1352,40 @@ export default function TenantsScreen() {
                 {noticeModal.isSubmitting ? (
                   <ActivityIndicator size="small" color="#FFFFFF" />
                 ) : (
-                  <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF' }}>
+                  <Text style={{ fontSize: 13, fontWeight: '800', color: '#FFFFFF' }}>
                     Confirm Notice
                   </Text>
                 )}
               </TouchableOpacity>
             </View>
+
+            <DecorativeWaveFooter height={20} style={{ marginTop: 14 }} />
           </View>
         </View>
       </Modal>
+
+      {/* Confirmation Modal for Cancelling Notice Period */}
+      {confirmCancelNoticeTenant && (
+        <ConfirmActionModal
+          visible={!!confirmCancelNoticeTenant}
+          onClose={() => setConfirmCancelNoticeTenant(null)}
+          onConfirm={handleExecuteCancelNotice}
+          variant="warning"
+          icon={<Clock size={28} color="#D97706" strokeWidth={2.3} />}
+          title="Cancel Notice Period?"
+          message={`Remove notice period for ${confirmCancelNoticeTenant.fullName}? Status will return to active occupied.`}
+          confirmLabel="Restore Tenant"
+        />
+      )}
+
+      {/* Modern In-App Success Feedback Modal */}
+      <SuccessActionModal
+        visible={successModal.visible}
+        onClose={() => setSuccessModal(prev => ({ ...prev, visible: false }))}
+        title={successModal.title}
+        message={successModal.message}
+        highlightCard={successModal.highlightCard}
+      />
 
       {/* Property Switcher Modal */}
       <PropertySwitcherModal
