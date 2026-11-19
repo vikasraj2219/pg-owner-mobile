@@ -15,7 +15,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useTenantDetail } from '../../../src/hooks/useTenants';
 import { updateTenantApi } from '../../../src/api/tenants';
 import { BedTransferModal } from '../../../src/components/BedTransferModal';
-import { DecorativeWaveFooter } from '../../../src/components/DecorativeWaveFooter';
 import { SuccessActionModal } from '../../../src/components/SuccessActionModal';
 import { User } from 'lucide-react-native';
 
@@ -451,11 +450,6 @@ export default function EditTenantScreen() {
         >
           <Text style={{ color: '#657080', fontWeight: '700', fontSize: 13 }}>Discard changes</Text>
         </TouchableOpacity>
-
-        <DecorativeWaveFooter
-          height={48}
-          style={{ marginTop: 10, marginHorizontal: -16, marginBottom: -16 }}
-        />
       </View>
 
       {/* Unified Bed Transfer Modal */}

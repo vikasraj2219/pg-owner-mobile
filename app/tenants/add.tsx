@@ -14,7 +14,6 @@ import { useProperties } from '../../src/context/PropertyContext';
 import { useMatrix } from '../../src/hooks/useMatrix';
 import { IMatrixBed, IMatrixRoom } from '../../src/types/api';
 import { formatINR } from '../../src/utils/currency';
-import { DecorativeWaveFooter } from '../../src/components/DecorativeWaveFooter';
 
 interface FlatVacantBed {
   bed: IMatrixBed;
@@ -341,11 +340,6 @@ export default function PickVacantBedScreen() {
               </View>
             </View>
           ))}
-
-          <DecorativeWaveFooter
-            height={48}
-            style={{ marginTop: 14, marginHorizontal: -20, marginBottom: -36 }}
-          />
         </ScrollView>
       )}
 
@@ -392,11 +386,6 @@ export default function PickVacantBedScreen() {
               Continue to check-in
             </Text>
           </TouchableOpacity>
-
-          <DecorativeWaveFooter
-            height={48}
-            style={{ marginTop: 10, marginHorizontal: -16, marginBottom: -16 }}
-          />
         </View>
       )}
     </SafeAreaView>

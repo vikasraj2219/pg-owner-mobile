@@ -15,7 +15,6 @@ import { addBedToRoomApi, updateBedApi } from '../api/properties';
 import { useQueryClient } from '@tanstack/react-query';
 import { IMatrixRoom, BedStatus } from '../types/api';
 import { formatINR } from '../utils/currency';
-import { DecorativeWaveFooter } from './DecorativeWaveFooter';
 import { SuccessActionModal } from './SuccessActionModal';
 
 interface AddBedModalProps {
@@ -247,11 +246,6 @@ export const AddBedModal: React.FC<AddBedModalProps> = ({
                 <Text className="text-white font-extrabold text-base">Add bed</Text>
               )}
             </TouchableOpacity>
-
-            <DecorativeWaveFooter
-              height={44}
-              style={{ marginTop: 12, marginHorizontal: -20, marginBottom: -16 }}
-            />
           </View>
         </View>
 

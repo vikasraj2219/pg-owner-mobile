@@ -34,7 +34,6 @@ import {
 import { IExpense, IPnLSummary, UpdateExpensePayload } from '../types/api';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { useProperties } from '../context/PropertyContext';
-import { DecorativeWaveFooter } from './DecorativeWaveFooter';
 
 interface ExpensesModalProps {
   visible: boolean;
@@ -1075,8 +1074,6 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, 
           message={`Are you sure you want to delete "${deletingExpense?.description}" (${formatINR(deletingExpense?.amountPaise || 0)})? This will adjust your net profit calculations.`}
           confirmLabel="Delete"
         />
-
-        <DecorativeWaveFooter height={28} />
       </View>
     </Modal>
   );

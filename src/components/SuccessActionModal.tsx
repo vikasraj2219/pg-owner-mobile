@@ -8,7 +8,6 @@ import {
   StyleSheet,
 } from 'react-native';
 import { CheckCircle2, X } from 'lucide-react-native';
-import { DecorativeWaveFooter } from './DecorativeWaveFooter';
 
 export interface SuccessActionModalProps {
   visible: boolean;
@@ -85,12 +84,6 @@ export const SuccessActionModal: React.FC<SuccessActionModalProps> = ({
               <TouchableOpacity activeOpacity={0.85} onPress={onClose} style={styles.primaryButton}>
                 <Text style={styles.primaryButtonText}>{buttonLabel}</Text>
               </TouchableOpacity>
-
-              {/* Signature Decorative Wave Footer */}
-              <DecorativeWaveFooter
-                height={36}
-                style={{ marginTop: 14, marginHorizontal: -22, marginBottom: -22 }}
-              />
             </View>
           </TouchableWithoutFeedback>
         </View>

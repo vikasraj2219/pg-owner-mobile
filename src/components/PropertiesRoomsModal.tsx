@@ -33,7 +33,6 @@ import { EditRoomModal } from './EditRoomModal';
 import { AddFloorModal } from './AddFloorModal';
 import { EditFloorModal } from './EditFloorModal';
 import { AddBedModal } from './AddBedModal';
-import { DecorativeWaveFooter } from './DecorativeWaveFooter';
 import { EditBedModal } from './EditBedModal';
 import { SubscriptionModal } from './SubscriptionModal';
 import { formatINR } from '../utils/currency';
@@ -995,8 +994,6 @@ export const PropertiesRoomsModal: React.FC<PropertiesRoomsModalProps> = ({ visi
           visible={showSubscriptionModal}
           onClose={() => setShowSubscriptionModal(false)}
         />
-
-        <DecorativeWaveFooter height={28} />
       </View>
     </Modal>
   );

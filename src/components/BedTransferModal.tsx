@@ -39,7 +39,6 @@ import { formatINR } from '../utils/currency';
 import { formatSafeDate, getNextBillingCycleDate } from '../utils/date';
 import { calculateBedTransferProration } from '../utils/proration';
 import { DatePickerModal } from './DatePickerModal';
-import { DecorativeWaveFooter } from './DecorativeWaveFooter';
 import { SuccessActionModal } from './SuccessActionModal';
 import { IMatrixBed, IMatrixRoom, ITenantListItem } from '../types/api';
 
@@ -1836,9 +1835,6 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
               )}
             </View>
           )}
-
-          {/* Decorative Bottom Wave */}
-          <DecorativeWaveFooter height={48} />
         </View>
       </KeyboardAvoidingView>
 

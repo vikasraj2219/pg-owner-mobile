@@ -9,7 +9,6 @@ import {
 } from 'react-native';
 import { Check, Plus, X, Pencil, Building } from 'lucide-react-native';
 import { IProperty } from '../types/api';
-import { DecorativeWaveFooter } from './DecorativeWaveFooter';
 
 interface PropertySwitcherModalProps {
   visible: boolean;
@@ -166,11 +165,6 @@ export const PropertySwitcherModal: React.FC<PropertySwitcherModalProps> = ({
                 <Plus size={20} color="#4F5330" strokeWidth={2.5} />
                 <Text className="text-base font-bold text-[#4F5330] ml-2">Add property</Text>
               </TouchableOpacity>
-
-              <DecorativeWaveFooter
-                height={24}
-                style={{ marginTop: 8, marginHorizontal: -20, marginBottom: -16 }}
-              />
             </View>
           </TouchableWithoutFeedback>
         </View>

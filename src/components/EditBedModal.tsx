@@ -16,7 +16,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import { IMatrixBed, IMatrixRoom, BedStatus } from '../types/api';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { formatINR } from '../utils/currency';
-import { DecorativeWaveFooter } from './DecorativeWaveFooter';
 import { SuccessActionModal } from './SuccessActionModal';
 
 interface EditBedModalProps {
@@ -330,11 +329,6 @@ export const EditBedModal: React.FC<EditBedModalProps> = ({
                 </>
               )}
             </TouchableOpacity>
-
-            <DecorativeWaveFooter
-              height={44}
-              style={{ marginTop: 12, marginHorizontal: -20, marginBottom: -16 }}
-            />
           </View>
         </View>
 

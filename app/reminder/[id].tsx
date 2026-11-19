@@ -14,7 +14,6 @@ import { ReminderType, buildReminderMessage } from '../../src/utils/whatsapp';
 import { RentPaymentPassCard } from '../../src/components/RentPaymentPassCard';
 import { RentPaymentPassSvg } from '../../src/components/RentPaymentPassSvg';
 import { sharePaymentCardToWhatsApp } from '../../src/utils/whatsappShare';
-import { DecorativeWaveFooter } from '../../src/components/DecorativeWaveFooter';
 
 export default function SendReminderScreen() {
   const router = useRouter();
@@ -661,11 +660,6 @@ export default function SendReminderScreen() {
           >
             Directly opens {firstName}'s WhatsApp chat with the pass card & instant payment link.
           </Text>
-
-          <DecorativeWaveFooter
-            height={48}
-            style={{ marginTop: 14, marginHorizontal: -20, marginBottom: -32 }}
-          />
         </View>
       </ScrollView>
     </SafeAreaView>

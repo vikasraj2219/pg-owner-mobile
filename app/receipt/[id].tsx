@@ -3,7 +3,6 @@ import { View, Text, TouchableOpacity, ScrollView, Alert, Linking } from 'react-
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft, Share2, Check, Download, MessageSquare } from 'lucide-react-native';
-import { DecorativeWaveFooter } from '../../src/components/DecorativeWaveFooter';
 import { useProperties } from '../../src/context/PropertyContext';
 import { useInvoices } from '../../src/hooks/useInvoices';
 import { useMatrix } from '../../src/hooks/useMatrix';
@@ -453,12 +452,6 @@ export default function ReceiptScreen() {
             Share via WhatsApp
           </Text>
         </TouchableOpacity>
-
-        {/* Decorative Wave Footer matching Screenshot */}
-        <DecorativeWaveFooter
-          height={48}
-          style={{ marginTop: 16, marginHorizontal: -20, marginBottom: -40 }}
-        />
       </ScrollView>
     </SafeAreaView>
   );

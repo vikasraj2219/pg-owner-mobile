@@ -9,7 +9,6 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Trash2, AlertTriangle, CheckCircle2, X } from 'lucide-react-native';
-import { DecorativeWaveFooter } from './DecorativeWaveFooter';
 
 export type ConfirmVariant = 'danger' | 'warning' | 'primary' | 'success';
 
@@ -167,11 +166,6 @@ export const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
                   )}
                 </TouchableOpacity>
               </View>
-
-              <DecorativeWaveFooter
-                height={36}
-                style={{ marginTop: 14, marginHorizontal: -24, marginBottom: -24 }}
-              />
             </View>
           </TouchableWithoutFeedback>
         </View>

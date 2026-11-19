@@ -33,7 +33,6 @@ import { IProperty } from '../types/api';
 import { getApiErrorMessage } from '../utils/validation';
 import { formatINR } from '../utils/currency';
 import { RoomSummaryCard } from './RoomSummaryCard';
-import { DecorativeWaveFooter } from './DecorativeWaveFooter';
 import { SuccessActionModal } from './SuccessActionModal';
 
 interface AddRoomModalProps {
@@ -890,7 +889,7 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
           style={{
             paddingHorizontal: 20,
             paddingTop: 12,
-            paddingBottom: 0,
+            paddingBottom: Platform.OS === 'ios' ? 28 : 16,
             borderTopWidth: 1,
             borderTopColor: '#E5DDCD',
             backgroundColor: '#FAF5EB',
@@ -937,11 +936,6 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
               </>
             )}
           </TouchableOpacity>
-
-          <DecorativeWaveFooter
-            height={48}
-            style={{ marginTop: 10, marginHorizontal: -20, marginBottom: 0 }}
-          />
         </View>
 
         {/* Floor Selection Dropdown Sheet Modal */}

@@ -20,7 +20,6 @@ import {
   validatePincode,
   getApiErrorMessage,
 } from '../utils/validation';
-import { DecorativeWaveFooter } from './DecorativeWaveFooter';
 import { SuccessActionModal } from './SuccessActionModal';
 
 interface AddPropertyModalProps {
@@ -284,11 +283,6 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
               <Text className="text-base font-extrabold text-white">Save property</Text>
             )}
           </TouchableOpacity>
-
-          <DecorativeWaveFooter
-            height={48}
-            style={{ marginTop: 14, marginHorizontal: -20, marginBottom: -24 }}
-          />
         </ScrollView>
 
         {/* Modern In-App Success Modal for Property Creation */}

@@ -17,7 +17,6 @@ import { formatSafeDate } from '../utils/date';
 import { sendRentReminder } from '../utils/whatsapp';
 import { setTenantNoticeApi, cancelTenantNoticeApi } from '../api/notice';
 import { ConfirmActionModal } from './ConfirmDeleteModal';
-import { DecorativeWaveFooter } from './DecorativeWaveFooter';
 import { SuccessActionModal } from './SuccessActionModal';
 
 interface OccupiedBedSheetProps {
@@ -287,12 +286,6 @@ export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
                   <Text style={styles.checkoutButtonText}>Checkout / Vacate Bed</Text>
                 </TouchableOpacity>
               )}
-
-              {/* Exactly ONE clean Decorative Wave Footer */}
-              <DecorativeWaveFooter
-                height={44}
-                style={{ marginTop: 14, marginHorizontal: -20, marginBottom: -24 }}
-              />
             </View>
           </TouchableWithoutFeedback>
         </View>

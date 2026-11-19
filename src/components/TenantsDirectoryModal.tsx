@@ -16,7 +16,6 @@ import { ITenantListItem, IProperty } from '../types/api';
 import { useTenants } from '../hooks/useTenants';
 import { formatINR } from '../utils/currency';
 import { formatSafeDate } from '../utils/date';
-import { DecorativeWaveFooter } from './DecorativeWaveFooter';
 
 interface TenantsDirectoryModalProps {
   visible: boolean;
@@ -836,8 +835,6 @@ export const TenantsDirectoryModal: React.FC<TenantsDirectoryModalProps> = ({
             </View>
           )}
         </ScrollView>
-
-        <DecorativeWaveFooter height={28} />
       </View>
     </Modal>
   );

@@ -33,7 +33,6 @@ import { IProperty, PropertyType } from '../types/api';
 import { updatePropertyApi, deletePropertyApi } from '../api/properties';
 import { useProperties } from '../context/PropertyContext';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
-import { DecorativeWaveFooter } from './DecorativeWaveFooter';
 import { SuccessActionModal } from './SuccessActionModal';
 
 interface EditPropertyModalProps {
@@ -899,11 +898,6 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
               </>
             )}
           </TouchableOpacity>
-
-          <DecorativeWaveFooter
-            height={48}
-            style={{ marginTop: 10, marginHorizontal: -20, marginBottom: 0 }}
-          />
         </View>
 
         {/* Modern In-App Success Modal for Property Update */}

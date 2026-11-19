@@ -17,7 +17,6 @@ import * as SplashScreen from 'expo-splash-screen';
 import { Eye, EyeOff, Fingerprint, AlertCircle } from 'lucide-react-native';
 import { AppLogo } from '../../src/components/AppLogo';
 import { LoginSkeleton } from '../../src/components/Skeleton';
-import { DecorativeWaveFooter } from '../../src/components/DecorativeWaveFooter';
 import { useAuth } from '../../src/hooks/useAuth';
 import {
   validateIdentifier,
@@ -494,8 +493,6 @@ export default function LoginScreen() {
                   </Text>
                 </TouchableOpacity>
               </View>
-
-              <DecorativeWaveFooter height={36} style={{ marginTop: 16 }} />
             </View>
           </ScrollView>
         </KeyboardAvoidingView>

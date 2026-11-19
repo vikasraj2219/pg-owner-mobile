@@ -41,7 +41,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import { uploadKycDocumentApi } from '../../src/api/upload';
 import { IdDocumentViewerModal } from '../../src/components/IdDocumentViewerModal';
 import { BedTransferModal } from '../../src/components/BedTransferModal';
-import { DecorativeWaveFooter } from '../../src/components/DecorativeWaveFooter';
 import { useTenantDetail } from '../../src/hooks/useTenants';
 import { useMatrix } from '../../src/hooks/useMatrix';
 import { formatINR } from '../../src/utils/currency';
@@ -1815,6 +1814,8 @@ export default function TenantDetailScreen() {
           borderTopWidth: 1,
           borderTopColor: '#E5DDCD',
           paddingTop: 12,
+          paddingBottom: Platform.OS === 'ios' ? 28 : 16,
+          paddingHorizontal: 16,
         }}
       >
         <View
@@ -1822,8 +1823,6 @@ export default function TenantDetailScreen() {
             flexDirection: 'row',
             alignItems: 'center',
             gap: 12,
-            paddingHorizontal: 16,
-            marginBottom: 6,
           }}
         >
           {tenant.status === 'notice_period' ? (
@@ -1880,9 +1879,6 @@ export default function TenantDetailScreen() {
             <Text style={{ fontSize: 14, fontWeight: '800', color: '#FFFFFF' }}>Checkout</Text>
           </TouchableOpacity>
         </View>
-
-        {/* Signature Bottom Wave Footer - Full Width edge-to-edge */}
-        <DecorativeWaveFooter height={48} />
       </View>
 
       {/* Record Payment Modal */}
@@ -2306,11 +2302,6 @@ export default function TenantDetailScreen() {
                 )}
               </TouchableOpacity>
             </View>
-
-            <DecorativeWaveFooter
-              height={36}
-              style={{ marginTop: 14, marginHorizontal: -24, marginBottom: -24 }}
-            />
           </View>
         </View>
       </Modal>

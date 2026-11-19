@@ -46,7 +46,6 @@ import { openWhatsApp } from '../../src/utils/whatsapp';
 import { PropertySwitcherModal } from '../../src/components/PropertySwitcherModal';
 import { ConfirmDeleteModal, ConfirmActionModal } from '../../src/components/ConfirmDeleteModal';
 import { SuccessActionModal } from '../../src/components/SuccessActionModal';
-import { DecorativeWaveFooter } from '../../src/components/DecorativeWaveFooter';
 
 type FilterTab = 'all' | 'active' | 'notice_period' | 'checked_out';
 
@@ -1359,11 +1358,6 @@ export default function TenantsScreen() {
                 )}
               </TouchableOpacity>
             </View>
-
-            <DecorativeWaveFooter
-              height={36}
-              style={{ marginTop: 14, marginHorizontal: -24, marginBottom: -24 }}
-            />
           </View>
         </View>
       </Modal>

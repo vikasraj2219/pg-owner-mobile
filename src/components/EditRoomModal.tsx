@@ -35,7 +35,6 @@ import { updateRoomApi, deleteRoomApi } from '../api/properties';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { RoomSummaryCard } from './RoomSummaryCard';
 import { formatFloorLabel } from './AddRoomModal';
-import { DecorativeWaveFooter } from './DecorativeWaveFooter';
 import { SuccessActionModal } from './SuccessActionModal';
 import { formatINR } from '../utils/currency';
 
@@ -768,7 +767,7 @@ export const EditRoomModal: React.FC<EditRoomModalProps> = ({
           style={{
             paddingHorizontal: 20,
             paddingTop: 12,
-            paddingBottom: 0,
+            paddingBottom: Platform.OS === 'ios' ? 28 : 16,
             borderTopWidth: 1,
             borderTopColor: '#E5DDCD',
             backgroundColor: '#FAF5EB',
@@ -810,11 +809,6 @@ export const EditRoomModal: React.FC<EditRoomModalProps> = ({
               </>
             )}
           </TouchableOpacity>
-
-          <DecorativeWaveFooter
-            height={48}
-            style={{ marginTop: 10, marginHorizontal: -20, marginBottom: 0 }}
-          />
         </View>
 
         {/* Floor Selection Dropdown Sheet Modal */}

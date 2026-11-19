@@ -14,7 +14,6 @@ import {
 import { X, Layers } from 'lucide-react-native';
 import { createFloorApi } from '../api/properties';
 import { useQueryClient } from '@tanstack/react-query';
-import { DecorativeWaveFooter } from './DecorativeWaveFooter';
 
 interface AddFloorModalProps {
   visible: boolean;
@@ -167,11 +166,6 @@ export const AddFloorModal: React.FC<AddFloorModalProps> = ({
                 <Text className="text-white font-extrabold text-base">Add floor</Text>
               )}
             </TouchableOpacity>
-
-            <DecorativeWaveFooter
-              height={44}
-              style={{ marginTop: 12, marginHorizontal: -20, marginBottom: -16 }}
-            />
           </View>
         </View>
       </KeyboardAvoidingView>

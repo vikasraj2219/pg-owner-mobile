@@ -24,7 +24,6 @@ import { formatSafeDate } from '../../src/utils/date';
 import { getCheckoutPreviewApi, confirmCheckoutApi } from '../../src/api/checkout';
 import { CheckoutPreviewData, ISettlementStatement } from '../../src/types/api';
 import { ConfirmActionModal } from '../../src/components/ConfirmDeleteModal';
-import { DecorativeWaveFooter } from '../../src/components/DecorativeWaveFooter';
 
 export default function CheckoutScreen() {
   const { tenantId } = useLocalSearchParams<{ tenantId: string }>();
@@ -411,11 +410,6 @@ export default function CheckoutScreen() {
               Back to Bed Matrix
             </Text>
           </TouchableOpacity>
-
-          <DecorativeWaveFooter
-            height={48}
-            style={{ marginTop: 16, marginHorizontal: -20, marginBottom: -36 }}
-          />
         </ScrollView>
       ) : (
         <ScrollView
@@ -878,11 +872,6 @@ export default function CheckoutScreen() {
                 </Text>
               )}
             </TouchableOpacity>
-
-            <DecorativeWaveFooter
-              height={48}
-              style={{ marginTop: 20, marginHorizontal: -20, marginBottom: -40 }}
-            />
           </View>
         </ScrollView>
       )}
