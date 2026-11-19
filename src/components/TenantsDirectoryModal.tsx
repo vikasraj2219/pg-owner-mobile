@@ -12,7 +12,16 @@ import {
   Alert,
   Image,
 } from 'react-native';
-import { X, Search, Users, Phone, MessageSquare, Building, ShieldCheck } from 'lucide-react-native';
+import {
+  X,
+  Search,
+  Users,
+  Phone,
+  MessageSquare,
+  Building,
+  ShieldCheck,
+  ArrowLeft,
+} from 'lucide-react-native';
 import { ITenantListItem, IProperty } from '../types/api';
 import { useTenants } from '../hooks/useTenants';
 import { formatINR } from '../utils/currency';
@@ -151,48 +160,41 @@ export const TenantsDirectoryModal: React.FC<TenantsDirectoryModalProps> = ({
             style={{
               flexDirection: 'row',
               alignItems: 'center',
-              justifyContent: 'space-between',
-              marginBottom: 12,
+              marginBottom: 14,
             }}
           >
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              <View
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 16,
-                  backgroundColor: '#D1F4F9',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Users size={22} color="#0799AA" strokeWidth={2.2} />
-              </View>
-              <View>
-                <Text style={{ fontSize: 20, fontWeight: '800', color: '#0C192B' }}>
-                  Tenants Directory
-                </Text>
-                <Text style={{ fontSize: 12, fontWeight: '500', color: '#657080', marginTop: 1 }}>
-                  {tenants.length} total · {activeCount} active · {noticeCount} on notice
-                </Text>
-              </View>
-            </View>
             <TouchableOpacity
               activeOpacity={0.7}
               onPress={onClose}
               style={{
-                width: 36,
-                height: 36,
-                borderRadius: 18,
+                width: 40,
+                height: 40,
+                borderRadius: 20,
                 backgroundColor: '#FFFDF8',
                 borderWidth: 1,
                 borderColor: '#E5DDCD',
                 alignItems: 'center',
                 justifyContent: 'center',
+                marginRight: 14,
               }}
             >
-              <X size={20} color="#0C192B" strokeWidth={2.2} />
+              <ArrowLeft size={20} color="#0C192B" strokeWidth={2.3} />
             </TouchableOpacity>
+            <View style={{ flex: 1 }}>
+              <Text
+                style={{
+                  fontSize: 20,
+                  fontWeight: '800',
+                  color: '#0C192B',
+                  letterSpacing: -0.3,
+                }}
+              >
+                Tenants Directory
+              </Text>
+              <Text style={{ fontSize: 12, fontWeight: '500', color: '#657080', marginTop: 1 }}>
+                {tenants.length} total · {activeCount} active · {noticeCount} on notice
+              </Text>
+            </View>
           </View>
 
           {/* Search Bar */}

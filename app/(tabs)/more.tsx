@@ -1,11 +1,19 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Alert, Modal, Switch } from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+  Modal,
+  Switch,
+  Image,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import {
   Zap,
   TrendingDown,
-  CreditCard,
   Building,
   Users,
   LogOut,
@@ -23,6 +31,7 @@ import { SubscriptionModal } from '../../src/components/SubscriptionModal';
 import { PropertiesRoomsModal } from '../../src/components/PropertiesRoomsModal';
 import { ConfirmActionModal } from '../../src/components/ConfirmDeleteModal';
 import { calculateDaysRemaining } from '../../src/utils/date';
+import { getProfileAvatar } from '../../src/utils/assetImages';
 import { useQuery } from '@tanstack/react-query';
 import { getCurrentSubscriptionApi } from '../../src/api/subscription';
 
@@ -69,25 +78,10 @@ export default function MoreScreen() {
     return 14;
   }, [subQuery, activeStatus, subscription]);
 
-  const planLabel = React.useMemo(() => {
-    if (activePlan === 'pro') return 'Pro Enterprise';
-    if (activePlan === 'growth') return 'Growth';
-    return 'Starter';
-  }, [activePlan]);
-
   // Dynamic total beds
   const totalBeds = React.useMemo(() => {
     return properties.reduce((sum, p) => sum + (p.stats?.totalBeds || 0), 0);
   }, [properties]);
-
-  const getInitials = (name?: string) => {
-    if (!name) return 'PG';
-    const parts = name.trim().split(' ');
-    if (parts.length >= 2 && parts[0] && parts[1]) {
-      return (parts[0][0] + parts[1][0]).toUpperCase();
-    }
-    return name.slice(0, 2).toUpperCase();
-  };
 
   const handleLogout = () => {
     setShowLogoutConfirm(true);
@@ -120,16 +114,6 @@ export default function MoreScreen() {
           label: 'Staff & Manager Logins',
           detail: 'Access controls & roles',
           onPress: () => setShowStaffModal(true),
-        },
-        {
-          icon: CreditCard,
-          label: 'Subscription & Quotas',
-          detail: isReadOnly
-            ? 'Trial Expired (Read-only mode)'
-            : activeStatus === 'active'
-              ? `${planLabel} Plan · Active (${daysRemaining}d left)`
-              : `14-Day Free Trial (${daysRemaining} days left)`,
-          onPress: () => setShowSubscriptionModal(true),
         },
       ],
     },
@@ -228,18 +212,23 @@ export default function MoreScreen() {
         >
           <View
             style={{
-              width: 48,
-              height: 48,
-              borderRadius: 24,
-              backgroundColor: '#D1F4F9',
+              width: 52,
+              height: 52,
+              borderRadius: 26,
+              backgroundColor: '#FAF5EB',
+              borderWidth: 1,
+              borderColor: '#E5DDCD',
+              overflow: 'hidden',
               alignItems: 'center',
               justifyContent: 'center',
               marginRight: 14,
             }}
           >
-            <Text style={{ color: '#0799AA', fontWeight: '800', fontSize: 16 }}>
-              {getInitials(user?.name || organization?.ownerName || 'Owner')}
-            </Text>
+            <Image
+              source={getProfileAvatar(user?.name || organization?.ownerName || 'Owner')}
+              style={{ width: '100%', height: '100%' }}
+              resizeMode="cover"
+            />
           </View>
           <View style={{ flex: 1, marginRight: 8 }}>
             <Text style={{ fontSize: 16, fontWeight: '800', color: '#0C192B' }}>

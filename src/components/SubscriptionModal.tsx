@@ -10,7 +10,14 @@ import {
   Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { X, Sparkles, AlertCircle, ShieldCheck, Clock, ArrowDownCircle } from 'lucide-react-native';
+import {
+  Sparkles,
+  AlertCircle,
+  ShieldCheck,
+  Clock,
+  ArrowDownCircle,
+  ArrowLeft,
+} from 'lucide-react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   getCurrentSubscriptionApi,
@@ -177,7 +184,6 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
           style={{
             flexDirection: 'row',
             alignItems: 'center',
-            justifyContent: 'space-between',
             paddingHorizontal: 20,
             paddingTop: 16,
             paddingBottom: 14,
@@ -186,30 +192,38 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
             backgroundColor: '#FAF5EB',
           }}
         >
-          <View>
-            <Text style={{ fontSize: 18, fontWeight: '800', color: '#0C192B' }}>
+          <TouchableOpacity
+            onPress={onClose}
+            activeOpacity={0.7}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              backgroundColor: '#FFFDF8',
+              borderWidth: 1,
+              borderColor: '#E5DDCD',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginRight: 14,
+            }}
+          >
+            <ArrowLeft size={20} color="#0C192B" strokeWidth={2.3} />
+          </TouchableOpacity>
+          <View style={{ flex: 1 }}>
+            <Text
+              style={{
+                fontSize: 20,
+                fontWeight: '800',
+                color: '#0C192B',
+                letterSpacing: -0.3,
+              }}
+            >
               Subscription & Limits
             </Text>
             <Text style={{ fontSize: 12, fontWeight: '600', color: '#657080', marginTop: 2 }}>
               Plan quotas, upgrades & billing cycles
             </Text>
           </View>
-          <TouchableOpacity
-            onPress={onClose}
-            activeOpacity={0.7}
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 18,
-              backgroundColor: '#FFFDF8',
-              borderWidth: 1,
-              borderColor: '#E5DDCD',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <X size={18} color="#657080" />
-          </TouchableOpacity>
         </View>
 
         {isLoading ? (

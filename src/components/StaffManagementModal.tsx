@@ -9,8 +9,10 @@ import {
   Alert,
   ActivityIndicator,
   Platform,
+  Image,
 } from 'react-native';
-import { X, UserPlus, Trash2, Building2, Shield, Edit2, Lock, Key } from 'lucide-react-native';
+import { X, UserPlus, Trash2, Building2, Edit2, Lock, Key, ArrowLeft } from 'lucide-react-native';
+import { getProfileAvatar } from '../utils/assetImages';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -258,7 +260,6 @@ export const StaffManagementModal: React.FC<StaffManagementModalProps> = ({
           style={{
             flexDirection: 'row',
             alignItems: 'center',
-            justifyContent: 'space-between',
             paddingHorizontal: 20,
             paddingTop: 16,
             paddingBottom: 14,
@@ -267,30 +268,38 @@ export const StaffManagementModal: React.FC<StaffManagementModalProps> = ({
             backgroundColor: '#FAF5EB',
           }}
         >
-          <View>
-            <Text style={{ fontSize: 18, fontWeight: '800', color: '#0C192B' }}>
+          <TouchableOpacity
+            onPress={onClose}
+            activeOpacity={0.7}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              backgroundColor: '#FFFDF8',
+              borderWidth: 1,
+              borderColor: '#E5DDCD',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginRight: 14,
+            }}
+          >
+            <ArrowLeft size={20} color="#0C192B" strokeWidth={2.3} />
+          </TouchableOpacity>
+          <View style={{ flex: 1 }}>
+            <Text
+              style={{
+                fontSize: 20,
+                fontWeight: '800',
+                color: '#0C192B',
+                letterSpacing: -0.3,
+              }}
+            >
               Staff & Team Access
             </Text>
             <Text style={{ fontSize: 12, fontWeight: '600', color: '#657080', marginTop: 2 }}>
               Access controls & credentials management
             </Text>
           </View>
-          <TouchableOpacity
-            onPress={onClose}
-            activeOpacity={0.7}
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 18,
-              backgroundColor: '#FFFDF8',
-              borderWidth: 1,
-              borderColor: '#E5DDCD',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <X size={18} color="#657080" />
-          </TouchableOpacity>
         </View>
 
         {/* Tab Switcher */}
@@ -314,16 +323,16 @@ export const StaffManagementModal: React.FC<StaffManagementModalProps> = ({
               borderRadius: 9999,
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: activeTab === 'list' ? '#4F5330' : '#FFFDF8',
+              backgroundColor: activeTab === 'list' ? '#19D3E6' : '#FFFDF8',
               borderWidth: 1,
-              borderColor: activeTab === 'list' ? '#4F5330' : '#E5DDCD',
+              borderColor: activeTab === 'list' ? '#19D3E6' : '#E5DDCD',
             }}
           >
             <Text
               style={{
                 fontSize: 12,
                 fontWeight: '800',
-                color: activeTab === 'list' ? '#FFFFFF' : '#0C192B',
+                color: '#0C192B',
               }}
             >
               Team Members ({members.length})
@@ -344,21 +353,17 @@ export const StaffManagementModal: React.FC<StaffManagementModalProps> = ({
                 alignItems: 'center',
                 justifyContent: 'center',
                 flexDirection: 'row',
-                backgroundColor: activeTab === 'add' ? '#4F5330' : '#FFFDF8',
+                backgroundColor: activeTab === 'add' ? '#19D3E6' : '#FFFDF8',
                 borderWidth: 1,
-                borderColor: activeTab === 'add' ? '#4F5330' : '#E5DDCD',
+                borderColor: activeTab === 'add' ? '#19D3E6' : '#E5DDCD',
               }}
             >
-              <UserPlus
-                size={14}
-                color={activeTab === 'add' ? '#FFFFFF' : '#0C192B'}
-                style={{ marginRight: 6 }}
-              />
+              <UserPlus size={14} color="#0C192B" style={{ marginRight: 6 }} />
               <Text
                 style={{
                   fontSize: 12,
                   fontWeight: '800',
-                  color: activeTab === 'add' ? '#FFFFFF' : '#0C192B',
+                  color: '#0C192B',
                 }}
               >
                 Add Staff Member
@@ -540,7 +545,7 @@ export const StaffManagementModal: React.FC<StaffManagementModalProps> = ({
                 </Text>
               </View>
             ) : (
-              filteredMembers.map(member => {
+              filteredMembers.map((member, idx) => {
                 const isMemberOwner = member.role === 'owner';
                 const isManager = member.role === 'manager';
 
@@ -579,28 +584,20 @@ export const StaffManagementModal: React.FC<StaffManagementModalProps> = ({
                       >
                         <View
                           style={{
-                            width: 40,
-                            height: 40,
-                            borderRadius: 20,
-                            backgroundColor: isMemberOwner
-                              ? '#F3E8FF'
-                              : isManager
-                                ? '#FAF5EB'
-                                : '#DBEAFE',
+                            width: 44,
+                            height: 44,
+                            borderRadius: 22,
+                            backgroundColor: '#FAF5EB',
                             borderWidth: 1,
-                            borderColor: isMemberOwner
-                              ? '#E9D5FF'
-                              : isManager
-                                ? '#E5DDCD'
-                                : '#BFDBFE',
-                            alignItems: 'center',
-                            justifyContent: 'center',
+                            borderColor: '#E5DDCD',
+                            overflow: 'hidden',
                             marginRight: 10,
                           }}
                         >
-                          <Shield
-                            size={18}
-                            color={isMemberOwner ? '#6B21A8' : isManager ? '#4F5330' : '#1D4ED8'}
+                          <Image
+                            source={getProfileAvatar(member._id || member.name, idx)}
+                            style={{ width: '100%', height: '100%' }}
+                            resizeMode="cover"
                           />
                         </View>
                         <View style={{ flex: 1 }}>

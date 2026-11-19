@@ -11,7 +11,6 @@ import {
   Image,
 } from 'react-native';
 import {
-  X,
   Plus,
   Bed as BedIcon,
   Layers,
@@ -177,7 +176,6 @@ export const PropertiesRoomsModal: React.FC<PropertiesRoomsModalProps> = ({ visi
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                justifyContent: 'space-between',
                 paddingHorizontal: 20,
                 paddingTop: 16,
                 paddingBottom: 14,
@@ -186,31 +184,39 @@ export const PropertiesRoomsModal: React.FC<PropertiesRoomsModalProps> = ({ visi
                 backgroundColor: '#FAF5EB',
               }}
             >
-              <View>
-                <Text style={{ fontSize: 18, fontWeight: '800', color: '#0C192B' }}>
-                  Properties
+              <TouchableOpacity
+                onPress={onClose}
+                activeOpacity={0.7}
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 20,
+                  backgroundColor: '#FFFDF8',
+                  borderWidth: 1,
+                  borderColor: '#E5DDCD',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginRight: 14,
+                }}
+              >
+                <ArrowLeft size={20} color="#0C192B" strokeWidth={2.3} />
+              </TouchableOpacity>
+              <View style={{ flex: 1 }}>
+                <Text
+                  style={{
+                    fontSize: 20,
+                    fontWeight: '800',
+                    color: '#0C192B',
+                    letterSpacing: -0.3,
+                  }}
+                >
+                  Properties & Rooms
                 </Text>
                 <Text style={{ fontSize: 12, fontWeight: '600', color: '#657080', marginTop: 2 }}>
                   {properties.length} of {maxPropsAllowed}{' '}
                   {maxPropsAllowed === 1 ? 'property' : 'properties'} used
                 </Text>
               </View>
-              <TouchableOpacity
-                onPress={onClose}
-                activeOpacity={0.7}
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 18,
-                  backgroundColor: '#FFFDF8',
-                  borderWidth: 1,
-                  borderColor: '#E5DDCD',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <X size={18} color="#657080" />
-              </TouchableOpacity>
             </View>
 
             <ScrollView
@@ -563,22 +569,6 @@ export const PropertiesRoomsModal: React.FC<PropertiesRoomsModalProps> = ({ visi
                   }}
                 >
                   <Pencil size={15} color="#0C192B" />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={onClose}
-                  activeOpacity={0.7}
-                  style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: 18,
-                    backgroundColor: '#FFFDF8',
-                    borderWidth: 1,
-                    borderColor: '#E5DDCD',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <X size={18} color="#657080" />
                 </TouchableOpacity>
               </View>
             </View>
@@ -1069,22 +1059,6 @@ export const PropertiesRoomsModal: React.FC<PropertiesRoomsModalProps> = ({ visi
                 >
                   <Pencil size={15} color="#0C192B" />
                 </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={onClose}
-                  activeOpacity={0.7}
-                  style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: 18,
-                    backgroundColor: '#FFFDF8',
-                    borderWidth: 1,
-                    borderColor: '#E5DDCD',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <X size={18} color="#657080" />
-                </TouchableOpacity>
               </View>
             </View>
 
@@ -1372,22 +1346,6 @@ export const PropertiesRoomsModal: React.FC<PropertiesRoomsModalProps> = ({ visi
                   }}
                 >
                   <Pencil size={15} color="#0C192B" />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={onClose}
-                  activeOpacity={0.7}
-                  style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: 18,
-                    backgroundColor: '#FFFDF8',
-                    borderWidth: 1,
-                    borderColor: '#E5DDCD',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <X size={18} color="#657080" />
                 </TouchableOpacity>
               </View>
             </View>

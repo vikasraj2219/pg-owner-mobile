@@ -9,8 +9,10 @@ import {
   Alert,
   ActivityIndicator,
   Platform,
+  Image,
 } from 'react-native';
-import { X, Zap, Edit2, Trash2, Building2, DoorClosed } from 'lucide-react-native';
+import { X, Zap, Edit2, Trash2, DoorClosed, ArrowLeft, Filter } from 'lucide-react-native';
+import { getPropertyImage } from '../utils/assetImages';
 import { useQueryClient } from '@tanstack/react-query';
 import { formatINR } from '../utils/currency';
 import { formatSafeDate } from '../utils/date';
@@ -272,7 +274,6 @@ export const SubMeterModal: React.FC<SubMeterModalProps> = ({
           style={{
             flexDirection: 'row',
             alignItems: 'center',
-            justifyContent: 'space-between',
             paddingHorizontal: 20,
             paddingTop: 16,
             paddingBottom: 14,
@@ -281,8 +282,32 @@ export const SubMeterModal: React.FC<SubMeterModalProps> = ({
             backgroundColor: '#FAF5EB',
           }}
         >
-          <View style={{ flex: 1, marginRight: 12 }}>
-            <Text style={{ fontSize: 18, fontWeight: '800', color: '#0C192B' }}>
+          <TouchableOpacity
+            onPress={onClose}
+            activeOpacity={0.7}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              backgroundColor: '#FFFDF8',
+              borderWidth: 1,
+              borderColor: '#E5DDCD',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginRight: 14,
+            }}
+          >
+            <ArrowLeft size={20} color="#0C192B" strokeWidth={2.3} />
+          </TouchableOpacity>
+          <View style={{ flex: 1 }}>
+            <Text
+              style={{
+                fontSize: 20,
+                fontWeight: '800',
+                color: '#0C192B',
+                letterSpacing: -0.3,
+              }}
+            >
               Sub-meter Electricity Log
             </Text>
             <Text
@@ -292,22 +317,6 @@ export const SubMeterModal: React.FC<SubMeterModalProps> = ({
               {activeProperty?.name || 'Property'} · EB Split Calculator
             </Text>
           </View>
-          <TouchableOpacity
-            onPress={onClose}
-            activeOpacity={0.7}
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 18,
-              backgroundColor: '#FFFDF8',
-              borderWidth: 1,
-              borderColor: '#E5DDCD',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <X size={18} color="#657080" />
-          </TouchableOpacity>
         </View>
 
         {/* Property Selector Bar (if owner has multiple properties) */}
@@ -317,29 +326,35 @@ export const SubMeterModal: React.FC<SubMeterModalProps> = ({
               backgroundColor: '#FAF5EB',
               paddingHorizontal: 20,
               paddingTop: 12,
-              paddingBottom: 6,
+              paddingBottom: 8,
               borderBottomWidth: 1,
               borderBottomColor: '#E5DDCD',
             }}
           >
-            <Text
+            <View
               style={{
-                fontSize: 11,
-                fontWeight: '800',
-                color: '#657080',
-                textTransform: 'uppercase',
-                letterSpacing: 0.5,
+                flexDirection: 'row',
+                alignItems: 'center',
                 marginBottom: 8,
               }}
             >
-              Select Property
-            </Text>
+              <Filter size={13} color="#0C192B" strokeWidth={2.2} style={{ marginRight: 6 }} />
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: '800',
+                  color: '#0C192B',
+                }}
+              >
+                Filter by Property
+              </Text>
+            </View>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ gap: 8, paddingBottom: 6 }}
+              contentContainerStyle={{ gap: 8, paddingBottom: 4 }}
             >
-              {properties.map(p => {
+              {properties.map((p, idx) => {
                 const isSelected = activePropertyId === p._id;
                 return (
                   <TouchableOpacity
@@ -360,16 +375,26 @@ export const SubMeterModal: React.FC<SubMeterModalProps> = ({
                       borderColor: isSelected ? '#19D3E6' : '#E5DDCD',
                     }}
                   >
-                    <Building2
-                      size={13}
-                      color={isSelected ? '#0C192B' : '#657080'}
-                      style={{ marginRight: 6 }}
-                    />
+                    <View
+                      style={{
+                        width: 18,
+                        height: 18,
+                        borderRadius: 6,
+                        overflow: 'hidden',
+                        marginRight: 6,
+                      }}
+                    >
+                      <Image
+                        source={getPropertyImage(p, idx)}
+                        style={{ width: '100%', height: '100%' }}
+                        resizeMode="cover"
+                      />
+                    </View>
                     <Text
                       style={{
                         fontSize: 12,
                         fontWeight: isSelected ? '800' : '600',
-                        color: isSelected ? '#0C192B' : '#657080',
+                        color: '#0C192B',
                       }}
                     >
                       {p.name}
@@ -397,18 +422,29 @@ export const SubMeterModal: React.FC<SubMeterModalProps> = ({
           >
             {/* Room Selector Filter */}
             <View style={{ marginBottom: 14 }}>
-              <Text
+              <View
                 style={{
-                  fontSize: 11,
-                  fontWeight: '800',
-                  color: '#657080',
-                  textTransform: 'uppercase',
-                  letterSpacing: 0.5,
+                  flexDirection: 'row',
+                  alignItems: 'center',
                   marginBottom: 8,
                 }}
               >
-                Select Room for Reading
-              </Text>
+                <DoorClosed
+                  size={13}
+                  color="#0C192B"
+                  strokeWidth={2.2}
+                  style={{ marginRight: 6 }}
+                />
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontWeight: '800',
+                    color: '#0C192B',
+                  }}
+                >
+                  Select Room for Reading
+                </Text>
+              </View>
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}

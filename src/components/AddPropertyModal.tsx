@@ -10,8 +10,10 @@ import {
   Platform,
   ActivityIndicator,
   Alert,
+  Image,
 } from 'react-native';
 import { ArrowLeft, Building2 } from 'lucide-react-native';
+import { PROPERTY_IMAGES } from '../utils/assetImages';
 import { IProperty, PropertyType } from '../types/api';
 import { useProperties } from '../context/PropertyContext';
 import {
@@ -145,6 +147,50 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
           contentContainerStyle={{ paddingBottom: 40 }}
           keyboardShouldPersistTaps="handled"
         >
+          {/* Property Building Photo Preview */}
+          <View
+            style={{
+              backgroundColor: '#FFFDF8',
+              borderWidth: 1,
+              borderColor: '#E5DDCD',
+              borderRadius: 18,
+              padding: 14,
+              flexDirection: 'row',
+              alignItems: 'center',
+              marginBottom: 18,
+            }}
+          >
+            <View
+              style={{
+                width: 72,
+                height: 64,
+                borderRadius: 14,
+                overflow: 'hidden',
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+                marginRight: 14,
+              }}
+            >
+              <Image
+                source={PROPERTY_IMAGES[properties.length % PROPERTY_IMAGES.length]}
+                style={{ width: '100%', height: '100%' }}
+                resizeMode="cover"
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 16, fontWeight: '800', color: '#0C192B' }} numberOfLines={1}>
+                {name.trim() || 'New PG Property'}
+              </Text>
+              <Text style={{ fontSize: 12, fontWeight: '500', color: '#657080', marginTop: 2 }}>
+                {type === 'boys'
+                  ? 'Boys Hostel / PG'
+                  : type === 'girls'
+                    ? 'Girls Hostel / PG'
+                    : 'Coliving PG'}
+              </Text>
+            </View>
+          </View>
+
           {/* Property Name */}
           <View className="mb-5">
             <Text className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
@@ -173,14 +219,23 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
                     key={item}
                     activeOpacity={0.8}
                     onPress={() => setType(item)}
-                    className={`flex-1 py-3 rounded-xl items-center justify-center border ${
-                      isSelected ? 'bg-[#4F5330] border-[#4F5330]' : 'bg-white border-slate-300'
-                    }`}
+                    style={{
+                      flex: 1,
+                      paddingVertical: 12,
+                      borderRadius: 14,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: isSelected ? '#19D3E6' : '#FFFDF8',
+                      borderWidth: 1,
+                      borderColor: isSelected ? '#19D3E6' : '#E5DDCD',
+                    }}
                   >
                     <Text
-                      className={`text-sm font-extrabold ${
-                        isSelected ? 'text-white' : 'text-slate-800'
-                      }`}
+                      style={{
+                        fontSize: 13,
+                        fontWeight: isSelected ? '800' : '600',
+                        color: '#0C192B',
+                      }}
                     >
                       {label}
                     </Text>

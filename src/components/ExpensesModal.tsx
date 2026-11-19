@@ -9,6 +9,7 @@ import {
   Alert,
   ActivityIndicator,
   Platform,
+  Image,
 } from 'react-native';
 import {
   X,
@@ -27,7 +28,6 @@ import {
   ChevronRight,
   ChevronDown,
   ArrowLeft,
-  Home,
   Filter,
   Wallet,
   Receipt,
@@ -41,6 +41,7 @@ import {
 import { useQueryClient } from '@tanstack/react-query';
 import { formatINR } from '../utils/currency';
 import { formatSafeDate } from '../utils/date';
+import { getPropertyImage } from '../utils/assetImages';
 import {
   createExpenseApi,
   getExpensesApi,
@@ -364,60 +365,43 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, 
             }}
             activeOpacity={0.7}
             style={{
-              width: 38,
-              height: 38,
-              borderRadius: 19,
+              width: 40,
+              height: 40,
+              borderRadius: 20,
               backgroundColor: '#FFFDF8',
               borderWidth: 1,
               borderColor: '#E5DDCD',
               alignItems: 'center',
               justifyContent: 'center',
+              marginRight: 14,
             }}
           >
-            <ArrowLeft size={18} color="#0C192B" strokeWidth={2.3} />
+            <ArrowLeft size={20} color="#0C192B" strokeWidth={2.3} />
           </TouchableOpacity>
 
-          <View style={{ flex: 1, alignItems: 'center', paddingHorizontal: 10 }}>
+          <View style={{ flex: 1 }}>
             <Text
               style={{
-                fontSize: 17,
+                fontSize: 20,
                 fontWeight: '800',
                 color: '#0C192B',
-                textAlign: 'center',
+                letterSpacing: -0.3,
               }}
             >
               Expenses & Monthly P&L
             </Text>
             <Text
               style={{
-                fontSize: 11,
+                fontSize: 12,
                 fontWeight: '500',
                 color: '#657080',
                 marginTop: 2,
-                textAlign: 'center',
               }}
               numberOfLines={1}
             >
               Track your expenses and financial summary
             </Text>
           </View>
-
-          <TouchableOpacity
-            onPress={onClose}
-            activeOpacity={0.7}
-            style={{
-              width: 38,
-              height: 38,
-              borderRadius: 19,
-              backgroundColor: '#FFFDF8',
-              borderWidth: 1,
-              borderColor: '#E5DDCD',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Home size={18} color="#0C192B" />
-          </TouchableOpacity>
         </View>
 
         <ScrollView
@@ -437,28 +421,20 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, 
                 alignItems: 'center',
                 justifyContent: 'center',
                 paddingVertical: 12,
+                paddingHorizontal: 10,
                 borderRadius: 9999,
-                backgroundColor: activeTab === 'pnl' ? '#4F5330' : '#FFFDF8',
+                backgroundColor: activeTab === 'pnl' ? '#19D3E6' : '#FFFDF8',
                 borderWidth: 1,
-                borderColor: activeTab === 'pnl' ? '#4F5330' : '#E5DDCD',
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: activeTab === 'pnl' ? 0.12 : 0.03,
-                shadowRadius: 3,
-                elevation: activeTab === 'pnl' ? 2 : 1,
+                borderColor: activeTab === 'pnl' ? '#19D3E6' : '#E5DDCD',
               }}
             >
-              <TrendingUp
-                size={16}
-                color={activeTab === 'pnl' ? '#FFFFFF' : '#0C192B'}
-                strokeWidth={2.3}
-                style={{ marginRight: 6 }}
-              />
+              <TrendingUp size={15} color="#0C192B" strokeWidth={2.3} style={{ marginRight: 6 }} />
               <Text
+                numberOfLines={1}
                 style={{
                   fontSize: 12,
                   fontWeight: '800',
-                  color: activeTab === 'pnl' ? '#FFFFFF' : '#0C192B',
+                  color: '#0C192B',
                 }}
               >
                 Live P&L & Monthly Ledger
@@ -477,28 +453,20 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, 
                 alignItems: 'center',
                 justifyContent: 'center',
                 paddingVertical: 12,
+                paddingHorizontal: 10,
                 borderRadius: 9999,
-                backgroundColor: activeTab === 'add' ? '#4F5330' : '#FFFDF8',
+                backgroundColor: activeTab === 'add' ? '#19D3E6' : '#FFFDF8',
                 borderWidth: 1,
-                borderColor: activeTab === 'add' ? '#4F5330' : '#E5DDCD',
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: activeTab === 'add' ? 0.12 : 0.03,
-                shadowRadius: 3,
-                elevation: activeTab === 'add' ? 2 : 1,
+                borderColor: activeTab === 'add' ? '#19D3E6' : '#E5DDCD',
               }}
             >
-              <Plus
-                size={16}
-                color={activeTab === 'add' ? '#FFFFFF' : '#0C192B'}
-                strokeWidth={2.5}
-                style={{ marginRight: 6 }}
-              />
+              <Plus size={15} color="#0C192B" strokeWidth={2.5} style={{ marginRight: 6 }} />
               <Text
+                numberOfLines={1}
                 style={{
                   fontSize: 12,
                   fontWeight: '800',
-                  color: activeTab === 'add' ? '#FFFFFF' : '#0C192B',
+                  color: '#0C192B',
                 }}
               >
                 Log New Expense
@@ -529,23 +497,23 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, 
                       flexDirection: 'row',
                       alignItems: 'center',
                       paddingHorizontal: 14,
-                      paddingVertical: 8,
-                      borderRadius: 14,
-                      backgroundColor: selectedFilterPropertyId === null ? '#4F5330' : '#FFFDF8',
+                      paddingVertical: 7,
+                      borderRadius: 9999,
+                      backgroundColor: selectedFilterPropertyId === null ? '#19D3E6' : '#FFFDF8',
                       borderWidth: 1,
-                      borderColor: selectedFilterPropertyId === null ? '#4F5330' : '#E5DDCD',
+                      borderColor: selectedFilterPropertyId === null ? '#19D3E6' : '#E5DDCD',
                     }}
                   >
                     <Building2
-                      size={14}
-                      color={selectedFilterPropertyId === null ? '#FFFFFF' : '#0C192B'}
+                      size={13}
+                      color={selectedFilterPropertyId === null ? '#0C192B' : '#657080'}
                       style={{ marginRight: 6 }}
                     />
                     <Text
                       style={{
                         fontSize: 12,
-                        fontWeight: '700',
-                        color: selectedFilterPropertyId === null ? '#FFFFFF' : '#0C192B',
+                        fontWeight: selectedFilterPropertyId === null ? '800' : '600',
+                        color: selectedFilterPropertyId === null ? '#0C192B' : '#657080',
                       }}
                     >
                       All Properties (Consolidated)
@@ -563,29 +531,29 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, 
                           flexDirection: 'row',
                           alignItems: 'center',
                           paddingHorizontal: 14,
-                          paddingVertical: 8,
-                          borderRadius: 14,
-                          backgroundColor: isSelected ? '#4F5330' : '#FFFDF8',
+                          paddingVertical: 7,
+                          borderRadius: 9999,
+                          backgroundColor: isSelected ? '#19D3E6' : '#FFFDF8',
                           borderWidth: 1,
-                          borderColor: isSelected ? '#4F5330' : '#E5DDCD',
+                          borderColor: isSelected ? '#19D3E6' : '#E5DDCD',
                         }}
                       >
                         <Building2
-                          size={14}
-                          color={isSelected ? '#FFFFFF' : '#0C192B'}
+                          size={13}
+                          color={isSelected ? '#0C192B' : '#657080'}
                           style={{ marginRight: 6 }}
                         />
                         <Text
                           style={{
                             fontSize: 12,
-                            fontWeight: '700',
-                            color: isSelected ? '#FFFFFF' : '#0C192B',
+                            fontWeight: isSelected ? '800' : '600',
+                            color: isSelected ? '#0C192B' : '#657080',
                           }}
                         >
                           {p.name}
                         </Text>
                         {isSelected && (
-                          <ChevronDown size={14} color="#FFFFFF" style={{ marginLeft: 4 }} />
+                          <ChevronDown size={14} color="#0C192B" style={{ marginLeft: 4 }} />
                         )}
                       </TouchableOpacity>
                     );
@@ -819,12 +787,17 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, 
                             backgroundColor: '#FAF5EB',
                             borderWidth: 1,
                             borderColor: '#E5DDCD',
+                            overflow: 'hidden',
                             alignItems: 'center',
                             justifyContent: 'center',
                             marginRight: 10,
                           }}
                         >
-                          <Home size={16} color="#4F5330" />
+                          <Image
+                            source={getPropertyImage(unitEconomics.propertyName)}
+                            style={{ width: '100%', height: '100%' }}
+                            resizeMode="cover"
+                          />
                         </View>
                         <View style={{ flex: 1 }}>
                           <Text style={{ fontSize: 14, fontWeight: '800', color: '#0C192B' }}>

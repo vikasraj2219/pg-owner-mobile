@@ -11,10 +11,10 @@ import {
   Switch,
   ActivityIndicator,
   Alert,
+  Image,
 } from 'react-native';
 import {
   ArrowLeft,
-  Home,
   Layers,
   ChevronDown,
   DoorClosed,
@@ -29,6 +29,7 @@ import {
   Check,
   X,
 } from 'lucide-react-native';
+import { getPropertyImage } from '../utils/assetImages';
 import { IProperty } from '../types/api';
 import { getApiErrorMessage } from '../utils/validation';
 import { formatINR } from '../utils/currency';
@@ -342,21 +343,6 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
               Add a new room to this property
             </Text>
           </View>
-
-          <View
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 12,
-              backgroundColor: '#FFFDF8',
-              borderWidth: 1,
-              borderColor: '#E5DDCD',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Home size={20} color="#4F5330" />
-          </View>
         </View>
 
         <ScrollView
@@ -385,18 +371,23 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
           >
             <View
               style={{
-                width: 48,
-                height: 48,
+                width: 78,
+                height: 64,
                 borderRadius: 14,
                 backgroundColor: '#FAF7F2',
                 borderWidth: 1,
                 borderColor: '#E5DDCD',
+                overflow: 'hidden',
                 alignItems: 'center',
                 justifyContent: 'center',
                 marginRight: 14,
               }}
             >
-              <Home size={24} color="#4F5330" />
+              <Image
+                source={getPropertyImage(property)}
+                style={{ width: '100%', height: '100%' }}
+                resizeMode="cover"
+              />
             </View>
 
             <View style={{ flex: 1 }}>

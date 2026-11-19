@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Alert,
   TextInput,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useFocusEffect } from 'expo-router';
@@ -27,6 +28,7 @@ import { useProperties } from '../../src/context/PropertyContext';
 import { useMatrix } from '../../src/hooks/useMatrix';
 import { IMatrixBed, IMatrixRoom } from '../../src/types/api';
 import { formatINR } from '../../src/utils/currency';
+import { getTenantAvatar } from '../../src/utils/assetImages';
 import { OfflineBanner } from '../../src/components/OfflineBanner';
 import { PropertySwitcherModal } from '../../src/components/PropertySwitcherModal';
 import { AddPropertyModal } from '../../src/components/AddPropertyModal';
@@ -997,12 +999,6 @@ export default function MatrixScreen() {
                         if (bed.status === 'occupied') {
                           const tenantName = bed.currentTenant?.fullName || 'Tenant';
                           const firstName = tenantName.split(' ')[0];
-                          const initials = tenantName
-                            .split(' ')
-                            .map(w => w[0])
-                            .slice(0, 2)
-                            .join('')
-                            .toUpperCase();
                           const isDue =
                             bed.currentTenant?.paymentStatus === 'DUE' ||
                             (bed.currentTenant?.rentDuePaise && bed.currentTenant.rentDuePaise > 0);
@@ -1036,19 +1032,23 @@ export default function MatrixScreen() {
                                 </Text>
                                 <View
                                   style={{
-                                    width: 20,
-                                    height: 20,
-                                    borderRadius: 10,
+                                    width: 22,
+                                    height: 22,
+                                    borderRadius: 11,
+                                    overflow: 'hidden',
+                                    borderWidth: 1,
+                                    borderColor: '#FECDD3',
                                     backgroundColor: '#FFE4E6',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
                                   }}
                                 >
-                                  <Text
-                                    style={{ fontSize: 10, fontWeight: '800', color: '#BE123C' }}
-                                  >
-                                    {initials}
-                                  </Text>
+                                  <Image
+                                    source={getTenantAvatar(
+                                      bed.currentTenant,
+                                      selectedProperty?.type,
+                                    )}
+                                    style={{ width: '100%', height: '100%' }}
+                                    resizeMode="cover"
+                                  />
                                 </View>
                               </View>
                               <View>
@@ -1094,12 +1094,6 @@ export default function MatrixScreen() {
                         if (bed.status === 'notice_period') {
                           const tenantName = bed.currentTenant?.fullName || 'Tenant';
                           const firstName = tenantName.split(' ')[0];
-                          const initials = tenantName
-                            .split(' ')
-                            .map(w => w[0])
-                            .slice(0, 2)
-                            .join('')
-                            .toUpperCase();
 
                           const daysLeft = bed.noticeEndDate
                             ? Math.max(
@@ -1146,19 +1140,23 @@ export default function MatrixScreen() {
                                 </Text>
                                 <View
                                   style={{
-                                    width: 20,
-                                    height: 20,
-                                    borderRadius: 10,
-                                    backgroundColor: '#FDE68A',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
+                                    width: 22,
+                                    height: 22,
+                                    borderRadius: 11,
+                                    overflow: 'hidden',
+                                    borderWidth: 1,
+                                    borderColor: '#FDE68A',
+                                    backgroundColor: '#FEF3C7',
                                   }}
                                 >
-                                  <Text
-                                    style={{ fontSize: 10, fontWeight: '800', color: '#92400E' }}
-                                  >
-                                    {initials}
-                                  </Text>
+                                  <Image
+                                    source={getTenantAvatar(
+                                      bed.currentTenant,
+                                      selectedProperty?.type,
+                                    )}
+                                    style={{ width: '100%', height: '100%' }}
+                                    resizeMode="cover"
+                                  />
                                 </View>
                               </View>
                               <View>

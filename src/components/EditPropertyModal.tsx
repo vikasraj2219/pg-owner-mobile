@@ -10,6 +10,7 @@ import {
   Platform,
   ActivityIndicator,
   Alert,
+  Image,
 } from 'react-native';
 import {
   ArrowLeft,
@@ -34,6 +35,7 @@ import { updatePropertyApi, deletePropertyApi } from '../api/properties';
 import { useProperties } from '../context/PropertyContext';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { SuccessActionModal } from './SuccessActionModal';
+import { getPropertyImage } from '../utils/assetImages';
 
 interface EditPropertyModalProps {
   visible: boolean;
@@ -299,7 +301,11 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
                 marginRight: 14,
               }}
             >
-              <Building2 size={42} color="#4F5330" strokeWidth={1.8} />
+              <Image
+                source={getPropertyImage(property)}
+                style={{ width: '100%', height: '100%' }}
+                resizeMode="cover"
+              />
             </View>
 
             {/* Info Column */}

@@ -19,6 +19,16 @@ export const GIRL_AVATARS: ImageSourcePropType[] = [
   require('../../assets/tenants/girl-3.png'),
 ];
 
+// Alternating male & female for balanced variety
+export const ALL_PROFILE_AVATARS: ImageSourcePropType[] = [
+  BOY_AVATARS[0],
+  GIRL_AVATARS[0],
+  BOY_AVATARS[1],
+  GIRL_AVATARS[1],
+  BOY_AVATARS[2],
+  GIRL_AVATARS[2],
+];
+
 /**
  * Simple hash helper to convert a string to a stable non-negative integer.
  */
@@ -138,6 +148,17 @@ export function getPropertyImage(
 
   const h = hashString(id || 'property');
   return PROPERTY_IMAGES[h % PROPERTY_IMAGES.length];
+}
+
+/**
+ * Returns a profile avatar cycling across all 6 photos (3 male + 3 female).
+ */
+export function getProfileAvatar(idOrName?: string, index?: number): ImageSourcePropType {
+  if (typeof index === 'number' && index >= 0) {
+    return ALL_PROFILE_AVATARS[index % ALL_PROFILE_AVATARS.length];
+  }
+  const h = hashString(idOrName || 'user');
+  return ALL_PROFILE_AVATARS[h % ALL_PROFILE_AVATARS.length];
 }
 
 /**
