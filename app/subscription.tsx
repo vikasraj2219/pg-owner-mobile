@@ -463,7 +463,10 @@ export default function SubscriptionScreen() {
             </Text>
           </View>
 
-          <DecorativeWaveFooter height={34} style={{ marginTop: 8 }} />
+          <DecorativeWaveFooter
+            height={48}
+            style={{ marginTop: 10, marginHorizontal: -20, marginBottom: -24 }}
+          />
         </ScrollView>
       )}
 

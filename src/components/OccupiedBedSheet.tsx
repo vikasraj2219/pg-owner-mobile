@@ -290,8 +290,8 @@ export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
 
               {/* Exactly ONE clean Decorative Wave Footer */}
               <DecorativeWaveFooter
-                height={32}
-                style={{ marginTop: 12, marginHorizontal: -20, marginBottom: -24 }}
+                height={44}
+                style={{ marginTop: 14, marginHorizontal: -20, marginBottom: -24 }}
               />
             </View>
           </TouchableWithoutFeedback>

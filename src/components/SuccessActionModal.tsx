@@ -87,7 +87,10 @@ export const SuccessActionModal: React.FC<SuccessActionModalProps> = ({
               </TouchableOpacity>
 
               {/* Signature Decorative Wave Footer */}
-              <DecorativeWaveFooter height={20} style={{ marginTop: 14 }} />
+              <DecorativeWaveFooter
+                height={36}
+                style={{ marginTop: 14, marginHorizontal: -22, marginBottom: -22 }}
+              />
             </View>
           </TouchableWithoutFeedback>
         </View>
@@ -112,6 +115,7 @@ const styles = StyleSheet.create({
     padding: 22,
     width: '100%',
     maxWidth: 380,
+    overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.15,

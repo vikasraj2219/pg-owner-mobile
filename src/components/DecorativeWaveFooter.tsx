@@ -13,7 +13,7 @@ interface DecorativeWaveFooterProps {
  * and sheets where the bottom toolbar is not present.
  */
 export const DecorativeWaveFooter: React.FC<DecorativeWaveFooterProps> = ({
-  height = 42,
+  height = 48,
   style,
 }) => {
   return (
@@ -29,11 +29,11 @@ export const DecorativeWaveFooter: React.FC<DecorativeWaveFooterProps> = ({
         style,
       ]}
     >
-      <Svg width="100%" height={height} viewBox="0 0 360 44" preserveAspectRatio="none">
-        {/* Cyan wave layer emerging from center-left (~38% width) and sweeping up to top-right */}
-        <Path d="M135,44 C190,42 260,20 360,6 L360,44 L135,44 Z" fill="#19D3E6" />
-        {/* Olive green wave layer starting high on left, dipping in center-left (~38% width), and gently tapering at bottom-right */}
-        <Path d="M0,16 C45,28 90,41 140,41 C210,41 290,36 360,30 L360,44 L0,44 Z" fill="#4F5330" />
+      <Svg width="100%" height={height} viewBox="0 0 360 60" preserveAspectRatio="none">
+        {/* Vibrant Cyan wave layer emerging from center-right (~52% width) and sweeping high up to top-right */}
+        <Path d="M175,60 C240,44 300,18 360,2 L360,60 Z" fill="#19D3E6" />
+        {/* Dark Olive Green wave layer spanning full width: crests on left (~20%), dips in center (~60%), and gently rises on right */}
+        <Path d="M0,44 C50,24 120,28 180,40 C230,48 300,32 360,28 L360,60 L0,60 Z" fill="#4F5330" />
       </Svg>
     </View>
   );

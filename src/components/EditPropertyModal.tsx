@@ -877,7 +877,7 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
               width: '100%',
               backgroundColor: '#4F5330',
               height: 52,
-              borderRadius: 16,
+              borderRadius: 9999,
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'center',
@@ -900,7 +900,10 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
             )}
           </TouchableOpacity>
 
-          <DecorativeWaveFooter height={24} style={{ marginTop: 8 }} />
+          <DecorativeWaveFooter
+            height={48}
+            style={{ marginTop: 10, marginHorizontal: -20, marginBottom: 0 }}
+          />
         </View>
 
         {/* Modern In-App Success Modal for Property Update */}

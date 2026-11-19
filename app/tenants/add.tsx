@@ -342,7 +342,10 @@ export default function PickVacantBedScreen() {
             </View>
           ))}
 
-          <DecorativeWaveFooter height={34} style={{ marginTop: 14 }} />
+          <DecorativeWaveFooter
+            height={48}
+            style={{ marginTop: 14, marginHorizontal: -20, marginBottom: -36 }}
+          />
         </ScrollView>
       )}
 
@@ -390,7 +393,10 @@ export default function PickVacantBedScreen() {
             </Text>
           </TouchableOpacity>
 
-          <DecorativeWaveFooter height={24} style={{ marginTop: 8 }} />
+          <DecorativeWaveFooter
+            height={48}
+            style={{ marginTop: 10, marginHorizontal: -16, marginBottom: -16 }}
+          />
         </View>
       )}
     </SafeAreaView>

@@ -373,7 +373,10 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
               )}
             </TouchableOpacity>
 
-            <DecorativeWaveFooter height={24} style={{ marginTop: 8 }} />
+            <DecorativeWaveFooter
+              height={44}
+              style={{ marginTop: 14, marginHorizontal: -24, marginBottom: -24 }}
+            />
           </ScrollView>
         </View>
 

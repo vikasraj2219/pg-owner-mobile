@@ -139,8 +139,8 @@ export const VacantBedSheet: React.FC<VacantBedSheetProps> = ({
               </View>
 
               <DecorativeWaveFooter
-                height={24}
-                style={{ marginTop: 10, marginHorizontal: -20, marginBottom: -16 }}
+                height={44}
+                style={{ marginTop: 12, marginHorizontal: -20, marginBottom: -16 }}
               />
             </View>
           </TouchableWithoutFeedback>

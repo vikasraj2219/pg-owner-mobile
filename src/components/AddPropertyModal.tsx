@@ -285,7 +285,10 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
             )}
           </TouchableOpacity>
 
-          <DecorativeWaveFooter height={30} style={{ marginTop: 14 }} />
+          <DecorativeWaveFooter
+            height={48}
+            style={{ marginTop: 14, marginHorizontal: -20, marginBottom: -24 }}
+          />
         </ScrollView>
 
         {/* Modern In-App Success Modal for Property Creation */}

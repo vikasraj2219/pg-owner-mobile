@@ -456,8 +456,8 @@ export default function ReceiptScreen() {
 
         {/* Decorative Wave Footer matching Screenshot */}
         <DecorativeWaveFooter
-          height={42}
-          style={{ marginTop: 14, marginHorizontal: -20, marginBottom: -40 }}
+          height={48}
+          style={{ marginTop: 16, marginHorizontal: -20, marginBottom: -40 }}
         />
       </ScrollView>
     </SafeAreaView>

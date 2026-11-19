@@ -1811,15 +1811,21 @@ export default function TenantDetailScreen() {
           bottom: 0,
           left: 0,
           right: 0,
-          backgroundColor: '#FFFDF8',
+          backgroundColor: '#FAF5EB',
           borderTopWidth: 1,
           borderTopColor: '#E5DDCD',
-          paddingTop: 14,
-          paddingHorizontal: 16,
-          paddingBottom: 0,
+          paddingTop: 12,
         }}
       >
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 12,
+            paddingHorizontal: 16,
+            marginBottom: 6,
+          }}
+        >
           {tenant.status === 'notice_period' ? (
             <TouchableOpacity
               onPress={handleCancelNotice}
@@ -1875,8 +1881,8 @@ export default function TenantDetailScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Signature Bottom Wave Footer */}
-        <DecorativeWaveFooter height={24} />
+        {/* Signature Bottom Wave Footer - Full Width edge-to-edge */}
+        <DecorativeWaveFooter height={48} />
       </View>
 
       {/* Record Payment Modal */}
@@ -2200,6 +2206,7 @@ export default function TenantDetailScreen() {
               maxWidth: 360,
               borderWidth: 1,
               borderColor: '#E5DDCD',
+              overflow: 'hidden',
             }}
           >
             <Text style={{ fontSize: 18, fontWeight: '800', color: '#0C192B', marginBottom: 4 }}>
@@ -2300,7 +2307,10 @@ export default function TenantDetailScreen() {
               </TouchableOpacity>
             </View>
 
-            <DecorativeWaveFooter height={20} style={{ marginTop: 14 }} />
+            <DecorativeWaveFooter
+              height={36}
+              style={{ marginTop: 14, marginHorizontal: -24, marginBottom: -24 }}
+            />
           </View>
         </View>
       </Modal>

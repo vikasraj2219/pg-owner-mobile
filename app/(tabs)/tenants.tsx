@@ -1257,6 +1257,7 @@ export default function TenantsScreen() {
               maxWidth: 360,
               borderWidth: 1,
               borderColor: '#E5DDCD',
+              overflow: 'hidden',
             }}
           >
             <Text style={{ fontSize: 18, fontWeight: '800', color: '#0C192B', marginBottom: 4 }}>
@@ -1359,7 +1360,10 @@ export default function TenantsScreen() {
               </TouchableOpacity>
             </View>
 
-            <DecorativeWaveFooter height={20} style={{ marginTop: 14 }} />
+            <DecorativeWaveFooter
+              height={36}
+              style={{ marginTop: 14, marginHorizontal: -24, marginBottom: -24 }}
+            />
           </View>
         </View>
       </Modal>

@@ -97,7 +97,7 @@ export const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
       <TouchableWithoutFeedback onPress={isLoading ? undefined : onClose}>
         <View className="flex-1 bg-black/60 items-center justify-center p-5">
           <TouchableWithoutFeedback onPress={e => e.stopPropagation()}>
-            <View className="bg-[#FFFDF8] border border-[#E5DDCD] rounded-3xl p-6 w-full max-w-sm shadow-2xl relative">
+            <View className="bg-[#FFFDF8] border border-[#E5DDCD] rounded-3xl p-6 w-full max-w-sm shadow-2xl relative overflow-hidden">
               {/* Close (X) button at top right */}
               {!isLoading && (
                 <TouchableOpacity
@@ -168,7 +168,10 @@ export const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
                 </TouchableOpacity>
               </View>
 
-              <DecorativeWaveFooter height={20} style={{ marginTop: 14 }} />
+              <DecorativeWaveFooter
+                height={36}
+                style={{ marginTop: 14, marginHorizontal: -24, marginBottom: -24 }}
+              />
             </View>
           </TouchableWithoutFeedback>
         </View>

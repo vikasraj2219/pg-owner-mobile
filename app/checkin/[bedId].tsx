@@ -1123,7 +1123,10 @@ export default function CheckinScreen() {
             </Text>
           </TouchableOpacity>
 
-          <DecorativeWaveFooter height={24} style={{ marginTop: 8 }} />
+          <DecorativeWaveFooter
+            height={48}
+            style={{ marginTop: 10, marginHorizontal: -20, marginBottom: 0 }}
+          />
         </View>
 
         {/* ======================================================== */}

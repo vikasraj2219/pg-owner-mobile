@@ -890,7 +890,7 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
           style={{
             paddingHorizontal: 20,
             paddingTop: 12,
-            paddingBottom: Platform.OS === 'ios' ? 28 : 16,
+            paddingBottom: 0,
             borderTopWidth: 1,
             borderTopColor: '#E5DDCD',
             backgroundColor: '#FAF5EB',
@@ -904,7 +904,7 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
               width: '100%',
               backgroundColor: isDuplicateRoom ? '#CBD5E1' : '#4F5330',
               height: 52,
-              borderRadius: 16,
+              borderRadius: 9999,
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'center',
@@ -938,7 +938,10 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
             )}
           </TouchableOpacity>
 
-          <DecorativeWaveFooter height={24} style={{ marginTop: 8 }} />
+          <DecorativeWaveFooter
+            height={48}
+            style={{ marginTop: 10, marginHorizontal: -20, marginBottom: 0 }}
+          />
         </View>
 
         {/* Floor Selection Dropdown Sheet Modal */}

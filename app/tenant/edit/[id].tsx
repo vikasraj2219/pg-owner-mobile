@@ -452,7 +452,10 @@ export default function EditTenantScreen() {
           <Text style={{ color: '#657080', fontWeight: '700', fontSize: 13 }}>Discard changes</Text>
         </TouchableOpacity>
 
-        <DecorativeWaveFooter height={24} style={{ marginTop: 6 }} />
+        <DecorativeWaveFooter
+          height={48}
+          style={{ marginTop: 10, marginHorizontal: -16, marginBottom: -16 }}
+        />
       </View>
 
       {/* Unified Bed Transfer Modal */}

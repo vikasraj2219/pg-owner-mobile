@@ -232,8 +232,8 @@ export const EditFloorModal: React.FC<EditFloorModalProps> = ({
             </TouchableOpacity>
 
             <DecorativeWaveFooter
-              height={24}
-              style={{ marginTop: 10, marginHorizontal: -20, marginBottom: -16 }}
+              height={44}
+              style={{ marginTop: 12, marginHorizontal: -20, marginBottom: -16 }}
             />
           </View>
         </View>

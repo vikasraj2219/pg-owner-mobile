@@ -662,7 +662,10 @@ export default function SendReminderScreen() {
             Directly opens {firstName}'s WhatsApp chat with the pass card & instant payment link.
           </Text>
 
-          <DecorativeWaveFooter height={34} style={{ marginTop: 14 }} />
+          <DecorativeWaveFooter
+            height={48}
+            style={{ marginTop: 14, marginHorizontal: -20, marginBottom: -32 }}
+          />
         </View>
       </ScrollView>
     </SafeAreaView>

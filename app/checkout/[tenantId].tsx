@@ -412,7 +412,10 @@ export default function CheckoutScreen() {
             </Text>
           </TouchableOpacity>
 
-          <DecorativeWaveFooter height={34} style={{ marginTop: 16 }} />
+          <DecorativeWaveFooter
+            height={48}
+            style={{ marginTop: 16, marginHorizontal: -20, marginBottom: -36 }}
+          />
         </ScrollView>
       ) : (
         <ScrollView
@@ -876,7 +879,10 @@ export default function CheckoutScreen() {
               )}
             </TouchableOpacity>
 
-            <DecorativeWaveFooter height={34} style={{ marginTop: 20 }} />
+            <DecorativeWaveFooter
+              height={48}
+              style={{ marginTop: 20, marginHorizontal: -20, marginBottom: -40 }}
+            />
           </View>
         </ScrollView>
       )}

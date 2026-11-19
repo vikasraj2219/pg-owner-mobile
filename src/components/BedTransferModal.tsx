@@ -1838,7 +1838,7 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
           )}
 
           {/* Decorative Bottom Wave */}
-          <DecorativeWaveFooter height={28} />
+          <DecorativeWaveFooter height={48} />
         </View>
       </KeyboardAvoidingView>
 
