@@ -7,6 +7,7 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
+  Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { X, Sparkles, AlertCircle, ShieldCheck, Clock, ArrowDownCircle } from 'lucide-react-native';
@@ -170,39 +171,80 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <View className="flex-1 bg-[#F8F9FA]">
+      <View style={{ flex: 1, backgroundColor: '#FAF5EB' }}>
         {/* Header */}
-        <View className="px-5 pt-4 pb-3 flex-row items-center justify-between border-b border-slate-200/80 bg-white">
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingHorizontal: 20,
+            paddingTop: 16,
+            paddingBottom: 14,
+            borderBottomWidth: 1,
+            borderBottomColor: '#E5DDCD',
+            backgroundColor: '#FAF5EB',
+          }}
+        >
           <View>
-            <Text className="text-xl font-extrabold text-slate-900">Subscription & Limits</Text>
-            <Text className="text-xs font-semibold text-slate-500 mt-0.5">
+            <Text style={{ fontSize: 18, fontWeight: '800', color: '#0C192B' }}>
+              Subscription & Limits
+            </Text>
+            <Text style={{ fontSize: 12, fontWeight: '600', color: '#657080', marginTop: 2 }}>
               Plan quotas, upgrades & billing cycles
             </Text>
           </View>
           <TouchableOpacity
             onPress={onClose}
-            className="w-9 h-9 rounded-full bg-slate-100 items-center justify-center"
+            activeOpacity={0.7}
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 18,
+              backgroundColor: '#FFFDF8',
+              borderWidth: 1,
+              borderColor: '#E5DDCD',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
           >
-            <X size={20} color="#64748B" />
+            <X size={18} color="#657080" />
           </TouchableOpacity>
         </View>
 
         {isLoading ? (
-          <View className="flex-1 items-center justify-center">
-            <ActivityIndicator size="large" color="#0A6C50" />
-            <Text className="text-slate-500 text-sm font-medium mt-3">Loading plan status…</Text>
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+            <ActivityIndicator size="large" color="#4F5330" />
+            <Text style={{ color: '#657080', fontSize: 13, fontWeight: '600', marginTop: 12 }}>
+              Loading plan status…
+            </Text>
           </View>
         ) : (
-          <ScrollView className="flex-1 px-5 pt-4" showsVerticalScrollIndicator={false}>
+          <ScrollView
+            style={{ flex: 1, paddingHorizontal: 20, paddingTop: 14 }}
+            contentContainerStyle={{ paddingBottom: Platform.OS === 'ios' ? 40 : 26 }}
+            showsVerticalScrollIndicator={false}
+          >
             {/* Read-Only Alert Banner if expired */}
             {isExpired && (
-              <View className="bg-rose-50 border border-rose-200 rounded-2xl p-4 mb-4 flex-row items-start">
-                <AlertCircle size={20} color="#BE123C" />
-                <View className="ml-3 flex-1">
-                  <Text className="text-sm font-extrabold text-rose-900">
+              <View
+                style={{
+                  backgroundColor: '#FFF1F2',
+                  borderWidth: 1,
+                  borderColor: '#FECDD3',
+                  borderRadius: 18,
+                  padding: 14,
+                  marginBottom: 14,
+                  flexDirection: 'row',
+                  alignItems: 'flex-start',
+                }}
+              >
+                <AlertCircle size={20} color="#BE123C" style={{ marginRight: 10, marginTop: 2 }} />
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 13, fontWeight: '800', color: '#BE123C' }}>
                     Trial Expired · Read-Only Mode
                   </Text>
-                  <Text className="text-xs text-rose-700 mt-0.5">
+                  <Text style={{ fontSize: 11, color: '#9F1239', marginTop: 2, lineHeight: 16 }}>
                     Your account is currently in read-only mode. You can view all your properties
                     and tenants. Choose a plan below to resume check-ins, adding rooms, and
                     recording payments.
@@ -213,16 +255,32 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
 
             {/* Scheduled Downgrade Banner if active */}
             {sub?.scheduledPlan && (
-              <View className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-4">
-                <View className="flex-row items-start">
-                  <Clock size={20} color="#D97706" />
-                  <View className="ml-3 flex-1">
-                    <Text className="text-sm font-extrabold text-amber-900 capitalize">
+              <View
+                style={{
+                  backgroundColor: '#FEF3C7',
+                  borderWidth: 1,
+                  borderColor: '#FDE68A',
+                  borderRadius: 18,
+                  padding: 14,
+                  marginBottom: 14,
+                }}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+                  <Clock size={20} color="#D97706" style={{ marginRight: 10, marginTop: 2 }} />
+                  <View style={{ flex: 1 }}>
+                    <Text
+                      style={{
+                        fontSize: 13,
+                        fontWeight: '800',
+                        color: '#92400E',
+                        textTransform: 'capitalize',
+                      }}
+                    >
                       Downgrade to {sub.scheduledPlan} Scheduled
                     </Text>
-                    <Text className="text-xs text-amber-800 mt-1 leading-relaxed">
+                    <Text style={{ fontSize: 11, color: '#B45309', marginTop: 2, lineHeight: 16 }}>
                       Takes effect on{' '}
-                      <Text className="font-bold">
+                      <Text style={{ fontWeight: '800' }}>
                         {sub.scheduledPlanEffectiveAt
                           ? new Date(sub.scheduledPlanEffectiveAt).toLocaleDateString('en-IN', {
                               day: 'numeric',
@@ -234,19 +292,25 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
                       . Full {currentPlan.toUpperCase()} privileges and all existing beds remain
                       active until then.
                     </Text>
-                    <Text className="text-[11px] text-amber-700 font-medium mt-1">
-                      Zero disruption: All existing properties, tenants, and rent collection remain
-                      untouched.
-                    </Text>
                     <TouchableOpacity
                       onPress={handleCancelDowngrade}
                       disabled={isCancelingDowngrade}
-                      className="mt-3 bg-amber-600 self-start px-3.5 py-1.5 rounded-lg active:opacity-85"
+                      activeOpacity={0.8}
+                      style={{
+                        marginTop: 10,
+                        backgroundColor: '#D97706',
+                        alignSelf: 'flex-start',
+                        paddingHorizontal: 12,
+                        paddingVertical: 6,
+                        borderRadius: 8,
+                      }}
                     >
                       {isCancelingDowngrade ? (
                         <ActivityIndicator size="small" color="#FFFFFF" />
                       ) : (
-                        <Text className="text-white text-xs font-bold">Cancel Downgrade</Text>
+                        <Text style={{ color: '#FFFFFF', fontSize: 11, fontWeight: '800' }}>
+                          Cancel Downgrade
+                        </Text>
                       )}
                     </TouchableOpacity>
                   </View>
@@ -255,33 +319,82 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
             )}
 
             {/* Current Plan Hero */}
-            <View className="bg-white rounded-2xl p-5 border border-slate-200 mb-5 shadow-xs">
-              <View className="flex-row justify-between items-center mb-4">
+            <View
+              style={{
+                backgroundColor: '#FFFDF8',
+                borderRadius: 20,
+                padding: 16,
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+                marginBottom: 14,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.04,
+                shadowRadius: 3,
+                elevation: 1,
+              }}
+            >
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: 14,
+                }}
+              >
                 <View>
-                  <Text className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  <Text
+                    style={{
+                      fontSize: 11,
+                      fontWeight: '800',
+                      color: '#657080',
+                      textTransform: 'uppercase',
+                      letterSpacing: 0.5,
+                    }}
+                  >
                     Current Plan
                   </Text>
-                  <Text className="text-2xl font-black text-slate-900 capitalize">
+                  <Text
+                    style={{
+                      fontSize: 20,
+                      fontWeight: '800',
+                      color: '#0C192B',
+                      textTransform: 'capitalize',
+                      marginTop: 2,
+                    }}
+                  >
                     {sub?.plan || 'Starter'} Tier
                   </Text>
                 </View>
                 <View
-                  className={`px-3 py-1 rounded-full border ${
-                    isExpired
-                      ? 'bg-rose-50 border-rose-200'
+                  style={{
+                    paddingHorizontal: 10,
+                    paddingVertical: 4,
+                    borderRadius: 9999,
+                    backgroundColor: isExpired
+                      ? '#FFF1F2'
                       : sub?.status === 'active'
-                        ? 'bg-emerald-50 border-emerald-200'
-                        : 'bg-amber-50 border-amber-200'
-                  }`}
+                        ? '#FAF5EB'
+                        : '#FEF3C7',
+                    borderWidth: 1,
+                    borderColor: isExpired
+                      ? '#FECDD3'
+                      : sub?.status === 'active'
+                        ? '#E5DDCD'
+                        : '#FDE68A',
+                  }}
                 >
                   <Text
-                    className={`text-xs font-extrabold uppercase ${
-                      isExpired
-                        ? 'text-rose-700'
+                    style={{
+                      fontSize: 11,
+                      fontWeight: '800',
+                      textTransform: 'uppercase',
+                      color: isExpired
+                        ? '#BE123C'
                         : sub?.status === 'active'
-                          ? 'text-[#0A6C50]'
-                          : 'text-amber-800'
-                    }`}
+                          ? '#4F5330'
+                          : '#92400E',
+                    }}
                   >
                     {isExpired
                       ? 'Expired (Read-only)'
@@ -293,20 +406,34 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
               </View>
 
               {/* Resource meters */}
-              <View className="pt-3 border-t border-slate-100">
-                <View className="flex-row justify-between mb-1.5">
-                  <Text className="text-xs font-bold text-slate-700">Properties Registered</Text>
-                  <Text className="text-xs font-bold text-slate-900">
+              <View style={{ paddingTop: 12, borderTopWidth: 1, borderTopColor: '#FAF5EB' }}>
+                <View
+                  style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}
+                >
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#0C192B' }}>
+                    Properties Registered
+                  </Text>
+                  <Text style={{ fontSize: 12, fontWeight: '800', color: '#0C192B' }}>
                     {sub?.propertiesUsed || 0} /{' '}
                     {sub?.maxProperties && sub.maxProperties > 50
                       ? 'Unlimited'
                       : sub?.maxProperties || 1}
                   </Text>
                 </View>
-                <View className="h-2 bg-slate-100 rounded-full overflow-hidden mb-4">
+                <View
+                  style={{
+                    height: 7,
+                    backgroundColor: '#FAF5EB',
+                    borderRadius: 9999,
+                    overflow: 'hidden',
+                    marginBottom: 12,
+                  }}
+                >
                   <View
-                    className="h-full bg-[#0A6C50] rounded-full"
                     style={{
+                      height: '100%',
+                      backgroundColor: '#4F5330',
+                      borderRadius: 9999,
                       width: `${Math.min(
                         100,
                         ((sub?.propertiesUsed || 0) / (sub?.maxProperties || 1)) * 100,
@@ -315,17 +442,30 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
                   />
                 </View>
 
-                <View className="flex-row justify-between mb-1.5">
-                  <Text className="text-xs font-bold text-slate-700">Total Bed Capacity</Text>
-                  <Text className="text-xs font-bold text-slate-900">
+                <View
+                  style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}
+                >
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#0C192B' }}>
+                    Total Bed Capacity
+                  </Text>
+                  <Text style={{ fontSize: 12, fontWeight: '800', color: '#0C192B' }}>
                     {sub?.bedsUsed || 0} /{' '}
                     {sub?.maxBeds && sub.maxBeds > 500 ? 'Unlimited' : sub?.maxBeds || 30}
                   </Text>
                 </View>
-                <View className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                <View
+                  style={{
+                    height: 7,
+                    backgroundColor: '#FAF5EB',
+                    borderRadius: 9999,
+                    overflow: 'hidden',
+                  }}
+                >
                   <View
-                    className="h-full bg-[#0A6C50] rounded-full"
                     style={{
+                      height: '100%',
+                      backgroundColor: '#4F5330',
+                      borderRadius: 9999,
                       width: `${Math.min(100, ((sub?.bedsUsed || 0) / (sub?.maxBeds || 30)) * 100)}%`,
                     }}
                   />
@@ -334,55 +474,116 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
             </View>
 
             {/* Proration & Policy Note */}
-            <View className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5 mb-5 flex-row items-center">
-              <Sparkles size={16} color="#0A6C50" />
-              <Text className="text-[11px] text-slate-600 font-medium ml-2.5 flex-1 leading-relaxed">
-                <Text className="font-bold text-slate-800">Value-Based Proration:</Text> Upgrades
-                convert unused days into bonus days immediately. Downgrades take effect safely at
-                the end of the billing period without interrupting existing beds.
+            <View
+              style={{
+                backgroundColor: '#FAF5EB',
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+                borderRadius: 16,
+                padding: 12,
+                marginBottom: 16,
+                flexDirection: 'row',
+                alignItems: 'center',
+              }}
+            >
+              <Sparkles size={16} color="#4F5330" style={{ marginRight: 8 }} />
+              <Text
+                style={{
+                  fontSize: 11,
+                  color: '#657080',
+                  fontWeight: '500',
+                  flex: 1,
+                  lineHeight: 16,
+                }}
+              >
+                <Text style={{ fontWeight: '800', color: '#0C192B' }}>Value-Based Proration: </Text>
+                Upgrades convert unused days into bonus days immediately. Downgrades take effect
+                safely at the end of the billing period.
               </Text>
             </View>
 
             {/* Upgrade Options */}
-            <Text className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
+            <Text
+              style={{
+                fontSize: 11,
+                fontWeight: '800',
+                color: '#657080',
+                textTransform: 'uppercase',
+                letterSpacing: 0.5,
+                marginBottom: 10,
+              }}
+            >
               Available Plans
             </Text>
 
             {/* Starter Tier */}
-            <View className="bg-white rounded-2xl p-5 border border-slate-200 mb-4 shadow-xs">
-              <View className="flex-row justify-between items-center mb-2">
-                <Text className="text-lg font-black text-slate-900">Starter Plan</Text>
-                <Text className="text-lg font-black text-slate-700">₹499 / mo</Text>
+            <View
+              style={{
+                backgroundColor: '#FFFDF8',
+                borderRadius: 20,
+                padding: 16,
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+                marginBottom: 12,
+              }}
+            >
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: 4,
+                }}
+              >
+                <Text style={{ fontSize: 16, fontWeight: '800', color: '#0C192B' }}>
+                  Starter Plan
+                </Text>
+                <Text style={{ fontSize: 16, fontWeight: '800', color: '#0C192B' }}>₹499 / mo</Text>
               </View>
-              <Text className="text-xs text-slate-500 font-medium mb-3">
+              <Text style={{ fontSize: 12, color: '#657080', fontWeight: '500', marginBottom: 10 }}>
                 Ideal for single-property PG owners starting out (Includes 14-day free trial)
               </Text>
-              <View className="space-y-1 mb-4">
-                <Text className="text-xs text-slate-700 font-semibold">
+              <View style={{ gap: 4, marginBottom: 14 }}>
+                <Text style={{ fontSize: 12, color: '#0C192B', fontWeight: '600' }}>
                   • 1 Property (up to 30 Beds)
                 </Text>
-                <Text className="text-xs text-slate-700 font-semibold">
+                <Text style={{ fontSize: 12, color: '#0C192B', fontWeight: '600' }}>
                   • Quick Tenant Check-in & Auto-Rent Invoicing
                 </Text>
-                <Text className="text-xs text-slate-700 font-semibold">
+                <Text style={{ fontSize: 12, color: '#0C192B', fontWeight: '600' }}>
                   • Visual Matrix Grid & Payment Ledger
                 </Text>
               </View>
 
               {/* Starter Action Button */}
               {isTrialing && currentPlan === 'starter' ? (
-                <View className="space-y-2">
-                  <View className="bg-emerald-50 rounded-xl py-2 items-center justify-center border border-emerald-200">
-                    <Text className="text-[#0A6C50] font-black text-xs">
+                <View style={{ gap: 8 }}>
+                  <View
+                    style={{
+                      backgroundColor: '#FAF5EB',
+                      borderRadius: 12,
+                      paddingVertical: 8,
+                      alignItems: 'center',
+                      borderWidth: 1,
+                      borderColor: '#E5DDCD',
+                    }}
+                  >
+                    <Text style={{ color: '#4F5330', fontWeight: '800', fontSize: 11 }}>
                       14-DAY TRIAL ACTIVE ({sub?.daysLeft || 0} DAYS LEFT)
                     </Text>
                   </View>
                   <TouchableOpacity
                     activeOpacity={0.85}
                     onPress={() => handleUpgrade('starter')}
-                    className="bg-slate-800 rounded-xl py-2.5 items-center justify-center"
+                    style={{
+                      backgroundColor: '#4F5330',
+                      borderRadius: 9999,
+                      height: 44,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
                   >
-                    <Text className="text-white font-bold text-xs">
+                    <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 13 }}>
                       Purchase Paid Starter (Preserves Trial + 30 Days)
                     </Text>
                   </TouchableOpacity>
@@ -391,24 +592,48 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
                 <TouchableOpacity
                   activeOpacity={0.85}
                   onPress={() => handleUpgrade('starter')}
-                  className="bg-slate-800 rounded-xl py-3 items-center justify-center"
+                  style={{
+                    backgroundColor: '#4F5330',
+                    borderRadius: 9999,
+                    height: 46,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
                 >
-                  <Text className="text-white font-bold text-sm">
+                  <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 14 }}>
                     Renew Starter Plan (+30 Days)
                   </Text>
                 </TouchableOpacity>
               ) : isActivePaid && currentRank > 1 ? (
-                // Current user is Growth or Pro -> Downgrade option
                 sub?.scheduledPlan === 'starter' ? (
-                  <View className="bg-amber-50 rounded-xl py-2.5 px-3 border border-amber-200 flex-row items-center justify-between">
-                    <Text className="text-amber-800 font-bold text-xs">
+                  <View
+                    style={{
+                      backgroundColor: '#FEF3C7',
+                      borderRadius: 12,
+                      paddingVertical: 10,
+                      paddingHorizontal: 12,
+                      borderWidth: 1,
+                      borderColor: '#FDE68A',
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <Text style={{ color: '#92400E', fontWeight: '700', fontSize: 12 }}>
                       Scheduled for Cycle End
                     </Text>
                     <TouchableOpacity
                       onPress={handleCancelDowngrade}
                       disabled={isCancelingDowngrade}
                     >
-                      <Text className="text-amber-900 font-extrabold text-xs underline">
+                      <Text
+                        style={{
+                          color: '#92400E',
+                          fontWeight: '800',
+                          fontSize: 12,
+                          textDecorationLine: 'underline',
+                        }}
+                      >
                         Cancel
                       </Text>
                     </TouchableOpacity>
@@ -418,23 +643,36 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
                     activeOpacity={0.85}
                     onPress={() => handleScheduleDowngrade('starter')}
                     disabled={isScheduling}
-                    className="bg-slate-100 border border-slate-300 rounded-xl py-3 items-center justify-center"
+                    style={{
+                      backgroundColor: '#FAF5EB',
+                      borderWidth: 1,
+                      borderColor: '#E5DDCD',
+                      borderRadius: 9999,
+                      height: 46,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexDirection: 'row',
+                    }}
                   >
-                    <View className="flex-row items-center">
-                      <ArrowDownCircle size={15} color="#475569" />
-                      <Text className="text-slate-700 font-bold text-sm ml-1.5">
-                        Schedule Downgrade (At Cycle End)
-                      </Text>
-                    </View>
+                    <ArrowDownCircle size={15} color="#657080" style={{ marginRight: 6 }} />
+                    <Text style={{ color: '#0C192B', fontWeight: '700', fontSize: 13 }}>
+                      Schedule Downgrade (At Cycle End)
+                    </Text>
                   </TouchableOpacity>
                 )
               ) : (
                 <TouchableOpacity
                   activeOpacity={0.85}
                   onPress={() => handleUpgrade('starter')}
-                  className="bg-slate-800 rounded-xl py-3 items-center justify-center"
+                  style={{
+                    backgroundColor: '#4F5330',
+                    borderRadius: 9999,
+                    height: 46,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
                 >
-                  <Text className="text-white font-bold text-sm">
+                  <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 14 }}>
                     {isExpired ? 'Reactivate on Starter' : 'Switch to Starter'}
                   </Text>
                 </TouchableOpacity>
@@ -442,22 +680,40 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
             </View>
 
             {/* Growth Tier */}
-            <View className="bg-white rounded-2xl p-5 border border-slate-200 mb-4 shadow-xs">
-              <View className="flex-row justify-between items-center mb-2">
-                <Text className="text-lg font-black text-slate-900">Growth Plan</Text>
-                <Text className="text-lg font-black text-[#0A6C50]">₹999 / mo</Text>
+            <View
+              style={{
+                backgroundColor: '#FFFDF8',
+                borderRadius: 20,
+                padding: 16,
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+                marginBottom: 12,
+              }}
+            >
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: 4,
+                }}
+              >
+                <Text style={{ fontSize: 16, fontWeight: '800', color: '#0C192B' }}>
+                  Growth Plan
+                </Text>
+                <Text style={{ fontSize: 16, fontWeight: '800', color: '#4F5330' }}>₹999 / mo</Text>
               </View>
-              <Text className="text-xs text-slate-500 font-medium mb-3">
+              <Text style={{ fontSize: 12, color: '#657080', fontWeight: '500', marginBottom: 10 }}>
                 For expanding owners managing up to 3 PG branches
               </Text>
-              <View className="space-y-1 mb-4">
-                <Text className="text-xs text-slate-700 font-semibold">
+              <View style={{ gap: 4, marginBottom: 14 }}>
+                <Text style={{ fontSize: 12, color: '#0C192B', fontWeight: '600' }}>
                   • Up to 3 Properties (100 Beds)
                 </Text>
-                <Text className="text-xs text-slate-700 font-semibold">
+                <Text style={{ fontSize: 12, color: '#0C192B', fontWeight: '600' }}>
                   • Multi-staff & manager logins
                 </Text>
-                <Text className="text-xs text-slate-700 font-semibold">
+                <Text style={{ fontSize: 12, color: '#0C192B', fontWeight: '600' }}>
                   • Sub-meter EB reading splits
                 </Text>
               </View>
@@ -467,22 +723,48 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
                 <TouchableOpacity
                   activeOpacity={0.85}
                   onPress={() => handleUpgrade('growth')}
-                  className="bg-[#0A6C50] rounded-xl py-3 items-center justify-center"
+                  style={{
+                    backgroundColor: '#4F5330',
+                    borderRadius: 9999,
+                    height: 46,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
                 >
-                  <Text className="text-white font-bold text-sm">Renew Growth Plan (+30 Days)</Text>
+                  <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 14 }}>
+                    Renew Growth Plan (+30 Days)
+                  </Text>
                 </TouchableOpacity>
               ) : isActivePaid && currentRank > 2 ? (
-                // Current user is Pro -> Downgrade option
                 sub?.scheduledPlan === 'growth' ? (
-                  <View className="bg-amber-50 rounded-xl py-2.5 px-3 border border-amber-200 flex-row items-center justify-between">
-                    <Text className="text-amber-800 font-bold text-xs">
+                  <View
+                    style={{
+                      backgroundColor: '#FEF3C7',
+                      borderRadius: 12,
+                      paddingVertical: 10,
+                      paddingHorizontal: 12,
+                      borderWidth: 1,
+                      borderColor: '#FDE68A',
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <Text style={{ color: '#92400E', fontWeight: '700', fontSize: 12 }}>
                       Scheduled for Cycle End
                     </Text>
                     <TouchableOpacity
                       onPress={handleCancelDowngrade}
                       disabled={isCancelingDowngrade}
                     >
-                      <Text className="text-amber-900 font-extrabold text-xs underline">
+                      <Text
+                        style={{
+                          color: '#92400E',
+                          fontWeight: '800',
+                          fontSize: 12,
+                          textDecorationLine: 'underline',
+                        }}
+                      >
                         Cancel
                       </Text>
                     </TouchableOpacity>
@@ -492,23 +774,36 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
                     activeOpacity={0.85}
                     onPress={() => handleScheduleDowngrade('growth')}
                     disabled={isScheduling}
-                    className="bg-slate-100 border border-slate-300 rounded-xl py-3 items-center justify-center"
+                    style={{
+                      backgroundColor: '#FAF5EB',
+                      borderWidth: 1,
+                      borderColor: '#E5DDCD',
+                      borderRadius: 9999,
+                      height: 46,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexDirection: 'row',
+                    }}
                   >
-                    <View className="flex-row items-center">
-                      <ArrowDownCircle size={15} color="#475569" />
-                      <Text className="text-slate-700 font-bold text-sm ml-1.5">
-                        Schedule Downgrade (At Cycle End)
-                      </Text>
-                    </View>
+                    <ArrowDownCircle size={15} color="#657080" style={{ marginRight: 6 }} />
+                    <Text style={{ color: '#0C192B', fontWeight: '700', fontSize: 13 }}>
+                      Schedule Downgrade (At Cycle End)
+                    </Text>
                   </TouchableOpacity>
                 )
               ) : (
                 <TouchableOpacity
                   activeOpacity={0.85}
                   onPress={() => handleUpgrade('growth')}
-                  className="bg-[#0A6C50] rounded-xl py-3 items-center justify-center"
+                  style={{
+                    backgroundColor: '#4F5330',
+                    borderRadius: 9999,
+                    height: 46,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
                 >
-                  <Text className="text-white font-bold text-sm">
+                  <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 14 }}>
                     {currentRank < 2 ? 'Upgrade to Growth (Prorated)' : 'Switch to Growth'}
                   </Text>
                 </TouchableOpacity>
@@ -517,35 +812,61 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
 
             {/* Pro Tier */}
             <View
-              className={`bg-white rounded-2xl p-5 border mb-6 shadow-xs ${
-                currentPlan === 'pro' && isActivePaid
-                  ? 'border-purple-400 bg-purple-50/20'
-                  : 'border-purple-200'
-              }`}
+              style={{
+                backgroundColor: currentPlan === 'pro' && isActivePaid ? '#FAF5EB' : '#FFFDF8',
+                borderRadius: 20,
+                padding: 16,
+                borderWidth: 1,
+                borderColor: currentPlan === 'pro' && isActivePaid ? '#4F5330' : '#E5DDCD',
+                marginBottom: 16,
+              }}
             >
-              <View className="flex-row justify-between items-center mb-2">
-                <View className="flex-row items-center">
-                  <Sparkles size={16} color="#7E22CE" />
-                  <Text className="text-lg font-black text-slate-900 ml-1.5">Pro Enterprise</Text>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: 4,
+                }}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Sparkles size={16} color="#4F5330" style={{ marginRight: 6 }} />
+                  <Text style={{ fontSize: 16, fontWeight: '800', color: '#0C192B' }}>
+                    Pro Enterprise
+                  </Text>
                   {currentPlan === 'pro' && isActivePaid && (
-                    <View className="ml-2 bg-purple-100 border border-purple-200 px-2 py-0.5 rounded">
-                      <Text className="text-[10px] font-extrabold text-purple-800">ACTIVE</Text>
+                    <View
+                      style={{
+                        marginLeft: 8,
+                        backgroundColor: '#FAF5EB',
+                        borderWidth: 1,
+                        borderColor: '#4F5330',
+                        paddingHorizontal: 6,
+                        paddingVertical: 2,
+                        borderRadius: 6,
+                      }}
+                    >
+                      <Text style={{ fontSize: 10, fontWeight: '800', color: '#4F5330' }}>
+                        ACTIVE
+                      </Text>
                     </View>
                   )}
                 </View>
-                <Text className="text-lg font-black text-purple-700">₹1,999 / mo</Text>
+                <Text style={{ fontSize: 16, fontWeight: '800', color: '#4F5330' }}>
+                  ₹1,999 / mo
+                </Text>
               </View>
-              <Text className="text-xs text-slate-500 font-medium mb-3">
+              <Text style={{ fontSize: 12, color: '#657080', fontWeight: '500', marginBottom: 10 }}>
                 Unlimited properties and high-volume multi-floor hostel chains
               </Text>
-              <View className="space-y-1 mb-4">
-                <Text className="text-xs text-slate-700 font-semibold">
+              <View style={{ gap: 4, marginBottom: 14 }}>
+                <Text style={{ fontSize: 12, color: '#0C192B', fontWeight: '600' }}>
                   • Unlimited Properties & Beds
                 </Text>
-                <Text className="text-xs text-slate-700 font-semibold">
+                <Text style={{ fontSize: 12, color: '#0C192B', fontWeight: '600' }}>
                   • Priority phone & WhatsApp support
                 </Text>
-                <Text className="text-xs text-slate-700 font-semibold">
+                <Text style={{ fontSize: 12, color: '#0C192B', fontWeight: '600' }}>
                   • Custom receipt branding & reports
                 </Text>
               </View>
@@ -554,9 +875,15 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
               <TouchableOpacity
                 activeOpacity={0.85}
                 onPress={() => handleUpgrade('pro')}
-                className="bg-purple-700 rounded-xl py-3 items-center justify-center"
+                style={{
+                  backgroundColor: '#4F5330',
+                  borderRadius: 9999,
+                  height: 46,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
               >
-                <Text className="text-white font-bold text-sm">
+                <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 14 }}>
                   {currentPlan === 'pro' && isActivePaid
                     ? 'Extend Pro Plan (+30 Days)'
                     : 'Upgrade to Pro (Prorated)'}
@@ -565,9 +892,21 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
             </View>
 
             {/* Razorpay Trust Badge */}
-            <View className="flex-row items-center justify-center py-3 mb-6 bg-slate-50 rounded-xl border border-slate-200/80">
-              <ShieldCheck size={14} color="#0A6C50" />
-              <Text className="text-xs font-bold text-slate-600 ml-1.5">
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                paddingVertical: 12,
+                marginBottom: 16,
+                backgroundColor: '#FFFDF8',
+                borderRadius: 14,
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+              }}
+            >
+              <ShieldCheck size={14} color="#4F5330" style={{ marginRight: 6 }} />
+              <Text style={{ fontSize: 11, fontWeight: '700', color: '#657080' }}>
                 Secured by Razorpay · UPI, Cards & NetBanking
               </Text>
             </View>
@@ -581,7 +920,7 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ visible, o
           onClose={() => setCheckoutPlan(null)}
           onSuccess={async upgradedPlan => {
             setCheckoutPlan(null);
-            onClose(); // Close SubscriptionModal completely
+            onClose();
             await refreshAuthUser();
             queryClient.invalidateQueries({ queryKey: ['subscription'] });
             queryClient.invalidateQueries({ queryKey: ['dashboard'] });

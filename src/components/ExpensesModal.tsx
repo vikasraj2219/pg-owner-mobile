@@ -8,6 +8,7 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import {
   X,
@@ -15,11 +16,27 @@ import {
   TrendingDown,
   TrendingUp,
   IndianRupee,
-  Edit2,
   Trash2,
   Calendar,
-  Building,
-  Bed as BedIcon,
+  Building2,
+  PieChart,
+  Coins,
+  BarChart3,
+  MinusCircle,
+  Clock,
+  ChevronRight,
+  ChevronDown,
+  ArrowLeft,
+  Home,
+  Filter,
+  Wallet,
+  Receipt,
+  Users,
+  Zap,
+  Wrench,
+  Wifi,
+  Utensils,
+  Tag,
 } from 'lucide-react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import { formatINR } from '../utils/currency';
@@ -42,18 +59,22 @@ interface ExpensesModalProps {
 }
 
 const CATEGORIES = [
-  { id: 'maintenance', label: 'Maintenance' },
-  { id: 'electricity', label: 'EB / Power' },
-  { id: 'water', label: 'Water Tanker' },
-  { id: 'wifi', label: 'Internet / Wifi' },
-  { id: 'groceries_food', label: 'Groceries / Mess' },
-  { id: 'staff_salary', label: 'Staff Salary' },
-  { id: 'cleaning', label: 'Cleaning / Waste' },
-  { id: 'rent_lease', label: 'Property Rent / Lease' },
-  { id: 'other', label: 'Other Expense' },
+  { id: 'maintenance', label: 'Maintenance', icon: Wrench },
+  { id: 'electricity', label: 'EB / Power', icon: Zap },
+  { id: 'water', label: 'Water Tanker', icon: Tag },
+  { id: 'wifi', label: 'Internet / Wifi', icon: Wifi },
+  { id: 'groceries_food', label: 'Groceries / Mess', icon: Utensils },
+  { id: 'staff_salary', label: 'Staff Salary', icon: Users },
+  { id: 'cleaning', label: 'Cleaning / Waste', icon: Tag },
+  { id: 'rent_lease', label: 'Property Rent / Lease', icon: Building2 },
+  { id: 'other', label: 'Other Expense', icon: Tag },
 ];
 
 const getTodayString = () => new Date().toISOString().split('T')[0];
+
+const getCurrentMonthLabel = () => {
+  return new Date().toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+};
 
 export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, propertyId }) => {
   const queryClient = useQueryClient();
@@ -128,7 +149,7 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, 
       setPnl(pnlData);
       setExpenses(expensesData.expenses);
     } catch {
-      // silently handle in case of network issue
+      // silently handle
     } finally {
       setIsLoading(false);
     }
@@ -192,40 +213,6 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, 
       };
     }
   }, [activeProperty, properties, pnl]);
-
-  // Group recent logged expenses monthly-wise
-  const monthlyGroupedExpenses = useMemo(() => {
-    const groups: {
-      [key: string]: {
-        monthKey: string;
-        monthLabel: string;
-        totalPaise: number;
-        items: IExpense[];
-      };
-    } = {};
-
-    expenses.forEach(exp => {
-      const parsed = new Date(exp.date);
-      const validDate = isNaN(parsed.getTime()) ? new Date() : parsed;
-      const monthKey = `${validDate.getFullYear()}-${String(validDate.getMonth() + 1).padStart(2, '0')}`;
-      const monthLabel = validDate.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
-
-      if (!groups[monthKey]) {
-        groups[monthKey] = {
-          monthKey,
-          monthLabel,
-          totalPaise: 0,
-          items: [],
-        };
-      }
-      groups[monthKey].items.push(exp);
-      groups[monthKey].totalPaise += exp.amountPaise;
-    });
-
-    return Object.keys(groups)
-      .sort((a, b) => b.localeCompare(a))
-      .map(k => groups[k]);
-  }, [expenses]);
 
   const handleSaveExpense = async () => {
     const num = parseFloat(amountRupees.replace(/,/g, ''));
@@ -352,386 +339,939 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, 
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <View className="flex-1 bg-[#F8F9FA]">
-        {/* Header */}
-        <View className="px-5 pt-4 pb-3 flex-row items-center justify-between border-b border-slate-200/80 bg-white">
-          <View>
-            <Text className="text-xl font-extrabold text-slate-900">Expenses & Monthly P&L</Text>
-            <Text className="text-xs font-semibold text-slate-500 mt-0.5">
-              Live property-wise cashflow tracking & unit economics
+      <View style={{ flex: 1, backgroundColor: '#FAF5EB' }}>
+        {/* Header matching design */}
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingHorizontal: 20,
+            paddingTop: 16,
+            paddingBottom: 14,
+            borderBottomWidth: 1,
+            borderBottomColor: '#E5DDCD',
+            backgroundColor: '#FAF5EB',
+          }}
+        >
+          <TouchableOpacity
+            onPress={() => {
+              if (activeTab === 'add') {
+                setActiveTab('pnl');
+              } else {
+                onClose();
+              }
+            }}
+            activeOpacity={0.7}
+            style={{
+              width: 38,
+              height: 38,
+              borderRadius: 19,
+              backgroundColor: '#FFFDF8',
+              borderWidth: 1,
+              borderColor: '#E5DDCD',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <ArrowLeft size={18} color="#0C192B" strokeWidth={2.3} />
+          </TouchableOpacity>
+
+          <View style={{ flex: 1, alignItems: 'center', paddingHorizontal: 10 }}>
+            <Text
+              style={{
+                fontSize: 17,
+                fontWeight: '800',
+                color: '#0C192B',
+                textAlign: 'center',
+              }}
+            >
+              Expenses & Monthly P&L
+            </Text>
+            <Text
+              style={{
+                fontSize: 11,
+                fontWeight: '500',
+                color: '#657080',
+                marginTop: 2,
+                textAlign: 'center',
+              }}
+              numberOfLines={1}
+            >
+              Track your expenses and financial summary
             </Text>
           </View>
+
           <TouchableOpacity
             onPress={onClose}
-            className="w-9 h-9 rounded-full bg-slate-100 items-center justify-center"
+            activeOpacity={0.7}
+            style={{
+              width: 38,
+              height: 38,
+              borderRadius: 19,
+              backgroundColor: '#FFFDF8',
+              borderWidth: 1,
+              borderColor: '#E5DDCD',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
           >
-            <X size={20} color="#64748B" />
+            <Home size={18} color="#0C192B" />
           </TouchableOpacity>
         </View>
 
-        {/* Tab Switcher */}
-        <View className="px-5 py-3 bg-white border-b border-slate-200/60 flex-row gap-2">
-          <TouchableOpacity
-            onPress={() => setActiveTab('pnl')}
-            className={`flex-1 py-2.5 rounded-xl items-center justify-center border ${
-              activeTab === 'pnl' ? 'bg-[#E6F4EA] border-[#0A6C50]' : 'bg-slate-50 border-slate-200'
-            }`}
-          >
-            <Text
-              className={`text-xs font-bold ${
-                activeTab === 'pnl' ? 'text-[#0A6C50]' : 'text-slate-600'
-              }`}
+        <ScrollView
+          style={{ flex: 1, paddingHorizontal: 20, paddingTop: 14 }}
+          contentContainerStyle={{ paddingBottom: Platform.OS === 'ios' ? 40 : 26 }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Top Tabs (Live P&L vs Log New Expense) */}
+          <View style={{ flexDirection: 'row', gap: 10, marginBottom: 16 }}>
+            <TouchableOpacity
+              onPress={() => setActiveTab('pnl')}
+              activeOpacity={0.8}
+              style={{
+                flex: 1,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                paddingVertical: 12,
+                borderRadius: 9999,
+                backgroundColor: activeTab === 'pnl' ? '#4F5330' : '#FFFDF8',
+                borderWidth: 1,
+                borderColor: activeTab === 'pnl' ? '#4F5330' : '#E5DDCD',
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: activeTab === 'pnl' ? 0.12 : 0.03,
+                shadowRadius: 3,
+                elevation: activeTab === 'pnl' ? 2 : 1,
+              }}
             >
-              Live P&L & Monthly Ledger
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => {
-              resetAddForm();
-              setActiveTab('add');
-            }}
-            className={`flex-1 py-2.5 rounded-xl items-center justify-center border ${
-              activeTab === 'add' ? 'bg-[#E6F4EA] border-[#0A6C50]' : 'bg-slate-50 border-slate-200'
-            }`}
-          >
-            <View className="flex-row items-center">
-              <Plus size={14} color={activeTab === 'add' ? '#0A6C50' : '#475569'} />
+              <TrendingUp
+                size={16}
+                color={activeTab === 'pnl' ? '#FFFFFF' : '#0C192B'}
+                strokeWidth={2.3}
+                style={{ marginRight: 6 }}
+              />
               <Text
-                className={`text-xs font-bold ml-1 ${
-                  activeTab === 'add' ? 'text-[#0A6C50]' : 'text-slate-600'
-                }`}
+                style={{
+                  fontSize: 12,
+                  fontWeight: '800',
+                  color: activeTab === 'pnl' ? '#FFFFFF' : '#0C192B',
+                }}
+              >
+                Live P&L & Monthly Ledger
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => {
+                resetAddForm();
+                setActiveTab('add');
+              }}
+              activeOpacity={0.8}
+              style={{
+                flex: 1,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                paddingVertical: 12,
+                borderRadius: 9999,
+                backgroundColor: activeTab === 'add' ? '#4F5330' : '#FFFDF8',
+                borderWidth: 1,
+                borderColor: activeTab === 'add' ? '#4F5330' : '#E5DDCD',
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: activeTab === 'add' ? 0.12 : 0.03,
+                shadowRadius: 3,
+                elevation: activeTab === 'add' ? 2 : 1,
+              }}
+            >
+              <Plus
+                size={16}
+                color={activeTab === 'add' ? '#FFFFFF' : '#0C192B'}
+                strokeWidth={2.5}
+                style={{ marginRight: 6 }}
+              />
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: '800',
+                  color: activeTab === 'add' ? '#FFFFFF' : '#0C192B',
+                }}
               >
                 Log New Expense
               </Text>
-            </View>
-          </TouchableOpacity>
-        </View>
+            </TouchableOpacity>
+          </View>
 
-        {/* Property Filter Bar */}
-        {properties.length > 0 && (
-          <View className="bg-white px-5 py-2.5 border-b border-slate-200/60">
-            <Text className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">
-              Filter By Property
-            </Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ gap: 8 }}
-            >
-              <TouchableOpacity
-                onPress={() => setSelectedFilterPropertyId(null)}
-                className={`flex-row items-center px-3 py-1.5 rounded-xl border ${
-                  selectedFilterPropertyId === null
-                    ? 'bg-[#0A6C50] border-[#0A6C50]'
-                    : 'bg-slate-50 border-slate-200'
-                }`}
-              >
-                <Building
-                  size={12}
-                  color={selectedFilterPropertyId === null ? '#ffffff' : '#64748B'}
-                />
-                <Text
-                  className={`text-xs font-bold ml-1.5 ${
-                    selectedFilterPropertyId === null ? 'text-white' : 'text-slate-700'
-                  }`}
+          {activeTab === 'pnl' ? (
+            <>
+              {/* Filter By Property */}
+              <View style={{ marginBottom: 14 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                  <Filter size={14} color="#0C192B" style={{ marginRight: 6 }} />
+                  <Text style={{ fontSize: 13, fontWeight: '800', color: '#0C192B' }}>
+                    Filter by Property
+                  </Text>
+                </View>
+
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ gap: 8, paddingBottom: 2 }}
                 >
-                  All Properties (Consolidated)
-                </Text>
-              </TouchableOpacity>
-
-              {properties.map(p => {
-                const isSelected = selectedFilterPropertyId === p._id;
-                return (
                   <TouchableOpacity
-                    key={p._id}
-                    onPress={() => setSelectedFilterPropertyId(p._id)}
-                    className={`flex-row items-center px-3 py-1.5 rounded-xl border ${
-                      isSelected ? 'bg-[#0A6C50] border-[#0A6C50]' : 'bg-slate-50 border-slate-200'
-                    }`}
+                    onPress={() => setSelectedFilterPropertyId(null)}
+                    activeOpacity={0.7}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      paddingHorizontal: 14,
+                      paddingVertical: 8,
+                      borderRadius: 14,
+                      backgroundColor: selectedFilterPropertyId === null ? '#4F5330' : '#FFFDF8',
+                      borderWidth: 1,
+                      borderColor: selectedFilterPropertyId === null ? '#4F5330' : '#E5DDCD',
+                    }}
                   >
-                    <Building size={12} color={isSelected ? '#ffffff' : '#64748B'} />
+                    <Building2
+                      size={14}
+                      color={selectedFilterPropertyId === null ? '#FFFFFF' : '#0C192B'}
+                      style={{ marginRight: 6 }}
+                    />
                     <Text
-                      className={`text-xs font-bold ml-1.5 ${
-                        isSelected ? 'text-white' : 'text-slate-700'
-                      }`}
+                      style={{
+                        fontSize: 12,
+                        fontWeight: '700',
+                        color: selectedFilterPropertyId === null ? '#FFFFFF' : '#0C192B',
+                      }}
                     >
-                      {p.name}
+                      All Properties (Consolidated)
                     </Text>
                   </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
-          </View>
-        )}
 
-        {isLoading ? (
-          <View className="flex-1 items-center justify-center">
-            <ActivityIndicator size="large" color="#0A6C50" />
-            <Text className="text-slate-500 text-sm font-medium mt-3">Loading P&L ledger…</Text>
-          </View>
-        ) : activeTab === 'pnl' ? (
-          <ScrollView className="flex-1 px-5 pt-4" showsVerticalScrollIndicator={false}>
-            {/* Net Cashflow Hero Card */}
-            <View className="bg-white rounded-2xl p-5 border border-slate-200 mb-4 shadow-xs">
-              <View className="flex-row items-center justify-between mb-1">
-                <Text className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  Net Operating Cashflow (This Month)
-                </Text>
-                {selectedFilterPropertyId && activeProperty ? (
-                  <View className="bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                    <Text className="text-[10px] font-bold text-[#0A6C50]">
-                      {activeProperty.name}
-                    </Text>
-                  </View>
-                ) : (
-                  <View className="bg-slate-100 px-2 py-0.5 rounded">
-                    <Text className="text-[10px] font-bold text-slate-600">All Properties</Text>
-                  </View>
-                )}
+                  {properties.map(p => {
+                    const isSelected = selectedFilterPropertyId === p._id;
+                    return (
+                      <TouchableOpacity
+                        key={p._id}
+                        onPress={() => setSelectedFilterPropertyId(p._id)}
+                        activeOpacity={0.7}
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          paddingHorizontal: 14,
+                          paddingVertical: 8,
+                          borderRadius: 14,
+                          backgroundColor: isSelected ? '#4F5330' : '#FFFDF8',
+                          borderWidth: 1,
+                          borderColor: isSelected ? '#4F5330' : '#E5DDCD',
+                        }}
+                      >
+                        <Building2
+                          size={14}
+                          color={isSelected ? '#FFFFFF' : '#0C192B'}
+                          style={{ marginRight: 6 }}
+                        />
+                        <Text
+                          style={{
+                            fontSize: 12,
+                            fontWeight: '700',
+                            color: isSelected ? '#FFFFFF' : '#0C192B',
+                          }}
+                        >
+                          {p.name}
+                        </Text>
+                        {isSelected && (
+                          <ChevronDown size={14} color="#FFFFFF" style={{ marginLeft: 4 }} />
+                        )}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
               </View>
 
-              <Text
-                className={`text-3xl font-black mb-4 ${
-                  (pnl?.netCashflowPaise || 0) >= 0 ? 'text-[#0A6C50]' : 'text-rose-600'
-                }`}
+              {/* Select Month Row */}
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  backgroundColor: '#FAF5EB',
+                  marginBottom: 14,
+                }}
               >
-                {formatINR(pnl?.netCashflowPaise || 0)}
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Calendar size={16} color="#0C192B" style={{ marginRight: 6 }} />
+                  <Text style={{ fontSize: 13, fontWeight: '800', color: '#0C192B' }}>
+                    Select Month
+                  </Text>
+                </View>
+
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    paddingHorizontal: 12,
+                    paddingVertical: 6,
+                    borderRadius: 12,
+                    backgroundColor: '#FFFDF8',
+                    borderWidth: 1,
+                    borderColor: '#E5DDCD',
+                  }}
+                >
+                  <Text
+                    style={{ fontSize: 12, fontWeight: '700', color: '#0C192B', marginRight: 4 }}
+                  >
+                    {getCurrentMonthLabel()}
+                  </Text>
+                  <ChevronDown size={14} color="#0C192B" />
+                </View>
+              </View>
+
+              {isLoading ? (
+                <View
+                  style={{ paddingVertical: 40, alignItems: 'center', justifyContent: 'center' }}
+                >
+                  <ActivityIndicator size="large" color="#4F5330" />
+                  <Text
+                    style={{ color: '#657080', fontSize: 13, fontWeight: '600', marginTop: 12 }}
+                  >
+                    Loading P&L ledger…
+                  </Text>
+                </View>
+              ) : (
+                <>
+                  {/* Hero Cards: Collections & Expenses side-by-side */}
+                  <View style={{ flexDirection: 'row', gap: 12, marginBottom: 16 }}>
+                    {/* Collections Card */}
+                    <View
+                      style={{
+                        flex: 1,
+                        backgroundColor: '#EAF7EE',
+                        borderWidth: 1,
+                        borderColor: '#B2E7C3',
+                        borderRadius: 20,
+                        padding: 14,
+                      }}
+                    >
+                      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                        <View
+                          style={{
+                            width: 22,
+                            height: 22,
+                            borderRadius: 11,
+                            backgroundColor: '#DCFCE7',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            marginRight: 6,
+                          }}
+                        >
+                          <TrendingUp size={13} color="#15803D" strokeWidth={2.5} />
+                        </View>
+                        <Text style={{ fontSize: 13, fontWeight: '800', color: '#0C192B' }}>
+                          Collections
+                        </Text>
+                      </View>
+
+                      <Text
+                        style={{
+                          fontSize: 21,
+                          fontWeight: '800',
+                          color: '#0C192B',
+                          marginBottom: 8,
+                        }}
+                        numberOfLines={1}
+                        adjustsFontSizeToFit
+                      >
+                        {formatINR(pnl?.collectionsPaise || 0)}
+                      </Text>
+
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                        }}
+                      >
+                        <View
+                          style={{
+                            paddingHorizontal: 8,
+                            paddingVertical: 3,
+                            borderRadius: 9999,
+                            backgroundColor: '#DCFCE7',
+                          }}
+                        >
+                          <Text style={{ fontSize: 10, fontWeight: '800', color: '#15803D' }}>
+                            ↑ 6% vs last month
+                          </Text>
+                        </View>
+                        <Wallet size={20} color="#15803D" strokeWidth={2} />
+                      </View>
+                    </View>
+
+                    {/* Expenses Card */}
+                    <View
+                      style={{
+                        flex: 1,
+                        backgroundColor: '#FDF1F1',
+                        borderWidth: 1,
+                        borderColor: '#F9CACA',
+                        borderRadius: 20,
+                        padding: 14,
+                      }}
+                    >
+                      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                        <View
+                          style={{
+                            width: 22,
+                            height: 22,
+                            borderRadius: 11,
+                            backgroundColor: '#FEE2E2',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            marginRight: 6,
+                          }}
+                        >
+                          <TrendingDown size={13} color="#BE123C" strokeWidth={2.5} />
+                        </View>
+                        <Text style={{ fontSize: 13, fontWeight: '800', color: '#0C192B' }}>
+                          Expenses
+                        </Text>
+                      </View>
+
+                      <Text
+                        style={{
+                          fontSize: 21,
+                          fontWeight: '800',
+                          color: '#0C192B',
+                          marginBottom: 8,
+                        }}
+                        numberOfLines={1}
+                        adjustsFontSizeToFit
+                      >
+                        {formatINR(pnl?.expensesPaise || 0)}
+                      </Text>
+
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                        }}
+                      >
+                        <View
+                          style={{
+                            paddingHorizontal: 8,
+                            paddingVertical: 3,
+                            borderRadius: 9999,
+                            backgroundColor: '#FEE2E2',
+                          }}
+                        >
+                          <Text style={{ fontSize: 10, fontWeight: '800', color: '#BE123C' }}>
+                            ↑ 8% vs last month
+                          </Text>
+                        </View>
+                        <Receipt size={20} color="#BE123C" strokeWidth={2} />
+                      </View>
+                    </View>
+                  </View>
+
+                  {/* Unit Economics Card */}
+                  <View
+                    style={{
+                      backgroundColor: '#FFFDF8',
+                      borderRadius: 20,
+                      borderWidth: 1,
+                      borderColor: '#E5DDCD',
+                      padding: 16,
+                      marginBottom: 16,
+                      shadowColor: '#000',
+                      shadowOffset: { width: 0, height: 1 },
+                      shadowOpacity: 0.04,
+                      shadowRadius: 3,
+                      elevation: 1,
+                    }}
+                  >
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        marginBottom: 14,
+                      }}
+                    >
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          flex: 1,
+                          marginRight: 8,
+                        }}
+                      >
+                        <View
+                          style={{
+                            width: 32,
+                            height: 32,
+                            borderRadius: 10,
+                            backgroundColor: '#FAF5EB',
+                            borderWidth: 1,
+                            borderColor: '#E5DDCD',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            marginRight: 10,
+                          }}
+                        >
+                          <Home size={16} color="#4F5330" />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text style={{ fontSize: 14, fontWeight: '800', color: '#0C192B' }}>
+                            Unit Economics ({unitEconomics.propertyName})
+                          </Text>
+                          <Text
+                            style={{
+                              fontSize: 11,
+                              fontWeight: '500',
+                              color: '#657080',
+                              marginTop: 1,
+                            }}
+                          >
+                            Per-bed operating cost & yield
+                          </Text>
+                        </View>
+                      </View>
+
+                      <View
+                        style={{
+                          paddingHorizontal: 10,
+                          paddingVertical: 4,
+                          borderRadius: 9999,
+                          backgroundColor: '#DCFCE7',
+                        }}
+                      >
+                        <Text style={{ fontSize: 11, fontWeight: '800', color: '#15803D' }}>
+                          {unitEconomics.occupiedBeds}/{unitEconomics.totalBeds} Beds (
+                          {unitEconomics.occupancyRate}%)
+                        </Text>
+                      </View>
+                    </View>
+
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        paddingTop: 12,
+                        borderTopWidth: 1,
+                        borderTopColor: '#FAF5EB',
+                      }}
+                    >
+                      <View style={{ flex: 1, alignItems: 'center', paddingHorizontal: 4 }}>
+                        <Coins size={15} color="#4F5330" style={{ marginBottom: 4 }} />
+                        <Text
+                          style={{
+                            fontSize: 10,
+                            fontWeight: '800',
+                            color: '#657080',
+                            textTransform: 'uppercase',
+                          }}
+                        >
+                          Cost / Bed
+                        </Text>
+                        <Text
+                          style={{
+                            fontSize: 13,
+                            fontWeight: '800',
+                            color: '#0C192B',
+                            marginTop: 2,
+                          }}
+                        >
+                          {formatINR(unitEconomics.costPerOccupiedBed)}
+                        </Text>
+                        <Text style={{ fontSize: 10, color: '#94A3B8', marginTop: 2 }}>
+                          Monthly expense
+                        </Text>
+                      </View>
+
+                      <View
+                        style={{
+                          width: 1,
+                          backgroundColor: '#E5DDCD',
+                          marginVertical: 4,
+                        }}
+                      />
+
+                      <View style={{ flex: 1, alignItems: 'center', paddingHorizontal: 4 }}>
+                        <BarChart3 size={15} color="#4F5330" style={{ marginBottom: 4 }} />
+                        <Text
+                          style={{
+                            fontSize: 10,
+                            fontWeight: '800',
+                            color: '#657080',
+                            textTransform: 'uppercase',
+                          }}
+                        >
+                          Yield / Bed
+                        </Text>
+                        <Text
+                          style={{
+                            fontSize: 13,
+                            fontWeight: '800',
+                            color: '#0C192B',
+                            marginTop: 2,
+                          }}
+                        >
+                          {formatINR(unitEconomics.collectionsPerBed)}
+                        </Text>
+                        <Text style={{ fontSize: 10, color: '#94A3B8', marginTop: 2 }}>
+                          Revenue collected
+                        </Text>
+                      </View>
+
+                      <View
+                        style={{
+                          width: 1,
+                          backgroundColor: '#E5DDCD',
+                          marginVertical: 4,
+                        }}
+                      />
+
+                      <View style={{ flex: 1, alignItems: 'center', paddingHorizontal: 4 }}>
+                        <MinusCircle
+                          size={15}
+                          color={unitEconomics.netPerBed >= 0 ? '#15803D' : '#BE123C'}
+                          style={{ marginBottom: 4 }}
+                        />
+                        <Text
+                          style={{
+                            fontSize: 10,
+                            fontWeight: '800',
+                            color: '#657080',
+                            textTransform: 'uppercase',
+                          }}
+                        >
+                          Net / Bed
+                        </Text>
+                        <Text
+                          style={{
+                            fontSize: 13,
+                            fontWeight: '800',
+                            color: unitEconomics.netPerBed >= 0 ? '#15803D' : '#BE123C',
+                            marginTop: 2,
+                          }}
+                        >
+                          {unitEconomics.netPerBed >= 0
+                            ? formatINR(unitEconomics.netPerBed)
+                            : `-${formatINR(Math.abs(unitEconomics.netPerBed))}`}
+                        </Text>
+                        <Text style={{ fontSize: 10, color: '#94A3B8', marginTop: 2 }}>
+                          Net profit
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+
+                  {/* Expense Category Breakdown */}
+                  {pnl && pnl.categoryBreakdown && pnl.categoryBreakdown.length > 0 && (
+                    <View style={{ marginBottom: 16 }}>
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          marginBottom: 10,
+                        }}
+                      >
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                          <PieChart size={16} color="#4F5330" style={{ marginRight: 6 }} />
+                          <Text style={{ fontSize: 14, fontWeight: '800', color: '#0C192B' }}>
+                            Expense Category Breakdown
+                          </Text>
+                        </View>
+
+                        <View
+                          style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            paddingHorizontal: 10,
+                            paddingVertical: 4,
+                            borderRadius: 10,
+                            backgroundColor: '#FFFDF8',
+                            borderWidth: 1,
+                            borderColor: '#E5DDCD',
+                          }}
+                        >
+                          <Text
+                            style={{
+                              fontSize: 11,
+                              fontWeight: '700',
+                              color: '#0C192B',
+                              marginRight: 3,
+                            }}
+                          >
+                            This Month
+                          </Text>
+                          <ChevronDown size={13} color="#0C192B" />
+                        </View>
+                      </View>
+
+                      <View
+                        style={{
+                          backgroundColor: '#FFFDF8',
+                          borderRadius: 20,
+                          borderWidth: 1,
+                          borderColor: '#E5DDCD',
+                          padding: 16,
+                          gap: 14,
+                        }}
+                      >
+                        {pnl.categoryBreakdown.map(item => {
+                          const matched = CATEGORIES.find(c => c.id === item.category);
+                          const IconComp = matched?.icon || Tag;
+                          const categoryTitle = matched?.label || item.category.replace('_', ' ');
+
+                          return (
+                            <View key={item.category}>
+                              <View
+                                style={{
+                                  flexDirection: 'row',
+                                  alignItems: 'center',
+                                  justifyContent: 'space-between',
+                                  marginBottom: 6,
+                                }}
+                              >
+                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                  <IconComp size={15} color="#4F5330" style={{ marginRight: 8 }} />
+                                  <Text
+                                    style={{ fontSize: 13, fontWeight: '700', color: '#0C192B' }}
+                                  >
+                                    {categoryTitle}
+                                  </Text>
+                                </View>
+                                <Text style={{ fontSize: 13, fontWeight: '800', color: '#0C192B' }}>
+                                  {formatINR(item.amountPaise)} ({item.percentage}%)
+                                </Text>
+                              </View>
+                              <View
+                                style={{
+                                  height: 6,
+                                  backgroundColor: '#FAF5EB',
+                                  borderRadius: 9999,
+                                  overflow: 'hidden',
+                                }}
+                              >
+                                <View
+                                  style={{
+                                    height: '100%',
+                                    backgroundColor: '#4F5330',
+                                    borderRadius: 9999,
+                                    width: `${Math.min(100, Math.max(4, item.percentage))}%`,
+                                  }}
+                                />
+                              </View>
+                            </View>
+                          );
+                        })}
+                      </View>
+                    </View>
+                  )}
+
+                  {/* Recent Expenses List */}
+                  <View style={{ marginBottom: 16 }}>
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        marginBottom: 10,
+                      }}
+                    >
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Clock size={16} color="#0C192B" style={{ marginRight: 6 }} />
+                        <Text style={{ fontSize: 14, fontWeight: '800', color: '#0C192B' }}>
+                          Recent Expenses
+                        </Text>
+                      </View>
+
+                      <TouchableOpacity
+                        onPress={() => {
+                          // Scroll or trigger full list view
+                        }}
+                      >
+                        <Text style={{ fontSize: 12, fontWeight: '700', color: '#0799AA' }}>
+                          View All ({expenses.length}) →
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+
+                    {expenses.length === 0 ? (
+                      <View
+                        style={{
+                          backgroundColor: '#FFFDF8',
+                          borderRadius: 20,
+                          padding: 24,
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          borderWidth: 1,
+                          borderColor: '#E5DDCD',
+                        }}
+                      >
+                        <Text style={{ fontSize: 13, fontWeight: '600', color: '#657080' }}>
+                          No expenses recorded yet.
+                        </Text>
+                        <TouchableOpacity
+                          onPress={() => setActiveTab('add')}
+                          style={{ marginTop: 8 }}
+                        >
+                          <Text style={{ fontSize: 12, fontWeight: '700', color: '#4F5330' }}>
+                            + Log your first expense
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    ) : (
+                      expenses.map(exp => (
+                        <TouchableOpacity
+                          key={exp._id}
+                          onPress={() => handleOpenEdit(exp)}
+                          activeOpacity={0.7}
+                          style={{
+                            backgroundColor: '#FFFDF8',
+                            borderRadius: 18,
+                            padding: 14,
+                            borderWidth: 1,
+                            borderColor: '#E5DDCD',
+                            marginBottom: 10,
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            shadowColor: '#000',
+                            shadowOffset: { width: 0, height: 1 },
+                            shadowOpacity: 0.03,
+                            shadowRadius: 2,
+                            elevation: 1,
+                          }}
+                        >
+                          <View
+                            style={{
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              flex: 1,
+                              marginRight: 10,
+                            }}
+                          >
+                            <View
+                              style={{
+                                width: 38,
+                                height: 38,
+                                borderRadius: 12,
+                                backgroundColor: '#D1F4F9',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                marginRight: 12,
+                              }}
+                            >
+                              <Calendar size={18} color="#0799AA" />
+                            </View>
+                            <View style={{ flex: 1 }}>
+                              <Text
+                                style={{
+                                  fontSize: 14,
+                                  fontWeight: '800',
+                                  color: '#0C192B',
+                                }}
+                                numberOfLines={1}
+                              >
+                                {exp.description}
+                              </Text>
+                              <Text
+                                style={{
+                                  fontSize: 11,
+                                  fontWeight: '500',
+                                  color: '#657080',
+                                  marginTop: 2,
+                                  textTransform: 'capitalize',
+                                }}
+                              >
+                                {formatSafeDate(exp.date)} • {exp.paymentMethod || 'Cash'}
+                                {exp.property?.name ? ` • ${exp.property.name}` : ''}
+                              </Text>
+                            </View>
+                          </View>
+
+                          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            <Text
+                              style={{
+                                fontSize: 14,
+                                fontWeight: '800',
+                                color: '#BE123C',
+                                marginRight: 6,
+                              }}
+                            >
+                              -{formatINR(exp.amountPaise)}
+                            </Text>
+                            <ChevronRight size={16} color="#657080" />
+                          </View>
+                        </TouchableOpacity>
+                      ))
+                    )}
+                  </View>
+                </>
+              )}
+            </>
+          ) : (
+            /* Log New Expense Form Tab */
+            <View
+              style={{
+                backgroundColor: '#FFFDF8',
+                borderRadius: 20,
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+                padding: 18,
+                marginBottom: 16,
+              }}
+            >
+              <Text style={{ fontSize: 16, fontWeight: '800', color: '#0C192B', marginBottom: 14 }}>
+                Record New Expense
               </Text>
 
-              <View className="flex-row gap-3 pt-3 border-t border-slate-100">
-                <View className="flex-1 bg-emerald-50 rounded-xl p-3 border border-emerald-100">
-                  <View className="flex-row items-center mb-1">
-                    <TrendingUp size={14} color="#0A6C50" />
-                    <Text className="text-[11px] font-bold text-emerald-800 ml-1">Collections</Text>
-                  </View>
-                  <Text className="text-base font-extrabold text-emerald-900">
-                    {formatINR(pnl?.collectionsPaise || 0)}
-                  </Text>
-                </View>
-
-                <View className="flex-1 bg-rose-50 rounded-xl p-3 border border-rose-100">
-                  <View className="flex-row items-center mb-1">
-                    <TrendingDown size={14} color="#BE123C" />
-                    <Text className="text-[11px] font-bold text-rose-800 ml-1">Expenses</Text>
-                  </View>
-                  <Text className="text-base font-extrabold text-rose-900">
-                    {formatINR(pnl?.expensesPaise || 0)}
-                  </Text>
-                </View>
-              </View>
-            </View>
-
-            {/* Unit Economics & Per-Bed Metrics Card */}
-            {(unitEconomics.totalBeds > 0 || unitEconomics.costPerOccupiedBed > 0) && (
-              <View className="bg-white rounded-2xl p-4 border border-emerald-100 mb-4 shadow-xs">
-                <View className="flex-row items-center justify-between mb-3">
-                  <View className="flex-row items-center">
-                    <View className="w-7 h-7 rounded-lg bg-emerald-50 items-center justify-center mr-2 border border-emerald-200">
-                      <BedIcon size={14} color="#0A6C50" />
-                    </View>
-                    <View>
-                      <Text className="text-xs font-black text-slate-900">
-                        Unit Economics ({unitEconomics.propertyName})
-                      </Text>
-                      <Text className="text-[10px] text-slate-500 font-medium">
-                        Per-bed operating cost & yield
-                      </Text>
-                    </View>
-                  </View>
-                  <View className="bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-200">
-                    <Text className="text-[11px] font-extrabold text-[#0A6C50]">
-                      {unitEconomics.occupiedBeds}/{unitEconomics.totalBeds} Beds (
-                      {unitEconomics.occupancyRate}%)
-                    </Text>
-                  </View>
-                </View>
-
-                <View className="flex-row gap-2.5 pt-2 border-t border-slate-100">
-                  <View className="flex-1 bg-slate-50 p-2.5 rounded-xl border border-slate-200/60">
-                    <Text className="text-[10px] font-bold text-slate-500 uppercase">
-                      Cost / Bed
-                    </Text>
-                    <Text className="text-sm font-black text-rose-600 mt-0.5">
-                      {formatINR(unitEconomics.costPerOccupiedBed)}
-                    </Text>
-                    <Text className="text-[9px] text-slate-400 mt-0.5">Monthly expense</Text>
-                  </View>
-
-                  <View className="flex-1 bg-slate-50 p-2.5 rounded-xl border border-slate-200/60">
-                    <Text className="text-[10px] font-bold text-slate-500 uppercase">
-                      Yield / Bed
-                    </Text>
-                    <Text className="text-sm font-black text-emerald-700 mt-0.5">
-                      {formatINR(unitEconomics.collectionsPerBed)}
-                    </Text>
-                    <Text className="text-[9px] text-slate-400 mt-0.5">Revenue collected</Text>
-                  </View>
-
-                  <View className="flex-1 bg-slate-50 p-2.5 rounded-xl border border-slate-200/60">
-                    <Text className="text-[10px] font-bold text-slate-500 uppercase">
-                      Net / Bed
-                    </Text>
-                    <Text
-                      className={`text-sm font-black mt-0.5 ${
-                        unitEconomics.netPerBed >= 0 ? 'text-[#0A6C50]' : 'text-rose-600'
-                      }`}
-                    >
-                      {formatINR(unitEconomics.netPerBed)}
-                    </Text>
-                    <Text className="text-[9px] text-slate-400 mt-0.5">Net profit</Text>
-                  </View>
-                </View>
-              </View>
-            )}
-
-            {/* Category Breakdown */}
-            {pnl && pnl.categoryBreakdown.length > 0 && (
-              <View className="bg-white rounded-2xl p-4 border border-slate-200 mb-4">
-                <Text className="text-xs font-bold text-slate-600 uppercase mb-3">
-                  Expense Category Breakdown
-                </Text>
-                {pnl.categoryBreakdown.map(item => (
-                  <View key={item.category} className="mb-2.5">
-                    <View className="flex-row justify-between mb-1">
-                      <Text className="text-xs font-bold text-slate-800 capitalize">
-                        {item.category.replace('_', ' ')}
-                      </Text>
-                      <Text className="text-xs font-bold text-slate-700">
-                        {formatINR(item.amountPaise)} ({item.percentage}%)
-                      </Text>
-                    </View>
-                    <View className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                      <View
-                        className="h-full bg-rose-500 rounded-full"
-                        style={{ width: `${Math.min(100, item.percentage)}%` }}
-                      />
-                    </View>
-                  </View>
-                ))}
-              </View>
-            )}
-
-            {/* Monthly-wise Expenses Grouping */}
-            <Text className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2.5">
-              Logged Expenses Monthly-wise ({expenses.length})
-            </Text>
-
-            {monthlyGroupedExpenses.length === 0 ? (
-              <View className="bg-white rounded-2xl p-6 items-center justify-center border border-slate-200 mb-6">
-                <Text className="text-sm font-semibold text-slate-500">
-                  No expenses recorded yet.
-                </Text>
-                <Text className="text-xs text-slate-400 mt-1">
-                  Tap 'Log New Expense' to record.
-                </Text>
-              </View>
-            ) : (
-              monthlyGroupedExpenses.map(group => (
-                <View key={group.monthKey} className="mb-5">
-                  {/* Month Header Banner */}
-                  <View className="bg-slate-100/90 px-3.5 py-2 rounded-xl flex-row justify-between items-center mb-2.5 border border-slate-200/60">
-                    <View className="flex-row items-center">
-                      <Calendar size={13} color="#475569" />
-                      <Text className="text-xs font-extrabold text-slate-800 ml-1.5">
-                        {group.monthLabel}
-                      </Text>
-                      <View className="bg-slate-200/70 px-1.5 py-0.5 rounded ml-2">
-                        <Text className="text-[10px] font-bold text-slate-600">
-                          {group.items.length} {group.items.length === 1 ? 'item' : 'items'}
-                        </Text>
-                      </View>
-                    </View>
-                    <Text className="text-xs font-black text-rose-700">
-                      -{formatINR(group.totalPaise)}
-                    </Text>
-                  </View>
-
-                  {/* Expenses in Month */}
-                  {group.items.map(exp => (
-                    <View
-                      key={exp._id}
-                      className="bg-white rounded-2xl p-4 border border-slate-200/80 mb-2.5 shadow-xs"
-                    >
-                      <View className="flex-row justify-between items-start mb-1">
-                        <View className="flex-1 mr-3">
-                          <Text className="text-sm font-extrabold text-slate-900 truncate">
-                            {exp.description}
-                          </Text>
-                          <Text className="text-xs font-medium text-slate-500 mt-0.5 capitalize">
-                            {exp.category.replace('_', ' ')} · {formatSafeDate(exp.date)}
-                            {exp.paidTo ? ` · ${exp.paidTo}` : ''}
-                            {exp.paymentMethod ? ` (${exp.paymentMethod.toUpperCase()})` : ''}
-                          </Text>
-
-                          {/* Property Scope Tag */}
-                          <View className="flex-row items-center mt-1.5">
-                            {exp.property?.name ? (
-                              <View className="flex-row items-center bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200/60">
-                                <Building size={10} color="#0A6C50" />
-                                <Text className="text-[10px] font-bold text-[#0A6C50] ml-1">
-                                  {exp.property.name}
-                                </Text>
-                              </View>
-                            ) : (
-                              <View className="flex-row items-center bg-slate-100 px-2 py-0.5 rounded border border-slate-200/60">
-                                <Building size={10} color="#64748B" />
-                                <Text className="text-[10px] font-semibold text-slate-600 ml-1">
-                                  General Overhead
-                                </Text>
-                              </View>
-                            )}
-                          </View>
-                        </View>
-                        <Text className="text-sm font-black text-rose-600">
-                          -{formatINR(exp.amountPaise)}
-                        </Text>
-                      </View>
-
-                      {/* Actions: Edit & Delete */}
-                      <View className="flex-row justify-end gap-2 pt-2 border-t border-slate-100 mt-2">
-                        <TouchableOpacity
-                          onPress={() => handleOpenEdit(exp)}
-                          className="flex-row items-center px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200"
-                        >
-                          <Edit2 size={13} color="#0A6C50" />
-                          <Text className="text-xs font-bold text-[#0A6C50] ml-1.5">Edit</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          onPress={() => handleDeleteExpense(exp)}
-                          className="flex-row items-center px-3 py-1.5 rounded-lg bg-rose-50 border border-rose-200"
-                        >
-                          <Trash2 size={13} color="#BE123C" />
-                          <Text className="text-xs font-bold text-rose-700 ml-1.5">Delete</Text>
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-                  ))}
-                </View>
-              ))
-            )}
-          </ScrollView>
-        ) : (
-          /* Add Expense Form */
-          <ScrollView className="flex-1 px-5 pt-4" showsVerticalScrollIndicator={false}>
-            <View className="bg-white rounded-2xl p-5 border border-slate-200 mb-6 shadow-xs">
               {/* Property Scope Picker */}
-              <Text className="text-xs font-bold text-slate-700 uppercase mb-2">
+              <Text
+                style={{
+                  fontSize: 11,
+                  fontWeight: '800',
+                  color: '#657080',
+                  textTransform: 'uppercase',
+                  marginBottom: 8,
+                }}
+              >
                 Property / Scope
               </Text>
-              <View className="flex-row flex-wrap gap-2 mb-4">
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 14 }}>
                 <TouchableOpacity
                   onPress={() => setFormPropertyId(null)}
-                  className={`flex-row items-center px-3 py-2 rounded-xl border ${
-                    formPropertyId === null
-                      ? 'bg-[#E6F4EA] border-[#0A6C50]'
-                      : 'bg-slate-50 border-slate-200'
-                  }`}
+                  activeOpacity={0.7}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    paddingHorizontal: 12,
+                    paddingVertical: 7,
+                    borderRadius: 9999,
+                    backgroundColor: formPropertyId === null ? '#19D3E6' : '#FAF5EB',
+                    borderWidth: 1,
+                    borderColor: formPropertyId === null ? '#19D3E6' : '#E5DDCD',
+                  }}
                 >
-                  <Building size={12} color={formPropertyId === null ? '#0A6C50' : '#64748B'} />
+                  <Building2
+                    size={12}
+                    color={formPropertyId === null ? '#0C192B' : '#657080'}
+                    style={{ marginRight: 6 }}
+                  />
                   <Text
-                    className={`text-xs font-bold ml-1.5 ${
-                      formPropertyId === null ? 'text-[#0A6C50]' : 'text-slate-600'
-                    }`}
+                    style={{
+                      fontSize: 11,
+                      fontWeight: formPropertyId === null ? '800' : '600',
+                      color: formPropertyId === null ? '#0C192B' : '#657080',
+                    }}
                   >
                     General Overhead (All Properties)
                   </Text>
@@ -743,17 +1283,29 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, 
                     <TouchableOpacity
                       key={p._id}
                       onPress={() => setFormPropertyId(p._id)}
-                      className={`flex-row items-center px-3 py-2 rounded-xl border ${
-                        isSelected
-                          ? 'bg-[#E6F4EA] border-[#0A6C50]'
-                          : 'bg-slate-50 border-slate-200'
-                      }`}
+                      activeOpacity={0.7}
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        paddingHorizontal: 12,
+                        paddingVertical: 7,
+                        borderRadius: 9999,
+                        backgroundColor: isSelected ? '#19D3E6' : '#FAF5EB',
+                        borderWidth: 1,
+                        borderColor: isSelected ? '#19D3E6' : '#E5DDCD',
+                      }}
                     >
-                      <Building size={12} color={isSelected ? '#0A6C50' : '#64748B'} />
+                      <Building2
+                        size={12}
+                        color={isSelected ? '#0C192B' : '#657080'}
+                        style={{ marginRight: 6 }}
+                      />
                       <Text
-                        className={`text-xs font-bold ml-1.5 ${
-                          isSelected ? 'text-[#0A6C50]' : 'text-slate-600'
-                        }`}
+                        style={{
+                          fontSize: 11,
+                          fontWeight: isSelected ? '800' : '600',
+                          color: isSelected ? '#0C192B' : '#657080',
+                        }}
                       >
                         {p.name}
                       </Text>
@@ -763,36 +1315,84 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, 
               </View>
 
               {/* Category Picker */}
-              <Text className="text-xs font-bold text-slate-700 uppercase mb-2">Category</Text>
-              <View className="flex-row flex-wrap gap-2 mb-4">
-                {CATEGORIES.map(cat => (
-                  <TouchableOpacity
-                    key={cat.id}
-                    onPress={() => setCategory(cat.id)}
-                    className={`px-3 py-2 rounded-xl border ${
-                      category === cat.id
-                        ? 'bg-[#E6F4EA] border-[#0A6C50]'
-                        : 'bg-slate-50 border-slate-200'
-                    }`}
-                  >
-                    <Text
-                      className={`text-xs font-bold ${
-                        category === cat.id ? 'text-[#0A6C50]' : 'text-slate-600'
-                      }`}
+              <Text
+                style={{
+                  fontSize: 11,
+                  fontWeight: '800',
+                  color: '#657080',
+                  textTransform: 'uppercase',
+                  marginBottom: 8,
+                }}
+              >
+                Category
+              </Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 14 }}>
+                {CATEGORIES.map(cat => {
+                  const isSelected = category === cat.id;
+                  return (
+                    <TouchableOpacity
+                      key={cat.id}
+                      onPress={() => setCategory(cat.id)}
+                      activeOpacity={0.7}
+                      style={{
+                        paddingHorizontal: 12,
+                        paddingVertical: 7,
+                        borderRadius: 9999,
+                        backgroundColor: isSelected ? '#19D3E6' : '#FAF5EB',
+                        borderWidth: 1,
+                        borderColor: isSelected ? '#19D3E6' : '#E5DDCD',
+                      }}
                     >
-                      {cat.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+                      <Text
+                        style={{
+                          fontSize: 11,
+                          fontWeight: isSelected ? '800' : '600',
+                          color: isSelected ? '#0C192B' : '#657080',
+                        }}
+                      >
+                        {cat.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
 
               {/* Amount */}
-              <Text className="text-xs font-bold text-slate-700 uppercase mb-1.5">Amount (₹)</Text>
-              <View className="flex-row items-center border border-slate-200 rounded-xl px-4 py-3 mb-4 bg-white shadow-xs">
-                <IndianRupee size={18} color="#64748B" />
+              <Text
+                style={{
+                  fontSize: 11,
+                  fontWeight: '800',
+                  color: '#657080',
+                  textTransform: 'uppercase',
+                  marginBottom: 6,
+                }}
+              >
+                Amount (₹) *
+              </Text>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  borderWidth: 1,
+                  borderColor: '#E5DDCD',
+                  borderRadius: 14,
+                  paddingHorizontal: 14,
+                  paddingVertical: 10,
+                  backgroundColor: '#FAF5EB',
+                  marginBottom: 14,
+                }}
+              >
+                <IndianRupee size={16} color="#657080" />
                 <TextInput
-                  className="flex-1 ml-2 text-base font-bold text-slate-900"
+                  style={{
+                    flex: 1,
+                    marginLeft: 8,
+                    fontSize: 15,
+                    fontWeight: '800',
+                    color: '#0C192B',
+                  }}
                   placeholder="e.g. 2500"
+                  placeholderTextColor="#94A3B8"
                   keyboardType="numeric"
                   value={amountRupees}
                   onChangeText={setAmountRupees}
@@ -800,63 +1400,152 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, 
               </View>
 
               {/* Description */}
-              <Text className="text-xs font-bold text-slate-700 uppercase mb-1.5">
-                Description / Purpose
+              <Text
+                style={{
+                  fontSize: 11,
+                  fontWeight: '800',
+                  color: '#657080',
+                  textTransform: 'uppercase',
+                  marginBottom: 6,
+                }}
+              >
+                Description / Purpose *
               </Text>
               <TextInput
-                className="border border-slate-200 rounded-xl px-4 py-3 mb-4 text-slate-900 bg-white shadow-xs text-sm"
+                style={{
+                  borderWidth: 1,
+                  borderColor: '#E5DDCD',
+                  borderRadius: 14,
+                  paddingHorizontal: 14,
+                  paddingVertical: 10,
+                  backgroundColor: '#FAF5EB',
+                  fontSize: 13,
+                  fontWeight: '600',
+                  color: '#0C192B',
+                  marginBottom: 14,
+                }}
                 placeholder="e.g. Repair of water pump on terrace"
+                placeholderTextColor="#94A3B8"
                 value={description}
                 onChangeText={setDescription}
               />
 
               {/* Expense Date */}
-              <Text className="text-xs font-bold text-slate-700 uppercase mb-1.5">
+              <Text
+                style={{
+                  fontSize: 11,
+                  fontWeight: '800',
+                  color: '#657080',
+                  textTransform: 'uppercase',
+                  marginBottom: 6,
+                }}
+              >
                 Date (YYYY-MM-DD)
               </Text>
-              <View className="flex-row items-center border border-slate-200 rounded-xl px-4 py-3 mb-4 bg-white shadow-xs">
-                <Calendar size={18} color="#64748B" />
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  borderWidth: 1,
+                  borderColor: '#E5DDCD',
+                  borderRadius: 14,
+                  paddingHorizontal: 14,
+                  paddingVertical: 10,
+                  backgroundColor: '#FAF5EB',
+                  marginBottom: 14,
+                }}
+              >
+                <Calendar size={16} color="#657080" />
                 <TextInput
-                  className="flex-1 ml-2 text-sm font-semibold text-slate-900"
+                  style={{
+                    flex: 1,
+                    marginLeft: 8,
+                    fontSize: 13,
+                    fontWeight: '600',
+                    color: '#0C192B',
+                  }}
                   placeholder="YYYY-MM-DD"
+                  placeholderTextColor="#94A3B8"
                   value={date}
                   onChangeText={setDate}
                 />
               </View>
 
               {/* Paid to Vendor / Person */}
-              <Text className="text-xs font-bold text-slate-700 uppercase mb-1.5">
+              <Text
+                style={{
+                  fontSize: 11,
+                  fontWeight: '800',
+                  color: '#657080',
+                  textTransform: 'uppercase',
+                  marginBottom: 6,
+                }}
+              >
                 Paid To (Optional)
               </Text>
               <TextInput
-                className="border border-slate-200 rounded-xl px-4 py-3 mb-4 text-slate-900 bg-white shadow-xs text-sm"
+                style={{
+                  borderWidth: 1,
+                  borderColor: '#E5DDCD',
+                  borderRadius: 14,
+                  paddingHorizontal: 14,
+                  paddingVertical: 10,
+                  backgroundColor: '#FAF5EB',
+                  fontSize: 13,
+                  fontWeight: '600',
+                  color: '#0C192B',
+                  marginBottom: 14,
+                }}
                 placeholder="e.g. Suresh Plumber"
+                placeholderTextColor="#94A3B8"
                 value={paidTo}
                 onChangeText={setPaidTo}
               />
 
               {/* Payment Mode */}
-              <Text className="text-xs font-bold text-slate-700 uppercase mb-2">Payment Mode</Text>
-              <View className="flex-row gap-2 mb-6">
-                {(['cash', 'upi', 'bank_transfer'] as const).map(mode => (
-                  <TouchableOpacity
-                    key={mode}
-                    onPress={() => setPaymentMethod(mode)}
-                    className={`flex-1 py-2.5 rounded-xl border items-center justify-center ${
-                      paymentMethod === mode
-                        ? 'bg-[#E6F4EA] border-[#0A6C50]'
-                        : 'bg-slate-50 border-slate-200'
-                    }`}
-                  >
-                    <Text
-                      className={`text-xs font-bold uppercase ${
-                        paymentMethod === mode ? 'text-[#0A6C50]' : 'text-slate-600'
-                      }`}
+              <Text
+                style={{
+                  fontSize: 11,
+                  fontWeight: '800',
+                  color: '#657080',
+                  textTransform: 'uppercase',
+                  marginBottom: 8,
+                }}
+              >
+                Payment Mode
+              </Text>
+              <View style={{ flexDirection: 'row', gap: 8, marginBottom: 18 }}>
+                {(['cash', 'upi', 'bank_transfer'] as const).map(mode => {
+                  const isSelected = paymentMethod === mode;
+                  return (
+                    <TouchableOpacity
+                      key={mode}
+                      onPress={() => setPaymentMethod(mode)}
+                      activeOpacity={0.7}
+                      style={{
+                        flex: 1,
+                        paddingVertical: 10,
+                        borderRadius: 12,
+                        borderWidth: 1,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: isSelected ? '#19D3E6' : '#FAF5EB',
+                        borderColor: isSelected ? '#19D3E6' : '#E5DDCD',
+                      }}
                     >
-                      {mode === 'bank_transfer' ? 'Bank' : mode}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+                      <Text
+                        style={{
+                          fontSize: 11,
+                          fontWeight: isSelected ? '800' : '600',
+                          color: isSelected ? '#0C192B' : '#657080',
+                          textTransform: 'uppercase',
+                        }}
+                      >
+                        {mode === 'bank_transfer' ? 'Bank Transfer' : mode}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
 
               {/* Save CTA */}
@@ -864,17 +1553,45 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, 
                 activeOpacity={0.85}
                 disabled={isSubmitting}
                 onPress={handleSaveExpense}
-                className="bg-[#0A6C50] rounded-xl py-4 items-center justify-center shadow-xs"
+                style={{
+                  backgroundColor: '#4F5330',
+                  borderRadius: 9999,
+                  height: 50,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.1,
+                  shadowRadius: 4,
+                  elevation: 2,
+                }}
               >
                 {isSubmitting ? (
-                  <ActivityIndicator size="small" color="#ffffff" />
+                  <ActivityIndicator size="small" color="#FFFFFF" />
                 ) : (
-                  <Text className="text-white font-bold text-base">Record Expense</Text>
+                  <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 15 }}>
+                    Record Expense
+                  </Text>
                 )}
               </TouchableOpacity>
             </View>
-          </ScrollView>
-        )}
+          )}
+
+          {/* Clean Subtle Footer Branding */}
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              paddingVertical: 18,
+            }}
+          >
+            <BarChart3 size={15} color="#657080" style={{ marginRight: 6 }} />
+            <Text style={{ fontSize: 12, fontWeight: '700', color: '#657080' }}>
+              Smart Finances. Better Management.
+            </Text>
+          </View>
+        </ScrollView>
 
         {/* Edit Expense Modal */}
         {editingExpense && (
@@ -884,179 +1601,289 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, 
             animationType="fade"
             onRequestClose={() => setEditingExpense(null)}
           >
-            <View className="flex-1 bg-black/50 justify-center items-center px-4">
-              <View className="bg-white rounded-2xl p-5 w-full max-w-sm border border-slate-200 shadow-xl max-h-[85%]">
-                <View className="flex-row justify-between items-center mb-3">
-                  <Text className="text-base font-extrabold text-slate-900">
+            <View
+              style={{
+                flex: 1,
+                backgroundColor: 'rgba(0,0,0,0.5)',
+                justifyContent: 'center',
+                alignItems: 'center',
+                paddingHorizontal: 20,
+              }}
+            >
+              <View
+                style={{
+                  backgroundColor: '#FAF5EB',
+                  borderRadius: 24,
+                  padding: 20,
+                  width: '100%',
+                  maxWidth: 380,
+                  borderWidth: 1,
+                  borderColor: '#E5DDCD',
+                  maxHeight: '85%',
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.15,
+                  shadowRadius: 10,
+                  elevation: 5,
+                }}
+              >
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: 12,
+                  }}
+                >
+                  <Text style={{ fontSize: 17, fontWeight: '800', color: '#0C192B' }}>
                     Edit Expense Record
                   </Text>
                   <TouchableOpacity
                     onPress={() => setEditingExpense(null)}
-                    className="w-7 h-7 rounded-full bg-slate-100 items-center justify-center"
+                    activeOpacity={0.7}
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 16,
+                      backgroundColor: '#FFFDF8',
+                      borderWidth: 1,
+                      borderColor: '#E5DDCD',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
                   >
-                    <X size={16} color="#64748B" />
+                    <X size={16} color="#657080" />
                   </TouchableOpacity>
                 </View>
 
                 <ScrollView showsVerticalScrollIndicator={false}>
-                  {/* Property Scope */}
-                  <Text className="text-[10px] font-bold text-slate-700 uppercase mb-1.5">
-                    Property / Scope
+                  {/* Category */}
+                  <Text
+                    style={{
+                      fontSize: 10,
+                      fontWeight: '800',
+                      color: '#657080',
+                      textTransform: 'uppercase',
+                      marginBottom: 6,
+                    }}
+                  >
+                    Category
                   </Text>
-                  <View className="flex-row flex-wrap gap-1.5 mb-3">
-                    <TouchableOpacity
-                      onPress={() => setEditPropertyId(null)}
-                      className={`flex-row items-center px-2.5 py-1.5 rounded-lg border ${
-                        editPropertyId === null
-                          ? 'bg-[#E6F4EA] border-[#0A6C50]'
-                          : 'bg-slate-50 border-slate-200'
-                      }`}
-                    >
-                      <Building size={11} color={editPropertyId === null ? '#0A6C50' : '#64748B'} />
-                      <Text
-                        className={`text-[11px] font-bold ml-1 ${
-                          editPropertyId === null ? 'text-[#0A6C50]' : 'text-slate-600'
-                        }`}
-                      >
-                        General Overhead
-                      </Text>
-                    </TouchableOpacity>
-
-                    {properties.map(p => {
-                      const isSelected = editPropertyId === p._id;
+                  <View
+                    style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}
+                  >
+                    {CATEGORIES.map(cat => {
+                      const isSelected = editCategory === cat.id;
                       return (
                         <TouchableOpacity
-                          key={p._id}
-                          onPress={() => setEditPropertyId(p._id)}
-                          className={`flex-row items-center px-2.5 py-1.5 rounded-lg border ${
-                            isSelected
-                              ? 'bg-[#E6F4EA] border-[#0A6C50]'
-                              : 'bg-slate-50 border-slate-200'
-                          }`}
+                          key={cat.id}
+                          onPress={() => setEditCategory(cat.id)}
+                          activeOpacity={0.7}
+                          style={{
+                            paddingHorizontal: 10,
+                            paddingVertical: 5,
+                            borderRadius: 9999,
+                            backgroundColor: isSelected ? '#19D3E6' : '#FFFDF8',
+                            borderWidth: 1,
+                            borderColor: isSelected ? '#19D3E6' : '#E5DDCD',
+                          }}
                         >
-                          <Building size={11} color={isSelected ? '#0A6C50' : '#64748B'} />
                           <Text
-                            className={`text-[11px] font-bold ml-1 ${
-                              isSelected ? 'text-[#0A6C50]' : 'text-slate-600'
-                            }`}
+                            style={{
+                              fontSize: 10,
+                              fontWeight: isSelected ? '800' : '600',
+                              color: isSelected ? '#0C192B' : '#657080',
+                            }}
                           >
-                            {p.name}
+                            {cat.label}
                           </Text>
                         </TouchableOpacity>
                       );
                     })}
                   </View>
 
-                  {/* Category */}
-                  <Text className="text-[10px] font-bold text-slate-700 uppercase mb-1.5">
-                    Category
-                  </Text>
-                  <View className="flex-row flex-wrap gap-1.5 mb-3">
-                    {CATEGORIES.map(cat => (
-                      <TouchableOpacity
-                        key={cat.id}
-                        onPress={() => setEditCategory(cat.id)}
-                        className={`px-2.5 py-1.5 rounded-lg border ${
-                          editCategory === cat.id
-                            ? 'bg-[#E6F4EA] border-[#0A6C50]'
-                            : 'bg-slate-50 border-slate-200'
-                        }`}
-                      >
-                        <Text
-                          className={`text-[11px] font-bold ${
-                            editCategory === cat.id ? 'text-[#0A6C50]' : 'text-slate-600'
-                          }`}
-                        >
-                          {cat.label}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-
                   {/* Amount */}
-                  <Text className="text-[10px] font-bold text-slate-700 uppercase mb-1">
+                  <Text
+                    style={{
+                      fontSize: 10,
+                      fontWeight: '800',
+                      color: '#657080',
+                      textTransform: 'uppercase',
+                      marginBottom: 4,
+                    }}
+                  >
                     Amount (₹)
                   </Text>
                   <TextInput
-                    className="border border-slate-200 rounded-xl px-3.5 py-2 mb-3 text-slate-900 bg-white font-bold text-sm"
+                    style={{
+                      borderWidth: 1,
+                      borderColor: '#E5DDCD',
+                      borderRadius: 12,
+                      paddingHorizontal: 12,
+                      paddingVertical: 8,
+                      backgroundColor: '#FFFDF8',
+                      fontWeight: '800',
+                      fontSize: 14,
+                      color: '#0C192B',
+                      marginBottom: 10,
+                    }}
                     keyboardType="numeric"
                     value={editAmountRupees}
                     onChangeText={setEditAmountRupees}
                   />
 
                   {/* Description */}
-                  <Text className="text-[10px] font-bold text-slate-700 uppercase mb-1">
+                  <Text
+                    style={{
+                      fontSize: 10,
+                      fontWeight: '800',
+                      color: '#657080',
+                      textTransform: 'uppercase',
+                      marginBottom: 4,
+                    }}
+                  >
                     Description
                   </Text>
                   <TextInput
-                    className="border border-slate-200 rounded-xl px-3.5 py-2 mb-3 text-slate-900 bg-white text-sm"
+                    style={{
+                      borderWidth: 1,
+                      borderColor: '#E5DDCD',
+                      borderRadius: 12,
+                      paddingHorizontal: 12,
+                      paddingVertical: 8,
+                      backgroundColor: '#FFFDF8',
+                      fontSize: 13,
+                      fontWeight: '600',
+                      color: '#0C192B',
+                      marginBottom: 10,
+                    }}
                     value={editDescription}
                     onChangeText={setEditDescription}
                   />
 
                   {/* Date */}
-                  <Text className="text-[10px] font-bold text-slate-700 uppercase mb-1">
+                  <Text
+                    style={{
+                      fontSize: 10,
+                      fontWeight: '800',
+                      color: '#657080',
+                      textTransform: 'uppercase',
+                      marginBottom: 4,
+                    }}
+                  >
                     Date (YYYY-MM-DD)
                   </Text>
                   <TextInput
-                    className="border border-slate-200 rounded-xl px-3.5 py-2 mb-3 text-slate-900 bg-white text-sm font-semibold"
+                    style={{
+                      borderWidth: 1,
+                      borderColor: '#E5DDCD',
+                      borderRadius: 12,
+                      paddingHorizontal: 12,
+                      paddingVertical: 8,
+                      backgroundColor: '#FFFDF8',
+                      fontSize: 13,
+                      fontWeight: '600',
+                      color: '#0C192B',
+                      marginBottom: 10,
+                    }}
                     value={editDate}
                     onChangeText={setEditDate}
                   />
 
-                  {/* Paid to */}
-                  <Text className="text-[10px] font-bold text-slate-700 uppercase mb-1">
+                  {/* Paid To */}
+                  <Text
+                    style={{
+                      fontSize: 10,
+                      fontWeight: '800',
+                      color: '#657080',
+                      textTransform: 'uppercase',
+                      marginBottom: 4,
+                    }}
+                  >
                     Paid To
                   </Text>
                   <TextInput
-                    className="border border-slate-200 rounded-xl px-3.5 py-2 mb-3 text-slate-900 bg-white text-sm"
+                    style={{
+                      borderWidth: 1,
+                      borderColor: '#E5DDCD',
+                      borderRadius: 12,
+                      paddingHorizontal: 12,
+                      paddingVertical: 8,
+                      backgroundColor: '#FFFDF8',
+                      fontSize: 13,
+                      fontWeight: '600',
+                      color: '#0C192B',
+                      marginBottom: 12,
+                    }}
                     value={editPaidTo}
                     onChangeText={setEditPaidTo}
                   />
 
-                  {/* Payment Mode */}
-                  <Text className="text-[10px] font-bold text-slate-700 uppercase mb-1.5">
-                    Payment Mode
-                  </Text>
-                  <View className="flex-row gap-2 mb-4">
-                    {(['cash', 'upi', 'bank_transfer'] as const).map(mode => (
-                      <TouchableOpacity
-                        key={mode}
-                        onPress={() => setEditPaymentMethod(mode)}
-                        className={`flex-1 py-2 rounded-xl border items-center justify-center ${
-                          editPaymentMethod === mode
-                            ? 'bg-[#E6F4EA] border-[#0A6C50]'
-                            : 'bg-slate-50 border-slate-200'
-                        }`}
-                      >
-                        <Text
-                          className={`text-[10px] font-bold uppercase ${
-                            editPaymentMethod === mode ? 'text-[#0A6C50]' : 'text-slate-600'
-                          }`}
-                        >
-                          {mode === 'bank_transfer' ? 'Bank' : mode}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
+                  {/* Delete button option in edit */}
+                  <TouchableOpacity
+                    onPress={() => {
+                      const exp = editingExpense;
+                      setEditingExpense(null);
+                      handleDeleteExpense(exp);
+                    }}
+                    activeOpacity={0.7}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      paddingVertical: 8,
+                      borderRadius: 12,
+                      backgroundColor: '#FFF1F2',
+                      borderWidth: 1,
+                      borderColor: '#FECDD3',
+                      marginBottom: 14,
+                    }}
+                  >
+                    <Trash2 size={13} color="#BE123C" style={{ marginRight: 6 }} />
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#BE123C' }}>
+                      Delete this expense
+                    </Text>
+                  </TouchableOpacity>
                 </ScrollView>
 
-                <View className="flex-row gap-2 pt-2 border-t border-slate-100">
+                <View style={{ flexDirection: 'row', gap: 10, paddingTop: 6 }}>
                   <TouchableOpacity
                     onPress={() => setEditingExpense(null)}
-                    className="flex-1 py-3 rounded-xl bg-slate-100 items-center justify-center"
+                    activeOpacity={0.7}
+                    style={{
+                      flex: 1,
+                      height: 44,
+                      borderRadius: 9999,
+                      backgroundColor: '#FFFDF8',
+                      borderWidth: 1,
+                      borderColor: '#E5DDCD',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
                   >
-                    <Text className="text-xs font-bold text-slate-700">Cancel</Text>
+                    <Text style={{ fontSize: 13, fontWeight: '700', color: '#657080' }}>
+                      Cancel
+                    </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     onPress={handleSaveEdit}
                     disabled={isUpdating}
-                    className="flex-1 py-3 rounded-xl bg-[#0A6C50] items-center justify-center"
+                    activeOpacity={0.85}
+                    style={{
+                      flex: 1,
+                      height: 44,
+                      borderRadius: 9999,
+                      backgroundColor: '#4F5330',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
                   >
                     {isUpdating ? (
-                      <ActivityIndicator size="small" color="#ffffff" />
+                      <ActivityIndicator size="small" color="#FFFFFF" />
                     ) : (
-                      <Text className="text-xs font-bold text-white">Save Changes</Text>
+                      <Text style={{ fontSize: 13, fontWeight: '800', color: '#FFFFFF' }}>
+                        Save Changes
+                      </Text>
                     )}
                   </TouchableOpacity>
                 </View>

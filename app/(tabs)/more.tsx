@@ -5,7 +5,6 @@ import { StatusBar } from 'expo-status-bar';
 import {
   Zap,
   TrendingDown,
-  ShieldCheck,
   CreditCard,
   Building,
   Users,
@@ -22,7 +21,6 @@ import { SubMeterModal } from '../../src/components/SubMeterModal';
 import { StaffManagementModal } from '../../src/components/StaffManagementModal';
 import { SubscriptionModal } from '../../src/components/SubscriptionModal';
 import { PropertiesRoomsModal } from '../../src/components/PropertiesRoomsModal';
-import { DpdpKycComplianceModal } from '../../src/components/DpdpKycComplianceModal';
 import { ConfirmActionModal } from '../../src/components/ConfirmDeleteModal';
 import { calculateDaysRemaining } from '../../src/utils/date';
 import { useQuery } from '@tanstack/react-query';
@@ -46,7 +44,6 @@ export default function MoreScreen() {
   const [showStaffModal, setShowStaffModal] = useState(false);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const [showPropertiesRoomsModal, setShowPropertiesRoomsModal] = useState(false);
-  const [showDpdpKycModal, setShowDpdpKycModal] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   // Fresh subscription query to immediately reflect upgrades & active plan
@@ -127,7 +124,11 @@ export default function MoreScreen() {
         {
           icon: CreditCard,
           label: 'Subscription & Quotas',
-          detail: 'Plan limits, paywall status & upgrades',
+          detail: isReadOnly
+            ? 'Trial Expired (Read-only mode)'
+            : activeStatus === 'active'
+              ? `${planLabel} Plan · Active (${daysRemaining}d left)`
+              : `14-Day Free Trial (${daysRemaining} days left)`,
           onPress: () => setShowSubscriptionModal(true),
         },
       ],
@@ -177,22 +178,6 @@ export default function MoreScreen() {
           label: 'Brand Splash Screen',
           detail: 'View design splash screen',
           onPress: () => setShowSplashPreview(true),
-        },
-        {
-          icon: CreditCard,
-          label: 'Subscription Plan',
-          detail: isReadOnly
-            ? 'Trial Expired (Read-only mode)'
-            : activeStatus === 'active'
-              ? `${planLabel} Plan · Active (${daysRemaining}d left)`
-              : `14-Day Free Trial (${daysRemaining} days left)`,
-          onPress: () => setShowSubscriptionModal(true),
-        },
-        {
-          icon: ShieldCheck,
-          label: 'DPDP & KYC Compliance',
-          detail: 'Data privacy & Aadhaar store',
-          onPress: () => setShowDpdpKycModal(true),
         },
       ],
     },
@@ -475,12 +460,6 @@ export default function MoreScreen() {
       <PropertiesRoomsModal
         visible={showPropertiesRoomsModal}
         onClose={() => setShowPropertiesRoomsModal(false)}
-      />
-
-      {/* DPDP & KYC Statutory Compliance Modal */}
-      <DpdpKycComplianceModal
-        visible={showDpdpKycModal}
-        onClose={() => setShowDpdpKycModal(false)}
       />
 
       {/* Logout Confirmation Modal */}

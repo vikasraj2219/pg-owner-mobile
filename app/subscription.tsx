@@ -162,11 +162,18 @@ export default function SubscriptionScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-[#F8F9FA]">
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#FAF5EB' }}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FAF5EB" />
 
       {/* Navigation Header */}
-      <View className="bg-white px-5 py-3.5 flex-row items-center justify-between border-b border-slate-200/80">
+      <View
+        style={{
+          backgroundColor: '#FAF5EB',
+          borderBottomWidth: 1,
+          borderBottomColor: '#E5DDCD',
+        }}
+        className="px-5 py-3.5 flex-row items-center justify-between"
+      >
         <TouchableOpacity
           onPress={handleBack}
           style={{
@@ -183,25 +190,36 @@ export default function SubscriptionScreen() {
         >
           <ArrowLeft size={20} color="#0C192B" strokeWidth={2.3} />
         </TouchableOpacity>
-        <Text className="text-base font-extrabold text-slate-900">Subscription & Access</Text>
+        <Text style={{ color: '#0C192B' }} className="text-base font-extrabold">
+          Subscription & Access
+        </Text>
         <TouchableOpacity
           onPress={handleRefresh}
-          className="w-9 h-9 rounded-full bg-slate-100 items-center justify-center"
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 20,
+            backgroundColor: '#FFFDF8',
+            borderWidth: 1,
+            borderColor: '#E5DDCD',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
           activeOpacity={0.7}
           disabled={isRefreshing}
         >
           {isRefreshing ? (
-            <ActivityIndicator size="small" color="#0A6C50" />
+            <ActivityIndicator size="small" color="#4F5330" />
           ) : (
-            <RefreshCw size={18} color="#334155" />
+            <RefreshCw size={18} color="#0C192B" />
           )}
         </TouchableOpacity>
       </View>
 
       {isLoading ? (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#0A6C50" />
-          <Text className="text-slate-500 font-semibold text-sm mt-3">
+          <ActivityIndicator size="large" color="#4F5330" />
+          <Text style={{ color: '#657080' }} className="font-semibold text-sm mt-3">
             Confirming subscription status…
           </Text>
         </View>
@@ -209,41 +227,60 @@ export default function SubscriptionScreen() {
         <ScrollView className="flex-1 px-5 pt-5 pb-8" showsVerticalScrollIndicator={false}>
           {/* Status Banner */}
           {isFailed ? (
-            <View className="bg-rose-50 border border-rose-200 rounded-3xl p-6 mb-5 items-center text-center">
+            <View
+              style={{ backgroundColor: '#FDF1F1', borderColor: '#F9CACA' }}
+              className="border rounded-3xl p-6 mb-5 items-center text-center"
+            >
               <View className="w-16 h-16 rounded-full bg-rose-100 items-center justify-center mb-3">
                 <AlertCircle size={36} color="#DC2626" />
               </View>
-              <Text className="text-xl font-extrabold text-slate-900 mb-1 text-center">
+              <Text
+                style={{ color: '#0C192B' }}
+                className="text-xl font-extrabold mb-1 text-center"
+              >
                 Payment Incomplete
               </Text>
-              <Text className="text-xs text-slate-600 text-center leading-relaxed mb-4">
+              <Text
+                style={{ color: '#657080' }}
+                className="text-xs text-center leading-relaxed mb-4"
+              >
                 The payment was not completed or could not be verified. If your bank account was
                 debited, it will be refunded or credited automatically.
               </Text>
               <TouchableOpacity
                 onPress={() => setShowModal(true)}
                 activeOpacity={0.85}
-                className="bg-[#0A6C50] w-full py-3.5 rounded-xl items-center justify-center shadow-xs"
+                style={{ backgroundColor: '#4F5330', borderRadius: 9999, height: 48 }}
+                className="w-full items-center justify-center"
               >
                 <Text className="text-white font-bold text-sm">Retry Subscription Upgrade</Text>
               </TouchableOpacity>
             </View>
           ) : (
-            <View className="bg-white border border-emerald-100 rounded-3xl p-6 mb-5 items-center shadow-xs">
-              <View className="w-16 h-16 rounded-full bg-emerald-50 items-center justify-center mb-3">
-                <CheckCircle2 size={38} color="#0A6C50" />
+            <View
+              style={{ backgroundColor: '#FFFDF8', borderColor: '#E5DDCD' }}
+              className="border rounded-3xl p-6 mb-5 items-center shadow-xs"
+            >
+              <View
+                style={{ backgroundColor: '#FAF5EB' }}
+                className="w-16 h-16 rounded-full items-center justify-center mb-3"
+              >
+                <CheckCircle2 size={38} color="#4F5330" />
               </View>
-              <View className="bg-emerald-50 px-3.5 py-1 rounded-full mb-2 border border-emerald-200">
+              <View
+                style={{ backgroundColor: '#EAF7EE', borderColor: '#B2E7C3' }}
+                className="px-3.5 py-1 rounded-full mb-2 border"
+              >
                 <Text className="text-[#0A6C50] text-[11px] font-black uppercase tracking-wider">
                   {sub?.status === 'active' ? 'Active Membership' : 'Trial Active'}
                 </Text>
               </View>
-              <Text className="text-2xl font-black text-slate-900 mb-1 text-center">
+              <Text style={{ color: '#0C192B' }} className="text-2xl font-black mb-1 text-center">
                 {isSuccess && status === 'success'
                   ? 'Payment Confirmed! 🎉'
                   : `${getPlanTitle(sub?.plan || 'starter')} Active`}
               </Text>
-              <Text className="text-xs text-slate-500 font-semibold text-center mb-4">
+              <Text style={{ color: '#657080' }} className="text-xs font-semibold text-center mb-4">
                 {sub?.status === 'active'
                   ? `Your organization is unlocked on the ${getPlanTitle(sub?.plan || 'starter')} with ${sub?.daysLeft || 30} days of full active access.`
                   : `${sub?.daysLeft || 0} days remaining on your free starter trial.`}
@@ -305,16 +342,28 @@ export default function SubscriptionScreen() {
           )}
 
           {/* Current Quotas Card */}
-          <View className="bg-white rounded-2xl p-5 border border-slate-200 mb-5 shadow-xs">
-            <View className="flex-row items-center justify-between mb-4 pb-3 border-b border-slate-100">
+          <View
+            style={{ backgroundColor: '#FFFDF8', borderColor: '#E5DDCD' }}
+            className="rounded-2xl p-5 border mb-5 shadow-xs"
+          >
+            <View
+              style={{ borderBottomColor: '#FAF5EB' }}
+              className="flex-row items-center justify-between mb-4 pb-3 border-b"
+            >
               <View className="flex-row items-center">
-                <Sparkles size={18} color="#0A6C50" />
-                <Text className="text-sm font-black text-slate-900 ml-2">
+                <Sparkles size={18} color="#4F5330" />
+                <Text style={{ color: '#0C192B' }} className="text-sm font-black ml-2">
                   Plan Quota & Capacity
                 </Text>
               </View>
-              <View className="bg-slate-100 px-2.5 py-0.5 rounded-full">
-                <Text className="text-[10px] font-extrabold text-slate-700 tracking-wider">
+              <View
+                style={{ backgroundColor: '#FAF5EB', borderWidth: 1, borderColor: '#E5DDCD' }}
+                className="px-2.5 py-0.5 rounded-full"
+              >
+                <Text
+                  style={{ color: '#0C192B' }}
+                  className="text-[10px] font-extrabold tracking-wider"
+                >
                   {planName}
                 </Text>
               </View>
@@ -324,27 +373,31 @@ export default function SubscriptionScreen() {
             <View className="mb-4">
               <View className="flex-row justify-between items-center mb-1.5">
                 <View className="flex-row items-center">
-                  <Building2 size={15} color="#64748B" />
-                  <Text className="text-xs font-bold text-slate-700 ml-1.5">
+                  <Building2 size={15} color="#657080" />
+                  <Text style={{ color: '#657080' }} className="text-xs font-bold ml-1.5">
                     Properties Managed
                   </Text>
                 </View>
-                <Text className="text-xs font-black text-slate-900">
+                <Text style={{ color: '#0C192B' }} className="text-xs font-black">
                   {sub?.propertiesUsed || 0} /{' '}
                   {sub?.maxProperties && sub.maxProperties > 50
                     ? 'Unlimited'
                     : sub?.maxProperties || 1}
                 </Text>
               </View>
-              <View className="h-2 bg-slate-100 rounded-full overflow-hidden">
+              <View
+                style={{ backgroundColor: '#FAF5EB' }}
+                className="h-2 rounded-full overflow-hidden"
+              >
                 <View
-                  className="h-full bg-[#0A6C50] rounded-full"
                   style={{
+                    backgroundColor: '#4F5330',
                     width: `${Math.min(
                       100,
                       ((sub?.propertiesUsed || 0) / (sub?.maxProperties || 1)) * 100,
                     )}%`,
                   }}
+                  className="h-full rounded-full"
                 />
               </View>
             </View>
@@ -353,30 +406,36 @@ export default function SubscriptionScreen() {
             <View className="mb-2">
               <View className="flex-row justify-between items-center mb-1.5">
                 <View className="flex-row items-center">
-                  <BedDouble size={15} color="#64748B" />
-                  <Text className="text-xs font-bold text-slate-700 ml-1.5">Bed Capacity</Text>
+                  <BedDouble size={15} color="#657080" />
+                  <Text style={{ color: '#657080' }} className="text-xs font-bold ml-1.5">
+                    Bed Capacity
+                  </Text>
                 </View>
-                <Text className="text-xs font-black text-slate-900">
+                <Text style={{ color: '#0C192B' }} className="text-xs font-black">
                   {sub?.bedsUsed || 0} /{' '}
                   {sub?.maxBeds && sub.maxBeds > 500 ? 'Unlimited' : sub?.maxBeds || 30}
                 </Text>
               </View>
-              <View className="h-2 bg-slate-100 rounded-full overflow-hidden">
+              <View
+                style={{ backgroundColor: '#FAF5EB' }}
+                className="h-2 rounded-full overflow-hidden"
+              >
                 <View
-                  className="h-full bg-[#0A6C50] rounded-full"
                   style={{
+                    backgroundColor: '#4F5330',
                     width: `${Math.min(100, ((sub?.bedsUsed || 0) / (sub?.maxBeds || 30)) * 100)}%`,
                   }}
+                  className="h-full rounded-full"
                 />
               </View>
             </View>
 
             {/* If Downgrade Scheduled, show future limit reassurance */}
             {sub?.scheduledPlan && (
-              <View className="mt-3 pt-3 border-t border-slate-100">
-                <Text className="text-[11px] text-slate-500 font-medium">
+              <View style={{ borderTopColor: '#FAF5EB' }} className="mt-3 pt-3 border-t">
+                <Text style={{ color: '#657080' }} className="text-[11px] font-medium">
                   • After cycle end, future new additions will be capped at{' '}
-                  <Text className="font-bold text-slate-700">
+                  <Text style={{ color: '#0C192B' }} className="font-bold">
                     {sub.scheduledPlan === 'starter'
                       ? '1 Property / 30 Beds'
                       : '3 Properties / 100 Beds'}
@@ -388,48 +447,69 @@ export default function SubscriptionScreen() {
           </View>
 
           {/* Features Unlocked List */}
-          <View className="bg-white rounded-2xl p-5 border border-slate-200 mb-6 shadow-xs">
-            <Text className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
+          <View
+            style={{ backgroundColor: '#FFFDF8', borderColor: '#E5DDCD' }}
+            className="rounded-2xl p-5 border mb-6 shadow-xs"
+          >
+            <Text
+              style={{ color: '#657080' }}
+              className="text-xs font-bold uppercase tracking-wider mb-3"
+            >
               Included In Your Membership
             </Text>
             <View className="space-y-2.5">
               <View className="flex-row items-center">
-                <View className="w-5 h-5 rounded-full bg-emerald-50 items-center justify-center mr-2.5">
-                  <CheckCircle2 size={13} color="#0A6C50" />
+                <View
+                  style={{ backgroundColor: '#FAF5EB' }}
+                  className="w-5 h-5 rounded-full items-center justify-center mr-2.5"
+                >
+                  <CheckCircle2 size={13} color="#4F5330" />
                 </View>
-                <Text className="text-xs font-semibold text-slate-700">
+                <Text style={{ color: '#0C192B' }} className="text-xs font-semibold">
                   Multi-property occupancy matrix & floor plan grid
                 </Text>
               </View>
               <View className="flex-row items-center">
-                <View className="w-5 h-5 rounded-full bg-emerald-50 items-center justify-center mr-2.5">
-                  <CheckCircle2 size={13} color="#0A6C50" />
+                <View
+                  style={{ backgroundColor: '#FAF5EB' }}
+                  className="w-5 h-5 rounded-full items-center justify-center mr-2.5"
+                >
+                  <CheckCircle2 size={13} color="#4F5330" />
                 </View>
-                <Text className="text-xs font-semibold text-slate-700">
+                <Text style={{ color: '#0C192B' }} className="text-xs font-semibold">
                   Automated rent cycles, late fee calculators & dynamic UPI QR
                 </Text>
               </View>
               <View className="flex-row items-center">
-                <View className="w-5 h-5 rounded-full bg-emerald-50 items-center justify-center mr-2.5">
-                  <CheckCircle2 size={13} color="#0A6C50" />
+                <View
+                  style={{ backgroundColor: '#FAF5EB' }}
+                  className="w-5 h-5 rounded-full items-center justify-center mr-2.5"
+                >
+                  <CheckCircle2 size={13} color="#4F5330" />
                 </View>
-                <Text className="text-xs font-semibold text-slate-700">
-                  Cloudinary tenant ID proof storage & DPDP Act compliance
+                <Text style={{ color: '#0C192B' }} className="text-xs font-semibold">
+                  Secure tenant ID proof storage & document management
                 </Text>
               </View>
               <View className="flex-row items-center">
-                <View className="w-5 h-5 rounded-full bg-emerald-50 items-center justify-center mr-2.5">
-                  <CheckCircle2 size={13} color="#0A6C50" />
+                <View
+                  style={{ backgroundColor: '#FAF5EB' }}
+                  className="w-5 h-5 rounded-full items-center justify-center mr-2.5"
+                >
+                  <CheckCircle2 size={13} color="#4F5330" />
                 </View>
-                <Text className="text-xs font-semibold text-slate-700">
+                <Text style={{ color: '#0C192B' }} className="text-xs font-semibold">
                   Sub-meter electricity meter readings & split calculation
                 </Text>
               </View>
               <View className="flex-row items-center">
-                <View className="w-5 h-5 rounded-full bg-emerald-50 items-center justify-center mr-2.5">
-                  <CheckCircle2 size={13} color="#0A6C50" />
+                <View
+                  style={{ backgroundColor: '#FAF5EB' }}
+                  className="w-5 h-5 rounded-full items-center justify-center mr-2.5"
+                >
+                  <CheckCircle2 size={13} color="#4F5330" />
                 </View>
-                <Text className="text-xs font-semibold text-slate-700">
+                <Text style={{ color: '#0C192B' }} className="text-xs font-semibold">
                   Instant WhatsApp payment receipt links & tenant reminders
                 </Text>
               </View>
@@ -440,7 +520,8 @@ export default function SubscriptionScreen() {
           <TouchableOpacity
             onPress={handleNavigateHome}
             activeOpacity={0.85}
-            className="bg-[#4F5330] rounded-2xl py-4 flex-row items-center justify-center mb-3 shadow-sm"
+            style={{ backgroundColor: '#4F5330', borderRadius: 9999, height: 50 }}
+            className="flex-row items-center justify-center mb-3 shadow-sm"
           >
             <Text className="text-white font-extrabold text-sm mr-2">Go to Pulse Dashboard</Text>
             <ArrowRight size={18} color="#FFFFFF" />
@@ -449,15 +530,24 @@ export default function SubscriptionScreen() {
           <TouchableOpacity
             onPress={() => setShowModal(true)}
             activeOpacity={0.85}
-            className="bg-white border border-slate-200 rounded-2xl py-3.5 items-center justify-center mb-6"
+            style={{
+              backgroundColor: '#FFFDF8',
+              borderWidth: 1,
+              borderColor: '#E5DDCD',
+              borderRadius: 9999,
+              height: 50,
+            }}
+            className="items-center justify-center mb-6"
           >
-            <Text className="text-slate-800 font-bold text-sm">Manage / Upgrade Plan</Text>
+            <Text style={{ color: '#0C192B' }} className="font-bold text-sm">
+              Manage / Upgrade Plan
+            </Text>
           </TouchableOpacity>
 
           {/* Trust Footnote */}
           <View className="flex-row items-center justify-center pb-6">
-            <ShieldCheck size={14} color="#64748B" />
-            <Text className="text-xs font-medium text-slate-500 ml-1.5">
+            <ShieldCheck size={14} color="#657080" />
+            <Text style={{ color: '#657080' }} className="text-xs font-medium ml-1.5">
               Secured by Razorpay · Enterprise Grade Multi-Tenant Encryption
             </Text>
           </View>

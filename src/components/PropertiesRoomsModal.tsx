@@ -7,10 +7,11 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
+  Platform,
 } from 'react-native';
 import {
   X,
-  Building,
+  Building2,
   Plus,
   Bed as BedIcon,
   Layers,
@@ -164,56 +165,108 @@ export const PropertiesRoomsModal: React.FC<PropertiesRoomsModalProps> = ({ visi
       presentationStyle="pageSheet"
       onRequestClose={handleBack}
     >
-      <View className="flex-1 bg-[#F8F9FA]">
+      <View style={{ flex: 1, backgroundColor: '#FAF5EB' }}>
         {/* ========================================================================= */}
-        {/* VIEW 1: PROPERTIES LIST (Design Page 1)                                   */}
+        {/* VIEW 1: PROPERTIES LIST                                                   */}
         {/* ========================================================================= */}
         {viewLevel === 'properties' && (
-          <View className="flex-1">
+          <View style={{ flex: 1 }}>
             {/* Top Navigation */}
-            <View className="px-5 pt-4 pb-3 flex-row items-center justify-between border-b border-slate-200/80 bg-white">
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                paddingHorizontal: 20,
+                paddingTop: 16,
+                paddingBottom: 14,
+                borderBottomWidth: 1,
+                borderBottomColor: '#E5DDCD',
+                backgroundColor: '#FAF5EB',
+              }}
+            >
               <View>
-                <Text className="text-xl font-extrabold text-slate-900">Properties</Text>
-                <Text className="text-xs font-semibold text-slate-500 mt-0.5">
+                <Text style={{ fontSize: 18, fontWeight: '800', color: '#0C192B' }}>
+                  Properties
+                </Text>
+                <Text style={{ fontSize: 12, fontWeight: '600', color: '#657080', marginTop: 2 }}>
                   {properties.length} of {maxPropsAllowed}{' '}
                   {maxPropsAllowed === 1 ? 'property' : 'properties'} used
                 </Text>
               </View>
               <TouchableOpacity
                 onPress={onClose}
-                className="w-9 h-9 rounded-full bg-slate-100 items-center justify-center"
+                activeOpacity={0.7}
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 18,
+                  backgroundColor: '#FFFDF8',
+                  borderWidth: 1,
+                  borderColor: '#E5DDCD',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
               >
-                <X size={20} color="#64748B" />
+                <X size={18} color="#657080" />
               </TouchableOpacity>
             </View>
 
-            <ScrollView className="flex-1 px-5 pt-4" showsVerticalScrollIndicator={false}>
+            <ScrollView
+              style={{ flex: 1, paddingHorizontal: 20, paddingTop: 14 }}
+              contentContainerStyle={{ paddingBottom: 24 }}
+              showsVerticalScrollIndicator={false}
+            >
               {/* Plan Limit Banner */}
               {isAtPropertyLimit && (
-                <View className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-4 flex-row items-center justify-between">
-                  <View className="flex-1 mr-3 flex-row items-center gap-2.5">
-                    <Crown size={18} color="#D97706" />
-                    <View className="flex-1">
-                      <Text className="text-xs font-bold text-amber-900">
+                <View
+                  style={{
+                    backgroundColor: '#FEF3C7',
+                    borderWidth: 1,
+                    borderColor: '#FDE68A',
+                    borderRadius: 16,
+                    padding: 14,
+                    marginBottom: 16,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <View
+                    style={{ flex: 1, marginRight: 12, flexDirection: 'row', alignItems: 'center' }}
+                  >
+                    <Crown size={18} color="#D97706" style={{ marginRight: 8 }} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 12, fontWeight: '800', color: '#92400E' }}>
                         {subscription?.plan ? subscription.plan.toUpperCase() : 'STARTER'} Plan
                         Limit Reached
                       </Text>
-                      <Text className="text-2xs text-amber-700 font-medium mt-0.5">
+                      <Text
+                        style={{ fontSize: 11, fontWeight: '500', color: '#B45309', marginTop: 1 }}
+                      >
                         Upgrade to manage multiple PG buildings and branches.
                       </Text>
                     </View>
                   </View>
                   <TouchableOpacity
                     onPress={() => setShowSubscriptionModal(true)}
-                    className="bg-[#0A6C50] px-3 py-1.5 rounded-xl"
+                    activeOpacity={0.8}
+                    style={{
+                      backgroundColor: '#4F5330',
+                      paddingHorizontal: 12,
+                      paddingVertical: 6,
+                      borderRadius: 9999,
+                    }}
                   >
-                    <Text className="text-xs font-black text-white">Upgrade</Text>
+                    <Text style={{ fontSize: 11, fontWeight: '800', color: '#FFFFFF' }}>
+                      Upgrade
+                    </Text>
                   </TouchableOpacity>
                 </View>
               )}
 
               {/* Property Cards */}
-              <View className="gap-3 mb-8">
+              <View style={{ gap: 12, marginBottom: 20 }}>
                 {properties.map(property => {
                   const stats = property.stats;
                   const totalBeds = stats?.totalBeds || 0;
@@ -231,29 +284,85 @@ export const PropertiesRoomsModal: React.FC<PropertiesRoomsModalProps> = ({ visi
                         setSelectedPropertyId(property._id);
                         setViewLevel('property_detail');
                       }}
-                      className="bg-white rounded-2xl p-4 border border-slate-200 shadow-2xs"
+                      style={{
+                        backgroundColor: '#FFFDF8',
+                        borderRadius: 20,
+                        padding: 16,
+                        borderWidth: 1,
+                        borderColor: '#E5DDCD',
+                        shadowColor: '#000',
+                        shadowOffset: { width: 0, height: 1 },
+                        shadowOpacity: 0.04,
+                        shadowRadius: 3,
+                        elevation: 1,
+                      }}
                     >
-                      <View className="flex-row items-center justify-between mb-2">
-                        <View className="flex-row items-center gap-2.5 flex-1 mr-2">
-                          <View className="w-10 h-10 rounded-xl bg-emerald-50 items-center justify-center">
-                            <Building size={20} color="#0A6C50" />
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          marginBottom: 10,
+                        }}
+                      >
+                        <View
+                          style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            flex: 1,
+                            marginRight: 8,
+                          }}
+                        >
+                          <View
+                            style={{
+                              width: 42,
+                              height: 42,
+                              borderRadius: 14,
+                              backgroundColor: '#FAF5EB',
+                              borderWidth: 1,
+                              borderColor: '#E5DDCD',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              marginRight: 10,
+                            }}
+                          >
+                            <Building2 size={20} color="#4F5330" />
                           </View>
-                          <View className="flex-1">
+                          <View style={{ flex: 1 }}>
                             <Text
-                              className="text-base font-extrabold text-slate-900"
+                              style={{ fontSize: 16, fontWeight: '800', color: '#0C192B' }}
                               numberOfLines={1}
                             >
                               {property.name}
                             </Text>
-                            <View className="flex-row items-center gap-1.5 mt-0.5">
-                              <View className="bg-slate-100 px-2 py-0.5 rounded-md">
-                                <Text className="text-2xs font-bold uppercase text-slate-600">
+                            <View
+                              style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}
+                            >
+                              <View
+                                style={{
+                                  backgroundColor: '#FAF5EB',
+                                  paddingHorizontal: 8,
+                                  paddingVertical: 2,
+                                  borderRadius: 9999,
+                                  borderWidth: 1,
+                                  borderColor: '#E5DDCD',
+                                  marginRight: 6,
+                                }}
+                              >
+                                <Text
+                                  style={{
+                                    fontSize: 10,
+                                    fontWeight: '800',
+                                    textTransform: 'uppercase',
+                                    color: '#0C192B',
+                                  }}
+                                >
                                   {property.type || 'Coliving'}
                                 </Text>
                               </View>
                               {property.city ? (
                                 <Text
-                                  className="text-xs text-slate-500 font-medium"
+                                  style={{ fontSize: 12, color: '#657080', fontWeight: '500' }}
                                   numberOfLines={1}
                                 >
                                   · {property.city}
@@ -262,29 +371,68 @@ export const PropertiesRoomsModal: React.FC<PropertiesRoomsModalProps> = ({ visi
                             </View>
                           </View>
                         </View>
-                        <ChevronRight size={18} color="#94A3B8" />
+                        <ChevronRight size={18} color="#657080" />
                       </View>
 
                       {/* Mini Stats Row */}
-                      <Text className="text-xs font-semibold text-slate-600 mb-3">
+                      <Text
+                        style={{
+                          fontSize: 12,
+                          fontWeight: '600',
+                          color: '#657080',
+                          marginBottom: 10,
+                        }}
+                      >
                         {totalFloors} floor{totalFloors === 1 ? '' : 's'} · {totalRooms} room
                         {totalRooms === 1 ? '' : 's'} · {totalBeds} bed{totalBeds === 1 ? '' : 's'}
                       </Text>
 
                       {/* Occupancy Progress Bar */}
-                      <View className="bg-slate-100 h-2 rounded-full overflow-hidden mb-1.5">
+                      <View
+                        style={{
+                          backgroundColor: '#FAF5EB',
+                          height: 7,
+                          borderRadius: 9999,
+                          overflow: 'hidden',
+                          marginBottom: 6,
+                        }}
+                      >
                         <View
-                          className="h-full bg-[#0A6C50] rounded-full"
-                          style={{ width: `${Math.min(100, Math.max(0, occupancyRate))}%` }}
+                          style={{
+                            height: '100%',
+                            backgroundColor: '#4F5330',
+                            borderRadius: 9999,
+                            width: `${Math.min(100, Math.max(0, occupancyRate))}%`,
+                          }}
                         />
                       </View>
-                      <View className="flex-row items-center justify-between">
-                        <Text className="text-2xs font-semibold text-slate-500">
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                        }}
+                      >
+                        <Text style={{ fontSize: 11, fontWeight: '600', color: '#657080' }}>
                           {occupiedBeds} of {totalBeds} occupied ({occupancyRate}%)
                         </Text>
                         {property.isArchived ? (
-                          <View className="bg-amber-100 px-2 py-0.5 rounded-md">
-                            <Text className="text-2xs font-black uppercase text-amber-800">
+                          <View
+                            style={{
+                              backgroundColor: '#FEF3C7',
+                              paddingHorizontal: 6,
+                              paddingVertical: 2,
+                              borderRadius: 6,
+                            }}
+                          >
+                            <Text
+                              style={{
+                                fontSize: 10,
+                                fontWeight: '800',
+                                textTransform: 'uppercase',
+                                color: '#92400E',
+                              }}
+                            >
                               Archived
                             </Text>
                           </View>
@@ -297,7 +445,15 @@ export const PropertiesRoomsModal: React.FC<PropertiesRoomsModalProps> = ({ visi
             </ScrollView>
 
             {/* Bottom Add Property Button */}
-            <View className="p-4 border-t border-slate-200 bg-white shadow-lg">
+            <View
+              style={{
+                padding: 16,
+                borderTopWidth: 1,
+                borderTopColor: '#E5DDCD',
+                backgroundColor: '#FAF5EB',
+                paddingBottom: Platform.OS === 'ios' ? 34 : 16,
+              }}
+            >
               <TouchableOpacity
                 activeOpacity={0.85}
                 onPress={() => {
@@ -307,46 +463,77 @@ export const PropertiesRoomsModal: React.FC<PropertiesRoomsModalProps> = ({ visi
                     setShowAddProperty(true);
                   }
                 }}
-                className="w-full bg-[#0A6C50] py-3.5 rounded-xl flex-row items-center justify-center gap-2 shadow-xs"
+                style={{
+                  width: '100%',
+                  height: 50,
+                  backgroundColor: '#4F5330',
+                  borderRadius: 9999,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.1,
+                  shadowRadius: 4,
+                  elevation: 2,
+                }}
               >
-                <Plus size={18} color="#FFFFFF" strokeWidth={2.5} />
-                <Text className="text-white font-extrabold text-base">Add property</Text>
+                <Plus size={18} color="#FFFFFF" strokeWidth={2.5} style={{ marginRight: 6 }} />
+                <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 15 }}>
+                  Add property
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
         )}
 
         {/* ========================================================================= */}
-        {/* VIEW 2: PROPERTY DETAIL / FLOORS VIEW (Design Page 2)                     */}
+        {/* VIEW 2: PROPERTY DETAIL / FLOORS VIEW                                     */}
         {/* ========================================================================= */}
         {viewLevel === 'property_detail' && activeProperty && (
-          <View className="flex-1">
+          <View style={{ flex: 1 }}>
             {/* Header */}
-            <View className="px-5 pt-4 pb-3 flex-row items-center justify-between border-b border-slate-200/80 bg-white">
-              <View className="flex-row items-center gap-2 flex-1 mr-2">
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                paddingHorizontal: 20,
+                paddingTop: 16,
+                paddingBottom: 14,
+                borderBottomWidth: 1,
+                borderBottomColor: '#E5DDCD',
+                backgroundColor: '#FAF5EB',
+              }}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>
                 <TouchableOpacity
                   onPress={handleBack}
+                  activeOpacity={0.7}
                   style={{
-                    width: 38,
-                    height: 38,
-                    borderRadius: 19,
-                    backgroundColor: '#FAF7F0',
+                    width: 36,
+                    height: 36,
+                    borderRadius: 18,
+                    backgroundColor: '#FFFDF8',
                     borderWidth: 1,
                     borderColor: '#E5DDCD',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    marginRight: 6,
+                    marginRight: 10,
                   }}
                   accessibilityLabel="Back"
                 >
                   <ArrowLeft size={18} color="#0C192B" strokeWidth={2.3} />
                 </TouchableOpacity>
-                <View className="flex-1">
-                  <Text className="text-lg font-black text-slate-900" numberOfLines={1}>
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={{ fontSize: 17, fontWeight: '800', color: '#0C192B' }}
+                    numberOfLines={1}
+                  >
                     {activeProperty.name}
                   </Text>
-                  <Text className="text-xs font-semibold text-slate-500">
-                    {activeProperty.city || 'Bangalore'} ·{' '}
+                  <Text style={{ fontSize: 12, fontWeight: '600', color: '#657080', marginTop: 1 }}>
+                    {activeProperty.city || 'Property'} ·{' '}
                     {activeProperty.type
                       ? activeProperty.type.charAt(0).toUpperCase() + activeProperty.type.slice(1)
                       : 'Coliving'}
@@ -354,113 +541,284 @@ export const PropertiesRoomsModal: React.FC<PropertiesRoomsModalProps> = ({ visi
                 </View>
               </View>
 
-              <View className="flex-row items-center gap-1.5">
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 <TouchableOpacity
                   onPress={() => setShowEditProperty(true)}
-                  className="w-9 h-9 rounded-full bg-slate-100 items-center justify-center"
+                  activeOpacity={0.7}
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 18,
+                    backgroundColor: '#FFFDF8',
+                    borderWidth: 1,
+                    borderColor: '#E5DDCD',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
                 >
-                  <Pencil size={16} color="#334155" />
+                  <Pencil size={15} color="#0C192B" />
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={onClose}
-                  className="w-9 h-9 rounded-full bg-slate-100 items-center justify-center"
+                  activeOpacity={0.7}
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 18,
+                    backgroundColor: '#FFFDF8',
+                    borderWidth: 1,
+                    borderColor: '#E5DDCD',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
                 >
-                  <X size={20} color="#64748B" />
+                  <X size={18} color="#657080" />
                 </TouchableOpacity>
               </View>
             </View>
 
-            <ScrollView className="flex-1 px-5 pt-4" showsVerticalScrollIndicator={false}>
+            <ScrollView
+              style={{ flex: 1, paddingHorizontal: 20, paddingTop: 14 }}
+              contentContainerStyle={{ paddingBottom: 24 }}
+              showsVerticalScrollIndicator={false}
+            >
               {/* 4 Stat Boxes (Floors, Rooms, Beds, % Full) */}
-              <View className="flex-row gap-2 mb-4">
-                <View className="flex-1 bg-white rounded-2xl p-3 border border-slate-200 shadow-2xs items-center">
-                  <Text className="text-2xs font-bold text-slate-500 uppercase tracking-wider">
+              <View style={{ flexDirection: 'row', gap: 8, marginBottom: 14 }}>
+                <View
+                  style={{
+                    flex: 1,
+                    backgroundColor: '#FFFDF8',
+                    borderRadius: 16,
+                    padding: 10,
+                    borderWidth: 1,
+                    borderColor: '#E5DDCD',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 10,
+                      fontWeight: '800',
+                      color: '#657080',
+                      textTransform: 'uppercase',
+                    }}
+                  >
                     Floors
                   </Text>
-                  <Text className="text-xl font-black text-slate-900 mt-1">
+                  <Text style={{ fontSize: 18, fontWeight: '800', color: '#0C192B', marginTop: 2 }}>
                     {floors.length || activeProperty.stats?.totalFloors || 1}
                   </Text>
                 </View>
-                <View className="flex-1 bg-white rounded-2xl p-3 border border-slate-200 shadow-2xs items-center">
-                  <Text className="text-2xs font-bold text-slate-500 uppercase tracking-wider">
+                <View
+                  style={{
+                    flex: 1,
+                    backgroundColor: '#FFFDF8',
+                    borderRadius: 16,
+                    padding: 10,
+                    borderWidth: 1,
+                    borderColor: '#E5DDCD',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 10,
+                      fontWeight: '800',
+                      color: '#657080',
+                      textTransform: 'uppercase',
+                    }}
+                  >
                     Rooms
                   </Text>
-                  <Text className="text-xl font-black text-slate-900 mt-1">
+                  <Text style={{ fontSize: 18, fontWeight: '800', color: '#0C192B', marginTop: 2 }}>
                     {summary?.totalRooms ?? activeProperty.stats?.totalRooms ?? 0}
                   </Text>
                 </View>
-                <View className="flex-1 bg-white rounded-2xl p-3 border border-slate-200 shadow-2xs items-center">
-                  <Text className="text-2xs font-bold text-slate-500 uppercase tracking-wider">
+                <View
+                  style={{
+                    flex: 1,
+                    backgroundColor: '#FFFDF8',
+                    borderRadius: 16,
+                    padding: 10,
+                    borderWidth: 1,
+                    borderColor: '#E5DDCD',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 10,
+                      fontWeight: '800',
+                      color: '#657080',
+                      textTransform: 'uppercase',
+                    }}
+                  >
                     Beds
                   </Text>
-                  <Text className="text-xl font-black text-slate-900 mt-1">
+                  <Text style={{ fontSize: 18, fontWeight: '800', color: '#0C192B', marginTop: 2 }}>
                     {summary?.totalBeds ?? activeProperty.stats?.totalBeds ?? 0}
                   </Text>
                 </View>
-                <View className="flex-1 bg-white rounded-2xl p-3 border border-slate-200 shadow-2xs items-center">
-                  <Text className="text-2xs font-bold text-[#0A6C50] uppercase tracking-wider">
+                <View
+                  style={{
+                    flex: 1,
+                    backgroundColor: '#FFFDF8',
+                    borderRadius: 16,
+                    padding: 10,
+                    borderWidth: 1,
+                    borderColor: '#E5DDCD',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 10,
+                      fontWeight: '800',
+                      color: '#4F5330',
+                      textTransform: 'uppercase',
+                    }}
+                  >
                     % Full
                   </Text>
-                  <Text className="text-xl font-black text-[#0A6C50] mt-1">
+                  <Text style={{ fontSize: 18, fontWeight: '800', color: '#4F5330', marginTop: 2 }}>
                     {summary?.occupancyRate ?? activeProperty.stats?.occupancyRate ?? 0}%
                   </Text>
                 </View>
               </View>
 
               {/* UPI & Electricity strip */}
-              <View className="bg-white rounded-2xl p-3.5 border border-slate-200 mb-5 shadow-2xs flex-row items-center justify-between">
-                <View className="flex-row items-center gap-2 flex-1 mr-2">
-                  <Zap size={15} color="#0A6C50" />
-                  <Text className="text-xs font-semibold text-slate-700" numberOfLines={1}>
+              <View
+                style={{
+                  backgroundColor: '#FFFDF8',
+                  borderRadius: 16,
+                  padding: 12,
+                  borderWidth: 1,
+                  borderColor: '#E5DDCD',
+                  marginBottom: 16,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                }}
+              >
+                <View
+                  style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}
+                >
+                  <Zap size={14} color="#4F5330" style={{ marginRight: 6 }} />
+                  <Text
+                    style={{ fontSize: 12, fontWeight: '600', color: '#0C192B' }}
+                    numberOfLines={1}
+                  >
                     EB:{' '}
                     {activeProperty.electricityRatePaisePerUnit
                       ? `${formatINR(activeProperty.electricityRatePaisePerUnit)}/unit`
                       : '₹12/unit'}
                   </Text>
                 </View>
-                <Text className="text-xs font-bold text-slate-800" numberOfLines={1}>
+                <Text
+                  style={{ fontSize: 12, fontWeight: '700', color: '#657080' }}
+                  numberOfLines={1}
+                >
                   UPI: {activeProperty.upiVpa || 'None'}
                 </Text>
               </View>
 
               {/* Section Header: FLOORS */}
-              <View className="flex-row items-center justify-between mb-3">
-                <Text className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  FLOORS ({floors.length})
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: 10,
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 11,
+                    fontWeight: '800',
+                    color: '#657080',
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.5,
+                  }}
+                >
+                  Floors ({floors.length})
                 </Text>
                 <TouchableOpacity
                   onPress={() => setShowAddFloor(true)}
-                  className="flex-row items-center gap-1 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200"
+                  activeOpacity={0.7}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    backgroundColor: '#FAF5EB',
+                    paddingHorizontal: 12,
+                    paddingVertical: 5,
+                    borderRadius: 9999,
+                    borderWidth: 1,
+                    borderColor: '#E5DDCD',
+                  }}
                 >
-                  <Plus size={14} color="#0A6C50" strokeWidth={2.5} />
-                  <Text className="text-xs font-bold text-[#0A6C50]">Add floor</Text>
+                  <Plus size={13} color="#4F5330" strokeWidth={2.5} style={{ marginRight: 4 }} />
+                  <Text style={{ fontSize: 11, fontWeight: '800', color: '#4F5330' }}>
+                    Add floor
+                  </Text>
                 </TouchableOpacity>
               </View>
 
               {isLoadingMatrix ? (
-                <View className="py-12 items-center justify-center">
-                  <ActivityIndicator size="small" color="#0A6C50" />
-                  <Text className="text-xs text-slate-500 font-medium mt-2">Loading floors...</Text>
+                <View
+                  style={{ paddingVertical: 36, alignItems: 'center', justifyContent: 'center' }}
+                >
+                  <ActivityIndicator size="small" color="#4F5330" />
+                  <Text style={{ fontSize: 12, color: '#657080', fontWeight: '600', marginTop: 8 }}>
+                    Loading floors...
+                  </Text>
                 </View>
               ) : floors.length === 0 ? (
-                <View className="bg-white rounded-2xl p-8 border border-slate-200 items-center justify-center shadow-xs">
-                  <Layers size={32} color="#0A6C50" />
-                  <Text className="text-base font-extrabold text-slate-900 mt-2 text-center">
+                <View
+                  style={{
+                    backgroundColor: '#FFFDF8',
+                    borderRadius: 20,
+                    padding: 24,
+                    borderWidth: 1,
+                    borderColor: '#E5DDCD',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Layers size={32} color="#4F5330" />
+                  <Text style={{ fontSize: 15, fontWeight: '800', color: '#0C192B', marginTop: 8 }}>
                     No Floors Added Yet
                   </Text>
-                  <Text className="text-xs text-slate-500 text-center max-w-[240px] mt-1 mb-4">
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      color: '#657080',
+                      textAlign: 'center',
+                      marginTop: 4,
+                      marginBottom: 14,
+                    }}
+                  >
                     Add your first floor to organize rooms and beds.
                   </Text>
                   <TouchableOpacity
                     onPress={() => setShowAddFloor(true)}
-                    className="bg-[#0A6C50] px-4 py-2.5 rounded-xl flex-row items-center gap-2"
+                    activeOpacity={0.85}
+                    style={{
+                      backgroundColor: '#4F5330',
+                      paddingHorizontal: 16,
+                      paddingVertical: 10,
+                      borderRadius: 9999,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                    }}
                   >
-                    <Plus size={16} color="#FFFFFF" />
-                    <Text className="text-white font-bold text-xs">Add First Floor</Text>
+                    <Plus size={15} color="#FFFFFF" style={{ marginRight: 6 }} />
+                    <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 13 }}>
+                      Add First Floor
+                    </Text>
                   </TouchableOpacity>
                 </View>
               ) : (
-                <View className="gap-2.5 mb-8">
+                <View style={{ gap: 10, marginBottom: 20 }}>
                   {floors.map(floor => {
                     const roomsCount = floor.rooms.length;
                     const totalFloorBeds = floor.rooms.reduce((acc, r) => acc + r.beds.length, 0);
@@ -477,32 +835,82 @@ export const PropertiesRoomsModal: React.FC<PropertiesRoomsModalProps> = ({ visi
                           setActiveFloorNumber(floor.floorNumber);
                           setViewLevel('floor_rooms');
                         }}
-                        className="bg-white rounded-2xl p-4 border border-slate-200 shadow-2xs flex-row items-center justify-between"
+                        style={{
+                          backgroundColor: '#FFFDF8',
+                          borderRadius: 18,
+                          padding: 14,
+                          borderWidth: 1,
+                          borderColor: '#E5DDCD',
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          shadowColor: '#000',
+                          shadowOffset: { width: 0, height: 1 },
+                          shadowOpacity: 0.03,
+                          shadowRadius: 2,
+                          elevation: 1,
+                        }}
                       >
-                        <View className="flex-row items-center gap-3 flex-1 mr-2">
-                          <View className="w-10 h-10 rounded-xl bg-slate-100 items-center justify-center">
-                            <Layers size={18} color="#475569" />
+                        <View
+                          style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            flex: 1,
+                            marginRight: 8,
+                          }}
+                        >
+                          <View
+                            style={{
+                              width: 38,
+                              height: 38,
+                              borderRadius: 12,
+                              backgroundColor: '#FAF5EB',
+                              borderWidth: 1,
+                              borderColor: '#E5DDCD',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              marginRight: 10,
+                            }}
+                          >
+                            <Layers size={18} color="#4F5330" />
                           </View>
-                          <View className="flex-1">
-                            <Text className="text-base font-extrabold text-slate-900">
+                          <View style={{ flex: 1 }}>
+                            <Text style={{ fontSize: 15, fontWeight: '800', color: '#0C192B' }}>
                               Floor {floor.floorNumber === 0 ? 'Ground (0)' : floor.floorNumber}
                               {floor.floorLabel ? ` · ${floor.floorLabel}` : ''}
                             </Text>
-                            <Text className="text-xs text-slate-500 font-medium mt-0.5">
+                            <Text
+                              style={{
+                                fontSize: 12,
+                                color: '#657080',
+                                fontWeight: '500',
+                                marginTop: 1,
+                              }}
+                            >
                               {roomsCount} room{roomsCount === 1 ? '' : 's'} · {totalFloorBeds} bed
                               {totalFloorBeds === 1 ? '' : 's'} · {occupiedFloorBeds} occupied
                             </Text>
                           </View>
                         </View>
 
-                        <View className="flex-row items-center gap-1">
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                           <TouchableOpacity
                             onPress={() => setFloorToEdit(floor)}
-                            className="w-8 h-8 rounded-full bg-slate-50 items-center justify-center border border-slate-200"
+                            activeOpacity={0.7}
+                            style={{
+                              width: 32,
+                              height: 32,
+                              borderRadius: 16,
+                              backgroundColor: '#FAF5EB',
+                              borderWidth: 1,
+                              borderColor: '#E5DDCD',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}
                           >
-                            <Pencil size={13} color="#475569" />
+                            <Pencil size={13} color="#0C192B" />
                           </TouchableOpacity>
-                          <ChevronRight size={18} color="#94A3B8" />
+                          <ChevronRight size={18} color="#657080" />
                         </View>
                       </TouchableOpacity>
                     );
@@ -514,65 +922,126 @@ export const PropertiesRoomsModal: React.FC<PropertiesRoomsModalProps> = ({ visi
         )}
 
         {/* ========================================================================= */}
-        {/* VIEW 3: FLOOR ROOMS VIEW (Design Page 9)                                  */}
+        {/* VIEW 3: FLOOR ROOMS VIEW                                                  */}
         {/* ========================================================================= */}
         {viewLevel === 'floor_rooms' && activeFloor && activeProperty && (
-          <View className="flex-1">
+          <View style={{ flex: 1 }}>
             {/* Header */}
-            <View className="px-5 pt-4 pb-3 flex-row items-center justify-between border-b border-slate-200/80 bg-white">
-              <View className="flex-row items-center gap-2 flex-1 mr-2">
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                paddingHorizontal: 20,
+                paddingTop: 16,
+                paddingBottom: 14,
+                borderBottomWidth: 1,
+                borderBottomColor: '#E5DDCD',
+                backgroundColor: '#FAF5EB',
+              }}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>
                 <TouchableOpacity
                   onPress={handleBack}
+                  activeOpacity={0.7}
                   style={{
-                    width: 38,
-                    height: 38,
-                    borderRadius: 19,
-                    backgroundColor: '#FAF7F0',
+                    width: 36,
+                    height: 36,
+                    borderRadius: 18,
+                    backgroundColor: '#FFFDF8',
                     borderWidth: 1,
                     borderColor: '#E5DDCD',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    marginRight: 6,
+                    marginRight: 10,
                   }}
                   accessibilityLabel="Back"
                 >
                   <ArrowLeft size={18} color="#0C192B" strokeWidth={2.3} />
                 </TouchableOpacity>
-                <View className="flex-1">
-                  <Text className="text-lg font-black text-slate-900" numberOfLines={1}>
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={{ fontSize: 17, fontWeight: '800', color: '#0C192B' }}
+                    numberOfLines={1}
+                  >
                     Floor {activeFloor.floorNumber === 0 ? 'Ground' : activeFloor.floorNumber}
                     {activeFloor.floorLabel ? ` · ${activeFloor.floorLabel}` : ''}
                   </Text>
-                  <Text className="text-xs font-semibold text-slate-500" numberOfLines={1}>
+                  <Text
+                    style={{ fontSize: 12, fontWeight: '600', color: '#657080', marginTop: 1 }}
+                    numberOfLines={1}
+                  >
                     {activeProperty.name} · {activeFloor.rooms.length} rooms
                   </Text>
                 </View>
               </View>
 
-              <View className="flex-row items-center gap-1.5">
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 <TouchableOpacity
                   onPress={() => setFloorToEdit(activeFloor)}
-                  className="w-9 h-9 rounded-full bg-slate-100 items-center justify-center"
+                  activeOpacity={0.7}
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 18,
+                    backgroundColor: '#FFFDF8',
+                    borderWidth: 1,
+                    borderColor: '#E5DDCD',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
                 >
-                  <Pencil size={16} color="#334155" />
+                  <Pencil size={15} color="#0C192B" />
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={onClose}
-                  className="w-9 h-9 rounded-full bg-slate-100 items-center justify-center"
+                  activeOpacity={0.7}
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 18,
+                    backgroundColor: '#FFFDF8',
+                    borderWidth: 1,
+                    borderColor: '#E5DDCD',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
                 >
-                  <X size={20} color="#64748B" />
+                  <X size={18} color="#657080" />
                 </TouchableOpacity>
               </View>
             </View>
 
-            <ScrollView className="flex-1 px-5 pt-4" showsVerticalScrollIndicator={false}>
+            <ScrollView
+              style={{ flex: 1, paddingHorizontal: 20, paddingTop: 14 }}
+              contentContainerStyle={{ paddingBottom: 24 }}
+              showsVerticalScrollIndicator={false}
+            >
               {activeFloor.rooms.length === 0 ? (
-                <View className="bg-white rounded-2xl p-8 border border-slate-200 items-center justify-center shadow-xs">
-                  <DoorOpen size={32} color="#0A6C50" />
-                  <Text className="text-base font-extrabold text-slate-900 mt-2 text-center">
+                <View
+                  style={{
+                    backgroundColor: '#FFFDF8',
+                    borderRadius: 20,
+                    padding: 24,
+                    borderWidth: 1,
+                    borderColor: '#E5DDCD',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <DoorOpen size={32} color="#4F5330" />
+                  <Text style={{ fontSize: 15, fontWeight: '800', color: '#0C192B', marginTop: 8 }}>
                     No Rooms On This Floor
                   </Text>
-                  <Text className="text-xs text-slate-500 text-center max-w-[240px] mt-1 mb-4">
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      color: '#657080',
+                      textAlign: 'center',
+                      marginTop: 4,
+                      marginBottom: 14,
+                    }}
+                  >
                     Add rooms with sharing type to auto-generate beds.
                   </Text>
                   <TouchableOpacity
@@ -580,14 +1049,24 @@ export const PropertiesRoomsModal: React.FC<PropertiesRoomsModalProps> = ({ visi
                       setAddRoomDefaultFloor(activeFloor.floorNumber);
                       setShowAddRoom(true);
                     }}
-                    className="bg-[#0A6C50] px-4 py-2.5 rounded-xl flex-row items-center gap-2"
+                    activeOpacity={0.85}
+                    style={{
+                      backgroundColor: '#4F5330',
+                      paddingHorizontal: 16,
+                      paddingVertical: 10,
+                      borderRadius: 9999,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                    }}
                   >
-                    <Plus size={16} color="#FFFFFF" />
-                    <Text className="text-white font-bold text-xs">Add Room</Text>
+                    <Plus size={15} color="#FFFFFF" style={{ marginRight: 6 }} />
+                    <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 13 }}>
+                      Add Room
+                    </Text>
                   </TouchableOpacity>
                 </View>
               ) : (
-                <View className="gap-2.5 mb-8">
+                <View style={{ gap: 10, marginBottom: 20 }}>
                   {activeFloor.rooms.map(room => {
                     const totalBeds = room.beds.length;
                     const occupiedBeds = room.beds.filter(b => b.status === 'occupied').length;
@@ -600,33 +1079,77 @@ export const PropertiesRoomsModal: React.FC<PropertiesRoomsModalProps> = ({ visi
                           setActiveRoomId(room._id);
                           setViewLevel('room_beds');
                         }}
-                        className="bg-white rounded-2xl p-4 border border-slate-200 shadow-2xs"
+                        style={{
+                          backgroundColor: '#FFFDF8',
+                          borderRadius: 18,
+                          padding: 14,
+                          borderWidth: 1,
+                          borderColor: '#E5DDCD',
+                          shadowColor: '#000',
+                          shadowOffset: { width: 0, height: 1 },
+                          shadowOpacity: 0.03,
+                          shadowRadius: 2,
+                          elevation: 1,
+                        }}
                       >
-                        <View className="flex-row items-start justify-between mb-2">
+                        <View
+                          style={{
+                            flexDirection: 'row',
+                            alignItems: 'flex-start',
+                            justifyContent: 'space-between',
+                            marginBottom: 6,
+                          }}
+                        >
                           <View>
-                            <Text className="text-base font-black text-slate-900">
+                            <Text style={{ fontSize: 15, fontWeight: '800', color: '#0C192B' }}>
                               Room {room.roomNumber}
                             </Text>
-                            <Text className="text-xs font-semibold text-slate-600 mt-0.5">
+                            <Text
+                              style={{
+                                fontSize: 12,
+                                fontWeight: '600',
+                                color: '#657080',
+                                marginTop: 2,
+                              }}
+                            >
                               {occupiedBeds} of {totalBeds} beds ·{' '}
                               {formatINR(room.baseRentPaisePerBed)}/bed
                             </Text>
                           </View>
 
-                          <View className="flex-row items-center gap-1.5">
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                             <TouchableOpacity
                               onPress={() => setRoomToEdit(room)}
-                              className="w-7 h-7 rounded-lg bg-slate-100 items-center justify-center border border-slate-200"
+                              activeOpacity={0.7}
+                              style={{
+                                width: 30,
+                                height: 30,
+                                borderRadius: 15,
+                                backgroundColor: '#FAF5EB',
+                                borderWidth: 1,
+                                borderColor: '#E5DDCD',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                              }}
                             >
-                              <Pencil size={12} color="#475569" />
+                              <Pencil size={12} color="#0C192B" />
                             </TouchableOpacity>
-                            <ChevronRight size={18} color="#94A3B8" />
+                            <ChevronRight size={18} color="#657080" />
                           </View>
                         </View>
 
                         {/* Room Tags */}
                         {room.tags && room.tags.length > 0 && (
-                          <View className="flex-row flex-wrap gap-1.5 pt-2 border-t border-slate-100">
+                          <View
+                            style={{
+                              flexDirection: 'row',
+                              flexWrap: 'wrap',
+                              gap: 6,
+                              paddingTop: 6,
+                              borderTopWidth: 1,
+                              borderTopColor: '#FAF5EB',
+                            }}
+                          >
                             {room.tags
                               .filter(
                                 t =>
@@ -637,8 +1160,20 @@ export const PropertiesRoomsModal: React.FC<PropertiesRoomsModalProps> = ({ visi
                                 const displayTag =
                                   tag.toLowerCase() === 'attached washroom' ? 'Washroom' : tag;
                                 return (
-                                  <View key={idx} className="bg-slate-100 px-2 py-0.5 rounded-md">
-                                    <Text className="text-2xs font-semibold text-slate-600">
+                                  <View
+                                    key={idx}
+                                    style={{
+                                      backgroundColor: '#FAF5EB',
+                                      paddingHorizontal: 8,
+                                      paddingVertical: 3,
+                                      borderRadius: 9999,
+                                      borderWidth: 1,
+                                      borderColor: '#E5DDCD',
+                                    }}
+                                  >
+                                    <Text
+                                      style={{ fontSize: 10, fontWeight: '700', color: '#657080' }}
+                                    >
                                       {displayTag}
                                     </Text>
                                   </View>
@@ -654,77 +1189,141 @@ export const PropertiesRoomsModal: React.FC<PropertiesRoomsModalProps> = ({ visi
             </ScrollView>
 
             {/* Bottom Add Room Button */}
-            <View className="p-4 border-t border-slate-200 bg-white shadow-lg">
+            <View
+              style={{
+                padding: 16,
+                borderTopWidth: 1,
+                borderTopColor: '#E5DDCD',
+                backgroundColor: '#FAF5EB',
+                paddingBottom: Platform.OS === 'ios' ? 34 : 16,
+              }}
+            >
               <TouchableOpacity
                 activeOpacity={0.85}
                 onPress={() => {
                   setAddRoomDefaultFloor(activeFloor.floorNumber);
                   setShowAddRoom(true);
                 }}
-                className="w-full bg-[#0A6C50] py-3.5 rounded-xl flex-row items-center justify-center gap-2 shadow-xs"
+                style={{
+                  width: '100%',
+                  height: 50,
+                  backgroundColor: '#4F5330',
+                  borderRadius: 9999,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.1,
+                  shadowRadius: 4,
+                  elevation: 2,
+                }}
               >
-                <Plus size={18} color="#FFFFFF" strokeWidth={2.5} />
-                <Text className="text-white font-extrabold text-base">Add room</Text>
+                <Plus size={18} color="#FFFFFF" strokeWidth={2.5} style={{ marginRight: 6 }} />
+                <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 15 }}>Add room</Text>
               </TouchableOpacity>
             </View>
           </View>
         )}
 
         {/* ========================================================================= */}
-        {/* VIEW 4: ROOM DETAIL / BEDS VIEW (Design Page 10)                           */}
+        {/* VIEW 4: ROOM DETAIL / BEDS VIEW                                           */}
         {/* ========================================================================= */}
         {viewLevel === 'room_beds' && activeRoom && activeFloor && activeProperty && (
-          <View className="flex-1">
+          <View style={{ flex: 1 }}>
             {/* Header */}
-            <View className="px-5 pt-4 pb-3 flex-row items-center justify-between border-b border-slate-200/80 bg-white">
-              <View className="flex-row items-center gap-2 flex-1 mr-2">
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                paddingHorizontal: 20,
+                paddingTop: 16,
+                paddingBottom: 14,
+                borderBottomWidth: 1,
+                borderBottomColor: '#E5DDCD',
+                backgroundColor: '#FAF5EB',
+              }}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>
                 <TouchableOpacity
                   onPress={handleBack}
+                  activeOpacity={0.7}
                   style={{
-                    width: 38,
-                    height: 38,
-                    borderRadius: 19,
-                    backgroundColor: '#FAF7F0',
+                    width: 36,
+                    height: 36,
+                    borderRadius: 18,
+                    backgroundColor: '#FFFDF8',
                     borderWidth: 1,
                     borderColor: '#E5DDCD',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    marginRight: 6,
+                    marginRight: 10,
                   }}
                   accessibilityLabel="Back"
                 >
                   <ArrowLeft size={18} color="#0C192B" strokeWidth={2.3} />
                 </TouchableOpacity>
-                <View className="flex-1">
-                  <Text className="text-lg font-black text-slate-900" numberOfLines={1}>
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={{ fontSize: 17, fontWeight: '800', color: '#0C192B' }}
+                    numberOfLines={1}
+                  >
                     Room {activeRoom.roomNumber}
                   </Text>
-                  <Text className="text-xs font-semibold text-slate-500" numberOfLines={1}>
+                  <Text
+                    style={{ fontSize: 12, fontWeight: '600', color: '#657080', marginTop: 1 }}
+                    numberOfLines={1}
+                  >
                     Floor {activeFloor.floorNumber} · {activeProperty.name}
                   </Text>
                 </View>
               </View>
 
-              <View className="flex-row items-center gap-1.5">
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 <TouchableOpacity
                   onPress={() => setRoomToEdit(activeRoom)}
-                  className="w-9 h-9 rounded-full bg-slate-100 items-center justify-center"
+                  activeOpacity={0.7}
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 18,
+                    backgroundColor: '#FFFDF8',
+                    borderWidth: 1,
+                    borderColor: '#E5DDCD',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
                 >
-                  <Pencil size={16} color="#334155" />
+                  <Pencil size={15} color="#0C192B" />
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={onClose}
-                  className="w-9 h-9 rounded-full bg-slate-100 items-center justify-center"
+                  activeOpacity={0.7}
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 18,
+                    backgroundColor: '#FFFDF8',
+                    borderWidth: 1,
+                    borderColor: '#E5DDCD',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
                 >
-                  <X size={20} color="#64748B" />
+                  <X size={18} color="#657080" />
                 </TouchableOpacity>
               </View>
             </View>
 
-            <ScrollView className="flex-1 px-5 pt-4" showsVerticalScrollIndicator={false}>
+            <ScrollView
+              style={{ flex: 1, paddingHorizontal: 20, paddingTop: 14 }}
+              contentContainerStyle={{ paddingBottom: 24 }}
+              showsVerticalScrollIndicator={false}
+            >
               {/* Tags Row */}
               {activeRoom.tags && activeRoom.tags.length > 0 && (
-                <View className="flex-row flex-wrap gap-1.5 mb-3.5">
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
                   {activeRoom.tags
                     .filter(
                       t =>
@@ -735,8 +1334,20 @@ export const PropertiesRoomsModal: React.FC<PropertiesRoomsModalProps> = ({ visi
                       const displayTag =
                         tag.toLowerCase() === 'attached washroom' ? 'Washroom' : tag;
                       return (
-                        <View key={idx} className="bg-slate-100 px-2.5 py-1 rounded-lg">
-                          <Text className="text-xs font-semibold text-slate-600">{displayTag}</Text>
+                        <View
+                          key={idx}
+                          style={{
+                            backgroundColor: '#FFFDF8',
+                            paddingHorizontal: 10,
+                            paddingVertical: 4,
+                            borderRadius: 9999,
+                            borderWidth: 1,
+                            borderColor: '#E5DDCD',
+                          }}
+                        >
+                          <Text style={{ fontSize: 11, fontWeight: '700', color: '#657080' }}>
+                            {displayTag}
+                          </Text>
                         </View>
                       );
                     })}
@@ -744,20 +1355,52 @@ export const PropertiesRoomsModal: React.FC<PropertiesRoomsModalProps> = ({ visi
               )}
 
               {/* 2 Stat Boxes */}
-              <View className="flex-row gap-3 mb-5">
-                <View className="flex-1 bg-white rounded-2xl p-3.5 border border-slate-200 shadow-2xs">
-                  <Text className="text-2xs font-bold text-slate-500 uppercase tracking-wider">
+              <View style={{ flexDirection: 'row', gap: 10, marginBottom: 16 }}>
+                <View
+                  style={{
+                    flex: 1,
+                    backgroundColor: '#FFFDF8',
+                    borderRadius: 16,
+                    padding: 12,
+                    borderWidth: 1,
+                    borderColor: '#E5DDCD',
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 10,
+                      fontWeight: '800',
+                      color: '#657080',
+                      textTransform: 'uppercase',
+                    }}
+                  >
                     Rent per bed
                   </Text>
-                  <Text className="text-lg font-black text-slate-900 mt-0.5">
+                  <Text style={{ fontSize: 17, fontWeight: '800', color: '#0C192B', marginTop: 2 }}>
                     {formatINR(activeRoom.baseRentPaisePerBed)}/mo
                   </Text>
                 </View>
-                <View className="flex-1 bg-white rounded-2xl p-3.5 border border-slate-200 shadow-2xs">
-                  <Text className="text-2xs font-bold text-slate-500 uppercase tracking-wider">
+                <View
+                  style={{
+                    flex: 1,
+                    backgroundColor: '#FFFDF8',
+                    borderRadius: 16,
+                    padding: 12,
+                    borderWidth: 1,
+                    borderColor: '#E5DDCD',
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 10,
+                      fontWeight: '800',
+                      color: '#657080',
+                      textTransform: 'uppercase',
+                    }}
+                  >
                     Occupied
                   </Text>
-                  <Text className="text-lg font-black text-emerald-700 mt-0.5">
+                  <Text style={{ fontSize: 17, fontWeight: '800', color: '#4F5330', marginTop: 2 }}>
                     {activeRoom.beds.filter(b => b.status === 'occupied').length} of{' '}
                     {activeRoom.beds.length}
                   </Text>
@@ -765,21 +1408,46 @@ export const PropertiesRoomsModal: React.FC<PropertiesRoomsModalProps> = ({ visi
               </View>
 
               {/* Section Header: BEDS */}
-              <View className="flex-row items-center justify-between mb-3">
-                <Text className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                  BEDS ({activeRoom.beds.length})
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: 10,
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 11,
+                    fontWeight: '800',
+                    color: '#657080',
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.5,
+                  }}
+                >
+                  Beds ({activeRoom.beds.length})
                 </Text>
                 <TouchableOpacity
                   onPress={() => setShowAddBed(true)}
-                  className="flex-row items-center gap-1 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200"
+                  activeOpacity={0.7}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    backgroundColor: '#FAF5EB',
+                    paddingHorizontal: 12,
+                    paddingVertical: 5,
+                    borderRadius: 9999,
+                    borderWidth: 1,
+                    borderColor: '#E5DDCD',
+                  }}
                 >
-                  <Plus size={14} color="#0A6C50" strokeWidth={2.5} />
-                  <Text className="text-xs font-bold text-[#0A6C50]">Add bed</Text>
+                  <Plus size={13} color="#4F5330" strokeWidth={2.5} style={{ marginRight: 4 }} />
+                  <Text style={{ fontSize: 11, fontWeight: '800', color: '#4F5330' }}>Add bed</Text>
                 </TouchableOpacity>
               </View>
 
               {/* Bed Cards */}
-              <View className="gap-2.5 mb-8">
+              <View style={{ gap: 10, marginBottom: 20 }}>
                 {activeRoom.beds.map(bed => {
                   const isAvailable = bed.status === 'available';
                   const isOccupied = bed.status === 'occupied';
@@ -800,35 +1468,61 @@ export const PropertiesRoomsModal: React.FC<PropertiesRoomsModalProps> = ({ visi
                           setBedToEdit(bed);
                         }
                       }}
-                      className="bg-white rounded-2xl p-4 border border-slate-200 shadow-2xs flex-row items-center justify-between"
+                      style={{
+                        backgroundColor: '#FFFDF8',
+                        borderRadius: 18,
+                        padding: 14,
+                        borderWidth: 1,
+                        borderColor: '#E5DDCD',
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        shadowColor: '#000',
+                        shadowOffset: { width: 0, height: 1 },
+                        shadowOpacity: 0.03,
+                        shadowRadius: 2,
+                        elevation: 1,
+                      }}
                     >
-                      <View className="flex-row items-center gap-3 flex-1 mr-2">
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          flex: 1,
+                          marginRight: 8,
+                        }}
+                      >
                         <View
-                          className={`w-10 h-10 rounded-xl items-center justify-center ${
-                            isAvailable
-                              ? 'bg-emerald-50'
+                          style={{
+                            width: 38,
+                            height: 38,
+                            borderRadius: 12,
+                            backgroundColor: isAvailable
+                              ? '#DCFCE7'
                               : isOccupied
-                                ? 'bg-blue-50'
-                                : 'bg-amber-50'
-                          }`}
+                                ? '#DBEAFE'
+                                : '#FEF3C7',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            marginRight: 10,
+                          }}
                         >
                           <BedIcon
                             size={18}
-                            color={isAvailable ? '#0A6C50' : isOccupied ? '#1D4ED8' : '#D97706'}
+                            color={isAvailable ? '#15803D' : isOccupied ? '#1D4ED8' : '#D97706'}
                           />
                         </View>
-                        <View className="flex-1">
-                          <Text className="text-base font-extrabold text-slate-900">
+                        <View style={{ flex: 1 }}>
+                          <Text style={{ fontSize: 15, fontWeight: '800', color: '#0C192B' }}>
                             Bed {bed.bedNumber}
                           </Text>
                           <Text
-                            className={`text-xs font-medium mt-0.5 ${
-                              isOccupied
-                                ? 'text-blue-700 font-semibold'
-                                : isAvailable
-                                  ? 'text-emerald-700'
-                                  : 'text-amber-700'
-                            }`}
+                            style={{
+                              fontSize: 11,
+                              fontWeight: '600',
+                              marginTop: 2,
+                              color: isOccupied ? '#1D4ED8' : isAvailable ? '#15803D' : '#D97706',
+                            }}
                             numberOfLines={1}
                           >
                             {isOccupied && tenantName
@@ -840,25 +1534,27 @@ export const PropertiesRoomsModal: React.FC<PropertiesRoomsModalProps> = ({ visi
                         </View>
                       </View>
 
-                      <View className="flex-row items-center gap-2">
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                         {/* Status Pill */}
                         <View
-                          className={`px-2.5 py-1 rounded-full ${
-                            isOccupied
-                              ? 'bg-blue-100'
+                          style={{
+                            paddingHorizontal: 8,
+                            paddingVertical: 3,
+                            borderRadius: 9999,
+                            backgroundColor: isOccupied
+                              ? '#DBEAFE'
                               : isAvailable
-                                ? 'bg-emerald-100'
-                                : 'bg-amber-100'
-                          }`}
+                                ? '#DCFCE7'
+                                : '#FEF3C7',
+                          }}
                         >
                           <Text
-                            className={`text-2xs font-extrabold capitalize ${
-                              isOccupied
-                                ? 'text-blue-800'
-                                : isAvailable
-                                  ? 'text-emerald-800'
-                                  : 'text-amber-800'
-                            }`}
+                            style={{
+                              fontSize: 10,
+                              fontWeight: '800',
+                              textTransform: 'uppercase',
+                              color: isOccupied ? '#1D4ED8' : isAvailable ? '#15803D' : '#D97706',
+                            }}
                           >
                             {isAvailable ? 'Vacant' : isOccupied ? 'Occupied' : 'Maintenance'}
                           </Text>
@@ -866,9 +1562,19 @@ export const PropertiesRoomsModal: React.FC<PropertiesRoomsModalProps> = ({ visi
 
                         <TouchableOpacity
                           onPress={() => setBedToEdit(bed)}
-                          className="w-8 h-8 rounded-full bg-slate-50 items-center justify-center border border-slate-200"
+                          activeOpacity={0.7}
+                          style={{
+                            width: 30,
+                            height: 30,
+                            borderRadius: 15,
+                            backgroundColor: '#FAF5EB',
+                            borderWidth: 1,
+                            borderColor: '#E5DDCD',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
                         >
-                          <Pencil size={12} color="#475569" />
+                          <Pencil size={12} color="#0C192B" />
                         </TouchableOpacity>
                       </View>
                     </TouchableOpacity>
@@ -878,13 +1584,33 @@ export const PropertiesRoomsModal: React.FC<PropertiesRoomsModalProps> = ({ visi
             </ScrollView>
 
             {/* Bottom Edit Room & Delete Room Actions */}
-            <View className="p-4 border-t border-slate-200 bg-white shadow-lg flex-row gap-2.5">
+            <View
+              style={{
+                padding: 16,
+                borderTopWidth: 1,
+                borderTopColor: '#E5DDCD',
+                backgroundColor: '#FAF5EB',
+                paddingBottom: Platform.OS === 'ios' ? 34 : 16,
+              }}
+            >
               <TouchableOpacity
                 activeOpacity={0.85}
                 onPress={() => setRoomToEdit(activeRoom)}
-                className="flex-1 bg-[#0A6C50] py-3.5 rounded-xl items-center justify-center shadow-xs"
+                style={{
+                  width: '100%',
+                  height: 50,
+                  backgroundColor: '#4F5330',
+                  borderRadius: 9999,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.1,
+                  shadowRadius: 4,
+                  elevation: 2,
+                }}
               >
-                <Text className="text-white font-extrabold text-sm">Edit room</Text>
+                <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 15 }}>Edit room</Text>
               </TouchableOpacity>
             </View>
           </View>

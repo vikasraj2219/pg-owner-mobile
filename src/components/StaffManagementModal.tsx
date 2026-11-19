@@ -8,8 +8,9 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
-import { X, UserPlus, Trash2, Building, Shield, Edit2, Lock, Key } from 'lucide-react-native';
+import { X, UserPlus, Trash2, Building2, Shield, Edit2, Lock, Key } from 'lucide-react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -163,7 +164,7 @@ export const StaffManagementModal: React.FC<StaffManagementModalProps> = ({
     setEditName(member.name);
     setEditPhone(member.phone);
     setEditEmail(member.email);
-    setEditPassword(''); // empty means keep existing password
+    setEditPassword('');
     setEditRole(member.role === 'staff' ? 'staff' : 'manager');
     setEditStatus(member.status || 'active');
     setEditSelectedProps(member.assignedProperties?.map(p => p._id) || []);
@@ -251,37 +252,79 @@ export const StaffManagementModal: React.FC<StaffManagementModalProps> = ({
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <View className="flex-1 bg-[#F8F9FA]">
+      <View style={{ flex: 1, backgroundColor: '#FAF5EB' }}>
         {/* Header */}
-        <View className="px-5 pt-4 pb-3 flex-row items-center justify-between border-b border-slate-200/80 bg-white">
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingHorizontal: 20,
+            paddingTop: 16,
+            paddingBottom: 14,
+            borderBottomWidth: 1,
+            borderBottomColor: '#E5DDCD',
+            backgroundColor: '#FAF5EB',
+          }}
+        >
           <View>
-            <Text className="text-xl font-extrabold text-slate-900">Staff & Team Access</Text>
-            <Text className="text-xs font-semibold text-slate-500 mt-0.5">
+            <Text style={{ fontSize: 18, fontWeight: '800', color: '#0C192B' }}>
+              Staff & Team Access
+            </Text>
+            <Text style={{ fontSize: 12, fontWeight: '600', color: '#657080', marginTop: 2 }}>
               Access controls & credentials management
             </Text>
           </View>
           <TouchableOpacity
             onPress={onClose}
-            className="w-9 h-9 rounded-full bg-slate-100 items-center justify-center"
+            activeOpacity={0.7}
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 18,
+              backgroundColor: '#FFFDF8',
+              borderWidth: 1,
+              borderColor: '#E5DDCD',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
           >
-            <X size={20} color="#64748B" />
+            <X size={18} color="#657080" />
           </TouchableOpacity>
         </View>
 
-        {/* Tab Switcher - only show Add tab if user is Owner */}
-        <View className="px-5 py-3 bg-white border-b border-slate-200/60 flex-row gap-2">
+        {/* Tab Switcher */}
+        <View
+          style={{
+            flexDirection: 'row',
+            gap: 10,
+            paddingHorizontal: 20,
+            paddingVertical: 12,
+            borderBottomWidth: 1,
+            borderBottomColor: '#E5DDCD',
+            backgroundColor: '#FAF5EB',
+          }}
+        >
           <TouchableOpacity
             onPress={() => setActiveTab('list')}
-            className={`flex-1 py-2.5 rounded-xl items-center justify-center border ${
-              activeTab === 'list'
-                ? 'bg-[#E6F4EA] border-[#0A6C50]'
-                : 'bg-slate-50 border-slate-200'
-            }`}
+            activeOpacity={0.8}
+            style={{
+              flex: 1,
+              paddingVertical: 10,
+              borderRadius: 9999,
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: activeTab === 'list' ? '#4F5330' : '#FFFDF8',
+              borderWidth: 1,
+              borderColor: activeTab === 'list' ? '#4F5330' : '#E5DDCD',
+            }}
           >
             <Text
-              className={`text-xs font-bold ${
-                activeTab === 'list' ? 'text-[#0A6C50]' : 'text-slate-600'
-              }`}
+              style={{
+                fontSize: 12,
+                fontWeight: '800',
+                color: activeTab === 'list' ? '#FFFFFF' : '#0C192B',
+              }}
             >
               Team Members ({members.length})
             </Text>
@@ -293,55 +336,108 @@ export const StaffManagementModal: React.FC<StaffManagementModalProps> = ({
                 resetAddForm();
                 setActiveTab('add');
               }}
-              className={`flex-1 py-2.5 rounded-xl items-center justify-center border ${
-                activeTab === 'add'
-                  ? 'bg-[#E6F4EA] border-[#0A6C50]'
-                  : 'bg-slate-50 border-slate-200'
-              }`}
+              activeOpacity={0.8}
+              style={{
+                flex: 1,
+                paddingVertical: 10,
+                borderRadius: 9999,
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexDirection: 'row',
+                backgroundColor: activeTab === 'add' ? '#4F5330' : '#FFFDF8',
+                borderWidth: 1,
+                borderColor: activeTab === 'add' ? '#4F5330' : '#E5DDCD',
+              }}
             >
-              <View className="flex-row items-center">
-                <UserPlus size={14} color={activeTab === 'add' ? '#0A6C50' : '#475569'} />
-                <Text
-                  className={`text-xs font-bold ml-1 ${
-                    activeTab === 'add' ? 'text-[#0A6C50]' : 'text-slate-600'
-                  }`}
-                >
-                  Add Staff Member
-                </Text>
-              </View>
+              <UserPlus
+                size={14}
+                color={activeTab === 'add' ? '#FFFFFF' : '#0C192B'}
+                style={{ marginRight: 6 }}
+              />
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: '800',
+                  color: activeTab === 'add' ? '#FFFFFF' : '#0C192B',
+                }}
+              >
+                Add Staff Member
+              </Text>
             </TouchableOpacity>
           ) : (
-            <View className="flex-1 py-2.5 rounded-xl items-center justify-center bg-slate-100 flex-row">
-              <Lock size={12} color="#94A3B8" />
-              <Text className="text-xs font-medium text-slate-400 ml-1">Admin Only</Text>
+            <View
+              style={{
+                flex: 1,
+                paddingVertical: 10,
+                borderRadius: 9999,
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexDirection: 'row',
+                backgroundColor: '#FFFDF8',
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+              }}
+            >
+              <Lock size={12} color="#94A3B8" style={{ marginRight: 4 }} />
+              <Text style={{ fontSize: 12, fontWeight: '600', color: '#94A3B8' }}>Admin Only</Text>
             </View>
           )}
         </View>
 
         {/* Property Filter Bar */}
         {properties.length > 0 && activeTab === 'list' && (
-          <View className="bg-white px-5 py-2.5 border-b border-slate-200/60">
-            <Text className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">
+          <View
+            style={{
+              paddingHorizontal: 20,
+              paddingTop: 12,
+              paddingBottom: 6,
+              borderBottomWidth: 1,
+              borderBottomColor: '#E5DDCD',
+              backgroundColor: '#FAF5EB',
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 11,
+                fontWeight: '800',
+                color: '#657080',
+                textTransform: 'uppercase',
+                letterSpacing: 0.5,
+                marginBottom: 8,
+              }}
+            >
               Filter By Assigned Property
             </Text>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ gap: 8 }}
+              contentContainerStyle={{ gap: 8, paddingBottom: 6 }}
             >
               <TouchableOpacity
                 onPress={() => setFilterPropertyId(null)}
-                className={`flex-row items-center px-3 py-1.5 rounded-xl border ${
-                  filterPropertyId === null
-                    ? 'bg-[#0A6C50] border-[#0A6C50]'
-                    : 'bg-slate-50 border-slate-200'
-                }`}
+                activeOpacity={0.7}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  paddingHorizontal: 14,
+                  paddingVertical: 7,
+                  borderRadius: 9999,
+                  backgroundColor: filterPropertyId === null ? '#19D3E6' : '#FFFDF8',
+                  borderWidth: 1,
+                  borderColor: filterPropertyId === null ? '#19D3E6' : '#E5DDCD',
+                }}
               >
-                <Building size={12} color={filterPropertyId === null ? '#ffffff' : '#64748B'} />
+                <Building2
+                  size={13}
+                  color={filterPropertyId === null ? '#0C192B' : '#657080'}
+                  style={{ marginRight: 6 }}
+                />
                 <Text
-                  className={`text-xs font-bold ml-1.5 ${
-                    filterPropertyId === null ? 'text-white' : 'text-slate-700'
-                  }`}
+                  style={{
+                    fontSize: 12,
+                    fontWeight: filterPropertyId === null ? '800' : '600',
+                    color: filterPropertyId === null ? '#0C192B' : '#657080',
+                  }}
                 >
                   All Staff ({members.length})
                 </Text>
@@ -356,15 +452,29 @@ export const StaffManagementModal: React.FC<StaffManagementModalProps> = ({
                   <TouchableOpacity
                     key={p._id}
                     onPress={() => setFilterPropertyId(p._id)}
-                    className={`flex-row items-center px-3 py-1.5 rounded-xl border ${
-                      isSelected ? 'bg-[#0A6C50] border-[#0A6C50]' : 'bg-slate-50 border-slate-200'
-                    }`}
+                    activeOpacity={0.7}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      paddingHorizontal: 14,
+                      paddingVertical: 7,
+                      borderRadius: 9999,
+                      backgroundColor: isSelected ? '#19D3E6' : '#FFFDF8',
+                      borderWidth: 1,
+                      borderColor: isSelected ? '#19D3E6' : '#E5DDCD',
+                    }}
                   >
-                    <Building size={12} color={isSelected ? '#ffffff' : '#64748B'} />
+                    <Building2
+                      size={13}
+                      color={isSelected ? '#0C192B' : '#657080'}
+                      style={{ marginRight: 6 }}
+                    />
                     <Text
-                      className={`text-xs font-bold ml-1.5 ${
-                        isSelected ? 'text-white' : 'text-slate-700'
-                      }`}
+                      style={{
+                        fontSize: 12,
+                        fontWeight: isSelected ? '800' : '600',
+                        color: isSelected ? '#0C192B' : '#657080',
+                      }}
                     >
                       {p.name} ({count})
                     </Text>
@@ -376,28 +486,56 @@ export const StaffManagementModal: React.FC<StaffManagementModalProps> = ({
         )}
 
         {isLoading ? (
-          <View className="flex-1 items-center justify-center">
-            <ActivityIndicator size="large" color="#0A6C50" />
-            <Text className="text-slate-500 text-sm font-medium mt-3">Loading team roster…</Text>
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+            <ActivityIndicator size="large" color="#4F5330" />
+            <Text style={{ color: '#657080', fontSize: 13, fontWeight: '600', marginTop: 12 }}>
+              Loading team roster…
+            </Text>
           </View>
         ) : activeTab === 'list' ? (
-          <ScrollView className="flex-1 px-5 pt-4" showsVerticalScrollIndicator={false}>
+          <ScrollView
+            style={{ flex: 1, paddingHorizontal: 20, paddingTop: 14 }}
+            contentContainerStyle={{ paddingBottom: Platform.OS === 'ios' ? 40 : 26 }}
+            showsVerticalScrollIndicator={false}
+          >
             {!isOwner && (
-              <View className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-3 flex-row items-center">
-                <Lock size={14} color="#D97706" />
-                <Text className="text-xs text-amber-800 font-semibold ml-2 flex-1">
+              <View
+                style={{
+                  backgroundColor: '#FEF3C7',
+                  borderWidth: 1,
+                  borderColor: '#FDE68A',
+                  borderRadius: 14,
+                  padding: 12,
+                  marginBottom: 14,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                }}
+              >
+                <Lock size={14} color="#D97706" style={{ marginRight: 8 }} />
+                <Text style={{ fontSize: 12, color: '#92400E', fontWeight: '600', flex: 1 }}>
                   Read-only view. Only organization admin/owner can add or update team members.
                 </Text>
               </View>
             )}
 
             {filteredMembers.length === 0 ? (
-              <View className="bg-white rounded-2xl p-6 items-center justify-center border border-slate-200 mb-6">
-                <Building size={32} color="#94A3B8" />
-                <Text className="text-sm font-bold text-slate-700 mt-2">
+              <View
+                style={{
+                  backgroundColor: '#FFFDF8',
+                  borderRadius: 20,
+                  padding: 24,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderWidth: 1,
+                  borderColor: '#E5DDCD',
+                  marginBottom: 16,
+                }}
+              >
+                <Building2 size={32} color="#657080" />
+                <Text style={{ fontSize: 14, fontWeight: '800', color: '#0C192B', marginTop: 8 }}>
                   No staff assigned to this property
                 </Text>
-                <Text className="text-xs text-slate-400 mt-1 text-center">
+                <Text style={{ fontSize: 12, color: '#657080', marginTop: 4, textAlign: 'center' }}>
                   Edit an existing staff member or tap 'Add Staff Member' to assign access.
                 </Text>
               </View>
@@ -405,32 +543,81 @@ export const StaffManagementModal: React.FC<StaffManagementModalProps> = ({
               filteredMembers.map(member => {
                 const isMemberOwner = member.role === 'owner';
                 const isManager = member.role === 'manager';
+
                 return (
                   <View
                     key={member._id}
-                    className="bg-white rounded-2xl p-4 border border-slate-200 mb-3 shadow-xs"
+                    style={{
+                      backgroundColor: '#FFFDF8',
+                      borderRadius: 20,
+                      padding: 16,
+                      borderWidth: 1,
+                      borderColor: '#E5DDCD',
+                      marginBottom: 12,
+                      shadowColor: '#000',
+                      shadowOffset: { width: 0, height: 1 },
+                      shadowOpacity: 0.04,
+                      shadowRadius: 3,
+                      elevation: 1,
+                    }}
                   >
-                    <View className="flex-row justify-between items-start mb-2">
-                      <View className="flex-row items-center flex-1 mr-2">
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                        alignItems: 'flex-start',
+                        marginBottom: 10,
+                      }}
+                    >
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          flex: 1,
+                          marginRight: 8,
+                        }}
+                      >
                         <View
-                          className={`w-10 h-10 rounded-full items-center justify-center mr-3 ${
-                            isMemberOwner
-                              ? 'bg-purple-100'
+                          style={{
+                            width: 40,
+                            height: 40,
+                            borderRadius: 20,
+                            backgroundColor: isMemberOwner
+                              ? '#F3E8FF'
                               : isManager
-                                ? 'bg-emerald-100'
-                                : 'bg-blue-100'
-                          }`}
+                                ? '#FAF5EB'
+                                : '#DBEAFE',
+                            borderWidth: 1,
+                            borderColor: isMemberOwner
+                              ? '#E9D5FF'
+                              : isManager
+                                ? '#E5DDCD'
+                                : '#BFDBFE',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            marginRight: 10,
+                          }}
                         >
                           <Shield
                             size={18}
-                            color={isMemberOwner ? '#7E22CE' : isManager ? '#0A6C50' : '#1D4ED8'}
+                            color={isMemberOwner ? '#6B21A8' : isManager ? '#4F5330' : '#1D4ED8'}
                           />
                         </View>
-                        <View className="flex-1">
-                          <Text className="text-base font-extrabold text-slate-900 truncate">
+                        <View style={{ flex: 1 }}>
+                          <Text
+                            style={{ fontSize: 15, fontWeight: '800', color: '#0C192B' }}
+                            numberOfLines={1}
+                          >
                             {member.name}
                           </Text>
-                          <Text className="text-xs text-slate-500 font-medium">
+                          <Text
+                            style={{
+                              fontSize: 12,
+                              color: '#657080',
+                              fontWeight: '500',
+                              marginTop: 1,
+                            }}
+                          >
                             {member.phone} · {member.email}
                           </Text>
                         </View>
@@ -438,22 +625,30 @@ export const StaffManagementModal: React.FC<StaffManagementModalProps> = ({
 
                       {/* Role badge */}
                       <View
-                        className={`px-2.5 py-1 rounded-md ${
-                          isMemberOwner
-                            ? 'bg-purple-50 border border-purple-200'
+                        style={{
+                          paddingHorizontal: 8,
+                          paddingVertical: 3,
+                          borderRadius: 9999,
+                          backgroundColor: isMemberOwner
+                            ? '#F3E8FF'
                             : isManager
-                              ? 'bg-emerald-50 border border-emerald-200'
-                              : 'bg-blue-50 border border-blue-200'
-                        }`}
+                              ? '#FAF5EB'
+                              : '#DBEAFE',
+                          borderWidth: 1,
+                          borderColor: isMemberOwner
+                            ? '#E9D5FF'
+                            : isManager
+                              ? '#E5DDCD'
+                              : '#BFDBFE',
+                        }}
                       >
                         <Text
-                          className={`text-[10px] font-black uppercase ${
-                            isMemberOwner
-                              ? 'text-purple-700'
-                              : isManager
-                                ? 'text-[#0A6C50]'
-                                : 'text-blue-700'
-                          }`}
+                          style={{
+                            fontSize: 10,
+                            fontWeight: '800',
+                            textTransform: 'uppercase',
+                            color: isMemberOwner ? '#6B21A8' : isManager ? '#4F5330' : '#1D4ED8',
+                          }}
                         >
                           {member.role}
                         </Text>
@@ -461,11 +656,28 @@ export const StaffManagementModal: React.FC<StaffManagementModalProps> = ({
                     </View>
 
                     {/* Assigned Properties */}
-                    <View className="pt-2 border-t border-slate-100 flex-row flex-wrap items-center gap-1.5 mt-1">
-                      <Building size={12} color="#64748B" />
+                    <View
+                      style={{
+                        paddingTop: 8,
+                        borderTopWidth: 1,
+                        borderTopColor: '#FAF5EB',
+                        flexDirection: 'row',
+                        flexWrap: 'wrap',
+                        alignItems: 'center',
+                        gap: 6,
+                      }}
+                    >
+                      <Building2 size={12} color="#657080" style={{ marginRight: 2 }} />
                       {isMemberOwner ? (
-                        <View className="bg-purple-50 px-2 py-0.5 rounded-md border border-purple-200/60">
-                          <Text className="text-[11px] font-semibold text-purple-700">
+                        <View
+                          style={{
+                            backgroundColor: '#FAF5EB',
+                            paddingHorizontal: 8,
+                            paddingVertical: 2,
+                            borderRadius: 6,
+                          }}
+                        >
+                          <Text style={{ fontSize: 11, fontWeight: '600', color: '#6B21A8' }}>
                             All Properties (Owner Access)
                           </Text>
                         </View>
@@ -473,16 +685,30 @@ export const StaffManagementModal: React.FC<StaffManagementModalProps> = ({
                         member.assignedProperties.map(p => (
                           <View
                             key={p._id}
-                            className="bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/60"
+                            style={{
+                              backgroundColor: '#FAF5EB',
+                              paddingHorizontal: 8,
+                              paddingVertical: 2,
+                              borderRadius: 6,
+                              borderWidth: 1,
+                              borderColor: '#E5DDCD',
+                            }}
                           >
-                            <Text className="text-[11px] font-semibold text-[#0A6C50]">
+                            <Text style={{ fontSize: 11, fontWeight: '700', color: '#4F5330' }}>
                               {p.name}
                             </Text>
                           </View>
                         ))
                       ) : (
-                        <View className="bg-slate-100 px-2 py-0.5 rounded-md">
-                          <Text className="text-[11px] font-semibold text-slate-500">
+                        <View
+                          style={{
+                            backgroundColor: '#FAF5EB',
+                            paddingHorizontal: 8,
+                            paddingVertical: 2,
+                            borderRadius: 6,
+                          }}
+                        >
+                          <Text style={{ fontSize: 11, fontWeight: '500', color: '#657080' }}>
                             No properties assigned (Restricted)
                           </Text>
                         </View>
@@ -491,23 +717,55 @@ export const StaffManagementModal: React.FC<StaffManagementModalProps> = ({
 
                     {/* Admin Actions: Edit Credentials & Remove */}
                     {isOwner && !isMemberOwner && (
-                      <View className="pt-3 border-t border-slate-100 mt-2 flex-row justify-end gap-2">
+                      <View
+                        style={{
+                          paddingTop: 10,
+                          borderTopWidth: 1,
+                          borderTopColor: '#FAF5EB',
+                          marginTop: 8,
+                          flexDirection: 'row',
+                          justifyContent: 'flex-end',
+                          gap: 8,
+                        }}
+                      >
                         <TouchableOpacity
                           onPress={() => handleOpenEdit(member)}
-                          className="flex-row items-center px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200"
+                          activeOpacity={0.7}
+                          style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            paddingHorizontal: 12,
+                            paddingVertical: 6,
+                            borderRadius: 9999,
+                            backgroundColor: '#FAF5EB',
+                            borderWidth: 1,
+                            borderColor: '#E5DDCD',
+                          }}
                         >
-                          <Edit2 size={13} color="#0A6C50" />
-                          <Text className="text-xs font-bold text-[#0A6C50] ml-1.5">
+                          <Edit2 size={12} color="#4F5330" style={{ marginRight: 4 }} />
+                          <Text style={{ fontSize: 11, fontWeight: '700', color: '#4F5330' }}>
                             Edit & Password
                           </Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity
                           onPress={() => handleRemoveMember(member)}
-                          className="flex-row items-center px-3 py-1.5 rounded-lg bg-rose-50 border border-rose-200"
+                          activeOpacity={0.7}
+                          style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            paddingHorizontal: 12,
+                            paddingVertical: 6,
+                            borderRadius: 9999,
+                            backgroundColor: '#FFF1F2',
+                            borderWidth: 1,
+                            borderColor: '#FECDD3',
+                          }}
                         >
-                          <Trash2 size={13} color="#BE123C" />
-                          <Text className="text-xs font-bold text-rose-700 ml-1.5">Remove</Text>
+                          <Trash2 size={12} color="#BE123C" style={{ marginRight: 4 }} />
+                          <Text style={{ fontSize: 11, fontWeight: '700', color: '#BE123C' }}>
+                            Remove
+                          </Text>
                         </TouchableOpacity>
                       </View>
                     )}
@@ -517,67 +775,183 @@ export const StaffManagementModal: React.FC<StaffManagementModalProps> = ({
             )}
           </ScrollView>
         ) : (
-          /* Add Team Member Form (Owner only) */
-          <ScrollView className="flex-1 px-5 pt-4" showsVerticalScrollIndicator={false}>
-            <View className="bg-white rounded-2xl p-5 border border-slate-200 mb-6 shadow-xs">
-              <Text className="text-xs font-bold text-slate-700 uppercase mb-1.5">Full Name *</Text>
+          /* Add Team Member Form */
+          <ScrollView
+            style={{ flex: 1, paddingHorizontal: 20, paddingTop: 14 }}
+            contentContainerStyle={{ paddingBottom: Platform.OS === 'ios' ? 40 : 26 }}
+            showsVerticalScrollIndicator={false}
+          >
+            <View
+              style={{
+                backgroundColor: '#FFFDF8',
+                borderRadius: 20,
+                padding: 18,
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+                marginBottom: 16,
+              }}
+            >
+              <Text style={{ fontSize: 16, fontWeight: '800', color: '#0C192B', marginBottom: 14 }}>
+                New Team Member Details
+              </Text>
+
+              <Text
+                style={{
+                  fontSize: 11,
+                  fontWeight: '800',
+                  color: '#657080',
+                  textTransform: 'uppercase',
+                  marginBottom: 6,
+                }}
+              >
+                Full Name *
+              </Text>
               <TextInput
-                className="border border-slate-200 rounded-xl px-4 py-3 mb-4 text-slate-900 bg-white shadow-xs text-sm"
+                style={{
+                  borderWidth: 1,
+                  borderColor: '#E5DDCD',
+                  borderRadius: 14,
+                  paddingHorizontal: 14,
+                  paddingVertical: 10,
+                  color: '#0C192B',
+                  backgroundColor: '#FAF5EB',
+                  fontSize: 13,
+                  fontWeight: '600',
+                  marginBottom: 14,
+                }}
                 placeholder="e.g. Ramesh Kumar"
+                placeholderTextColor="#94A3B8"
                 value={name}
                 onChangeText={setName}
               />
 
-              <Text className="text-xs font-bold text-slate-700 uppercase mb-1.5">
+              <Text
+                style={{
+                  fontSize: 11,
+                  fontWeight: '800',
+                  color: '#657080',
+                  textTransform: 'uppercase',
+                  marginBottom: 6,
+                }}
+              >
                 Mobile Phone (10 digits) *
               </Text>
               <TextInput
-                className="border border-slate-200 rounded-xl px-4 py-3 mb-4 text-slate-900 bg-white shadow-xs text-sm"
+                style={{
+                  borderWidth: 1,
+                  borderColor: '#E5DDCD',
+                  borderRadius: 14,
+                  paddingHorizontal: 14,
+                  paddingVertical: 10,
+                  color: '#0C192B',
+                  backgroundColor: '#FAF5EB',
+                  fontSize: 13,
+                  fontWeight: '600',
+                  marginBottom: 14,
+                }}
                 placeholder="e.g. 9876543210"
+                placeholderTextColor="#94A3B8"
                 keyboardType="phone-pad"
                 maxLength={10}
                 value={phone}
                 onChangeText={setPhone}
               />
 
-              <Text className="text-xs font-bold text-slate-700 uppercase mb-1.5">
+              <Text
+                style={{
+                  fontSize: 11,
+                  fontWeight: '800',
+                  color: '#657080',
+                  textTransform: 'uppercase',
+                  marginBottom: 6,
+                }}
+              >
                 Email Address (Login ID) *
               </Text>
               <TextInput
-                className="border border-slate-200 rounded-xl px-4 py-3 mb-4 text-slate-900 bg-white shadow-xs text-sm"
+                style={{
+                  borderWidth: 1,
+                  borderColor: '#E5DDCD',
+                  borderRadius: 14,
+                  paddingHorizontal: 14,
+                  paddingVertical: 10,
+                  color: '#0C192B',
+                  backgroundColor: '#FAF5EB',
+                  fontSize: 13,
+                  fontWeight: '600',
+                  marginBottom: 14,
+                }}
                 placeholder="e.g. ramesh@gmail.com"
+                placeholderTextColor="#94A3B8"
                 keyboardType="email-address"
                 autoCapitalize="none"
                 value={email}
                 onChangeText={setEmail}
               />
 
-              <Text className="text-xs font-bold text-slate-700 uppercase mb-1.5">
+              <Text
+                style={{
+                  fontSize: 11,
+                  fontWeight: '800',
+                  color: '#657080',
+                  textTransform: 'uppercase',
+                  marginBottom: 6,
+                }}
+              >
                 Initial Password *
               </Text>
               <TextInput
-                className="border border-slate-200 rounded-xl px-4 py-3 mb-4 text-slate-900 bg-white shadow-xs text-sm"
+                style={{
+                  borderWidth: 1,
+                  borderColor: '#E5DDCD',
+                  borderRadius: 14,
+                  paddingHorizontal: 14,
+                  paddingVertical: 10,
+                  color: '#0C192B',
+                  backgroundColor: '#FAF5EB',
+                  fontSize: 13,
+                  fontWeight: '600',
+                  marginBottom: 14,
+                }}
                 placeholder="Min 6 characters"
+                placeholderTextColor="#94A3B8"
                 secureTextEntry
                 value={password}
                 onChangeText={setPassword}
               />
 
               {/* Role Picker */}
-              <Text className="text-xs font-bold text-slate-700 uppercase mb-2">Staff Role</Text>
-              <View className="flex-row gap-2 mb-4">
+              <Text
+                style={{
+                  fontSize: 11,
+                  fontWeight: '800',
+                  color: '#657080',
+                  textTransform: 'uppercase',
+                  marginBottom: 8,
+                }}
+              >
+                Staff Role
+              </Text>
+              <View style={{ flexDirection: 'row', gap: 10, marginBottom: 14 }}>
                 <TouchableOpacity
                   onPress={() => setRole('manager')}
-                  className={`flex-1 py-3 rounded-xl border items-center ${
-                    role === 'manager'
-                      ? 'bg-[#E6F4EA] border-[#0A6C50]'
-                      : 'bg-slate-50 border-slate-200'
-                  }`}
+                  activeOpacity={0.7}
+                  style={{
+                    flex: 1,
+                    paddingVertical: 10,
+                    borderRadius: 12,
+                    borderWidth: 1,
+                    alignItems: 'center',
+                    backgroundColor: role === 'manager' ? '#19D3E6' : '#FAF5EB',
+                    borderColor: role === 'manager' ? '#19D3E6' : '#E5DDCD',
+                  }}
                 >
                   <Text
-                    className={`text-xs font-bold ${
-                      role === 'manager' ? 'text-[#0A6C50]' : 'text-slate-600'
-                    }`}
+                    style={{
+                      fontSize: 12,
+                      fontWeight: role === 'manager' ? '800' : '600',
+                      color: role === 'manager' ? '#0C192B' : '#657080',
+                    }}
                   >
                     PG Manager
                   </Text>
@@ -585,16 +959,23 @@ export const StaffManagementModal: React.FC<StaffManagementModalProps> = ({
 
                 <TouchableOpacity
                   onPress={() => setRole('staff')}
-                  className={`flex-1 py-3 rounded-xl border items-center ${
-                    role === 'staff'
-                      ? 'bg-[#E6F4EA] border-[#0A6C50]'
-                      : 'bg-slate-50 border-slate-200'
-                  }`}
+                  activeOpacity={0.7}
+                  style={{
+                    flex: 1,
+                    paddingVertical: 10,
+                    borderRadius: 12,
+                    borderWidth: 1,
+                    alignItems: 'center',
+                    backgroundColor: role === 'staff' ? '#19D3E6' : '#FAF5EB',
+                    borderColor: role === 'staff' ? '#19D3E6' : '#E5DDCD',
+                  }}
                 >
                   <Text
-                    className={`text-xs font-bold ${
-                      role === 'staff' ? 'text-[#0A6C50]' : 'text-slate-600'
-                    }`}
+                    style={{
+                      fontSize: 12,
+                      fontWeight: role === 'staff' ? '800' : '600',
+                      color: role === 'staff' ? '#0C192B' : '#657080',
+                    }}
                   >
                     Warden / Security
                   </Text>
@@ -602,26 +983,40 @@ export const StaffManagementModal: React.FC<StaffManagementModalProps> = ({
               </View>
 
               {/* Property Assignment */}
-              <Text className="text-xs font-bold text-slate-700 uppercase mb-2">
+              <Text
+                style={{
+                  fontSize: 11,
+                  fontWeight: '800',
+                  color: '#657080',
+                  textTransform: 'uppercase',
+                  marginBottom: 8,
+                }}
+              >
                 Assigned Properties ({selectedProps.length === 0 ? 'All' : selectedProps.length})
               </Text>
-              <View className="flex-row flex-wrap gap-2 mb-6">
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 18 }}>
                 {properties.map(p => {
                   const isSelected = selectedProps.includes(p._id);
                   return (
                     <TouchableOpacity
                       key={p._id}
                       onPress={() => toggleProperty(p._id)}
-                      className={`px-3 py-2 rounded-xl border ${
-                        isSelected
-                          ? 'bg-[#E6F4EA] border-[#0A6C50]'
-                          : 'bg-slate-50 border-slate-200'
-                      }`}
+                      activeOpacity={0.7}
+                      style={{
+                        paddingHorizontal: 12,
+                        paddingVertical: 7,
+                        borderRadius: 9999,
+                        backgroundColor: isSelected ? '#19D3E6' : '#FAF5EB',
+                        borderWidth: 1,
+                        borderColor: isSelected ? '#19D3E6' : '#E5DDCD',
+                      }}
                     >
                       <Text
-                        className={`text-xs font-bold ${
-                          isSelected ? 'text-[#0A6C50]' : 'text-slate-700'
-                        }`}
+                        style={{
+                          fontSize: 11,
+                          fontWeight: isSelected ? '800' : '600',
+                          color: isSelected ? '#0C192B' : '#657080',
+                        }}
                       >
                         {p.name}
                       </Text>
@@ -634,12 +1029,25 @@ export const StaffManagementModal: React.FC<StaffManagementModalProps> = ({
                 activeOpacity={0.85}
                 disabled={isSubmitting}
                 onPress={handleAddMember}
-                className="bg-[#0A6C50] rounded-xl py-4 items-center justify-center shadow-xs"
+                style={{
+                  backgroundColor: '#4F5330',
+                  borderRadius: 9999,
+                  height: 50,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.1,
+                  shadowRadius: 4,
+                  elevation: 2,
+                }}
               >
                 {isSubmitting ? (
-                  <ActivityIndicator size="small" color="#ffffff" />
+                  <ActivityIndicator size="small" color="#FFFFFF" />
                 ) : (
-                  <Text className="text-white font-bold text-base">Create Staff Login</Text>
+                  <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 15 }}>
+                    Create Staff Login
+                  </Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -654,40 +1062,119 @@ export const StaffManagementModal: React.FC<StaffManagementModalProps> = ({
             animationType="fade"
             onRequestClose={() => setEditingMember(null)}
           >
-            <View className="flex-1 bg-black/50 justify-center items-center px-4">
-              <View className="bg-white rounded-2xl p-5 w-full max-w-sm border border-slate-200 shadow-xl max-h-[85%]">
-                <View className="flex-row justify-between items-center mb-3">
-                  <View className="flex-row items-center gap-1.5">
-                    <Key size={18} color="#0A6C50" />
-                    <Text className="text-base font-extrabold text-slate-900">
+            <View
+              style={{
+                flex: 1,
+                backgroundColor: 'rgba(0,0,0,0.5)',
+                justifyContent: 'center',
+                alignItems: 'center',
+                paddingHorizontal: 20,
+              }}
+            >
+              <View
+                style={{
+                  backgroundColor: '#FAF5EB',
+                  borderRadius: 24,
+                  padding: 20,
+                  width: '100%',
+                  maxWidth: 380,
+                  borderWidth: 1,
+                  borderColor: '#E5DDCD',
+                  maxHeight: '85%',
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.15,
+                  shadowRadius: 10,
+                  elevation: 5,
+                }}
+              >
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: 12,
+                  }}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Key size={16} color="#4F5330" style={{ marginRight: 6 }} />
+                    <Text style={{ fontSize: 16, fontWeight: '800', color: '#0C192B' }}>
                       Edit Staff & Credentials
                     </Text>
                   </View>
                   <TouchableOpacity
                     onPress={() => setEditingMember(null)}
-                    className="w-7 h-7 rounded-full bg-slate-100 items-center justify-center"
+                    activeOpacity={0.7}
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 16,
+                      backgroundColor: '#FFFDF8',
+                      borderWidth: 1,
+                      borderColor: '#E5DDCD',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
                   >
-                    <X size={16} color="#64748B" />
+                    <X size={16} color="#657080" />
                   </TouchableOpacity>
                 </View>
 
                 <ScrollView showsVerticalScrollIndicator={false}>
                   {/* Name */}
-                  <Text className="text-[10px] font-bold text-slate-700 uppercase mb-1">
+                  <Text
+                    style={{
+                      fontSize: 10,
+                      fontWeight: '800',
+                      color: '#657080',
+                      textTransform: 'uppercase',
+                      marginBottom: 4,
+                    }}
+                  >
                     Full Name *
                   </Text>
                   <TextInput
-                    className="border border-slate-200 rounded-xl px-3.5 py-2 mb-3 text-slate-900 bg-white text-sm font-semibold"
+                    style={{
+                      borderWidth: 1,
+                      borderColor: '#E5DDCD',
+                      borderRadius: 12,
+                      paddingHorizontal: 12,
+                      paddingVertical: 8,
+                      backgroundColor: '#FFFDF8',
+                      fontSize: 13,
+                      fontWeight: '600',
+                      color: '#0C192B',
+                      marginBottom: 10,
+                    }}
                     value={editName}
                     onChangeText={setEditName}
                   />
 
                   {/* Phone */}
-                  <Text className="text-[10px] font-bold text-slate-700 uppercase mb-1">
+                  <Text
+                    style={{
+                      fontSize: 10,
+                      fontWeight: '800',
+                      color: '#657080',
+                      textTransform: 'uppercase',
+                      marginBottom: 4,
+                    }}
+                  >
                     Mobile Phone *
                   </Text>
                   <TextInput
-                    className="border border-slate-200 rounded-xl px-3.5 py-2 mb-3 text-slate-900 bg-white text-sm font-semibold"
+                    style={{
+                      borderWidth: 1,
+                      borderColor: '#E5DDCD',
+                      borderRadius: 12,
+                      paddingHorizontal: 12,
+                      paddingVertical: 8,
+                      backgroundColor: '#FFFDF8',
+                      fontSize: 13,
+                      fontWeight: '600',
+                      color: '#0C192B',
+                      marginBottom: 10,
+                    }}
                     value={editPhone}
                     onChangeText={setEditPhone}
                     keyboardType="phone-pad"
@@ -695,11 +1182,30 @@ export const StaffManagementModal: React.FC<StaffManagementModalProps> = ({
                   />
 
                   {/* Email */}
-                  <Text className="text-[10px] font-bold text-slate-700 uppercase mb-1">
+                  <Text
+                    style={{
+                      fontSize: 10,
+                      fontWeight: '800',
+                      color: '#657080',
+                      textTransform: 'uppercase',
+                      marginBottom: 4,
+                    }}
+                  >
                     Login Email *
                   </Text>
                   <TextInput
-                    className="border border-slate-200 rounded-xl px-3.5 py-2 mb-3 text-slate-900 bg-white text-sm font-semibold"
+                    style={{
+                      borderWidth: 1,
+                      borderColor: '#E5DDCD',
+                      borderRadius: 12,
+                      paddingHorizontal: 12,
+                      paddingVertical: 8,
+                      backgroundColor: '#FFFDF8',
+                      fontSize: 13,
+                      fontWeight: '600',
+                      color: '#0C192B',
+                      marginBottom: 10,
+                    }}
                     value={editEmail}
                     onChangeText={setEditEmail}
                     keyboardType="email-address"
@@ -707,54 +1213,107 @@ export const StaffManagementModal: React.FC<StaffManagementModalProps> = ({
                   />
 
                   {/* Password change */}
-                  <View className="bg-amber-50 border border-amber-200 rounded-xl p-2.5 mb-3">
-                    <Text className="text-[10px] font-bold text-amber-900 uppercase mb-1">
+                  <View
+                    style={{
+                      backgroundColor: '#FEF3C7',
+                      borderWidth: 1,
+                      borderColor: '#FDE68A',
+                      borderRadius: 14,
+                      padding: 10,
+                      marginBottom: 12,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 10,
+                        fontWeight: '800',
+                        color: '#92400E',
+                        textTransform: 'uppercase',
+                        marginBottom: 4,
+                      }}
+                    >
                       Reset Password (Credentials)
                     </Text>
                     <TextInput
-                      className="border border-amber-300 rounded-lg px-3 py-1.5 text-slate-900 bg-white text-xs font-semibold"
+                      style={{
+                        borderWidth: 1,
+                        borderColor: '#FDE68A',
+                        borderRadius: 10,
+                        paddingHorizontal: 10,
+                        paddingVertical: 6,
+                        backgroundColor: '#FFFDF8',
+                        fontSize: 12,
+                        fontWeight: '600',
+                        color: '#0C192B',
+                      }}
                       placeholder="Leave blank to keep unchanged"
                       placeholderTextColor="#94A3B8"
                       secureTextEntry
                       value={editPassword}
                       onChangeText={setEditPassword}
                     />
-                    <Text className="text-[9px] text-amber-700 mt-1 font-medium">
+                    <Text
+                      style={{ fontSize: 10, color: '#B45309', marginTop: 4, fontWeight: '500' }}
+                    >
                       Enter at least 6 characters to update staff login password.
                     </Text>
                   </View>
 
                   {/* Role */}
-                  <Text className="text-[10px] font-bold text-slate-700 uppercase mb-1">Role</Text>
-                  <View className="flex-row gap-2 mb-3">
+                  <Text
+                    style={{
+                      fontSize: 10,
+                      fontWeight: '800',
+                      color: '#657080',
+                      textTransform: 'uppercase',
+                      marginBottom: 4,
+                    }}
+                  >
+                    Role
+                  </Text>
+                  <View style={{ flexDirection: 'row', gap: 8, marginBottom: 10 }}>
                     <TouchableOpacity
                       onPress={() => setEditRole('manager')}
-                      className={`flex-1 py-2 rounded-xl border items-center ${
-                        editRole === 'manager'
-                          ? 'bg-[#E6F4EA] border-[#0A6C50]'
-                          : 'bg-slate-50 border-slate-200'
-                      }`}
+                      activeOpacity={0.7}
+                      style={{
+                        flex: 1,
+                        paddingVertical: 8,
+                        borderRadius: 10,
+                        borderWidth: 1,
+                        alignItems: 'center',
+                        backgroundColor: editRole === 'manager' ? '#19D3E6' : '#FFFDF8',
+                        borderColor: editRole === 'manager' ? '#19D3E6' : '#E5DDCD',
+                      }}
                     >
                       <Text
-                        className={`text-xs font-bold ${
-                          editRole === 'manager' ? 'text-[#0A6C50]' : 'text-slate-600'
-                        }`}
+                        style={{
+                          fontSize: 11,
+                          fontWeight: editRole === 'manager' ? '800' : '600',
+                          color: editRole === 'manager' ? '#0C192B' : '#657080',
+                        }}
                       >
                         Manager
                       </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       onPress={() => setEditRole('staff')}
-                      className={`flex-1 py-2 rounded-xl border items-center ${
-                        editRole === 'staff'
-                          ? 'bg-[#E6F4EA] border-[#0A6C50]'
-                          : 'bg-slate-50 border-slate-200'
-                      }`}
+                      activeOpacity={0.7}
+                      style={{
+                        flex: 1,
+                        paddingVertical: 8,
+                        borderRadius: 10,
+                        borderWidth: 1,
+                        alignItems: 'center',
+                        backgroundColor: editRole === 'staff' ? '#19D3E6' : '#FFFDF8',
+                        borderColor: editRole === 'staff' ? '#19D3E6' : '#E5DDCD',
+                      }}
                     >
                       <Text
-                        className={`text-xs font-bold ${
-                          editRole === 'staff' ? 'text-[#0A6C50]' : 'text-slate-600'
-                        }`}
+                        style={{
+                          fontSize: 11,
+                          fontWeight: editRole === 'staff' ? '800' : '600',
+                          color: editRole === 'staff' ? '#0C192B' : '#657080',
+                        }}
                       >
                         Warden / Staff
                       </Text>
@@ -762,38 +1321,60 @@ export const StaffManagementModal: React.FC<StaffManagementModalProps> = ({
                   </View>
 
                   {/* Status */}
-                  <Text className="text-[10px] font-bold text-slate-700 uppercase mb-1">
+                  <Text
+                    style={{
+                      fontSize: 10,
+                      fontWeight: '800',
+                      color: '#657080',
+                      textTransform: 'uppercase',
+                      marginBottom: 4,
+                    }}
+                  >
                     Status
                   </Text>
-                  <View className="flex-row gap-2 mb-3">
+                  <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
                     <TouchableOpacity
                       onPress={() => setEditStatus('active')}
-                      className={`flex-1 py-2 rounded-xl border items-center ${
-                        editStatus === 'active'
-                          ? 'bg-emerald-50 border-emerald-500'
-                          : 'bg-slate-50 border-slate-200'
-                      }`}
+                      activeOpacity={0.7}
+                      style={{
+                        flex: 1,
+                        paddingVertical: 8,
+                        borderRadius: 10,
+                        borderWidth: 1,
+                        alignItems: 'center',
+                        backgroundColor: editStatus === 'active' ? '#DCFCE7' : '#FFFDF8',
+                        borderColor: editStatus === 'active' ? '#86EFAC' : '#E5DDCD',
+                      }}
                     >
                       <Text
-                        className={`text-xs font-bold ${
-                          editStatus === 'active' ? 'text-emerald-700' : 'text-slate-600'
-                        }`}
+                        style={{
+                          fontSize: 11,
+                          fontWeight: editStatus === 'active' ? '800' : '600',
+                          color: editStatus === 'active' ? '#15803D' : '#657080',
+                        }}
                       >
                         Active
                       </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       onPress={() => setEditStatus('inactive')}
-                      className={`flex-1 py-2 rounded-xl border items-center ${
-                        editStatus === 'inactive'
-                          ? 'bg-rose-50 border-rose-500'
-                          : 'bg-slate-50 border-slate-200'
-                      }`}
+                      activeOpacity={0.7}
+                      style={{
+                        flex: 1,
+                        paddingVertical: 8,
+                        borderRadius: 10,
+                        borderWidth: 1,
+                        alignItems: 'center',
+                        backgroundColor: editStatus === 'inactive' ? '#FEE2E2' : '#FFFDF8',
+                        borderColor: editStatus === 'inactive' ? '#FECDD3' : '#E5DDCD',
+                      }}
                     >
                       <Text
-                        className={`text-xs font-bold ${
-                          editStatus === 'inactive' ? 'text-rose-700' : 'text-slate-600'
-                        }`}
+                        style={{
+                          fontSize: 11,
+                          fontWeight: editStatus === 'inactive' ? '800' : '600',
+                          color: editStatus === 'inactive' ? '#BE123C' : '#657080',
+                        }}
                       >
                         Inactive
                       </Text>
@@ -801,27 +1382,43 @@ export const StaffManagementModal: React.FC<StaffManagementModalProps> = ({
                   </View>
 
                   {/* Assigned Properties */}
-                  <Text className="text-[10px] font-bold text-slate-700 uppercase mb-1">
+                  <Text
+                    style={{
+                      fontSize: 10,
+                      fontWeight: '800',
+                      color: '#657080',
+                      textTransform: 'uppercase',
+                      marginBottom: 4,
+                    }}
+                  >
                     Assigned Properties (
                     {editSelectedProps.length === 0 ? 'All' : editSelectedProps.length})
                   </Text>
-                  <View className="flex-row flex-wrap gap-1.5 mb-4">
+                  <View
+                    style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}
+                  >
                     {properties.map(p => {
                       const isSelected = editSelectedProps.includes(p._id);
                       return (
                         <TouchableOpacity
                           key={p._id}
                           onPress={() => toggleEditProperty(p._id)}
-                          className={`px-2.5 py-1.5 rounded-lg border ${
-                            isSelected
-                              ? 'bg-[#E6F4EA] border-[#0A6C50]'
-                              : 'bg-slate-50 border-slate-200'
-                          }`}
+                          activeOpacity={0.7}
+                          style={{
+                            paddingHorizontal: 10,
+                            paddingVertical: 5,
+                            borderRadius: 9999,
+                            backgroundColor: isSelected ? '#19D3E6' : '#FFFDF8',
+                            borderWidth: 1,
+                            borderColor: isSelected ? '#19D3E6' : '#E5DDCD',
+                          }}
                         >
                           <Text
-                            className={`text-[11px] font-bold ${
-                              isSelected ? 'text-[#0A6C50]' : 'text-slate-700'
-                            }`}
+                            style={{
+                              fontSize: 10,
+                              fontWeight: isSelected ? '800' : '600',
+                              color: isSelected ? '#0C192B' : '#657080',
+                            }}
                           >
                             {p.name}
                           </Text>
@@ -831,22 +1428,44 @@ export const StaffManagementModal: React.FC<StaffManagementModalProps> = ({
                   </View>
                 </ScrollView>
 
-                <View className="flex-row gap-2 pt-2 border-t border-slate-100">
+                <View style={{ flexDirection: 'row', gap: 10, paddingTop: 6 }}>
                   <TouchableOpacity
                     onPress={() => setEditingMember(null)}
-                    className="flex-1 py-3 rounded-xl bg-slate-100 items-center justify-center"
+                    activeOpacity={0.7}
+                    style={{
+                      flex: 1,
+                      height: 44,
+                      borderRadius: 9999,
+                      backgroundColor: '#FFFDF8',
+                      borderWidth: 1,
+                      borderColor: '#E5DDCD',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
                   >
-                    <Text className="text-xs font-bold text-slate-700">Cancel</Text>
+                    <Text style={{ fontSize: 13, fontWeight: '700', color: '#657080' }}>
+                      Cancel
+                    </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     onPress={handleSaveEdit}
                     disabled={isUpdating}
-                    className="flex-1 py-3 rounded-xl bg-[#0A6C50] items-center justify-center"
+                    activeOpacity={0.85}
+                    style={{
+                      flex: 1,
+                      height: 44,
+                      borderRadius: 9999,
+                      backgroundColor: '#4F5330',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
                   >
                     {isUpdating ? (
-                      <ActivityIndicator size="small" color="#ffffff" />
+                      <ActivityIndicator size="small" color="#FFFFFF" />
                     ) : (
-                      <Text className="text-xs font-bold text-white">Save Changes</Text>
+                      <Text style={{ fontSize: 13, fontWeight: '800', color: '#FFFFFF' }}>
+                        Save Changes
+                      </Text>
                     )}
                   </TouchableOpacity>
                 </View>
