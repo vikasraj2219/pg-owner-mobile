@@ -520,7 +520,7 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, 
                     </Text>
                   </TouchableOpacity>
 
-                  {properties.map(p => {
+                  {properties.map((p, idx) => {
                     const isSelected = selectedFilterPropertyId === p._id;
                     return (
                       <TouchableOpacity
@@ -538,16 +538,26 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, 
                           borderColor: isSelected ? '#19D3E6' : '#E5DDCD',
                         }}
                       >
-                        <Building2
-                          size={13}
-                          color={isSelected ? '#0C192B' : '#657080'}
-                          style={{ marginRight: 6 }}
-                        />
+                        <View
+                          style={{
+                            width: 18,
+                            height: 18,
+                            borderRadius: 6,
+                            overflow: 'hidden',
+                            marginRight: 6,
+                          }}
+                        >
+                          <Image
+                            source={getPropertyImage(p, idx)}
+                            style={{ width: '100%', height: '100%' }}
+                            resizeMode="cover"
+                          />
+                        </View>
                         <Text
                           style={{
                             fontSize: 12,
                             fontWeight: isSelected ? '800' : '600',
-                            color: isSelected ? '#0C192B' : '#657080',
+                            color: '#0C192B',
                           }}
                         >
                           {p.name}
@@ -1250,7 +1260,7 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, 
                   </Text>
                 </TouchableOpacity>
 
-                {properties.map(p => {
+                {properties.map((p, idx) => {
                   const isSelected = formPropertyId === p._id;
                   return (
                     <TouchableOpacity
@@ -1268,11 +1278,21 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, 
                         borderColor: isSelected ? '#19D3E6' : '#E5DDCD',
                       }}
                     >
-                      <Building2
-                        size={12}
-                        color={isSelected ? '#0C192B' : '#657080'}
-                        style={{ marginRight: 6 }}
-                      />
+                      <View
+                        style={{
+                          width: 18,
+                          height: 18,
+                          borderRadius: 6,
+                          overflow: 'hidden',
+                          marginRight: 6,
+                        }}
+                      >
+                        <Image
+                          source={getPropertyImage(p, idx)}
+                          style={{ width: '100%', height: '100%' }}
+                          resizeMode="cover"
+                        />
+                      </View>
                       <Text
                         style={{
                           fontSize: 11,

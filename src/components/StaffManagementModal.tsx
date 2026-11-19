@@ -12,7 +12,7 @@ import {
   Image,
 } from 'react-native';
 import { X, UserPlus, Trash2, Building2, Edit2, Lock, Key, ArrowLeft } from 'lucide-react-native';
-import { getProfileAvatar } from '../utils/assetImages';
+import { getProfileAvatar, getPropertyImage, getOwnerAvatar } from '../utils/assetImages';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -448,7 +448,7 @@ export const StaffManagementModal: React.FC<StaffManagementModalProps> = ({
                 </Text>
               </TouchableOpacity>
 
-              {properties.map(p => {
+              {properties.map((p, idx) => {
                 const count = members.filter(
                   m => m.role === 'owner' || m.assignedProperties?.some(ap => ap._id === p._id),
                 ).length;
@@ -469,16 +469,26 @@ export const StaffManagementModal: React.FC<StaffManagementModalProps> = ({
                       borderColor: isSelected ? '#19D3E6' : '#E5DDCD',
                     }}
                   >
-                    <Building2
-                      size={13}
-                      color={isSelected ? '#0C192B' : '#657080'}
-                      style={{ marginRight: 6 }}
-                    />
+                    <View
+                      style={{
+                        width: 18,
+                        height: 18,
+                        borderRadius: 6,
+                        overflow: 'hidden',
+                        marginRight: 6,
+                      }}
+                    >
+                      <Image
+                        source={getPropertyImage(p, idx)}
+                        style={{ width: '100%', height: '100%' }}
+                        resizeMode="cover"
+                      />
+                    </View>
                     <Text
                       style={{
                         fontSize: 12,
                         fontWeight: isSelected ? '800' : '600',
-                        color: isSelected ? '#0C192B' : '#657080',
+                        color: '#0C192B',
                       }}
                     >
                       {p.name} ({count})
@@ -595,7 +605,11 @@ export const StaffManagementModal: React.FC<StaffManagementModalProps> = ({
                           }}
                         >
                           <Image
-                            source={getProfileAvatar(member._id || member.name, idx)}
+                            source={
+                              isMemberOwner
+                                ? getOwnerAvatar(member.name)
+                                : getProfileAvatar(member._id || member.name, idx, member.role)
+                            }
                             style={{ width: '100%', height: '100%' }}
                             resizeMode="cover"
                           />
@@ -992,7 +1006,7 @@ export const StaffManagementModal: React.FC<StaffManagementModalProps> = ({
                 Assigned Properties ({selectedProps.length === 0 ? 'All' : selectedProps.length})
               </Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 18 }}>
-                {properties.map(p => {
+                {properties.map((p, idx) => {
                   const isSelected = selectedProps.includes(p._id);
                   return (
                     <TouchableOpacity
@@ -1000,6 +1014,8 @@ export const StaffManagementModal: React.FC<StaffManagementModalProps> = ({
                       onPress={() => toggleProperty(p._id)}
                       activeOpacity={0.7}
                       style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
                         paddingHorizontal: 12,
                         paddingVertical: 7,
                         borderRadius: 9999,
@@ -1008,6 +1024,21 @@ export const StaffManagementModal: React.FC<StaffManagementModalProps> = ({
                         borderColor: isSelected ? '#19D3E6' : '#E5DDCD',
                       }}
                     >
+                      <View
+                        style={{
+                          width: 16,
+                          height: 16,
+                          borderRadius: 5,
+                          overflow: 'hidden',
+                          marginRight: 6,
+                        }}
+                      >
+                        <Image
+                          source={getPropertyImage(p, idx)}
+                          style={{ width: '100%', height: '100%' }}
+                          resizeMode="cover"
+                        />
+                      </View>
                       <Text
                         style={{
                           fontSize: 11,
@@ -1394,7 +1425,7 @@ export const StaffManagementModal: React.FC<StaffManagementModalProps> = ({
                   <View
                     style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}
                   >
-                    {properties.map(p => {
+                    {properties.map((p, idx) => {
                       const isSelected = editSelectedProps.includes(p._id);
                       return (
                         <TouchableOpacity
@@ -1402,6 +1433,8 @@ export const StaffManagementModal: React.FC<StaffManagementModalProps> = ({
                           onPress={() => toggleEditProperty(p._id)}
                           activeOpacity={0.7}
                           style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
                             paddingHorizontal: 10,
                             paddingVertical: 5,
                             borderRadius: 9999,
@@ -1410,6 +1443,21 @@ export const StaffManagementModal: React.FC<StaffManagementModalProps> = ({
                             borderColor: isSelected ? '#19D3E6' : '#E5DDCD',
                           }}
                         >
+                          <View
+                            style={{
+                              width: 14,
+                              height: 14,
+                              borderRadius: 4,
+                              overflow: 'hidden',
+                              marginRight: 5,
+                            }}
+                          >
+                            <Image
+                              source={getPropertyImage(p, idx)}
+                              style={{ width: '100%', height: '100%' }}
+                              resizeMode="cover"
+                            />
+                          </View>
                           <Text
                             style={{
                               fontSize: 10,

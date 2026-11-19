@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal, View, Text, TouchableOpacity, ScrollView, Share, Alert } from 'react-native';
+import { Modal, View, Text, TouchableOpacity, ScrollView, Share, Alert, Image } from 'react-native';
 import {
   X,
   ShieldCheck,
@@ -16,6 +16,7 @@ import { fetchTenantsApi } from '../api/tenants';
 import { useAuth } from '../hooks/useAuth';
 import { useProperties } from '../context/PropertyContext';
 import { ITenantListItem } from '../types/api';
+import { getPropertyImage } from '../utils/assetImages';
 
 interface DpdpKycComplianceModalProps {
   visible: boolean;
@@ -149,20 +150,34 @@ Certified by Nilaaya Security Core
                 </Text>
               </TouchableOpacity>
 
-              {properties.map(p => {
+              {properties.map((p, idx) => {
                 const isSelected = filterPropertyId === p._id;
                 return (
                   <TouchableOpacity
                     key={p._id}
                     onPress={() => setFilterPropertyId(p._id)}
                     className={`flex-row items-center px-3 py-1.5 rounded-xl border ${
-                      isSelected ? 'bg-[#0A6C50] border-[#0A6C50]' : 'bg-slate-50 border-slate-200'
+                      isSelected ? 'bg-[#19D3E6] border-[#19D3E6]' : 'bg-slate-50 border-slate-200'
                     }`}
                   >
-                    <Building size={12} color={isSelected ? '#ffffff' : '#64748B'} />
+                    <View
+                      style={{
+                        width: 18,
+                        height: 18,
+                        borderRadius: 6,
+                        overflow: 'hidden',
+                        marginRight: 6,
+                      }}
+                    >
+                      <Image
+                        source={getPropertyImage(p, idx)}
+                        style={{ width: '100%', height: '100%' }}
+                        resizeMode="cover"
+                      />
+                    </View>
                     <Text
-                      className={`text-xs font-bold ml-1.5 ${
-                        isSelected ? 'text-white' : 'text-slate-700'
+                      className={`text-xs font-bold ${
+                        isSelected ? 'text-[#0C192B]' : 'text-slate-700'
                       }`}
                     >
                       {p.name}

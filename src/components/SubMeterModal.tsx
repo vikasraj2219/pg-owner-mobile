@@ -11,7 +11,17 @@ import {
   Platform,
   Image,
 } from 'react-native';
-import { X, Zap, Edit2, Trash2, DoorClosed, ArrowLeft, Filter } from 'lucide-react-native';
+import {
+  X,
+  Zap,
+  Edit2,
+  Trash2,
+  DoorClosed,
+  ArrowLeft,
+  Filter,
+  Search,
+  Layers,
+} from 'lucide-react-native';
 import { getPropertyImage } from '../utils/assetImages';
 import { useQueryClient } from '@tanstack/react-query';
 import { formatINR } from '../utils/currency';
@@ -57,10 +67,32 @@ export const SubMeterModal: React.FC<SubMeterModalProps> = ({
 
   const [rooms, setRooms] = useState<IRoom[]>([]);
   const [selectedRoom, setSelectedRoom] = useState<IRoom | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedFloor, setSelectedFloor] = useState<number | 'all'>('all');
+
+  useEffect(() => {
+    setSelectedRoom(null);
+    setSelectedFloor('all');
+    setSearchQuery('');
+  }, [activePropertyId]);
   const [readings, setReadings] = useState<IMeterReading[]>([]);
   const [historyRoomFilter, setHistoryRoomFilter] = useState<string>('all');
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const floorsList = useMemo(() => {
+    const distinct = Array.from(new Set(rooms.map(r => r.floorNumber))).sort((a, b) => a - b);
+    return distinct;
+  }, [rooms]);
+
+  const filteredRooms = useMemo(() => {
+    return rooms.filter(r => {
+      const matchesFloor = selectedFloor === 'all' || r.floorNumber === selectedFloor;
+      const q = searchQuery.toLowerCase().trim();
+      const matchesSearch = !q || r.roomNumber.toLowerCase().includes(q);
+      return matchesFloor && matchesSearch;
+    });
+  }, [rooms, selectedFloor, searchQuery]);
 
   // Form
   const [previousReading, setPreviousReading] = useState('0');
@@ -250,14 +282,30 @@ export const SubMeterModal: React.FC<SubMeterModalProps> = ({
     }
   };
 
-  // Filtered past readings based on history filter
+  // Filtered past readings based on history filter, floor, and search query
   const filteredReadings = useMemo(() => {
-    if (historyRoomFilter === 'all') return readings;
     return readings.filter(r => {
       const ident = (r.meterIdentifier || '').toLowerCase();
-      return ident.includes(`room ${historyRoomFilter.toLowerCase()}`);
+      if (historyRoomFilter !== 'all') {
+        if (!ident.includes(`room ${historyRoomFilter.toLowerCase()}`)) return false;
+      }
+      if (selectedFloor !== 'all') {
+        const roomsOnFloor = rooms
+          .filter(rm => rm.floorNumber === selectedFloor)
+          .map(rm => rm.roomNumber.toLowerCase());
+        const matchesFloor = roomsOnFloor.some(rn => ident.includes(`room ${rn}`));
+        if (!matchesFloor) return false;
+      }
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        const matchesIdent = ident.includes(q);
+        const matchesPrev = String(r.previousReading ?? '').includes(q);
+        const matchesCurr = String(r.currentReading ?? '').includes(q);
+        if (!matchesIdent && !matchesPrev && !matchesCurr) return false;
+      }
+      return true;
     });
-  }, [readings, historyRoomFilter]);
+  }, [readings, historyRoomFilter, selectedFloor, rooms, searchQuery]);
 
   if (!visible) return null;
 
@@ -319,8 +367,8 @@ export const SubMeterModal: React.FC<SubMeterModalProps> = ({
           </View>
         </View>
 
-        {/* Property Selector Bar (if owner has multiple properties) */}
-        {properties.length > 1 && (
+        {/* Property Selector Bar */}
+        {(properties.length > 0 || property) && (
           <View
             style={{
               backgroundColor: '#FAF5EB',
@@ -354,7 +402,7 @@ export const SubMeterModal: React.FC<SubMeterModalProps> = ({
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={{ gap: 8, paddingBottom: 4 }}
             >
-              {properties.map((p, idx) => {
+              {(properties.length > 0 ? properties : property ? [property] : []).map((p, idx) => {
                 const isSelected = activePropertyId === p._id;
                 return (
                   <TouchableOpacity
@@ -420,6 +468,127 @@ export const SubMeterModal: React.FC<SubMeterModalProps> = ({
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
+            {/* Search Bar */}
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                backgroundColor: '#FFFDF8',
+                borderRadius: 16,
+                paddingHorizontal: 14,
+                paddingVertical: 10,
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+                marginBottom: 14,
+              }}
+            >
+              <Search size={18} color="#657080" />
+              <TextInput
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                placeholder="Search room number or reading..."
+                placeholderTextColor="#8E98A0"
+                style={{
+                  flex: 1,
+                  marginLeft: 10,
+                  fontSize: 14,
+                  fontWeight: '500',
+                  color: '#0C192B',
+                  paddingVertical: 0,
+                }}
+              />
+              {searchQuery.length > 0 && (
+                <TouchableOpacity
+                  onPress={() => setSearchQuery('')}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <X size={18} color="#657080" />
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {/* Floor Filter Chips */}
+            {floorsList.length > 0 && (
+              <View style={{ marginBottom: 14 }}>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    marginBottom: 8,
+                  }}
+                >
+                  <Layers size={13} color="#0C192B" strokeWidth={2.2} style={{ marginRight: 6 }} />
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      fontWeight: '800',
+                      color: '#0C192B',
+                    }}
+                  >
+                    Filter by Floor
+                  </Text>
+                </View>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ gap: 8, paddingBottom: 2 }}
+                >
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => setSelectedFloor('all')}
+                    style={{
+                      paddingHorizontal: 16,
+                      paddingVertical: 7,
+                      borderRadius: 9999,
+                      borderWidth: 1,
+                      backgroundColor: selectedFloor === 'all' ? '#19D3E6' : '#FFFDF8',
+                      borderColor: selectedFloor === 'all' ? '#19D3E6' : '#E5DDCD',
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 12,
+                        fontWeight: selectedFloor === 'all' ? '800' : '600',
+                        color: selectedFloor === 'all' ? '#0C192B' : '#657080',
+                      }}
+                    >
+                      All Floors ({rooms.length} rooms)
+                    </Text>
+                  </TouchableOpacity>
+
+                  {floorsList.map(floor => {
+                    const isActive = selectedFloor === floor;
+                    const floorRoomCount = rooms.filter(r => r.floorNumber === floor).length;
+                    return (
+                      <TouchableOpacity
+                        key={`submeter-flr-${floor}`}
+                        activeOpacity={0.8}
+                        onPress={() => setSelectedFloor(floor)}
+                        style={{
+                          paddingHorizontal: 16,
+                          paddingVertical: 7,
+                          borderRadius: 9999,
+                          borderWidth: 1,
+                          backgroundColor: isActive ? '#19D3E6' : '#FFFDF8',
+                          borderColor: isActive ? '#19D3E6' : '#E5DDCD',
+                        }}
+                      >
+                        <Text
+                          style={{
+                            fontSize: 12,
+                            fontWeight: isActive ? '800' : '600',
+                            color: isActive ? '#0C192B' : '#657080',
+                          }}
+                        >
+                          Floor {floor === 0 ? 'Ground' : floor} ({floorRoomCount} rooms)
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+              </View>
+            )}
+
             {/* Room Selector Filter */}
             <View style={{ marginBottom: 14 }}>
               <View
@@ -442,50 +611,65 @@ export const SubMeterModal: React.FC<SubMeterModalProps> = ({
                     color: '#0C192B',
                   }}
                 >
-                  Select Room for Reading
+                  Select Room for Reading{' '}
+                  {selectedRoom ? `(Room ${selectedRoom.roomNumber} selected)` : ''}
                 </Text>
               </View>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ gap: 8, paddingBottom: 4 }}
-              >
-                {rooms.map(room => {
-                  const isSelected = selectedRoom?._id === room._id;
-                  return (
-                    <TouchableOpacity
-                      key={room._id}
-                      onPress={() => setSelectedRoom(room)}
-                      activeOpacity={0.7}
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        paddingHorizontal: 14,
-                        paddingVertical: 7,
-                        borderRadius: 9999,
-                        backgroundColor: isSelected ? '#19D3E6' : '#FFFDF8',
-                        borderWidth: 1,
-                        borderColor: isSelected ? '#19D3E6' : '#E5DDCD',
-                      }}
-                    >
-                      <DoorClosed
-                        size={13}
-                        color={isSelected ? '#0C192B' : '#657080'}
-                        style={{ marginRight: 6 }}
-                      />
-                      <Text
+
+              {filteredRooms.length === 0 ? (
+                <Text
+                  style={{
+                    fontSize: 12,
+                    color: '#657080',
+                    fontStyle: 'italic',
+                    paddingVertical: 6,
+                  }}
+                >
+                  No rooms match the selected floor or search query.
+                </Text>
+              ) : (
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ gap: 8, paddingBottom: 4 }}
+                >
+                  {filteredRooms.map(room => {
+                    const isSelected = selectedRoom?._id === room._id;
+                    return (
+                      <TouchableOpacity
+                        key={room._id}
+                        onPress={() => setSelectedRoom(isSelected ? null : room)}
+                        activeOpacity={0.7}
                         style={{
-                          fontSize: 12,
-                          fontWeight: isSelected ? '800' : '600',
-                          color: isSelected ? '#0C192B' : '#657080',
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          paddingHorizontal: 14,
+                          paddingVertical: 7,
+                          borderRadius: 9999,
+                          backgroundColor: isSelected ? '#19D3E6' : '#FFFDF8',
+                          borderWidth: 1,
+                          borderColor: isSelected ? '#19D3E6' : '#E5DDCD',
                         }}
                       >
-                        Room {room.roomNumber}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
+                        <DoorClosed
+                          size={13}
+                          color={isSelected ? '#0C192B' : '#657080'}
+                          style={{ marginRight: 6 }}
+                        />
+                        <Text
+                          style={{
+                            fontSize: 12,
+                            fontWeight: isSelected ? '800' : '600',
+                            color: isSelected ? '#0C192B' : '#657080',
+                          }}
+                        >
+                          Room {room.roomNumber}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+              )}
             </View>
 
             {/* Reading Input Card */}
@@ -778,12 +962,12 @@ export const SubMeterModal: React.FC<SubMeterModalProps> = ({
                   </Text>
                 </TouchableOpacity>
 
-                {rooms.map(room => {
+                {(filteredRooms.length > 0 ? filteredRooms : rooms).map(room => {
                   const isSelected = historyRoomFilter === room.roomNumber;
                   return (
                     <TouchableOpacity
                       key={`hist-${room._id}`}
-                      onPress={() => setHistoryRoomFilter(room.roomNumber)}
+                      onPress={() => setHistoryRoomFilter(isSelected ? 'all' : room.roomNumber)}
                       activeOpacity={0.7}
                       style={{
                         paddingHorizontal: 14,

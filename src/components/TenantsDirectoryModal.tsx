@@ -26,7 +26,7 @@ import { ITenantListItem, IProperty } from '../types/api';
 import { useTenants } from '../hooks/useTenants';
 import { formatINR } from '../utils/currency';
 import { formatSafeDate } from '../utils/date';
-import { getTenantAvatar } from '../utils/assetImages';
+import { getTenantAvatar, getPropertyImage } from '../utils/assetImages';
 
 interface TenantsDirectoryModalProps {
   visible: boolean;
@@ -258,12 +258,14 @@ export const TenantsDirectoryModal: React.FC<TenantsDirectoryModalProps> = ({
                   </Text>
                 </TouchableOpacity>
 
-                {properties.map(p => (
+                {properties.map((p, idx) => (
                   <TouchableOpacity
                     key={p._id}
                     activeOpacity={0.8}
                     onPress={() => setFilterPropertyId(p._id)}
                     style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
                       paddingHorizontal: 12,
                       paddingVertical: 6,
                       borderRadius: 9999,
@@ -272,6 +274,21 @@ export const TenantsDirectoryModal: React.FC<TenantsDirectoryModalProps> = ({
                       borderColor: filterPropertyId === p._id ? '#19D3E6' : '#E5DDCD',
                     }}
                   >
+                    <View
+                      style={{
+                        width: 18,
+                        height: 18,
+                        borderRadius: 6,
+                        overflow: 'hidden',
+                        marginRight: 6,
+                      }}
+                    >
+                      <Image
+                        source={getPropertyImage(p, idx)}
+                        style={{ width: '100%', height: '100%' }}
+                        resizeMode="cover"
+                      />
+                    </View>
                     <Text
                       style={{
                         fontSize: 12,

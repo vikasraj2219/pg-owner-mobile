@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
+  Image,
 } from 'react-native';
 import {
   X,
@@ -26,7 +27,6 @@ import {
   Clock,
   Info,
   Check,
-  Building2,
   DoorClosed,
   RefreshCw,
   Lock,
@@ -38,6 +38,7 @@ import { moveBedApi } from '../api/tenants';
 import { formatINR } from '../utils/currency';
 import { formatSafeDate, getNextBillingCycleDate } from '../utils/date';
 import { calculateBedTransferProration } from '../utils/proration';
+import { getPropertyImage } from '../utils/assetImages';
 import { DatePickerModal } from './DatePickerModal';
 import { SuccessActionModal } from './SuccessActionModal';
 import { IMatrixBed, IMatrixRoom, ITenantListItem } from '../types/api';
@@ -1354,7 +1355,7 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
                     showsHorizontalScrollIndicator={false}
                     contentContainerStyle={{ gap: 8 }}
                   >
-                    {properties.map(p => {
+                    {properties.map((p, idx) => {
                       const isSelected = p._id === activePropertyId;
                       return (
                         <TouchableOpacity
@@ -1371,11 +1372,21 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
                             borderColor: isSelected ? '#19D3E6' : '#E5DDCD',
                           }}
                         >
-                          <Building2
-                            size={12}
-                            color={isSelected ? '#0C192B' : '#657080'}
-                            style={{ marginRight: 6 }}
-                          />
+                          <View
+                            style={{
+                              width: 18,
+                              height: 18,
+                              borderRadius: 6,
+                              overflow: 'hidden',
+                              marginRight: 6,
+                            }}
+                          >
+                            <Image
+                              source={getPropertyImage(p, idx)}
+                              style={{ width: '100%', height: '100%' }}
+                              resizeMode="cover"
+                            />
+                          </View>
                           <Text
                             style={{
                               fontSize: 11,

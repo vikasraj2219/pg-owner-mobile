@@ -7,16 +7,31 @@ export const PROPERTY_IMAGES: ImageSourcePropType[] = [
   require('../../assets/properties/property-3.png'),
 ];
 
-export const BOY_AVATARS: ImageSourcePropType[] = [
+// 2 Male & 2 Female avatars dedicated exclusively for Tenants (fixed)
+export const TENANT_BOY_AVATARS: ImageSourcePropType[] = [
   require('../../assets/tenants/boy-1.png'),
   require('../../assets/tenants/boy-2.png'),
-  require('../../assets/tenants/boy-3.png'),
+];
+
+export const TENANT_GIRL_AVATARS: ImageSourcePropType[] = [
+  require('../../assets/tenants/girl-1.png'),
+  require('../../assets/tenants/girl-2.png'),
+];
+
+// 1 Male & 1 Female avatar dedicated exclusively for Admin / Owner
+export const OWNER_AVATAR: ImageSourcePropType = require('../../assets/tenants/boy-3.png');
+export const OWNER_AVATAR_FEMALE: ImageSourcePropType = require('../../assets/tenants/girl-3.png');
+
+export const BOY_AVATARS: ImageSourcePropType[] = [
+  TENANT_BOY_AVATARS[0],
+  TENANT_BOY_AVATARS[1],
+  OWNER_AVATAR,
 ];
 
 export const GIRL_AVATARS: ImageSourcePropType[] = [
-  require('../../assets/tenants/girl-1.png'),
-  require('../../assets/tenants/girl-2.png'),
-  require('../../assets/tenants/girl-3.png'),
+  TENANT_GIRL_AVATARS[0],
+  TENANT_GIRL_AVATARS[1],
+  OWNER_AVATAR_FEMALE,
 ];
 
 // Alternating male & female for balanced variety
@@ -151,9 +166,28 @@ export function getPropertyImage(
 }
 
 /**
- * Returns a profile avatar cycling across all 6 photos (3 male + 3 female).
+ * Returns the dedicated Admin / Owner avatar (the 3rd picture: boy-3 or girl-3).
  */
-export function getProfileAvatar(idOrName?: string, index?: number): ImageSourcePropType {
+export function getOwnerAvatar(idOrName?: string, gender?: string): ImageSourcePropType {
+  const isFemale =
+    gender === 'female' ||
+    gender === 'f' ||
+    gender === 'girl' ||
+    (idOrName ? isFemaleTenant(idOrName) : false);
+  return isFemale ? OWNER_AVATAR_FEMALE : OWNER_AVATAR;
+}
+
+/**
+ * Returns a profile avatar. If role is owner/admin, returns the dedicated owner avatar.
+ */
+export function getProfileAvatar(
+  idOrName?: string,
+  index?: number,
+  role?: string,
+): ImageSourcePropType {
+  if (role === 'owner' || role === 'admin') {
+    return getOwnerAvatar(idOrName);
+  }
   if (typeof index === 'number' && index >= 0) {
     return ALL_PROFILE_AVATARS[index % ALL_PROFILE_AVATARS.length];
   }
@@ -162,7 +196,7 @@ export function getProfileAvatar(idOrName?: string, index?: number): ImageSource
 }
 
 /**
- * Returns a stable, deterministic tenant avatar (boy or girl image).
+ * Returns a stable, deterministic tenant avatar fixed to the 2 boy or 2 girl photos.
  */
 export function getTenantAvatar(
   tenant?:
@@ -175,6 +209,6 @@ export function getTenantAvatar(
     'tenant';
 
   const h = hashString(idOrName);
-  const pool = isFemale ? GIRL_AVATARS : BOY_AVATARS;
+  const pool = isFemale ? TENANT_GIRL_AVATARS : TENANT_BOY_AVATARS;
   return pool[h % pool.length];
 }

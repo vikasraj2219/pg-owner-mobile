@@ -31,7 +31,7 @@ import { SubscriptionModal } from '../../src/components/SubscriptionModal';
 import { PropertiesRoomsModal } from '../../src/components/PropertiesRoomsModal';
 import { ConfirmActionModal } from '../../src/components/ConfirmDeleteModal';
 import { calculateDaysRemaining } from '../../src/utils/date';
-import { getProfileAvatar } from '../../src/utils/assetImages';
+import { getOwnerAvatar } from '../../src/utils/assetImages';
 import { useQuery } from '@tanstack/react-query';
 import { getCurrentSubscriptionApi } from '../../src/api/subscription';
 
@@ -225,7 +225,7 @@ export default function MoreScreen() {
             }}
           >
             <Image
-              source={getProfileAvatar(user?.name || organization?.ownerName || 'Owner')}
+              source={getOwnerAvatar(user?.name || organization?.ownerName || 'Owner')}
               style={{ width: '100%', height: '100%' }}
               resizeMode="cover"
             />
