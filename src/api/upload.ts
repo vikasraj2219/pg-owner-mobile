@@ -82,6 +82,17 @@ export const uploadKycDocumentApi = async (
 };
 
 /**
+ * Uploads a real tenant portrait photo to Cloudinary
+ */
+export const uploadTenantPhotoApi = async (
+  fileUri: string,
+  fileName = 'tenant_photo.jpg',
+): Promise<string> => {
+  const result = await uploadKycDocumentApi(fileUri, fileName, 'image/jpeg');
+  return result.secureUrl || result.url;
+};
+
+/**
  * Check Cloudinary storage availability
  */
 export const getUploadStatusApi = async (): Promise<UploadStatusData> => {

@@ -38,9 +38,10 @@ import {
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { useQueryClient } from '@tanstack/react-query';
-import { uploadKycDocumentApi } from '../../src/api/upload';
+import { uploadKycDocumentApi, uploadTenantPhotoApi } from '../../src/api/upload';
 import { IdDocumentViewerModal } from '../../src/components/IdDocumentViewerModal';
 import { BedTransferModal } from '../../src/components/BedTransferModal';
+import { TenantPhotoModal } from '../../src/components/TenantPhotoModal';
 import { useTenantDetail } from '../../src/hooks/useTenants';
 import { useMatrix } from '../../src/hooks/useMatrix';
 import { formatINR } from '../../src/utils/currency';
@@ -117,6 +118,10 @@ export default function TenantDetailScreen() {
   const [showIdDocViewer, setShowIdDocViewer] = useState(false);
   const [showPhotoPickerModal, setShowPhotoPickerModal] = useState(false);
   const [isReplacingPhoto, setIsReplacingPhoto] = useState(false);
+
+  // Real Tenant Profile Photo state
+  const [showTenantPhotoModal, setShowTenantPhotoModal] = useState(false);
+  const [isUpdatingTenantPhoto, setIsUpdatingTenantPhoto] = useState(false);
 
   // Fetch tenant details
   const { tenant, invoices, deposits, payments, balanceDuePaise, isLoading, refetch } =
@@ -582,6 +587,46 @@ export default function TenantDetailScreen() {
     }
   };
 
+  const handleUpdateTenantPhoto = async (uri: string) => {
+    if (!tenant) return;
+    try {
+      setIsUpdatingTenantPhoto(true);
+      const uploadedUrl = await uploadTenantPhotoApi(
+        uri,
+        `${tenant.fullName.trim().replace(/\s+/g, '_')}_photo.jpg`,
+      );
+      await updateTenantApi(tenant._id, { photoUrl: uploadedUrl });
+      await refetch();
+      queryClient.invalidateQueries({ queryKey: ['tenants'] });
+      queryClient.invalidateQueries({ queryKey: ['matrix'] });
+      queryClient.invalidateQueries({ queryKey: ['tenant', id] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      Alert.alert('Photo Updated', 'Tenant profile photo has been updated successfully.');
+    } catch (err: any) {
+      Alert.alert('Upload Error', err?.message || 'Could not update profile photo.');
+    } finally {
+      setIsUpdatingTenantPhoto(false);
+    }
+  };
+
+  const handleRemoveTenantPhoto = async () => {
+    if (!tenant) return;
+    try {
+      setIsUpdatingTenantPhoto(true);
+      await updateTenantApi(tenant._id, { photoUrl: '' });
+      await refetch();
+      queryClient.invalidateQueries({ queryKey: ['tenants'] });
+      queryClient.invalidateQueries({ queryKey: ['matrix'] });
+      queryClient.invalidateQueries({ queryKey: ['tenant', id] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      Alert.alert('Photo Removed', 'Tenant picture reverted to default avatar.');
+    } catch (err: any) {
+      Alert.alert('Error', err?.message || 'Could not remove photo.');
+    } finally {
+      setIsUpdatingTenantPhoto(false);
+    }
+  };
+
   if (isLoading || !tenant) {
     return (
       <SafeAreaView
@@ -689,26 +734,50 @@ export default function TenantDetailScreen() {
         <View style={{ paddingHorizontal: 20, paddingTop: 18, paddingBottom: 16 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             {/* Tenant Photo Avatar */}
-            <View
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => setShowTenantPhotoModal(true)}
               style={{
-                width: 64,
-                height: 64,
-                borderRadius: 32,
+                position: 'relative',
+                width: 68,
+                height: 68,
+                borderRadius: 34,
                 backgroundColor: '#FAF5EB',
                 borderWidth: 1.5,
-                borderColor: '#E5DDCD',
+                borderColor: tenant.photoUrl ? '#19D3E6' : '#E5DDCD',
                 overflow: 'hidden',
                 alignItems: 'center',
                 justifyContent: 'center',
                 marginRight: 16,
               }}
             >
-              <Image
-                source={getTenantAvatar(tenant)}
-                style={{ width: '100%', height: '100%' }}
-                resizeMode="cover"
-              />
-            </View>
+              {isUpdatingTenantPhoto ? (
+                <ActivityIndicator size="small" color="#4F5330" />
+              ) : (
+                <Image
+                  source={getTenantAvatar(tenant)}
+                  style={{ width: '100%', height: '100%' }}
+                  resizeMode="cover"
+                />
+              )}
+              <View
+                style={{
+                  position: 'absolute',
+                  bottom: 0,
+                  right: 0,
+                  backgroundColor: '#19D3E6',
+                  width: 22,
+                  height: 22,
+                  borderRadius: 11,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderWidth: 1.5,
+                  borderColor: '#FFFFFF',
+                }}
+              >
+                <Camera size={11} color="#0C192B" />
+              </View>
+            </TouchableOpacity>
 
             {/* Name & Room Details */}
             <View style={{ flex: 1 }}>
@@ -1987,6 +2056,25 @@ export default function TenantDetailScreen() {
             <TouchableOpacity
               onPress={() => {
                 setIsActionSheetVisible(false);
+                setShowTenantPhotoModal(true);
+              }}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingVertical: 14,
+                borderBottomWidth: 1,
+                borderBottomColor: '#F0ECE1',
+              }}
+            >
+              <Camera size={20} color="#0C192B" />
+              <Text style={{ fontSize: 14, fontWeight: '700', color: '#0C192B', marginLeft: 14 }}>
+                Change profile photo
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => {
+                setIsActionSheetVisible(false);
                 setShowTransferModal(true);
               }}
               style={{
@@ -2454,6 +2542,15 @@ export default function TenantDetailScreen() {
           }}
         />
       )}
+
+      {/* Real Tenant Photo Modal */}
+      <TenantPhotoModal
+        visible={showTenantPhotoModal}
+        onClose={() => setShowTenantPhotoModal(false)}
+        onPhotoSelected={handleUpdateTenantPhoto}
+        onPhotoRemoved={handleRemoveTenantPhoto}
+        hasExistingPhoto={Boolean(tenant?.photoUrl)}
+      />
 
       {/* Confirmation Modal for Cancelling Notice Period */}
       {tenant && (

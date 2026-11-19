@@ -16,6 +16,7 @@ export interface UpdateTenantPayload {
   depositPaise?: Paise;
   kycMaskedNumber?: string;
   kycDocUrl?: string;
+  photoUrl?: string;
 }
 
 export interface MoveBedPayload {

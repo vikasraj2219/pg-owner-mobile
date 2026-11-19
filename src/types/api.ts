@@ -140,6 +140,7 @@ export interface ITenant {
   kycMaskedNumber?: string;
   kycDocUrl?: string;
   kycConsent: boolean;
+  photoUrl?: string;
   status: 'active' | 'notice_period' | 'checked_out';
   scheduledTransfer?: IScheduledTransfer;
   transferHistory?: IBedTransferHistoryItem[];
@@ -182,6 +183,7 @@ export interface ITenantListItem {
   kycMaskedNumber?: string;
   kycDocUrl?: string;
   kycConsent: boolean;
+  photoUrl?: string;
   status: 'active' | 'notice_period' | 'checked_out';
   scheduledTransfer?: IScheduledTransfer;
   transferHistory?: IBedTransferHistoryItem[];
@@ -385,6 +387,7 @@ export interface IMatrixBedTenant {
   kycDocUrl?: string;
   kycDocType?: string;
   kycMaskedNumber?: string;
+  photoUrl?: string;
 }
 
 export interface IMatrixBed {
@@ -467,6 +470,7 @@ export interface QuickCheckinPayload {
   kycMaskedNumber?: string;
   kycDocUrl?: string;
   kycConsent: boolean;
+  photoUrl?: string;
 }
 
 export interface QuickCheckinResponseData {

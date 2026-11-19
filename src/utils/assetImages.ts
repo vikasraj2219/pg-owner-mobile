@@ -197,12 +197,35 @@ export function getProfileAvatar(
 
 /**
  * Returns a stable, deterministic tenant avatar fixed to the 2 boy or 2 girl photos.
+ * If the tenant has a real uploaded photoUrl, it returns that image source directly.
  */
 export function getTenantAvatar(
   tenant?:
-    { _id?: string; fullName?: string; gender?: string; propertyType?: string } | string | null,
+    | {
+        _id?: string;
+        fullName?: string;
+        gender?: string;
+        propertyType?: string;
+        photoUrl?: string;
+      }
+    | string
+    | null,
   propertyType?: string,
 ): ImageSourcePropType {
+  // If tenant has an uploaded real picture, display it
+  if (typeof tenant === 'object' && tenant?.photoUrl) {
+    const photo = tenant.photoUrl.trim();
+    if (
+      photo.startsWith('http://') ||
+      photo.startsWith('https://') ||
+      photo.startsWith('file:') ||
+      photo.startsWith('content:') ||
+      photo.startsWith('data:')
+    ) {
+      return { uri: photo };
+    }
+  }
+
   const isFemale = isFemaleTenant(tenant, propertyType);
   const idOrName =
     (typeof tenant === 'string' ? tenant : tenant?._id || tenant?.fullName || 'tenant').trim() ||

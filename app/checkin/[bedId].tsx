@@ -39,6 +39,7 @@ import { QuickCheckinPayload, QuickCheckinResponseData } from '../../src/types/a
 import { DynamicUpiQrModal } from '../../src/components/DynamicUpiQrModal';
 import { IdDocumentViewerModal } from '../../src/components/IdDocumentViewerModal';
 import { DatePickerModal } from '../../src/components/DatePickerModal';
+import { TenantPhotoModal } from '../../src/components/TenantPhotoModal';
 import { formatINR } from '../../src/utils/currency';
 
 export default function CheckinScreen() {
@@ -68,6 +69,8 @@ export default function CheckinScreen() {
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [emergencyPhone, setEmergencyPhone] = useState('');
+  const [tenantPhotoUri, setTenantPhotoUri] = useState<string | null>(null);
+  const [showTenantPhotoModal, setShowTenantPhotoModal] = useState(false);
 
   const [monthlyRent, setMonthlyRent] = useState(
     params.baseRentPaise ? String(Math.round(parseInt(params.baseRentPaise, 10) / 100)) : '8500',
@@ -342,6 +345,40 @@ export default function CheckinScreen() {
         }
       }
 
+      // Process and upload tenant real portrait photo if provided
+      let finalPhotoUrl: string | undefined;
+      if (tenantPhotoUri) {
+        let localPhotoBase64 = tenantPhotoUri;
+        try {
+          const manip = await ImageManipulator.manipulateAsync(
+            tenantPhotoUri,
+            [{ resize: { width: 700 } }],
+            { compress: 0.75, format: ImageManipulator.SaveFormat.JPEG, base64: true },
+          );
+          if (manip.base64) {
+            localPhotoBase64 = `data:image/jpeg;base64,${manip.base64}`;
+          }
+        } catch {
+          // Keep raw if manipulation fails
+        }
+
+        try {
+          const photoUploadRes = await uploadKycDocumentApi(
+            tenantPhotoUri,
+            `${fullName.trim().replace(/\s+/g, '_')}_photo.jpg`,
+            'image/jpeg',
+          );
+          if (photoUploadRes?.secureUrl) {
+            finalPhotoUrl = photoUploadRes.secureUrl;
+          } else {
+            finalPhotoUrl = localPhotoBase64;
+          }
+        } catch (photoErr) {
+          console.warn('Backend photo upload notice, using persistent local photo:', photoErr);
+          finalPhotoUrl = localPhotoBase64;
+        }
+      }
+
       setUploadProgress(70);
 
       // Generate masked Aadhaar from phone digits if not given
@@ -363,6 +400,7 @@ export default function CheckinScreen() {
         kycMaskedNumber: kycMasked,
         kycDocUrl: finalKycUrl,
         kycConsent: agreesToIdStorage,
+        photoUrl: finalPhotoUrl,
       };
 
       const result = await quickCheckinApi(payload);
@@ -723,6 +761,109 @@ export default function CheckinScreen() {
             >
               2 · TENANT
             </Text>
+
+            {/* Real Tenant Picture Picker */}
+            <View
+              style={{
+                backgroundColor: '#FFFDF8',
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+                borderRadius: 16,
+                padding: 14,
+                marginBottom: 16,
+                flexDirection: 'row',
+                alignItems: 'center',
+              }}
+            >
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => setShowTenantPhotoModal(true)}
+                style={{
+                  position: 'relative',
+                  width: 58,
+                  height: 58,
+                  borderRadius: 29,
+                  backgroundColor: '#FAF5EB',
+                  borderWidth: 1.5,
+                  borderColor: tenantPhotoUri ? '#19D3E6' : '#E5DDCD',
+                  overflow: 'hidden',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginRight: 14,
+                }}
+              >
+                {tenantPhotoUri ? (
+                  <Image
+                    source={{ uri: tenantPhotoUri }}
+                    style={{ width: '100%', height: '100%' }}
+                  />
+                ) : (
+                  <Camera size={22} color="#657080" />
+                )}
+                <View
+                  style={{
+                    position: 'absolute',
+                    bottom: 0,
+                    right: 0,
+                    backgroundColor: '#19D3E6',
+                    width: 20,
+                    height: 20,
+                    borderRadius: 10,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderWidth: 1.5,
+                    borderColor: '#FFFFFF',
+                  }}
+                >
+                  <Camera size={10} color="#0C192B" />
+                </View>
+              </TouchableOpacity>
+
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 13.5, fontWeight: '700', color: '#0C192B' }}>
+                  Tenant Photo (Real Picture)
+                </Text>
+                <Text style={{ fontSize: 11.5, fontWeight: '500', color: '#657080', marginTop: 2 }}>
+                  {tenantPhotoUri ? 'Real photo attached' : 'Snap photo or select from gallery'}
+                </Text>
+                <View style={{ flexDirection: 'row', gap: 8, marginTop: 6 }}>
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => setShowTenantPhotoModal(true)}
+                    style={{
+                      paddingHorizontal: 10,
+                      paddingVertical: 4,
+                      borderRadius: 8,
+                      backgroundColor: '#FAF5EB',
+                      borderWidth: 1,
+                      borderColor: '#E5DDCD',
+                    }}
+                  >
+                    <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#0C192B' }}>
+                      {tenantPhotoUri ? 'Change' : '+ Add Photo'}
+                    </Text>
+                  </TouchableOpacity>
+                  {tenantPhotoUri && (
+                    <TouchableOpacity
+                      activeOpacity={0.8}
+                      onPress={() => setTenantPhotoUri(null)}
+                      style={{
+                        paddingHorizontal: 10,
+                        paddingVertical: 4,
+                        borderRadius: 8,
+                        backgroundColor: '#FEF2F2',
+                        borderWidth: 1,
+                        borderColor: '#FEE2E2',
+                      }}
+                    >
+                      <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#DC2626' }}>
+                        Remove
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </View>
+            </View>
 
             {/* Full Name */}
             <View style={{ marginBottom: 14 }}>
@@ -1715,6 +1856,15 @@ export default function CheckinScreen() {
           selectedDate={joinDate}
           onSelectDate={setJoinDate}
           title="Choose Joining Date"
+        />
+
+        {/* Real Tenant Picture Modal */}
+        <TenantPhotoModal
+          visible={showTenantPhotoModal}
+          onClose={() => setShowTenantPhotoModal(false)}
+          onPhotoSelected={uri => setTenantPhotoUri(uri)}
+          onPhotoRemoved={() => setTenantPhotoUri(null)}
+          hasExistingPhoto={Boolean(tenantPhotoUri)}
         />
       </KeyboardAvoidingView>
     </SafeAreaView>
