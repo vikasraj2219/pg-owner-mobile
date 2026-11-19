@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Modal,
   Alert,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -46,6 +47,7 @@ import { openWhatsApp } from '../../src/utils/whatsapp';
 import { PropertySwitcherModal } from '../../src/components/PropertySwitcherModal';
 import { ConfirmDeleteModal, ConfirmActionModal } from '../../src/components/ConfirmDeleteModal';
 import { SuccessActionModal } from '../../src/components/SuccessActionModal';
+import { getTenantAvatar } from '../../src/utils/assetImages';
 
 type FilterTab = 'all' | 'active' | 'notice_period' | 'checked_out';
 
@@ -194,16 +196,6 @@ export default function TenantsScreen() {
       if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
     };
   }, [undoToast.visible, undoToast.secondsLeft]);
-
-  // Initials generator
-  const getInitials = (name?: string) => {
-    if (!name) return 'TN';
-    const parts = name.trim().split(' ');
-    if (parts.length >= 2 && parts[0] && parts[1]) {
-      return (parts[0][0] + parts[1][0]).toUpperCase();
-    }
-    return name.slice(0, 2).toUpperCase();
-  };
 
   // Trigger Delete flow
   const handleDeletePress = (tenant: ITenantListItem) => {
@@ -680,18 +672,23 @@ export default function TenantsScreen() {
                 >
                   <View
                     style={{
-                      width: 46,
-                      height: 46,
-                      borderRadius: 23,
-                      backgroundColor: '#D1F4F9',
+                      width: 48,
+                      height: 48,
+                      borderRadius: 24,
+                      backgroundColor: '#FAF5EB',
+                      borderWidth: 1,
+                      borderColor: '#E5DDCD',
+                      overflow: 'hidden',
                       alignItems: 'center',
                       justifyContent: 'center',
                       marginRight: 14,
                     }}
                   >
-                    <Text style={{ fontSize: 14, fontWeight: '800', color: '#0799AA' }}>
-                      {getInitials(tenant.fullName)}
-                    </Text>
+                    <Image
+                      source={getTenantAvatar(tenant, selectedProperty?.type)}
+                      style={{ width: '100%', height: '100%' }}
+                      resizeMode="cover"
+                    />
                   </View>
 
                   {/* Middle: Details */}
@@ -959,15 +956,20 @@ export default function TenantsScreen() {
                     width: 48,
                     height: 48,
                     borderRadius: 24,
-                    backgroundColor: '#D1F4F9',
+                    backgroundColor: '#FAF5EB',
+                    borderWidth: 1,
+                    borderColor: '#E5DDCD',
+                    overflow: 'hidden',
                     alignItems: 'center',
                     justifyContent: 'center',
                     marginRight: 14,
                   }}
                 >
-                  <Text style={{ fontSize: 14, fontWeight: '800', color: '#0799AA' }}>
-                    {getInitials(actionSheetTenant.fullName)}
-                  </Text>
+                  <Image
+                    source={getTenantAvatar(actionSheetTenant, selectedProperty?.type)}
+                    style={{ width: '100%', height: '100%' }}
+                    resizeMode="cover"
+                  />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontSize: 16, fontWeight: '800', color: '#0C192B' }}>

@@ -8,6 +8,7 @@ import {
   Alert,
   ActivityIndicator,
   RefreshControl,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -35,6 +36,7 @@ import { RecordPaymentModal } from '../../src/components/RecordPaymentModal';
 import { DynamicUpiQrModal } from '../../src/components/DynamicUpiQrModal';
 import { PropertySwitcherModal } from '../../src/components/PropertySwitcherModal';
 import { DueInvoiceItem } from '../../src/types/api';
+import { getTenantAvatar } from '../../src/utils/assetImages';
 
 export default function DuesScreen() {
   const router = useRouter();
@@ -86,17 +88,6 @@ export default function DuesScreen() {
       currentBed: item.tenant?.currentBed,
       matrixData,
     });
-  };
-
-  const getInitials = (fullName?: string) => {
-    if (!fullName) return 'TN';
-    return fullName
-      .split(' ')
-      .filter(Boolean)
-      .map((word: string) => word[0])
-      .join('')
-      .slice(0, 2)
-      .toUpperCase();
   };
 
   const handleSendWhatsApp = (item: DueInvoiceItem) => {
@@ -551,7 +542,6 @@ export default function DuesScreen() {
         {!isLoading &&
           invoices.map(item => {
             const tenantName = item.tenant?.fullName || 'Tenant';
-            const initials = getInitials(tenantName);
             const bedInfo = getBedInfo(item);
             const bedName = bedInfo.formattedLabel;
             const dueDateFormatted = item.dueDate
@@ -619,15 +609,20 @@ export default function DuesScreen() {
                         width: 44,
                         height: 44,
                         borderRadius: 22,
-                        backgroundColor: '#D1F4F9',
+                        backgroundColor: '#FAF5EB',
+                        borderWidth: 1,
+                        borderColor: '#E5DDCD',
+                        overflow: 'hidden',
                         alignItems: 'center',
                         justifyContent: 'center',
                         marginRight: 12,
                       }}
                     >
-                      <Text style={{ fontSize: 14, fontWeight: '800', color: '#0799AA' }}>
-                        {initials}
-                      </Text>
+                      <Image
+                        source={getTenantAvatar(item.tenant, selectedProperty?.type)}
+                        style={{ width: '100%', height: '100%' }}
+                        resizeMode="cover"
+                      />
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text

@@ -59,6 +59,7 @@ import {
 } from '../../src/api/tenants';
 import { DueInvoiceItem, MarkPaidResponseData } from '../../src/types/api';
 import { generateAndShareReceipt } from '../../src/utils/pdfReceipt';
+import { getTenantAvatar } from '../../src/utils/assetImages';
 
 type DetailTab = 'overview' | 'payments' | 'id_proof';
 
@@ -126,16 +127,6 @@ export default function TenantDetailScreen() {
       ? (tenant.property as any)._id
       : tenant?.property;
   const { matrixData } = useMatrix(propertyId || null);
-
-  // Initials generator
-  const getInitials = (name?: string) => {
-    if (!name) return 'TN';
-    const parts = name.trim().split(' ');
-    if (parts.length >= 2 && parts[0] && parts[1]) {
-      return (parts[0][0] + parts[1][0]).toUpperCase();
-    }
-    return name.slice(0, 2).toUpperCase();
-  };
 
   const bedInfo = useMemo(() => {
     const resolved = resolveRoomAndBed({
@@ -697,21 +688,26 @@ export default function TenantDetailScreen() {
         {/* Hero Section */}
         <View style={{ paddingHorizontal: 20, paddingTop: 18, paddingBottom: 16 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            {/* Initials Avatar */}
+            {/* Tenant Photo Avatar */}
             <View
               style={{
                 width: 64,
                 height: 64,
                 borderRadius: 32,
-                backgroundColor: '#D1F4F9',
+                backgroundColor: '#FAF5EB',
+                borderWidth: 1.5,
+                borderColor: '#E5DDCD',
+                overflow: 'hidden',
                 alignItems: 'center',
                 justifyContent: 'center',
                 marginRight: 16,
               }}
             >
-              <Text style={{ fontSize: 20, fontWeight: '800', color: '#0799AA' }}>
-                {getInitials(tenant.fullName)}
-              </Text>
+              <Image
+                source={getTenantAvatar(tenant)}
+                style={{ width: '100%', height: '100%' }}
+                resizeMode="cover"
+              />
             </View>
 
             {/* Name & Room Details */}
@@ -1943,15 +1939,20 @@ export default function TenantDetailScreen() {
                   width: 48,
                   height: 48,
                   borderRadius: 24,
-                  backgroundColor: '#D1F4F9',
+                  backgroundColor: '#FAF5EB',
+                  borderWidth: 1,
+                  borderColor: '#E5DDCD',
+                  overflow: 'hidden',
                   alignItems: 'center',
                   justifyContent: 'center',
                   marginRight: 14,
                 }}
               >
-                <Text style={{ fontSize: 14, fontWeight: '800', color: '#0799AA' }}>
-                  {getInitials(tenant.fullName)}
-                </Text>
+                <Image
+                  source={getTenantAvatar(tenant)}
+                  style={{ width: '100%', height: '100%' }}
+                  resizeMode="cover"
+                />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={{ fontSize: 16, fontWeight: '700', color: '#0C192B' }}>

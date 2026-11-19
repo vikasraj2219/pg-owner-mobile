@@ -11,10 +11,10 @@ import {
   Switch,
   ActivityIndicator,
   Alert,
+  Image,
 } from 'react-native';
 import {
   ArrowLeft,
-  DoorOpen,
   DoorClosed,
   Layers,
   ChevronDown,
@@ -37,6 +37,7 @@ import { RoomSummaryCard } from './RoomSummaryCard';
 import { formatFloorLabel } from './AddRoomModal';
 import { SuccessActionModal } from './SuccessActionModal';
 import { formatINR } from '../utils/currency';
+import { getPropertyImage } from '../utils/assetImages';
 
 interface EditRoomModalProps {
   visible: boolean;
@@ -331,14 +332,14 @@ export const EditRoomModal: React.FC<EditRoomModalProps> = ({
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* Room Preview Card */}
+          {/* Property Banner Card matching Figma */}
           <View
             style={{
               backgroundColor: '#FFFDF8',
               borderWidth: 1,
               borderColor: '#E5DDCD',
               borderRadius: 20,
-              padding: 14,
+              padding: 12,
               flexDirection: 'row',
               alignItems: 'center',
               marginBottom: 18,
@@ -351,42 +352,60 @@ export const EditRoomModal: React.FC<EditRoomModalProps> = ({
           >
             <View
               style={{
-                width: 48,
-                height: 48,
+                width: 76,
+                height: 60,
                 borderRadius: 14,
-                backgroundColor: '#FAF7F2',
+                overflow: 'hidden',
                 borderWidth: 1,
                 borderColor: '#E5DDCD',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginRight: 14,
+                marginRight: 12,
               }}
             >
-              <DoorOpen size={24} color="#4F5330" />
+              <Image
+                source={getPropertyImage(property)}
+                style={{ width: '100%', height: '100%' }}
+                resizeMode="cover"
+              />
             </View>
 
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 17, fontWeight: '800', color: '#0C192B' }} numberOfLines={1}>
-                Room {roomNumber || room.roomNumber}
-              </Text>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                }}
+              >
+                <Text
+                  style={{ fontSize: 17, fontWeight: '800', color: '#0C192B' }}
+                  numberOfLines={1}
+                >
+                  {property?.name || 'PG Property'}
+                </Text>
+                <View
+                  style={{
+                    backgroundColor: '#EAF7EE',
+                    paddingHorizontal: 8,
+                    paddingVertical: 2,
+                    borderRadius: 9999,
+                    borderWidth: 1,
+                    borderColor: '#B2E7C3',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Check size={11} color="#0A6C50" strokeWidth={3} style={{ marginRight: 3 }} />
+                  <Text style={{ fontSize: 10, fontWeight: '800', color: '#0A6C50' }}>Active</Text>
+                </View>
+              </View>
               <Text
-                style={{ fontSize: 12, fontWeight: '500', color: '#657080', marginTop: 2 }}
+                style={{ fontSize: 12, fontWeight: '500', color: '#657080', marginTop: 3 }}
                 numberOfLines={1}
               >
-                {formatFloorLabel(parseFloorInt(floorNumber, 1))} •{' '}
-                {property?.name || 'PG Property'}
+                {property?.address ? `${property.address}, ` : ''}
+                {property?.city || 'Hyderabad'}
+                {property?.pincode ? `, ${property.pincode}` : ''}
               </Text>
-            </View>
-
-            <View
-              style={{
-                backgroundColor: '#E8F5E9',
-                paddingHorizontal: 10,
-                paddingVertical: 3,
-                borderRadius: 9999,
-              }}
-            >
-              <Text style={{ fontSize: 11, fontWeight: '800', color: '#2E7D32' }}>Active</Text>
             </View>
           </View>
 

@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useCallback, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, RefreshControl, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -26,6 +26,7 @@ import { TenantsDirectoryModal } from '../../src/components/TenantsDirectoryModa
 import { formatINR } from '../../src/utils/currency';
 import { formatSafeMonthYear, calculateDaysRemaining } from '../../src/utils/date';
 import { DashboardSkeleton } from '../../src/components/Skeleton';
+import { getPropertyImage } from '../../src/utils/assetImages';
 
 export default function PulseScreen() {
   const router = useRouter();
@@ -502,20 +503,21 @@ export default function PulseScreen() {
                             >
                               <View
                                 style={{
-                                  width: 44,
-                                  height: 44,
-                                  backgroundColor: isSelected ? '#19D3E6' : '#FAF5EB',
+                                  width: 48,
+                                  height: 48,
+                                  backgroundColor: '#FAF5EB',
                                   borderRadius: 14,
-                                  borderWidth: 1,
+                                  borderWidth: 1.5,
                                   borderColor: isSelected ? '#19D3E6' : '#E5DDCD',
+                                  overflow: 'hidden',
                                   alignItems: 'center',
                                   justifyContent: 'center',
                                 }}
                               >
-                                <Building2
-                                  size={22}
-                                  color={isSelected ? '#0C192B' : '#4F5330'}
-                                  strokeWidth={2.2}
+                                <Image
+                                  source={getPropertyImage(prop)}
+                                  style={{ width: '100%', height: '100%' }}
+                                  resizeMode="cover"
                                 />
                               </View>
                               <View style={{ flex: 1 }}>

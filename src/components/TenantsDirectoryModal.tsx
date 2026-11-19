@@ -10,12 +10,14 @@ import {
   ActivityIndicator,
   Linking,
   Alert,
+  Image,
 } from 'react-native';
 import { X, Search, Users, Phone, MessageSquare, Building, ShieldCheck } from 'lucide-react-native';
 import { ITenantListItem, IProperty } from '../types/api';
 import { useTenants } from '../hooks/useTenants';
 import { formatINR } from '../utils/currency';
 import { formatSafeDate } from '../utils/date';
+import { getTenantAvatar } from '../utils/assetImages';
 
 interface TenantsDirectoryModalProps {
   visible: boolean;
@@ -76,15 +78,6 @@ export const TenantsDirectoryModal: React.FC<TenantsDirectoryModalProps> = ({
     () => tenants.filter(t => t.status === 'notice_period').length,
     [tenants],
   );
-
-  const getInitials = (name?: string) => {
-    if (!name) return 'TN';
-    const parts = name.trim().split(' ');
-    if (parts.length >= 2 && parts[0] && parts[1]) {
-      return (parts[0][0] + parts[1][0]).toUpperCase();
-    }
-    return name.slice(0, 2).toUpperCase();
-  };
 
   const handleCall = (phone: string) => {
     if (!phone) {
@@ -464,7 +457,6 @@ export const TenantsDirectoryModal: React.FC<TenantsDirectoryModalProps> = ({
           ) : (
             <View style={{ gap: 12 }}>
               {filteredTenants.map(tenant => {
-                const initials = getInitials(tenant.fullName);
                 const bedInfo = getBedInfo(tenant);
                 const propName = getPropertyName(tenant);
                 const isOnNotice = tenant.status === 'notice_period';
@@ -502,32 +494,21 @@ export const TenantsDirectoryModal: React.FC<TenantsDirectoryModalProps> = ({
                           style={{
                             width: 44,
                             height: 44,
-                            borderRadius: 16,
+                            borderRadius: 22,
+                            backgroundColor: '#FAF5EB',
+                            borderWidth: 1,
+                            borderColor: '#E5DDCD',
+                            overflow: 'hidden',
                             alignItems: 'center',
                             justifyContent: 'center',
                             marginRight: 12,
-                            backgroundColor: isOnNotice
-                              ? '#FEF3C7'
-                              : isCheckedOut
-                                ? '#FAF5EB'
-                                : '#D1F4F9',
-                            borderWidth: 1,
-                            borderColor: isOnNotice
-                              ? '#FDE047'
-                              : isCheckedOut
-                                ? '#E5DDCD'
-                                : '#A5F3FC',
                           }}
                         >
-                          <Text
-                            style={{
-                              fontSize: 14,
-                              fontWeight: '800',
-                              color: isOnNotice ? '#B45309' : isCheckedOut ? '#657080' : '#0799AA',
-                            }}
-                          >
-                            {initials}
-                          </Text>
+                          <Image
+                            source={getTenantAvatar(tenant)}
+                            style={{ width: '100%', height: '100%' }}
+                            resizeMode="cover"
+                          />
                         </View>
                         <View style={{ flex: 1 }}>
                           <Text

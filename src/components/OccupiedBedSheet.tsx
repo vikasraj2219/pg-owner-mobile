@@ -8,6 +8,7 @@ import {
   Alert,
   ActivityIndicator,
   StyleSheet,
+  Image,
 } from 'react-native';
 import { MessageSquare, X, LogOut, Clock } from 'lucide-react-native';
 import { useQueryClient } from '@tanstack/react-query';
@@ -18,6 +19,7 @@ import { sendRentReminder } from '../utils/whatsapp';
 import { setTenantNoticeApi, cancelTenantNoticeApi } from '../api/notice';
 import { ConfirmActionModal } from './ConfirmDeleteModal';
 import { SuccessActionModal } from './SuccessActionModal';
+import { getTenantAvatar } from '../utils/assetImages';
 
 interface OccupiedBedSheetProps {
   visible: boolean;
@@ -54,14 +56,6 @@ export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
   if (!bed || !room || !bed.currentTenant) return null;
 
   const tenant = bed.currentTenant;
-  const initials = tenant.fullName
-    ? tenant.fullName
-        .split(' ')
-        .map(n => n[0])
-        .slice(0, 2)
-        .join('')
-        .toUpperCase()
-    : 'TN';
 
   const isDue = tenant.paymentStatus === 'DUE' || (tenant.rentDuePaise && tenant.rentDuePaise > 0);
   const overdueText = tenant.overdueDays ? ` · ${tenant.overdueDays}d overdue` : '';
@@ -156,7 +150,11 @@ export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
               {/* Tenant Header Row matching App Colors */}
               <View style={styles.tenantHeaderRow}>
                 <View style={styles.avatar}>
-                  <Text style={styles.avatarText}>{initials}</Text>
+                  <Image
+                    source={getTenantAvatar(tenant)}
+                    style={{ width: '100%', height: '100%' }}
+                    resizeMode="cover"
+                  />
                 </View>
 
                 <View style={{ flex: 1, marginRight: 8 }}>
@@ -376,7 +374,10 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#D1F4F9',
+    backgroundColor: '#FAF5EB',
+    borderWidth: 1,
+    borderColor: '#E5DDCD',
+    overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,

@@ -8,10 +8,10 @@ import {
   ActivityIndicator,
   Alert,
   Platform,
+  Image,
 } from 'react-native';
 import {
   X,
-  Building2,
   Plus,
   Bed as BedIcon,
   Layers,
@@ -38,6 +38,7 @@ import { EditBedModal } from './EditBedModal';
 import { SubscriptionModal } from './SubscriptionModal';
 import { formatINR } from '../utils/currency';
 import { IProperty, PropertyMatrixData, IMatrixFloor, IMatrixRoom, IMatrixBed } from '../types/api';
+import { getPropertyImage } from '../utils/assetImages';
 
 interface PropertiesRoomsModalProps {
   visible: boolean;
@@ -267,7 +268,7 @@ export const PropertiesRoomsModal: React.FC<PropertiesRoomsModalProps> = ({ visi
 
               {/* Property Cards */}
               <View style={{ gap: 12, marginBottom: 20 }}>
-                {properties.map(property => {
+                {properties.map((property, idx) => {
                   const stats = property.stats;
                   const totalBeds = stats?.totalBeds || 0;
                   const occupiedBeds = stats?.occupiedBeds || 0;
@@ -315,18 +316,23 @@ export const PropertiesRoomsModal: React.FC<PropertiesRoomsModalProps> = ({ visi
                         >
                           <View
                             style={{
-                              width: 42,
-                              height: 42,
+                              width: 52,
+                              height: 52,
                               borderRadius: 14,
                               backgroundColor: '#FAF5EB',
                               borderWidth: 1,
                               borderColor: '#E5DDCD',
+                              overflow: 'hidden',
                               alignItems: 'center',
                               justifyContent: 'center',
-                              marginRight: 10,
+                              marginRight: 12,
                             }}
                           >
-                            <Building2 size={20} color="#4F5330" />
+                            <Image
+                              source={getPropertyImage(property, idx)}
+                              style={{ width: '100%', height: '100%' }}
+                              resizeMode="cover"
+                            />
                           </View>
                           <View style={{ flex: 1 }}>
                             <Text
@@ -582,6 +588,76 @@ export const PropertiesRoomsModal: React.FC<PropertiesRoomsModalProps> = ({ visi
               contentContainerStyle={{ paddingBottom: 24 }}
               showsVerticalScrollIndicator={false}
             >
+              {/* Property Hero Card */}
+              <View
+                style={{
+                  backgroundColor: '#FFFDF8',
+                  borderRadius: 20,
+                  padding: 12,
+                  borderWidth: 1,
+                  borderColor: '#E5DDCD',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  marginBottom: 14,
+                }}
+              >
+                <View
+                  style={{
+                    width: 76,
+                    height: 60,
+                    borderRadius: 14,
+                    overflow: 'hidden',
+                    borderWidth: 1,
+                    borderColor: '#E5DDCD',
+                    marginRight: 12,
+                  }}
+                >
+                  <Image
+                    source={getPropertyImage(activeProperty)}
+                    style={{ width: '100%', height: '100%' }}
+                    resizeMode="cover"
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <Text
+                      style={{ fontSize: 16, fontWeight: '800', color: '#0C192B' }}
+                      numberOfLines={1}
+                    >
+                      {activeProperty.name}
+                    </Text>
+                    <View
+                      style={{
+                        backgroundColor: '#EAF7EE',
+                        paddingHorizontal: 8,
+                        paddingVertical: 2,
+                        borderRadius: 9999,
+                        borderWidth: 1,
+                        borderColor: '#B2E7C3',
+                      }}
+                    >
+                      <Text style={{ fontSize: 10, fontWeight: '800', color: '#0A6C50' }}>
+                        Active
+                      </Text>
+                    </View>
+                  </View>
+                  <Text
+                    style={{ fontSize: 12, fontWeight: '500', color: '#657080', marginTop: 3 }}
+                    numberOfLines={1}
+                  >
+                    {activeProperty.address ? `${activeProperty.address}, ` : ''}
+                    {activeProperty.city || 'Hyderabad'}
+                    {activeProperty.pincode ? `, ${activeProperty.pincode}` : ''}
+                  </Text>
+                </View>
+              </View>
+
               {/* 4 Stat Boxes (Floors, Rooms, Beds, % Full) */}
               <View style={{ flexDirection: 'row', gap: 8, marginBottom: 14 }}>
                 <View

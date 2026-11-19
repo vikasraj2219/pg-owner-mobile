@@ -6,9 +6,11 @@ import {
   TouchableOpacity,
   ScrollView,
   TouchableWithoutFeedback,
+  Image,
 } from 'react-native';
 import { Check, Plus, X, Pencil, Building } from 'lucide-react-native';
 import { IProperty } from '../types/api';
+import { getPropertyImage } from '../utils/assetImages';
 
 interface PropertySwitcherModalProps {
   visible: boolean;
@@ -34,21 +36,27 @@ export const PropertySwitcherModal: React.FC<PropertySwitcherModalProps> = ({
       <TouchableWithoutFeedback onPress={onClose}>
         <View className="flex-1 bg-black/50 justify-end">
           <TouchableWithoutFeedback onPress={e => e.stopPropagation()}>
-            <View className="bg-white rounded-t-3xl p-5 pt-3 max-h-[80%]">
+            <View
+              style={{ backgroundColor: '#FAF5EB' }}
+              className="rounded-t-3xl p-5 pt-3 max-h-[80%]"
+            >
               {/* Drag Handle */}
               <View className="items-center mb-3">
-                <View className="w-12 h-1.5 rounded-full bg-slate-300" />
+                <View style={{ backgroundColor: '#E5DDCD' }} className="w-12 h-1.5 rounded-full" />
               </View>
 
               {/* Header */}
               <View className="flex-row items-center justify-between mb-4">
-                <Text className="text-xl font-extrabold text-slate-900">Switch property</Text>
+                <Text style={{ color: '#0C192B' }} className="text-xl font-extrabold">
+                  Switch property
+                </Text>
                 <TouchableOpacity
                   activeOpacity={0.7}
                   onPress={onClose}
-                  className="w-8 h-8 rounded-full bg-slate-100 items-center justify-center"
+                  style={{ backgroundColor: '#FFFDF8', borderWidth: 1, borderColor: '#E5DDCD' }}
+                  className="w-8 h-8 rounded-full items-center justify-center"
                 >
-                  <X size={18} color="#64748B" />
+                  <X size={18} color="#657080" />
                 </TouchableOpacity>
               </View>
 
@@ -62,22 +70,30 @@ export const PropertySwitcherModal: React.FC<PropertySwitcherModalProps> = ({
                       onSelectProperty('all');
                       onClose();
                     }}
-                    className={`p-4 rounded-2xl mb-3.5 ${
-                      selectedPropertyId === 'all'
-                        ? 'border-2 border-[#4F5330] bg-white'
-                        : 'border border-slate-200 bg-white'
-                    }`}
+                    style={{
+                      backgroundColor: '#FFFDF8',
+                      borderWidth: selectedPropertyId === 'all' ? 2 : 1,
+                      borderColor: selectedPropertyId === 'all' ? '#4F5330' : '#E5DDCD',
+                    }}
+                    className="p-4 rounded-2xl mb-3.5"
                   >
                     <View className="flex-row items-center justify-between mb-1">
                       <View className="flex-row items-center flex-1 mr-2">
-                        <View className="w-8 h-8 rounded-lg bg-[#FAF7F2] items-center justify-center mr-2.5 border border-[#D0D7B4]">
-                          <Building size={16} color="#4F5330" />
+                        <View
+                          style={{
+                            backgroundColor: '#FAF5EB',
+                            borderWidth: 1,
+                            borderColor: '#E5DDCD',
+                          }}
+                          className="w-10 h-10 rounded-xl items-center justify-center mr-2.5"
+                        >
+                          <Building size={18} color="#4F5330" />
                         </View>
                         <View className="flex-1">
-                          <Text className="text-base font-extrabold text-slate-900">
+                          <Text style={{ color: '#0C192B' }} className="text-base font-extrabold">
                             All Properties (Overview)
                           </Text>
-                          <Text className="text-xs font-medium text-slate-500">
+                          <Text style={{ color: '#657080' }} className="text-xs font-medium">
                             Consolidated metrics across {properties.length} properties
                           </Text>
                         </View>
@@ -89,7 +105,7 @@ export const PropertySwitcherModal: React.FC<PropertySwitcherModalProps> = ({
                   </TouchableOpacity>
                 )}
 
-                {properties.map(property => {
+                {properties.map((property, idx) => {
                   const isSelected = property._id === selectedPropertyId;
                   const totalBeds = property.stats?.totalBeds ?? 0;
                   const occupiedBeds = property.stats?.occupiedBeds ?? 0;
@@ -103,17 +119,53 @@ export const PropertySwitcherModal: React.FC<PropertySwitcherModalProps> = ({
                         onSelectProperty(property._id);
                         onClose();
                       }}
-                      className={`p-4 rounded-2xl mb-3.5 ${
-                        isSelected
-                          ? 'border-2 border-[#4F5330] bg-white'
-                          : 'border border-slate-200 bg-white'
-                      }`}
+                      style={{
+                        backgroundColor: '#FFFDF8',
+                        borderWidth: isSelected ? 2 : 1,
+                        borderColor: isSelected ? '#4F5330' : '#E5DDCD',
+                      }}
+                      className="p-4 rounded-2xl mb-3.5"
                     >
-                      <View className="flex-row items-center justify-between mb-1">
-                        <Text className="text-base font-bold text-slate-900 flex-1 mr-2">
-                          {property.name}
-                          {property.address ? `, ${property.address.split(',')[0]}` : ''}
-                        </Text>
+                      <View className="flex-row items-center justify-between mb-2">
+                        <View className="flex-row items-center flex-1 mr-2">
+                          <View
+                            style={{
+                              width: 44,
+                              height: 44,
+                              borderRadius: 12,
+                              overflow: 'hidden',
+                              borderWidth: 1,
+                              borderColor: '#E5DDCD',
+                              marginRight: 10,
+                            }}
+                          >
+                            <Image
+                              source={getPropertyImage(property, idx)}
+                              style={{ width: '100%', height: '100%' }}
+                              resizeMode="cover"
+                            />
+                          </View>
+                          <View className="flex-1">
+                            <Text
+                              style={{ color: '#0C192B' }}
+                              className="text-base font-bold"
+                              numberOfLines={1}
+                            >
+                              {property.name}
+                            </Text>
+                            <Text
+                              style={{ color: '#657080' }}
+                              className="text-xs font-medium"
+                              numberOfLines={1}
+                            >
+                              {property.city || 'Property'} ·{' '}
+                              {property.type
+                                ? property.type.charAt(0).toUpperCase() + property.type.slice(1)
+                                : 'Coliving'}
+                            </Text>
+                          </View>
+                        </View>
+
                         <View className="flex-row items-center gap-2">
                           {onEditProperty && (
                             <TouchableOpacity
@@ -123,9 +175,14 @@ export const PropertySwitcherModal: React.FC<PropertySwitcherModalProps> = ({
                                 onClose();
                                 onEditProperty(property);
                               }}
-                              className="w-7 h-7 rounded-lg bg-slate-100 items-center justify-center border border-slate-200"
+                              style={{
+                                backgroundColor: '#FAF5EB',
+                                borderWidth: 1,
+                                borderColor: '#E5DDCD',
+                              }}
+                              className="w-7 h-7 rounded-lg items-center justify-center"
                             >
-                              <Pencil size={12} color="#475569" />
+                              <Pencil size={12} color="#0C192B" />
                             </TouchableOpacity>
                           )}
                           {isSelected && <Check size={20} color="#4F5330" strokeWidth={2.5} />}
@@ -133,19 +190,23 @@ export const PropertySwitcherModal: React.FC<PropertySwitcherModalProps> = ({
                       </View>
 
                       {/* Stats Subtitle */}
-                      <Text className="text-xs font-medium text-slate-600 mb-2.5">
+                      <Text style={{ color: '#657080' }} className="text-xs font-medium mb-2.5">
                         {totalBeds > 0
                           ? `${occupiedBeds} / ${totalBeds} beds · ${occupancyRate.toFixed(1)}% full`
                           : 'No beds added yet'}
                       </Text>
 
                       {/* Progress Bar */}
-                      <View className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                      <View
+                        style={{ backgroundColor: '#FAF5EB' }}
+                        className="w-full h-1.5 rounded-full overflow-hidden"
+                      >
                         <View
-                          className="h-full bg-[#4F5330] rounded-full"
                           style={{
+                            backgroundColor: '#4F5330',
                             width: `${Math.min(100, Math.max(0, occupancyRate))}%`,
                           }}
+                          className="h-full rounded-full"
                         />
                       </View>
                     </TouchableOpacity>
@@ -160,10 +221,18 @@ export const PropertySwitcherModal: React.FC<PropertySwitcherModalProps> = ({
                   onClose();
                   onOpenAddProperty();
                 }}
-                className="w-full border-2 border-dashed border-[#D0D7B4] rounded-2xl p-4 flex-row items-center justify-center my-2 bg-[#FAF7F2]"
+                style={{
+                  backgroundColor: '#FFFDF8',
+                  borderWidth: 1,
+                  borderColor: '#E5DDCD',
+                  borderStyle: 'dashed',
+                }}
+                className="w-full rounded-2xl p-4 flex-row items-center justify-center my-2"
               >
                 <Plus size={20} color="#4F5330" strokeWidth={2.5} />
-                <Text className="text-base font-bold text-[#4F5330] ml-2">Add property</Text>
+                <Text style={{ color: '#4F5330' }} className="text-base font-bold ml-2">
+                  Add property
+                </Text>
               </TouchableOpacity>
             </View>
           </TouchableWithoutFeedback>
