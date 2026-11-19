@@ -16,6 +16,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { IMatrixFloor } from '../types/api';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { DecorativeWaveFooter } from './DecorativeWaveFooter';
+import { SuccessActionModal } from './SuccessActionModal';
 
 interface EditFloorModalProps {
   visible: boolean;
@@ -38,6 +39,7 @@ export const EditFloorModal: React.FC<EditFloorModalProps> = ({
   const [floorNumber, setFloorNumber] = useState('');
   const [floorLabel, setFloorLabel] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [savedSuccess, setSavedSuccess] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -79,9 +81,7 @@ export const EditFloorModal: React.FC<EditFloorModalProps> = ({
         queryClient.invalidateQueries({ queryKey: ['properties'] }),
       ]);
 
-      Alert.alert('Success', `Floor ${floorInt} updated successfully.`);
-      onSuccess?.();
-      onClose();
+      setSavedSuccess(true);
     } catch (err: unknown) {
       const msg =
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
@@ -247,6 +247,23 @@ export const EditFloorModal: React.FC<EditFloorModalProps> = ({
           message={`This removes Floor ${floor?.floorNumber} and its vacant rooms permanently. This action cannot be undone.`}
           confirmLabel="Delete Floor"
           isLoading={isDeleting}
+        />
+
+        {/* Modern In-App Success Modal for Floor Update */}
+        <SuccessActionModal
+          visible={savedSuccess}
+          onClose={() => {
+            setSavedSuccess(false);
+            onSuccess?.();
+            onClose();
+          }}
+          title="Floor Updated Successfully!"
+          message={`Floor ${floorNumber} details have been saved.`}
+          highlightCard={{
+            icon: <Layers size={16} color="#15803D" />,
+            title: `Floor ${floorNumber}`,
+            subtitle: floorLabel ? floorLabel.trim() : `Floor ${floorNumber}`,
+          }}
         />
       </KeyboardAvoidingView>
     </Modal>

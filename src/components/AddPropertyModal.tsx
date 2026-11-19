@@ -11,8 +11,8 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { ArrowLeft } from 'lucide-react-native';
-import { PropertyType } from '../types/api';
+import { ArrowLeft, Building2 } from 'lucide-react-native';
+import { IProperty, PropertyType } from '../types/api';
 import { useProperties } from '../context/PropertyContext';
 import {
   validateName,
@@ -21,6 +21,7 @@ import {
   getApiErrorMessage,
 } from '../utils/validation';
 import { DecorativeWaveFooter } from './DecorativeWaveFooter';
+import { SuccessActionModal } from './SuccessActionModal';
 
 interface AddPropertyModalProps {
   visible: boolean;
@@ -42,6 +43,7 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
   const [pincode, setPincode] = useState('500081');
   const [upiVpa, setUpiVpa] = useState('');
   const [electricityRate, setElectricityRate] = useState('0');
+  const [createdPropertySuccess, setCreatedPropertySuccess] = useState<IProperty | null>(null);
 
   const handleSave = async () => {
     const nameResult = validateName(name, 'Property name');
@@ -99,10 +101,7 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
       setUpiVpa('');
       setElectricityRate('12');
 
-      onClose();
-      if (onSuccess) {
-        onSuccess(created._id);
-      }
+      setCreatedPropertySuccess(created);
     } catch (err: unknown) {
       const message = getApiErrorMessage(err);
       Alert.alert('Save Failed', message);
@@ -288,6 +287,28 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
 
           <DecorativeWaveFooter height={30} style={{ marginTop: 14 }} />
         </ScrollView>
+
+        {/* Modern In-App Success Modal for Property Creation */}
+        <SuccessActionModal
+          visible={!!createdPropertySuccess}
+          onClose={() => {
+            const propertyId = createdPropertySuccess?._id;
+            setCreatedPropertySuccess(null);
+            onClose();
+            if (propertyId && onSuccess) {
+              onSuccess(propertyId);
+            }
+          }}
+          title="Property Added Successfully!"
+          message={`"${createdPropertySuccess?.name}" has been created and is ready to add floors and rooms.`}
+          highlightCard={{
+            icon: <Building2 size={16} color="#15803D" />,
+            title: createdPropertySuccess?.name || 'Property',
+            subtitle: createdPropertySuccess?.city
+              ? `${createdPropertySuccess.city} · ${createdPropertySuccess.type}`
+              : createdPropertySuccess?.type || '',
+          }}
+        />
       </KeyboardAvoidingView>
     </Modal>
   );

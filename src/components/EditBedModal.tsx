@@ -17,6 +17,7 @@ import { IMatrixBed, IMatrixRoom, BedStatus } from '../types/api';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { formatINR } from '../utils/currency';
 import { DecorativeWaveFooter } from './DecorativeWaveFooter';
+import { SuccessActionModal } from './SuccessActionModal';
 
 interface EditBedModalProps {
   visible: boolean;
@@ -43,6 +44,7 @@ export const EditBedModal: React.FC<EditBedModalProps> = ({
   const [status, setStatus] = useState<BedStatus>('available');
   const [reason, setReason] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [savedSuccess, setSavedSuccess] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -88,9 +90,7 @@ export const EditBedModal: React.FC<EditBedModalProps> = ({
         queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
       ]);
 
-      Alert.alert('Success', `Bed ${bedLabel.trim()} updated.`);
-      onSuccess?.();
-      onClose();
+      setSavedSuccess(true);
     } catch (err: unknown) {
       const msg =
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
@@ -347,6 +347,23 @@ export const EditBedModal: React.FC<EditBedModalProps> = ({
           message="This empty bed will be removed permanently. This action cannot be undone."
           confirmLabel="Delete Bed"
           isLoading={isDeleting}
+        />
+
+        {/* Modern In-App Success Modal for Bed Update */}
+        <SuccessActionModal
+          visible={savedSuccess}
+          onClose={() => {
+            setSavedSuccess(false);
+            onSuccess?.();
+            onClose();
+          }}
+          title="Bed Updated Successfully!"
+          message={`Bed ${bedLabel.trim()} details have been saved.`}
+          highlightCard={{
+            icon: <BedIcon size={16} color="#15803D" />,
+            title: `Bed ${bedLabel.trim()}`,
+            subtitle: `${rent ? `₹${parseFloat(rent).toLocaleString('en-IN')}/mo` : ''} · ${status === 'maintenance' ? 'Maintenance' : 'Available'}`,
+          }}
         />
       </KeyboardAvoidingView>
     </Modal>

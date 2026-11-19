@@ -36,6 +36,8 @@ import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { RoomSummaryCard } from './RoomSummaryCard';
 import { formatFloorLabel } from './AddRoomModal';
 import { DecorativeWaveFooter } from './DecorativeWaveFooter';
+import { SuccessActionModal } from './SuccessActionModal';
+import { formatINR } from '../utils/currency';
 
 interface EditRoomModalProps {
   visible: boolean;
@@ -73,6 +75,7 @@ export const EditRoomModal: React.FC<EditRoomModalProps> = ({
   const [hasWashroom, setHasWashroom] = useState(true);
 
   const [isSaving, setIsSaving] = useState(false);
+  const [savedSuccess, setSavedSuccess] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showOccupiedWarningModal, setShowOccupiedWarningModal] = useState(false);
@@ -194,9 +197,7 @@ export const EditRoomModal: React.FC<EditRoomModalProps> = ({
         queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
       ]);
 
-      Alert.alert('Success', `Room ${roomNumber} updated successfully.`);
-      onSuccess?.();
-      onClose();
+      setSavedSuccess(true);
     } catch (err: unknown) {
       const msg =
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
@@ -1253,6 +1254,23 @@ export const EditRoomModal: React.FC<EditRoomModalProps> = ({
           message="Its empty beds will be removed permanently. This action cannot be undone."
           confirmLabel="Delete Room"
           isLoading={isDeleting}
+        />
+
+        {/* Modern In-App Success Modal for Room Update */}
+        <SuccessActionModal
+          visible={savedSuccess}
+          onClose={() => {
+            setSavedSuccess(false);
+            onSuccess?.();
+            onClose();
+          }}
+          title="Room Updated Successfully!"
+          message={`Room ${roomNumber} has been updated successfully.`}
+          highlightCard={{
+            icon: <DoorClosed size={16} color="#15803D" />,
+            title: `Room ${roomNumber} • Floor ${parseFloorInt(floorNumber)}`,
+            subtitle: `${sharingType} Share · ${formatINR(Math.round(rentNumeric * 100))}/bed`,
+          }}
         />
       </KeyboardAvoidingView>
     </Modal>

@@ -7,16 +7,15 @@ import {
   TouchableWithoutFeedback,
   Alert,
   ActivityIndicator,
+  StyleSheet,
 } from 'react-native';
-import { MessageSquare, X, LogOut, Clock, ShieldCheck, Repeat } from 'lucide-react-native';
-import { useRouter } from 'expo-router';
+import { MessageSquare, X, LogOut, Clock } from 'lucide-react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import { IMatrixBed, IMatrixRoom } from '../types/api';
 import { formatINR } from '../utils/currency';
 import { formatSafeDate } from '../utils/date';
 import { sendRentReminder } from '../utils/whatsapp';
 import { setTenantNoticeApi, cancelTenantNoticeApi } from '../api/notice';
-import { IdDocumentViewerModal } from './IdDocumentViewerModal';
 import { ConfirmActionModal } from './ConfirmDeleteModal';
 import { DecorativeWaveFooter } from './DecorativeWaveFooter';
 
@@ -39,11 +38,9 @@ export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
   onViewProfile,
   onCheckout,
 }) => {
-  const router = useRouter();
   const queryClient = useQueryClient();
   const [isUpdatingNotice, setIsUpdatingNotice] = useState(false);
   const [showNoticeConfirm, setShowNoticeConfirm] = useState(false);
-  const [showIdDocViewer, setShowIdDocViewer] = useState(false);
 
   if (!bed || !room || !bed.currentTenant) return null;
 
@@ -58,7 +55,7 @@ export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
     : 'TN';
 
   const isDue = tenant.paymentStatus === 'DUE' || (tenant.rentDuePaise && tenant.rentDuePaise > 0);
-  const overdueText = tenant.overdueDays ? ` · ${tenant.overdueDays} days overdue` : '';
+  const overdueText = tenant.overdueDays ? ` · ${tenant.overdueDays}d overdue` : '';
   const isOnNotice = bed.status === 'notice_period';
 
   const joinedDisplay = tenant.joinedDate ? formatSafeDate(tenant.joinedDate) : 'Active Tenant';
@@ -89,7 +86,7 @@ export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
         onClose();
       } else {
         const vacateDate = new Date();
-        vacateDate.setDate(vacateDate.getDate() + 30); // Standard 30 days notice
+        vacateDate.setDate(vacateDate.getDate() + 30);
         await setTenantNoticeApi(tenant._id, {
           expectedVacateDate: vacateDate.toISOString(),
           notes: 'Standard 30-day notice period',
@@ -101,11 +98,11 @@ export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
         setShowNoticeConfirm(false);
         onClose();
       }
-    } catch (err: any) {
-      Alert.alert(
-        'Notice Error',
-        err?.response?.data?.message || err?.message || 'Failed to update notice period status.',
-      );
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        (err instanceof Error ? err.message : 'Failed to update notice period status.');
+      Alert.alert('Notice Error', msg);
     } finally {
       setIsUpdatingNotice(false);
     }
@@ -114,144 +111,134 @@ export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <TouchableWithoutFeedback onPress={onClose}>
-        <View className="flex-1 bg-black/40 justify-end">
+        <View style={styles.backdrop}>
           <TouchableWithoutFeedback onPress={e => e.stopPropagation()}>
-            <View className="bg-white rounded-t-3xl p-5 pt-3 pb-8">
+            <View style={styles.sheetContainer}>
               {/* Top Handle and Cancel/Close Header */}
-              <View className="flex-row items-center justify-between mb-4">
-                <View className="w-8" />
-                <View className="w-12 h-1.5 rounded-full bg-slate-300" />
+              <View style={styles.headerBar}>
+                <View style={{ width: 32 }} />
+                <View style={styles.dragHandle} />
                 <TouchableOpacity
                   onPress={onClose}
                   activeOpacity={0.7}
-                  className="w-8 h-8 rounded-full bg-slate-100 items-center justify-center"
+                  style={styles.closeButton}
+                  accessibilityLabel="Close"
                 >
-                  <X size={18} color="#64748B" />
+                  <X size={16} color="#657080" strokeWidth={2.2} />
                 </TouchableOpacity>
               </View>
 
-              {/* Tenant Header Row */}
-              <View className="flex-row items-center mb-5">
-                <View className="w-12 h-12 rounded-full bg-slate-100 items-center justify-center mr-3.5">
-                  <Text className="text-base font-extrabold text-slate-700">{initials}</Text>
+              {/* Tenant Header Row matching App Colors */}
+              <View style={styles.tenantHeaderRow}>
+                <View style={styles.avatar}>
+                  <Text style={styles.avatarText}>{initials}</Text>
                 </View>
-                <View className="flex-1 mr-2">
-                  <Text className="text-lg font-extrabold text-slate-900">{tenant.fullName}</Text>
-                  <Text className="text-xs font-medium text-slate-500 mt-0.5">
+
+                <View style={{ flex: 1, marginRight: 8 }}>
+                  <Text style={styles.tenantName} numberOfLines={1}>
+                    {tenant.fullName}
+                  </Text>
+                  <Text style={styles.tenantSubtitle} numberOfLines={1}>
                     Bed {bed.bedNumber} · Room {room.roomNumber} · Floor {room.floorNumber}
                     {room.sharingType ? ` · ${room.sharingType} share` : ''}
                   </Text>
                 </View>
-                <View
-                  className={`px-3 py-1 rounded-md ${
-                    isDue
-                      ? 'bg-[#FFF1F2] border border-[#FECDD3]'
-                      : 'bg-[#F0FDF4] border border-[#86EFAC]'
-                  }`}
-                >
-                  <Text
-                    className={`text-xs font-black ${isDue ? 'text-[#991B1B]' : 'text-[#4F5330]'}`}
+
+                {/* Status Badges */}
+                <View style={{ alignItems: 'flex-end', gap: 4 }}>
+                  <View
+                    style={[
+                      styles.statusPill,
+                      {
+                        backgroundColor: isDue ? '#FEF2F2' : '#F0FDF4',
+                        borderColor: isDue ? '#FECACA' : '#BBF7D0',
+                      },
+                    ]}
                   >
-                    {isDue ? 'DUE' : 'PAID'}
-                  </Text>
+                    <Text style={[styles.statusPillText, { color: isDue ? '#DC2626' : '#15803D' }]}>
+                      {isDue ? 'DUE' : 'PAID'}
+                    </Text>
+                  </View>
+
+                  {isOnNotice && (
+                    <View style={styles.noticeBadge}>
+                      <Text style={styles.noticeBadgeText}>ON NOTICE</Text>
+                    </View>
+                  )}
                 </View>
               </View>
 
-              {/* Info Table */}
-              <View className="bg-slate-50 rounded-2xl p-4 mb-5 border border-slate-100">
-                <View className="flex-row items-center justify-between py-2 border-b border-slate-200/60">
-                  <Text className="text-sm text-slate-500 font-medium">Monthly rent</Text>
-                  <Text className="text-sm font-bold text-slate-900">
+              {/* Info Table in Warm Card Surface */}
+              <View style={styles.infoCard}>
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>Monthly rent</Text>
+                  <Text style={styles.infoValue}>
                     {formatINR(tenant.monthlyRentPaise || bed.baseRentPaise)}
                   </Text>
                 </View>
 
-                <View className="flex-row items-center justify-between py-2 border-b border-slate-200/60">
-                  <Text className="text-sm text-slate-500 font-medium">Rent due</Text>
-                  <Text
-                    className={`text-sm font-bold ${isDue ? 'text-rose-600' : 'text-emerald-700'}`}
-                  >
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>Rent status</Text>
+                  <Text style={[styles.infoValue, { color: isDue ? '#DC2626' : '#15803D' }]}>
                     {isDue
                       ? `${formatINR(tenant.rentDuePaise || tenant.monthlyRentPaise || bed.baseRentPaise)}${overdueText}`
-                      : '₹0 · Paid on time'}
+                      : 'Paid on time'}
                   </Text>
                 </View>
 
-                <View className="flex-row items-center justify-between py-2">
-                  <Text className="text-sm text-slate-500 font-medium">Joined</Text>
-                  <Text className="text-sm font-bold text-slate-900">{joinedDisplay}</Text>
+                <View style={[styles.infoRow, { borderBottomWidth: 0, paddingBottom: 0 }]}>
+                  <Text style={styles.infoLabel}>Joined date</Text>
+                  <Text style={styles.infoValue}>{joinedDisplay}</Text>
                 </View>
               </View>
 
-              {/* Actions Row */}
-              <View className="flex-row gap-3 mb-3">
+              {/* Actions Row: WhatsApp Quick Sender + View Profile */}
+              <View style={styles.actionsRow}>
                 <TouchableOpacity
                   activeOpacity={0.8}
                   onPress={handleWhatsApp}
-                  className="w-14 h-14 rounded-2xl border border-slate-300 items-center justify-center bg-white"
+                  style={styles.whatsAppButton}
+                  accessibilityLabel="Send WhatsApp reminder"
                 >
-                  <MessageSquare size={22} color="#4F5330" />
+                  <MessageSquare size={20} color="#25D366" strokeWidth={2.3} />
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  activeOpacity={0.8}
+                  activeOpacity={0.85}
                   onPress={() => {
                     onClose();
                     onViewProfile(tenant._id);
                   }}
-                  className="flex-1 bg-[#4F5330] rounded-2xl py-4 items-center justify-center shadow-sm"
+                  style={styles.viewProfileButton}
                 >
-                  <Text className="text-base font-extrabold text-white">View dues & profile</Text>
+                  <Text style={styles.viewProfileButtonText}>View dues & profile</Text>
                 </TouchableOpacity>
               </View>
-
-              {/* Change Bed / Transfer Bed Button */}
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={() => {
-                  onClose();
-                  router.push({
-                    pathname: '/tenant/[id]',
-                    params: { id: tenant._id, openTransfer: 'true' },
-                  } as any);
-                }}
-                className="w-full bg-[#FAF7F2] border border-[#D0D7B4] rounded-2xl py-3.5 flex-row items-center justify-center mb-2.5 shadow-xs"
-              >
-                <Repeat size={18} color="#4F5330" />
-                <Text className="text-sm font-bold text-[#4F5330] ml-2">
-                  Change Bed / Transfer Bed
-                </Text>
-              </TouchableOpacity>
-
-              {/* View ID Proof / Cloudinary Document Button */}
-              {tenant.kycDocUrl ? (
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={() => setShowIdDocViewer(true)}
-                  className="w-full bg-[#FAF7F2] border border-[#D0D7B4] rounded-2xl py-3.5 flex-row items-center justify-center mb-2.5 shadow-xs"
-                >
-                  <ShieldCheck size={18} color="#4F5330" />
-                  <Text className="text-sm font-bold text-[#4F5330] ml-2">
-                    View ID Proof ({tenant.kycDocType?.toUpperCase() || 'AADHAAR'})
-                  </Text>
-                </TouchableOpacity>
-              ) : null}
 
               {/* Notice Period Button */}
               <TouchableOpacity
                 activeOpacity={0.8}
                 disabled={isUpdatingNotice}
                 onPress={() => setShowNoticeConfirm(true)}
-                className={`w-full rounded-2xl py-3.5 flex-row items-center justify-center mb-2.5 border ${
-                  isOnNotice ? 'bg-[#FEF3C7] border-[#FCD34D]' : 'bg-amber-50 border-amber-200'
-                }`}
+                style={[
+                  styles.noticeButton,
+                  {
+                    backgroundColor: isOnNotice ? '#FEF3C7' : '#FAF5EB',
+                    borderColor: isOnNotice ? '#FDE047' : '#E5DDCD',
+                  },
+                ]}
               >
                 {isUpdatingNotice ? (
                   <ActivityIndicator size="small" color="#B45309" />
                 ) : (
                   <>
-                    <Clock size={18} color="#B45309" />
-                    <Text className="text-sm font-bold text-amber-900 ml-2">
+                    <Clock size={16} color={isOnNotice ? '#B45309' : '#4F5330'} strokeWidth={2.2} />
+                    <Text
+                      style={[
+                        styles.noticeButtonText,
+                        { color: isOnNotice ? '#92400E' : '#4F5330' },
+                      ]}
+                    >
                       {isOnNotice
                         ? 'Cancel Notice Period (Restore Bed)'
                         : 'Mark Notice Period (30 Days)'}
@@ -268,33 +255,22 @@ export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
                     onClose();
                     onCheckout(tenant._id);
                   }}
-                  className="w-full bg-[#FFF1F2] border border-[#FECDD3] rounded-2xl py-3.5 flex-row items-center justify-center shadow-xs"
+                  style={styles.checkoutButton}
                 >
-                  <LogOut size={18} color="#BE123C" />
-                  <Text className="text-sm font-bold text-[#BE123C] ml-2">
-                    Checkout / Vacate Bed
-                  </Text>
+                  <LogOut size={16} color="#BE123C" strokeWidth={2.2} />
+                  <Text style={styles.checkoutButtonText}>Checkout / Vacate Bed</Text>
                 </TouchableOpacity>
               )}
 
+              {/* Exactly ONE clean Decorative Wave Footer */}
               <DecorativeWaveFooter
                 height={24}
-                style={{ marginTop: 10, marginHorizontal: -20, marginBottom: -16 }}
+                style={{ marginTop: 12, marginHorizontal: -20, marginBottom: -16 }}
               />
             </View>
           </TouchableWithoutFeedback>
         </View>
       </TouchableWithoutFeedback>
-
-      {/* ID Document Viewer Modal */}
-      <IdDocumentViewerModal
-        visible={showIdDocViewer}
-        onClose={() => setShowIdDocViewer(false)}
-        documentUrl={tenant.kycDocUrl}
-        tenantName={tenant.fullName}
-        docType={tenant.kycDocType || 'Aadhaar'}
-        maskedNumber={tenant.kycMaskedNumber}
-      />
 
       {/* Notice Period Confirmation Modal */}
       <ConfirmActionModal
@@ -315,3 +291,196 @@ export const OccupiedBedSheet: React.FC<OccupiedBedSheetProps> = ({
     </Modal>
   );
 };
+
+const styles = StyleSheet.create({
+  backdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(12, 25, 43, 0.55)',
+    justifyContent: 'flex-end',
+  },
+  sheetContainer: {
+    backgroundColor: '#FFFDF8',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    borderWidth: 1,
+    borderBottomWidth: 0,
+    borderColor: '#E5DDCD',
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  headerBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  dragHandle: {
+    width: 44,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: '#D0D7B4',
+  },
+  closeButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#FAF5EB',
+    borderWidth: 1,
+    borderColor: '#E5DDCD',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tenantHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 14,
+  },
+  avatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#D1F4F9',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  avatarText: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#0799AA',
+  },
+  tenantName: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: '#0C192B',
+    letterSpacing: -0.2,
+  },
+  tenantSubtitle: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#657080',
+    marginTop: 2,
+  },
+  statusPill: {
+    paddingHorizontal: 9,
+    paddingVertical: 3,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  statusPillText: {
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.3,
+  },
+  noticeBadge: {
+    backgroundColor: '#FEF3C7',
+    borderWidth: 1,
+    borderColor: '#FDE047',
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  noticeBadgeText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#92400E',
+    letterSpacing: 0.4,
+  },
+  infoCard: {
+    backgroundColor: '#FAF5EB',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E5DDCD',
+    padding: 14,
+    marginBottom: 14,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5DDCD',
+  },
+  infoLabel: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#657080',
+  },
+  infoValue: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#0C192B',
+  },
+  actionsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 10,
+  },
+  whatsAppButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: '#FAF5EB',
+    borderWidth: 1,
+    borderColor: '#E5DDCD',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  viewProfileButton: {
+    flex: 1,
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: '#4F5330',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#4F5330',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  viewProfileButtonText: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+  noticeButton: {
+    width: '100%',
+    height: 44,
+    borderRadius: 14,
+    borderWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+    gap: 6,
+  },
+  noticeButtonText: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  checkoutButton: {
+    width: '100%',
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: '#FFF1F2',
+    borderWidth: 1,
+    borderColor: '#FECDD3',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  checkoutButtonText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#BE123C',
+  },
+});

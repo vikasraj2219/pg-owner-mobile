@@ -31,8 +31,10 @@ import {
 } from 'lucide-react-native';
 import { IProperty } from '../types/api';
 import { getApiErrorMessage } from '../utils/validation';
+import { formatINR } from '../utils/currency';
 import { RoomSummaryCard } from './RoomSummaryCard';
 import { DecorativeWaveFooter } from './DecorativeWaveFooter';
+import { SuccessActionModal } from './SuccessActionModal';
 
 interface AddRoomModalProps {
   visible: boolean;
@@ -113,6 +115,12 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
   const [hasAC, setHasAC] = useState(true);
   const [hasWashroom, setHasWashroom] = useState(true);
   const [rentPerBed, setRentPerBed] = useState('7500');
+  const [createdRoomSuccess, setCreatedRoomSuccess] = useState<{
+    roomNumber: string;
+    floorNumber: number;
+    sharingType: number;
+    rent: string;
+  } | null>(null);
 
   // Compute dynamic floors available in this property
   const dynamicFloors = useMemo(() => {
@@ -271,13 +279,12 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
         tags,
       });
 
-      // Suggest next room number for subsequent creation
-      const nextSuggested = getNextAvailableRoomNumber(floor, [
-        ...existingRooms,
-        roomNumber.trim(),
-      ]);
-      setRoomNumber(nextSuggested);
-      onClose();
+      setCreatedRoomSuccess({
+        roomNumber: roomNumber.trim(),
+        floorNumber: floor,
+        sharingType,
+        rent: formatINR(Math.round(rentNumeric * 100)),
+      });
     } catch (err: unknown) {
       const message = getApiErrorMessage(err);
       Alert.alert('Room Creation Failed', message);
@@ -1220,6 +1227,28 @@ export const AddRoomModal: React.FC<AddRoomModalProps> = ({
             </View>
           </View>
         </Modal>
+
+        {/* Modern In-App Success Modal for Room Creation */}
+        <SuccessActionModal
+          visible={!!createdRoomSuccess}
+          onClose={() => {
+            const floor = createdRoomSuccess?.floorNumber ?? 1;
+            const nextSuggested = getNextAvailableRoomNumber(floor, [
+              ...existingRooms,
+              createdRoomSuccess?.roomNumber ?? '',
+            ]);
+            setRoomNumber(nextSuggested);
+            setCreatedRoomSuccess(null);
+            onClose();
+          }}
+          title="Room Created Successfully!"
+          message={`Room ${createdRoomSuccess?.roomNumber} with ${createdRoomSuccess?.sharingType} bed(s) has been added to Floor ${createdRoomSuccess?.floorNumber} and is ready for tenant check-in.`}
+          highlightCard={{
+            icon: <DoorClosed size={16} color="#15803D" />,
+            title: `Room ${createdRoomSuccess?.roomNumber} • Floor ${createdRoomSuccess?.floorNumber}`,
+            subtitle: `${createdRoomSuccess?.sharingType} Share · ${createdRoomSuccess?.rent}/bed`,
+          }}
+        />
       </KeyboardAvoidingView>
     </Modal>
   );

@@ -16,6 +16,8 @@ import { useTenantDetail } from '../../../src/hooks/useTenants';
 import { updateTenantApi } from '../../../src/api/tenants';
 import { BedTransferModal } from '../../../src/components/BedTransferModal';
 import { DecorativeWaveFooter } from '../../../src/components/DecorativeWaveFooter';
+import { SuccessActionModal } from '../../../src/components/SuccessActionModal';
+import { User } from 'lucide-react-native';
 
 export default function EditTenantScreen() {
   const router = useRouter();
@@ -32,6 +34,7 @@ export default function EditTenantScreen() {
   const [rentRupees, setRentRupees] = useState('');
   const [depositRupees, setDepositRupees] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [savedSuccess, setSavedSuccess] = useState(false);
 
   // Move bed modal state
   const [isMoveBedModalVisible, setIsMoveBedModalVisible] = useState(false);
@@ -93,12 +96,7 @@ export default function EditTenantScreen() {
       queryClient.invalidateQueries({ queryKey: ['tenant', id] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
 
-      Alert.alert('Success', 'Tenant details saved successfully.', [
-        {
-          text: 'OK',
-          onPress: () => router.back(),
-        },
-      ]);
+      setSavedSuccess(true);
     } catch (err: any) {
       Alert.alert(
         'Save Failed',
@@ -471,6 +469,22 @@ export default function EditTenantScreen() {
           }}
         />
       )}
+
+      {/* Modern In-App Success Modal for Tenant Edit */}
+      <SuccessActionModal
+        visible={savedSuccess}
+        onClose={() => {
+          setSavedSuccess(false);
+          router.back();
+        }}
+        title="Tenant Updated Successfully!"
+        message={`${fullName} details have been saved.`}
+        highlightCard={{
+          icon: <User size={16} color="#15803D" />,
+          title: fullName || 'Tenant',
+          subtitle: phone ? `${phone} · Rent ₹${rentRupees}/mo` : `Rent ₹${rentRupees}/mo`,
+        }}
+      />
     </SafeAreaView>
   );
 }

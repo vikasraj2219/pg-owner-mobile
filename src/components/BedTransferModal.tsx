@@ -28,6 +28,7 @@ import {
   Building2,
   DoorClosed,
   RefreshCw,
+  Lock,
 } from 'lucide-react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import { useProperties } from '../context/PropertyContext';
@@ -38,6 +39,7 @@ import { formatSafeDate } from '../utils/date';
 import { calculateBedTransferProration } from '../utils/proration';
 import { DatePickerModal } from './DatePickerModal';
 import { DecorativeWaveFooter } from './DecorativeWaveFooter';
+import { SuccessActionModal } from './SuccessActionModal';
 import { IMatrixBed, IMatrixRoom, ITenantListItem } from '../types/api';
 
 interface TargetBedItem {
@@ -161,6 +163,14 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [generateAdjustmentInvoice, setGenerateAdjustmentInvoice] = useState(true);
   const [transferNotes, setTransferNotes] = useState('');
+  const [transferSuccessData, setTransferSuccessData] = useState<{
+    isScheduled: boolean;
+    title: string;
+    message: string;
+    bedNumber: string;
+    rent: string;
+    effectiveDateStr: string;
+  } | null>(null);
 
   const currentBedNumber = tenant?.currentBed?.bedNumber || 'Unknown';
   const currentBedId = useMemo(() => {
@@ -307,10 +317,25 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
     return now;
   }, [effectiveType, customEffectiveDate]);
 
-  // Compute live proration
+  // Compute live proration & rent comparison
   const parsedTargetRentRupees = parseFloat(targetNewRentRupees) || 0;
   const targetRentPaise = Math.round(parsedTargetRentRupees * 100);
   const fromRentPaise = tenant?.monthlyRentPaise || 0;
+  const isSameRent = targetRentPaise === fromRentPaise;
+  const isDifferentRent = !isSameRent;
+
+  // Minimum allowed date for different rent bed transfers (after current month completes)
+  const minDateForDifferentRent = useMemo(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth() + 1, 1, 0, 0, 0, 0);
+  }, []);
+
+  // When rent differs, immediate transfers are disallowed; auto-switch to next month
+  useEffect(() => {
+    if (isDifferentRent && effectiveType === 'immediate') {
+      setEffectiveType('next_month');
+    }
+  }, [isDifferentRent, effectiveType]);
 
   const proration = useMemo(() => {
     return calculateBedTransferProration(
@@ -327,6 +352,28 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
     if (isNaN(parsedTargetRentRupees) || parsedTargetRentRupees < 0) {
       Alert.alert('Invalid Rent', 'Please enter a valid monthly rent amount.');
       return;
+    }
+
+    // Enforce business rule: different rent transfers can ONLY take effect after completing the current month
+    if (isDifferentRent) {
+      if (effectiveType === 'immediate') {
+        Alert.alert(
+          'Transfer Date Restricted',
+          `Transfers to a bed with different rent (${formatINR(fromRentPaise)} → ${formatINR(targetRentPaise)}) can only take effect after completing the current month / after tenant due date. Please select "From Next Month" or a custom date after the current month.`,
+        );
+        return;
+      }
+      if (
+        effectiveType === 'custom' &&
+        calculatedEffectiveDate.toISOString().slice(0, 10) <
+          minDateForDifferentRent.toISOString().slice(0, 10)
+      ) {
+        Alert.alert(
+          'Invalid Effective Date',
+          `Transfers between beds with different rent (higher or lower) must take effect after the current month completes (${formatSafeDate(minDateForDifferentRent)} or later).`,
+        );
+        return;
+      }
     }
 
     const tenantPropId = getTenantPropertyId(tenant);
@@ -360,21 +407,16 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
           calculatedEffectiveDate.toISOString().slice(0, 10) >
             new Date().toISOString().slice(0, 10));
 
-      Alert.alert(
-        isScheduled ? 'Bed Transfer Scheduled' : 'Bed Transferred Successfully',
-        isScheduled
-          ? `Bed ${selectedTargetBed.bed.bedNumber} has been reserved for ${tenant.fullName}. The transfer will take effect on ${formatSafeDate(calculatedEffectiveDate)}.`
+      setTransferSuccessData({
+        isScheduled,
+        title: isScheduled ? 'Bed Transfer Scheduled!' : 'Bed Transferred Successfully!',
+        message: isScheduled
+          ? `Bed ${selectedTargetBed.bed.bedNumber} has been reserved for ${tenant.fullName}. The transfer will take effect on ${formatSafeDate(calculatedEffectiveDate)} after completing the current month.`
           : `Tenant ${tenant.fullName} has been transferred to Bed ${selectedTargetBed.bed.bedNumber} at ${formatINR(targetRentPaise)}/mo.`,
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              onClose();
-              if (onTransferSuccess) onTransferSuccess();
-            },
-          },
-        ],
-      );
+        bedNumber: selectedTargetBed.bed.bedNumber,
+        rent: formatINR(targetRentPaise),
+        effectiveDateStr: formatSafeDate(calculatedEffectiveDate),
+      });
     } catch (err: any) {
       Alert.alert(
         'Transfer Error',
@@ -801,40 +843,172 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
                   Transfer Effective Date
                 </Text>
 
+                {/* Transfer Policy Explanatory Banner */}
+                {isDifferentRent ? (
+                  <View
+                    style={{
+                      backgroundColor: '#EFF6FF',
+                      borderWidth: 1,
+                      borderColor: '#BFDBFE',
+                      borderRadius: 14,
+                      padding: 12,
+                      marginBottom: 12,
+                      flexDirection: 'row',
+                      alignItems: 'flex-start',
+                    }}
+                  >
+                    <Info size={16} color="#2563EB" style={{ marginTop: 2, marginRight: 8 }} />
+                    <View style={{ flex: 1 }}>
+                      <Text
+                        style={{
+                          fontSize: 12,
+                          fontWeight: '800',
+                          color: '#1E40AF',
+                          marginBottom: 2,
+                        }}
+                      >
+                        Rent Change Transfer Policy
+                      </Text>
+                      <Text
+                        style={{
+                          fontSize: 11.5,
+                          fontWeight: '500',
+                          color: '#1E3A8A',
+                          lineHeight: 17,
+                        }}
+                      >
+                        Because destination bed rent ({formatINR(targetRentPaise)}) differs from
+                        current rent ({formatINR(fromRentPaise)}), this transfer can only take
+                        effect after completing the current month / after tenant due date to keep
+                        billing clean.
+                      </Text>
+                    </View>
+                  </View>
+                ) : (
+                  <View
+                    style={{
+                      backgroundColor: '#F0FDF4',
+                      borderWidth: 1,
+                      borderColor: '#BBF7D0',
+                      borderRadius: 14,
+                      padding: 12,
+                      marginBottom: 12,
+                      flexDirection: 'row',
+                      alignItems: 'flex-start',
+                    }}
+                  >
+                    <CheckCircle2
+                      size={16}
+                      color="#15803D"
+                      style={{ marginTop: 2, marginRight: 8 }}
+                    />
+                    <View style={{ flex: 1 }}>
+                      <Text
+                        style={{
+                          fontSize: 12,
+                          fontWeight: '800',
+                          color: '#166534',
+                          marginBottom: 2,
+                        }}
+                      >
+                        Same Rent Bed
+                      </Text>
+                      <Text
+                        style={{
+                          fontSize: 11.5,
+                          fontWeight: '500',
+                          color: '#14532D',
+                          lineHeight: 17,
+                        }}
+                      >
+                        Both beds have identical rent ({formatINR(fromRentPaise)}/mo). You can
+                        transfer the tenant anytime immediately or on any custom date.
+                      </Text>
+                    </View>
+                  </View>
+                )}
+
                 <View style={{ gap: 8 }}>
-                  {/* Option 1: Immediately */}
+                  {/* Option 1: Immediately (Only allowed for same rent) */}
                   <TouchableOpacity
-                    onPress={() => setEffectiveType('immediate')}
-                    activeOpacity={0.7}
+                    onPress={() => {
+                      if (isDifferentRent) {
+                        Alert.alert(
+                          'Immediate Transfer Restricted',
+                          'Transfers between beds with different rent (higher or lower) can only take effect after completing the current month / after the tenant due date.',
+                        );
+                        return;
+                      }
+                      setEffectiveType('immediate');
+                    }}
+                    activeOpacity={isDifferentRent ? 1 : 0.7}
                     style={{
                       flexDirection: 'row',
                       alignItems: 'center',
                       justifyContent: 'space-between',
                       padding: 12,
                       borderRadius: 14,
-                      backgroundColor: effectiveType === 'immediate' ? '#F4F8EC' : '#FAF5EB',
+                      backgroundColor: isDifferentRent
+                        ? '#F1F5F9'
+                        : effectiveType === 'immediate'
+                          ? '#19D3E6'
+                          : '#FAF5EB',
                       borderWidth: 1,
-                      borderColor: effectiveType === 'immediate' ? '#4F5330' : '#E5DDCD',
+                      borderColor: isDifferentRent
+                        ? '#E2E8F0'
+                        : effectiveType === 'immediate'
+                          ? '#19D3E6'
+                          : '#E5DDCD',
+                      opacity: isDifferentRent ? 0.6 : 1,
                     }}
                   >
-                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                      <Clock
-                        size={16}
-                        color={effectiveType === 'immediate' ? '#4F5330' : '#657080'}
-                        style={{ marginRight: 8 }}
-                      />
-                      <Text
-                        style={{
-                          fontSize: 13,
-                          fontWeight: effectiveType === 'immediate' ? '800' : '600',
-                          color: effectiveType === 'immediate' ? '#4F5330' : '#0C192B',
-                        }}
-                      >
-                        Immediately (Today)
-                      </Text>
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        flex: 1,
+                        marginRight: 8,
+                      }}
+                    >
+                      {isDifferentRent ? (
+                        <Lock size={16} color="#94A3B8" style={{ marginRight: 8 }} />
+                      ) : (
+                        <Clock
+                          size={16}
+                          color={effectiveType === 'immediate' ? '#0C192B' : '#657080'}
+                          style={{ marginRight: 8 }}
+                        />
+                      )}
+                      <View style={{ flex: 1 }}>
+                        <Text
+                          style={{
+                            fontSize: 13,
+                            fontWeight: effectiveType === 'immediate' ? '800' : '600',
+                            color: isDifferentRent
+                              ? '#94A3B8'
+                              : effectiveType === 'immediate'
+                                ? '#0C192B'
+                                : '#0C192B',
+                          }}
+                        >
+                          Immediately (Today)
+                        </Text>
+                        {isDifferentRent && (
+                          <Text
+                            style={{
+                              fontSize: 11,
+                              fontWeight: '500',
+                              color: '#64748B',
+                              marginTop: 2,
+                            }}
+                          >
+                            Locked · Allowed after current month completes / due date
+                          </Text>
+                        )}
+                      </View>
                     </View>
-                    {effectiveType === 'immediate' && (
-                      <Check size={16} color="#4F5330" strokeWidth={3} />
+                    {!isDifferentRent && effectiveType === 'immediate' && (
+                      <Check size={16} color="#0C192B" strokeWidth={3} />
                     )}
                   </TouchableOpacity>
 
@@ -848,29 +1022,43 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
                       justifyContent: 'space-between',
                       padding: 12,
                       borderRadius: 14,
-                      backgroundColor: effectiveType === 'next_month' ? '#F4F8EC' : '#FAF5EB',
+                      backgroundColor: effectiveType === 'next_month' ? '#19D3E6' : '#FAF5EB',
                       borderWidth: 1,
-                      borderColor: effectiveType === 'next_month' ? '#4F5330' : '#E5DDCD',
+                      borderColor: effectiveType === 'next_month' ? '#19D3E6' : '#E5DDCD',
                     }}
                   >
-                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
                       <Calendar
                         size={16}
-                        color={effectiveType === 'next_month' ? '#4F5330' : '#657080'}
+                        color={effectiveType === 'next_month' ? '#0C192B' : '#657080'}
                         style={{ marginRight: 8 }}
                       />
-                      <Text
-                        style={{
-                          fontSize: 13,
-                          fontWeight: effectiveType === 'next_month' ? '800' : '600',
-                          color: effectiveType === 'next_month' ? '#4F5330' : '#0C192B',
-                        }}
-                      >
-                        From Next Month (1st {nextMonthName})
-                      </Text>
+                      <View style={{ flex: 1 }}>
+                        <Text
+                          style={{
+                            fontSize: 13,
+                            fontWeight: effectiveType === 'next_month' ? '800' : '600',
+                            color: '#0C192B',
+                          }}
+                        >
+                          From Next Month (1st {nextMonthName})
+                        </Text>
+                        {isDifferentRent && (
+                          <Text
+                            style={{
+                              fontSize: 11,
+                              fontWeight: '600',
+                              color: '#0C192B',
+                              marginTop: 1,
+                            }}
+                          >
+                            Recommended · Starts after completing current month
+                          </Text>
+                        )}
+                      </View>
                     </View>
                     {effectiveType === 'next_month' && (
-                      <Check size={16} color="#4F5330" strokeWidth={3} />
+                      <Check size={16} color="#0C192B" strokeWidth={3} />
                     )}
                   </TouchableOpacity>
 
@@ -887,22 +1075,22 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
                       justifyContent: 'space-between',
                       padding: 12,
                       borderRadius: 14,
-                      backgroundColor: effectiveType === 'custom' ? '#F4F8EC' : '#FAF5EB',
+                      backgroundColor: effectiveType === 'custom' ? '#19D3E6' : '#FAF5EB',
                       borderWidth: 1,
-                      borderColor: effectiveType === 'custom' ? '#4F5330' : '#E5DDCD',
+                      borderColor: effectiveType === 'custom' ? '#19D3E6' : '#E5DDCD',
                     }}
                   >
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                       <Calendar
                         size={16}
-                        color={effectiveType === 'custom' ? '#4F5330' : '#657080'}
+                        color={effectiveType === 'custom' ? '#0C192B' : '#657080'}
                         style={{ marginRight: 8 }}
                       />
                       <Text
                         style={{
                           fontSize: 13,
                           fontWeight: effectiveType === 'custom' ? '800' : '600',
-                          color: effectiveType === 'custom' ? '#4F5330' : '#0C192B',
+                          color: '#0C192B',
                         }}
                       >
                         Custom Date:{' '}
@@ -912,7 +1100,7 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
                       </Text>
                     </View>
                     {effectiveType === 'custom' && (
-                      <Check size={16} color="#4F5330" strokeWidth={3} />
+                      <Check size={16} color="#0C192B" strokeWidth={3} />
                     )}
                   </TouchableOpacity>
                 </View>
@@ -1637,11 +1825,41 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
         onClose={() => setShowDatePicker(false)}
         selectedDate={customEffectiveDate}
         onSelectDate={d => {
-          setCustomEffectiveDate(d);
+          if (
+            isDifferentRent &&
+            d.toISOString().slice(0, 10) < minDateForDifferentRent.toISOString().slice(0, 10)
+          ) {
+            Alert.alert(
+              'Invalid Date for Different Rent Bed',
+              `Transfers between beds with different rent (higher or lower) must take effect after the current month completes (${formatSafeDate(minDateForDifferentRent)} or later).`,
+            );
+            setCustomEffectiveDate(minDateForDifferentRent);
+          } else {
+            setCustomEffectiveDate(d);
+          }
           setShowDatePicker(false);
         }}
         title="Select Effective Date"
       />
+
+      {/* Modern In-App Success Modal for Bed Transfer */}
+      {transferSuccessData && (
+        <SuccessActionModal
+          visible={!!transferSuccessData}
+          onClose={() => {
+            setTransferSuccessData(null);
+            onClose();
+            if (onTransferSuccess) onTransferSuccess();
+          }}
+          title={transferSuccessData.title}
+          message={transferSuccessData.message}
+          highlightCard={{
+            icon: <BedDouble size={16} color="#15803D" />,
+            title: `Bed ${transferSuccessData.bedNumber} • ${transferSuccessData.rent}/mo`,
+            subtitle: `Effective: ${transferSuccessData.effectiveDateStr}`,
+          }}
+        />
+      )}
     </Modal>
   );
 };

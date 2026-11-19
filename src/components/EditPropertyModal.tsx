@@ -34,6 +34,7 @@ import { updatePropertyApi, deletePropertyApi } from '../api/properties';
 import { useProperties } from '../context/PropertyContext';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { DecorativeWaveFooter } from './DecorativeWaveFooter';
+import { SuccessActionModal } from './SuccessActionModal';
 
 interface EditPropertyModalProps {
   visible: boolean;
@@ -59,6 +60,7 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
   const [upiVpa, setUpiVpa] = useState('');
   const [electricityRate, setElectricityRate] = useState('0');
   const [isSaving, setIsSaving] = useState(false);
+  const [savedSuccess, setSavedSuccess] = useState<IProperty | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showOccupiedWarningModal, setShowOccupiedWarningModal] = useState(false);
@@ -140,9 +142,7 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
         queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
       ]);
 
-      Alert.alert('Success', `Property "${updated.name}" updated successfully.`);
-      onSuccess?.(updated);
-      onClose();
+      setSavedSuccess(updated);
     } catch (err: unknown) {
       const msg =
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
@@ -902,6 +902,26 @@ export const EditPropertyModal: React.FC<EditPropertyModalProps> = ({
 
           <DecorativeWaveFooter height={24} style={{ marginTop: 8 }} />
         </View>
+
+        {/* Modern In-App Success Modal for Property Update */}
+        <SuccessActionModal
+          visible={!!savedSuccess}
+          onClose={() => {
+            const up = savedSuccess;
+            setSavedSuccess(null);
+            if (up) onSuccess?.(up);
+            onClose();
+          }}
+          title="Property Updated Successfully!"
+          message={`Property "${savedSuccess?.name}" details have been updated.`}
+          highlightCard={{
+            icon: <Building2 size={16} color="#15803D" />,
+            title: savedSuccess?.name || 'Property',
+            subtitle: savedSuccess?.city
+              ? `${savedSuccess.city} · ${savedSuccess.type}`
+              : savedSuccess?.type || '',
+          }}
+        />
       </KeyboardAvoidingView>
     </Modal>
   );
