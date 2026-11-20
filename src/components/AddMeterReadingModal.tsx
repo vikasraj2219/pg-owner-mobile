@@ -12,7 +12,16 @@ import {
   Alert,
   Image,
 } from 'react-native';
-import { ArrowLeft, Zap, DoorClosed, Layers, Filter, Search } from 'lucide-react-native';
+import {
+  ArrowLeft,
+  Zap,
+  DoorClosed,
+  Layers,
+  Filter,
+  Search,
+  Calendar,
+  Check,
+} from 'lucide-react-native';
 import { getPropertyImage } from '../utils/assetImages';
 import { useQueryClient } from '@tanstack/react-query';
 import { formatINR } from '../utils/currency';
@@ -64,11 +73,23 @@ export const AddMeterReadingModal: React.FC<AddMeterReadingModalProps> = ({
   const [currentReading, setCurrentReading] = useState('');
   const [ratePerUnit, setRatePerUnit] = useState('12');
   const [splitMethod, setSplitMethod] = useState<'equal' | 'by_days_occupied'>('equal');
+  const [fromDate, setFromDate] = useState(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
+  });
+  const [toDate, setToDate] = useState(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  });
+  const [billingMode, setBillingMode] = useState<'next_rent_invoice' | 'separate_invoice'>(
+    'next_rent_invoice',
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [recordedSuccessInfo, setRecordedSuccessInfo] = useState<{
     roomNumber: string;
     units: number;
     amountPaise: number;
+    billingMode: 'next_rent_invoice' | 'separate_invoice';
   } | null>(null);
 
   // Load rooms when active property changes
@@ -111,6 +132,9 @@ export const AddMeterReadingModal: React.FC<AddMeterReadingModalProps> = ({
         const latest = await getLatestRoomReadingApi(selectedRoom._id);
         if (latest) {
           setPreviousReading(latest.currentReading.toString());
+          if (latest.currentReadingDate) {
+            setFromDate(latest.currentReadingDate.split('T')[0]);
+          }
         } else {
           setPreviousReading('0');
         }
@@ -170,15 +194,20 @@ export const AddMeterReadingModal: React.FC<AddMeterReadingModalProps> = ({
         currentReading: currNum,
         ratePaisePerUnit: ratePaise,
         splitMethod,
+        previousReadingDate: fromDate,
+        currentReadingDate: toDate,
+        billingMode,
       });
 
       queryClient.invalidateQueries({ queryKey: ['matrix'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
 
       setRecordedSuccessInfo({
         roomNumber: selectedRoom.roomNumber,
         units: unitsConsumed,
         amountPaise: totalAmountPaise,
+        billingMode,
       });
     } catch {
       Alert.alert('Error', 'Failed to record meter reading. Please try again.');
@@ -536,6 +565,77 @@ export const AddMeterReadingModal: React.FC<AddMeterReadingModalProps> = ({
               )}
             </View>
 
+            {/* Reading Period Window */}
+            <View style={{ marginBottom: 14 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
+                <Calendar size={12} color="#0C192B" strokeWidth={2.2} style={{ marginRight: 5 }} />
+                <Text
+                  style={{
+                    fontSize: 11,
+                    fontWeight: '800',
+                    color: '#657080',
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.3,
+                  }}
+                >
+                  Reading Window (Period)
+                </Text>
+              </View>
+              <View style={{ flexDirection: 'row', gap: 10 }}>
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={{ fontSize: 10, fontWeight: '700', color: '#657080', marginBottom: 4 }}
+                  >
+                    From (Start)
+                  </Text>
+                  <TextInput
+                    style={{
+                      borderWidth: 1,
+                      borderColor: '#E5DDCD',
+                      borderRadius: 12,
+                      paddingHorizontal: 10,
+                      paddingVertical: 8,
+                      color: '#0C192B',
+                      backgroundColor: '#FAF5EB',
+                      fontWeight: '700',
+                      fontSize: 13,
+                    }}
+                    placeholder="YYYY-MM-DD"
+                    placeholderTextColor="#94A3B8"
+                    value={fromDate}
+                    onChangeText={setFromDate}
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={{ fontSize: 10, fontWeight: '700', color: '#657080', marginBottom: 4 }}
+                  >
+                    To (End / Reading Date)
+                  </Text>
+                  <TextInput
+                    style={{
+                      borderWidth: 1,
+                      borderColor: '#E5DDCD',
+                      borderRadius: 12,
+                      paddingHorizontal: 10,
+                      paddingVertical: 8,
+                      color: '#0C192B',
+                      backgroundColor: '#FFFDF8',
+                      fontWeight: '700',
+                      fontSize: 13,
+                    }}
+                    placeholder="YYYY-MM-DD"
+                    placeholderTextColor="#94A3B8"
+                    value={toDate}
+                    onChangeText={setToDate}
+                  />
+                </View>
+              </View>
+              <Text style={{ fontSize: 10, color: '#657080', marginTop: 4 }}>
+                Occupancy stays within this window are prorated fairly per tenant.
+              </Text>
+            </View>
+
             {/* Previous & Current Dial Inputs */}
             <View style={{ flexDirection: 'row', gap: 10, marginBottom: 12 }}>
               <View style={{ flex: 1 }}>
@@ -668,6 +768,127 @@ export const AddMeterReadingModal: React.FC<AddMeterReadingModalProps> = ({
               </View>
             </View>
 
+            {/* Billing Mode Selection */}
+            <View style={{ marginBottom: 16 }}>
+              <Text
+                style={{
+                  fontSize: 11,
+                  fontWeight: '800',
+                  color: '#657080',
+                  textTransform: 'uppercase',
+                  marginBottom: 8,
+                }}
+              >
+                Billing & Collection Mode
+              </Text>
+
+              {/* Mode A */}
+              <TouchableOpacity
+                onPress={() => setBillingMode('next_rent_invoice')}
+                activeOpacity={0.7}
+                style={{
+                  padding: 12,
+                  borderRadius: 14,
+                  borderWidth: 1.5,
+                  borderColor: billingMode === 'next_rent_invoice' ? '#4F5330' : '#E5DDCD',
+                  backgroundColor: billingMode === 'next_rent_invoice' ? '#FAF5EB' : '#FFFDF8',
+                  marginBottom: 8,
+                }}
+              >
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    marginBottom: 3,
+                  }}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <View
+                      style={{
+                        width: 18,
+                        height: 18,
+                        borderRadius: 9,
+                        borderWidth: 1.5,
+                        borderColor: billingMode === 'next_rent_invoice' ? '#4F5330' : '#94A3B8',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginRight: 8,
+                        backgroundColor:
+                          billingMode === 'next_rent_invoice' ? '#4F5330' : 'transparent',
+                      }}
+                    >
+                      {billingMode === 'next_rent_invoice' && (
+                        <Check size={11} color="#FFFFFF" strokeWidth={3} />
+                      )}
+                    </View>
+                    <Text style={{ fontSize: 13, fontWeight: '800', color: '#0C192B' }}>
+                      Add to Next Rent Invoice
+                    </Text>
+                  </View>
+                  <View
+                    style={{
+                      paddingHorizontal: 7,
+                      paddingVertical: 2,
+                      borderRadius: 6,
+                      backgroundColor: '#DCFCE7',
+                      borderWidth: 1,
+                      borderColor: '#BBF7D0',
+                    }}
+                  >
+                    <Text style={{ fontSize: 10, fontWeight: '800', color: '#15803D' }}>
+                      Recommended
+                    </Text>
+                  </View>
+                </View>
+                <Text style={{ fontSize: 11, color: '#657080', marginLeft: 26, lineHeight: 15 }}>
+                  Queues charge as pending to be automatically itemized on each tenant's upcoming
+                  rent due date. Preserves individual anniversary cycles.
+                </Text>
+              </TouchableOpacity>
+
+              {/* Mode B */}
+              <TouchableOpacity
+                onPress={() => setBillingMode('separate_invoice')}
+                activeOpacity={0.7}
+                style={{
+                  padding: 12,
+                  borderRadius: 14,
+                  borderWidth: 1.5,
+                  borderColor: billingMode === 'separate_invoice' ? '#4F5330' : '#E5DDCD',
+                  backgroundColor: billingMode === 'separate_invoice' ? '#FAF5EB' : '#FFFDF8',
+                }}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 3 }}>
+                  <View
+                    style={{
+                      width: 18,
+                      height: 18,
+                      borderRadius: 9,
+                      borderWidth: 1.5,
+                      borderColor: billingMode === 'separate_invoice' ? '#4F5330' : '#94A3B8',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginRight: 8,
+                      backgroundColor:
+                        billingMode === 'separate_invoice' ? '#4F5330' : 'transparent',
+                    }}
+                  >
+                    {billingMode === 'separate_invoice' && (
+                      <Check size={11} color="#FFFFFF" strokeWidth={3} />
+                    )}
+                  </View>
+                  <Text style={{ fontSize: 13, fontWeight: '800', color: '#0C192B' }}>
+                    Generate Separate Utility Invoice
+                  </Text>
+                </View>
+                <Text style={{ fontSize: 11, color: '#657080', marginLeft: 26, lineHeight: 15 }}>
+                  Creates independent electricity invoices immediately for each occupant, due in 5
+                  days.
+                </Text>
+              </TouchableOpacity>
+            </View>
+
             {/* Live Calculation Banner */}
             <View
               style={{
@@ -755,7 +976,9 @@ export const AddMeterReadingModal: React.FC<AddMeterReadingModalProps> = ({
           message={
             recordedSuccessInfo?.units === 0
               ? `Room ${recordedSuccessInfo?.roomNumber} logged 0 units consumed (₹0 bill). No tenant charges applied.`
-              : `Room ${recordedSuccessInfo?.roomNumber} meter reading has been saved and the bill split among active tenants.`
+              : recordedSuccessInfo?.billingMode === 'separate_invoice'
+                ? `Room ${recordedSuccessInfo?.roomNumber} reading logged. Standalone electricity invoices generated for all active occupants, due in 5 days.`
+                : `Room ${recordedSuccessInfo?.roomNumber} reading logged. Electricity charges queued to be automatically attached to each tenant's next rent invoice.`
           }
           highlightCard={{
             icon: <Zap size={16} color="#00838F" />,
@@ -763,7 +986,11 @@ export const AddMeterReadingModal: React.FC<AddMeterReadingModalProps> = ({
             subtitle: recordedSuccessInfo
               ? recordedSuccessInfo.amountPaise === 0
                 ? 'Zero consumption (₹0)'
-                : `Total EB Charge: ${formatINR(recordedSuccessInfo.amountPaise)}`
+                : `${formatINR(recordedSuccessInfo.amountPaise)} · ${
+                    recordedSuccessInfo.billingMode === 'separate_invoice'
+                      ? 'Standalone Invoices'
+                      : 'Queued for Rent'
+                  }`
               : '',
           }}
         />

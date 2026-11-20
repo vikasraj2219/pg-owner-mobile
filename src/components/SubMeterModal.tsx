@@ -81,6 +81,11 @@ export const SubMeterModal: React.FC<SubMeterModalProps> = ({
   const [editCurrReading, setEditCurrReading] = useState('');
   const [editRate, setEditRate] = useState('0');
   const [editSplitMethod, setEditSplitMethod] = useState<'equal' | 'by_days_occupied'>('equal');
+  const [editBillingMode, setEditBillingMode] = useState<'next_rent_invoice' | 'separate_invoice'>(
+    'next_rent_invoice',
+  );
+  const [editFromDate, setEditFromDate] = useState('');
+  const [editToDate, setEditToDate] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
   const [deletingReading, setDeletingReading] = useState<IMeterReading | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -133,6 +138,13 @@ export const SubMeterModal: React.FC<SubMeterModalProps> = ({
     setEditCurrReading(reading.currentReading.toString());
     setEditRate((reading.ratePaisePerUnit / 100).toString());
     setEditSplitMethod(reading.splitMethod || 'equal');
+    setEditBillingMode(reading.billingMode || 'next_rent_invoice');
+    setEditFromDate(
+      reading.previousReadingDate ? reading.previousReadingDate.toString().split('T')[0] : '',
+    );
+    setEditToDate(
+      reading.currentReadingDate ? reading.currentReadingDate.toString().split('T')[0] : '',
+    );
   };
 
   const editPNum = parseFloat(editPrevReading) || 0;
@@ -159,10 +171,14 @@ export const SubMeterModal: React.FC<SubMeterModalProps> = ({
         currentReading: editCNum,
         ratePaisePerUnit: Math.round(editRNum * 100),
         splitMethod: editSplitMethod,
+        billingMode: editBillingMode,
+        previousReadingDate: editFromDate || undefined,
+        currentReadingDate: editToDate || undefined,
       });
 
       queryClient.invalidateQueries({ queryKey: ['matrix'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
 
       Alert.alert('Updated', 'Meter reading updated successfully.');
       setEditingReading(null);
@@ -188,6 +204,7 @@ export const SubMeterModal: React.FC<SubMeterModalProps> = ({
       await deleteMeterReadingApi(deletingReading._id);
       queryClient.invalidateQueries({ queryKey: ['matrix'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
       setDeletingReading(null);
       loadRoomsAndReadings();
     } catch (err: unknown) {
@@ -205,17 +222,37 @@ export const SubMeterModal: React.FC<SubMeterModalProps> = ({
     const units = reading.unitsConsumed;
     const rate = (reading.ratePaisePerUnit / 100).toFixed(1);
     const total = formatINR(reading.totalAmountPaise);
+    const modeLabel =
+      reading.billingMode === 'separate_invoice'
+        ? 'Separate Invoice (Due in 5 days)'
+        : 'Added to Next Rent Invoice';
+
     let text =
       `⚡ *${propertyName} - Electricity Bill*\n` +
-      `📍 ${reading.meterIdentifier || 'Sub-meter'}\n` +
-      `🗓 Date: ${formatSafeDate(reading.readingDate)}\n` +
+      `📍 ${reading.meterIdentifier || 'Sub-meter'}\n`;
+
+    if (reading.previousReadingDate && reading.currentReadingDate) {
+      text += `🗓 Reading Period: ${formatSafeDate(reading.previousReadingDate)} → ${formatSafeDate(reading.currentReadingDate)}\n`;
+    } else {
+      text += `🗓 Date: ${formatSafeDate(reading.readingDate)}\n`;
+    }
+
+    text +=
       `📊 Dial: ${reading.previousReading} → ${reading.currentReading} (${units} units @ ₹${rate}/u)\n` +
-      `💰 Total: ${total}\n\n`;
+      `💰 Total: ${total}\n` +
+      `🏷 Collection Mode: ${modeLabel}\n\n`;
 
     if (reading.tenantSplits && reading.tenantSplits.length > 0) {
-      text += `*Tenant Split (${reading.splitMethod === 'by_days_occupied' ? 'By Days' : 'Equal'}):*\n`;
+      text += `*Tenant Split (${reading.splitMethod === 'by_days_occupied' ? 'By Days Stayed' : 'Equal'}):*\n`;
       reading.tenantSplits.forEach(s => {
-        text += `• ${s.tenant?.fullName || 'Tenant'}: ${formatINR(s.sharePaise)}\n`;
+        const daysText = s.daysOccupied ? ` (${s.daysOccupied} days)` : '';
+        const statusText =
+          s.status === 'invoiced'
+            ? ' [Invoiced]'
+            : s.status === 'settled_at_checkout'
+              ? ' [Settled at Checkout]'
+              : ' [Queued for Rent]';
+        text += `• ${s.tenant?.fullName || 'Tenant'}${daysText}: ${formatINR(s.sharePaise)}${statusText}\n`;
       });
     } else if (reading.unitsConsumed === 0) {
       text += `*Status:* 0 Units Consumed (₹0 Bill)\n`;
@@ -759,10 +796,66 @@ export const SubMeterModal: React.FC<SubMeterModalProps> = ({
                   </Text>
                 </View>
 
-                <Text style={{ fontSize: 12, color: '#657080', marginBottom: 8 }}>
-                  {reading.unitsConsumed} Units · Dial {reading.previousReading} →{' '}
-                  {reading.currentReading} (₹{(reading.ratePaisePerUnit / 100).toFixed(1)}/u)
-                </Text>
+                {/* Units, Dial & Billing Mode Badge */}
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    marginBottom: 6,
+                  }}
+                >
+                  <Text style={{ fontSize: 12, color: '#657080' }}>
+                    {reading.unitsConsumed} Units · Dial {reading.previousReading} →{' '}
+                    {reading.currentReading} (₹{(reading.ratePaisePerUnit / 100).toFixed(1)}/u)
+                  </Text>
+                  <View
+                    style={{
+                      paddingHorizontal: 7,
+                      paddingVertical: 2,
+                      borderRadius: 6,
+                      backgroundColor:
+                        reading.billingMode === 'separate_invoice' ? '#FEF3C7' : '#E0F2FE',
+                      borderWidth: 1,
+                      borderColor:
+                        reading.billingMode === 'separate_invoice' ? '#FDE68A' : '#BAE6FD',
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 10,
+                        fontWeight: '800',
+                        color: reading.billingMode === 'separate_invoice' ? '#B45309' : '#0369A1',
+                      }}
+                    >
+                      {reading.billingMode === 'separate_invoice'
+                        ? '⚡ Separate Invoice'
+                        : '📅 Next Rent Invoice'}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Reading Period Window */}
+                {reading.previousReadingDate && reading.currentReadingDate && (
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      marginBottom: 8,
+                      backgroundColor: '#FAF5EB',
+                      paddingHorizontal: 8,
+                      paddingVertical: 3,
+                      borderRadius: 6,
+                      alignSelf: 'flex-start',
+                    }}
+                  >
+                    <Calendar size={11} color="#657080" style={{ marginRight: 4 }} />
+                    <Text style={{ fontSize: 11, fontWeight: '700', color: '#657080' }}>
+                      Period: {formatSafeDate(reading.previousReadingDate)} →{' '}
+                      {formatSafeDate(reading.currentReadingDate)}
+                    </Text>
+                  </View>
+                )}
 
                 {/* Real-time Case: Tenant Splits Breakdown or Vacant / 0 Units Status */}
                 {reading.tenantSplits && reading.tenantSplits.length > 0 ? (
@@ -790,26 +883,90 @@ export const SubMeterModal: React.FC<SubMeterModalProps> = ({
                       {reading.tenantSplits.length === 1 ? '' : 's'})
                     </Text>
                     <View style={{ gap: 4 }}>
-                      {reading.tenantSplits.map((split, sIdx) => (
-                        <View
-                          key={`split-${reading._id}-${sIdx}`}
-                          style={{
-                            flexDirection: 'row',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                          }}
-                        >
-                          <Text style={{ fontSize: 12, fontWeight: '600', color: '#0C192B' }}>
-                            👤 {split.tenant?.fullName || 'Tenant'}
-                            {reading.splitMethod === 'by_days_occupied' && split.daysOccupied
-                              ? ` (${split.daysOccupied}d)`
-                              : ''}
-                          </Text>
-                          <Text style={{ fontSize: 12, fontWeight: '700', color: '#00838F' }}>
-                            {formatINR(split.sharePaise)}
-                          </Text>
-                        </View>
-                      ))}
+                      {reading.tenantSplits.map((split, sIdx) => {
+                        const splitStatus = split.status || 'pending_billing';
+                        const isSeparate = reading.billingMode === 'separate_invoice';
+                        const statusLabel =
+                          splitStatus === 'invoiced'
+                            ? isSeparate
+                              ? '⚡ Invoiced (5d)'
+                              : '✓ Invoiced'
+                            : splitStatus === 'settled_at_checkout'
+                              ? '✓ Settled at Checkout'
+                              : splitStatus === 'cancelled'
+                                ? '✕ Cancelled'
+                                : '⏳ Queued for Rent';
+
+                        const statusBg =
+                          splitStatus === 'invoiced'
+                            ? '#DCFCE7'
+                            : splitStatus === 'settled_at_checkout'
+                              ? '#F3E8FF'
+                              : splitStatus === 'cancelled'
+                                ? '#F1F5F9'
+                                : '#FEF3C7';
+
+                        const statusColor =
+                          splitStatus === 'invoiced'
+                            ? '#15803D'
+                            : splitStatus === 'settled_at_checkout'
+                              ? '#7E22CE'
+                              : splitStatus === 'cancelled'
+                                ? '#64748B'
+                                : '#B45309';
+
+                        return (
+                          <View
+                            key={`split-${reading._id}-${sIdx}`}
+                            style={{
+                              flexDirection: 'row',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                            }}
+                          >
+                            <View
+                              style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                flex: 1,
+                                marginRight: 8,
+                              }}
+                            >
+                              <Text
+                                style={{ fontSize: 12, fontWeight: '600', color: '#0C192B' }}
+                                numberOfLines={1}
+                              >
+                                👤 {split.tenant?.fullName || 'Tenant'}
+                                {reading.splitMethod === 'by_days_occupied' && split.daysOccupied
+                                  ? ` (${split.daysOccupied}d)`
+                                  : ''}
+                              </Text>
+                              <View
+                                style={{
+                                  marginLeft: 6,
+                                  paddingHorizontal: 6,
+                                  paddingVertical: 1,
+                                  borderRadius: 4,
+                                  backgroundColor: statusBg,
+                                }}
+                              >
+                                <Text
+                                  style={{
+                                    fontSize: 9,
+                                    fontWeight: '800',
+                                    color: statusColor,
+                                  }}
+                                >
+                                  {statusLabel}
+                                </Text>
+                              </View>
+                            </View>
+                            <Text style={{ fontSize: 12, fontWeight: '700', color: '#00838F' }}>
+                              {formatINR(split.sharePaise)}
+                            </Text>
+                          </View>
+                        );
+                      })}
                     </View>
                     <View
                       style={{
@@ -822,7 +979,9 @@ export const SubMeterModal: React.FC<SubMeterModalProps> = ({
                       }}
                     >
                       <Text style={{ fontSize: 10, fontWeight: '700', color: '#15803D' }}>
-                        ✓ Synced to monthly tenant dues & invoices
+                        {reading.billingMode === 'separate_invoice'
+                          ? '✓ Standalone electricity invoices generated'
+                          : '✓ Automatically queued for each tenant’s next rent invoice'}
                       </Text>
                     </View>
                   </View>
@@ -1073,6 +1232,136 @@ export const SubMeterModal: React.FC<SubMeterModalProps> = ({
                     >
                       <Text style={{ fontSize: 13, fontWeight: '700', color: '#0C192B' }}>
                         {editSplitMethod === 'equal' ? 'Equal' : 'By Days'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                {/* Reading Window Dates */}
+                <View style={{ marginBottom: 12 }}>
+                  <Text
+                    style={{
+                      fontSize: 11,
+                      fontWeight: '800',
+                      color: '#657080',
+                      textTransform: 'uppercase',
+                      marginBottom: 6,
+                    }}
+                  >
+                    Reading Window (Period)
+                  </Text>
+                  <View style={{ flexDirection: 'row', gap: 10 }}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 10, color: '#657080', marginBottom: 3 }}>
+                        From Date
+                      </Text>
+                      <TextInput
+                        style={{
+                          borderWidth: 1,
+                          borderColor: '#E5DDCD',
+                          borderRadius: 12,
+                          paddingHorizontal: 10,
+                          paddingVertical: 8,
+                          color: '#0C192B',
+                          backgroundColor: '#FAF5EB',
+                          fontWeight: '700',
+                          fontSize: 13,
+                        }}
+                        placeholder="YYYY-MM-DD"
+                        placeholderTextColor="#94A3B8"
+                        value={editFromDate}
+                        onChangeText={setEditFromDate}
+                      />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 10, color: '#657080', marginBottom: 3 }}>
+                        To Date
+                      </Text>
+                      <TextInput
+                        style={{
+                          borderWidth: 1,
+                          borderColor: '#E5DDCD',
+                          borderRadius: 12,
+                          paddingHorizontal: 10,
+                          paddingVertical: 8,
+                          color: '#0C192B',
+                          backgroundColor: '#FFFDF8',
+                          fontWeight: '700',
+                          fontSize: 13,
+                        }}
+                        placeholder="YYYY-MM-DD"
+                        placeholderTextColor="#94A3B8"
+                        value={editToDate}
+                        onChangeText={setEditToDate}
+                      />
+                    </View>
+                  </View>
+                </View>
+
+                {/* Billing Mode Toggle */}
+                <View style={{ marginBottom: 14 }}>
+                  <Text
+                    style={{
+                      fontSize: 11,
+                      fontWeight: '800',
+                      color: '#657080',
+                      textTransform: 'uppercase',
+                      marginBottom: 6,
+                    }}
+                  >
+                    Collection Mode
+                  </Text>
+                  <View style={{ flexDirection: 'row', gap: 8 }}>
+                    <TouchableOpacity
+                      onPress={() => setEditBillingMode('next_rent_invoice')}
+                      activeOpacity={0.7}
+                      style={{
+                        flex: 1,
+                        paddingVertical: 8,
+                        paddingHorizontal: 10,
+                        borderRadius: 10,
+                        borderWidth: 1,
+                        borderColor:
+                          editBillingMode === 'next_rent_invoice' ? '#4F5330' : '#E5DDCD',
+                        backgroundColor:
+                          editBillingMode === 'next_rent_invoice' ? '#FAF5EB' : '#FFFDF8',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 11,
+                          fontWeight: editBillingMode === 'next_rent_invoice' ? '800' : '600',
+                          color: editBillingMode === 'next_rent_invoice' ? '#4F5330' : '#657080',
+                        }}
+                      >
+                        Next Rent Invoice
+                      </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      onPress={() => setEditBillingMode('separate_invoice')}
+                      activeOpacity={0.7}
+                      style={{
+                        flex: 1,
+                        paddingVertical: 8,
+                        paddingHorizontal: 10,
+                        borderRadius: 10,
+                        borderWidth: 1,
+                        borderColor: editBillingMode === 'separate_invoice' ? '#4F5330' : '#E5DDCD',
+                        backgroundColor:
+                          editBillingMode === 'separate_invoice' ? '#FAF5EB' : '#FFFDF8',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 11,
+                          fontWeight: editBillingMode === 'separate_invoice' ? '800' : '600',
+                          color: editBillingMode === 'separate_invoice' ? '#4F5330' : '#657080',
+                        }}
+                      >
+                        Separate Invoice (5d)
                       </Text>
                     </TouchableOpacity>
                   </View>

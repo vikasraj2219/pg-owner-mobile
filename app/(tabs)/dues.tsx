@@ -724,7 +724,36 @@ export default function DuesScreen() {
                           {item.items[0].description}
                         </Text>
                       ) : null}
+                      {item.invoiceType === 'electricity' ? (
+                        <View
+                          style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            backgroundColor: '#FEF3C7',
+                            paddingHorizontal: 7,
+                            paddingVertical: 2,
+                            borderRadius: 6,
+                            borderWidth: 1,
+                            borderColor: '#FDE68A',
+                            marginTop: 4,
+                            alignSelf: 'flex-start',
+                          }}
+                        >
+                          <Zap size={10} color="#B45309" />
+                          <Text
+                            style={{
+                              fontSize: 10,
+                              fontWeight: '800',
+                              color: '#B45309',
+                              marginLeft: 4,
+                            }}
+                          >
+                            ⚡ Standalone Electricity Bill
+                          </Text>
+                        </View>
+                      ) : null}
                       {(() => {
+                        if (item.invoiceType === 'electricity') return null;
                         const ebItem = item.items?.find(it => it.category === 'electricity');
                         if (!ebItem) return null;
                         return (

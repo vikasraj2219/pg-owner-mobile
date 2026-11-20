@@ -11,6 +11,10 @@ export const recordMeterReadingApi = async (payload: {
   previousReading: number;
   currentReading: number;
   ratePaisePerUnit?: Paise;
+  readingDate?: string;
+  previousReadingDate?: string;
+  currentReadingDate?: string;
+  billingMode?: 'next_rent_invoice' | 'separate_invoice';
   splitMethod?: 'equal' | 'by_days_occupied';
 }): Promise<IMeterReading> => {
   const response = await apiClient.post<ApiResponse<IMeterReading>>('/meters/reading', payload);

@@ -532,6 +532,7 @@ export interface DashboardStats {
 export interface DueInvoiceItem {
   _id: string;
   invoiceNumber: string;
+  invoiceType?: 'rent' | 'electricity' | 'custom';
   month: number;
   year: number;
   dueDate: string;
@@ -668,6 +669,9 @@ export interface CheckoutConfirmPayload {
   notes?: string;
 }
 
+export type MeterBillingMode = 'next_rent_invoice' | 'separate_invoice';
+export type MeterSplitStatus = 'pending_billing' | 'invoiced' | 'settled_at_checkout' | 'cancelled';
+
 export interface IMeterReading {
   _id: string;
   property?: { _id: string; name: string; code?: string } | string;
@@ -679,6 +683,9 @@ export interface IMeterReading {
   ratePaisePerUnit: Paise;
   totalAmountPaise: Paise;
   readingDate: string;
+  previousReadingDate?: string;
+  currentReadingDate?: string;
+  billingMode?: MeterBillingMode;
   photoUrl?: string;
   splitMethod: 'equal' | 'by_days_occupied';
   tenantSplits: Array<{
@@ -689,6 +696,12 @@ export interface IMeterReading {
     };
     daysOccupied: number;
     sharePaise: Paise;
+    status?: MeterSplitStatus;
+    invoice?: string;
+    billingPeriod?: {
+      from: string;
+      to: string;
+    };
   }>;
 }
 
@@ -697,6 +710,9 @@ export interface UpdateMeterReadingPayload {
   currentReading?: number;
   ratePaisePerUnit?: Paise;
   readingDate?: string;
+  previousReadingDate?: string;
+  currentReadingDate?: string;
+  billingMode?: MeterBillingMode;
   splitMethod?: 'equal' | 'by_days_occupied';
   photoUrl?: string;
   meterIdentifier?: string;
