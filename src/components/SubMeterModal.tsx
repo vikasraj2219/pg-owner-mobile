@@ -40,6 +40,7 @@ interface SubMeterModalProps {
   property: IProperty | null;
   properties?: IProperty[];
   initialTab?: 'logs' | 'add';
+  initialRoomNumber?: string;
 }
 
 export const SubMeterModal: React.FC<SubMeterModalProps> = ({
@@ -47,6 +48,7 @@ export const SubMeterModal: React.FC<SubMeterModalProps> = ({
   onClose,
   property,
   properties = [],
+  initialRoomNumber,
 }) => {
   const queryClient = useQueryClient();
   const [activePropertyId, setActivePropertyId] = useState<string | null>(property?._id || null);
@@ -109,8 +111,8 @@ export const SubMeterModal: React.FC<SubMeterModalProps> = ({
   useEffect(() => {
     setSelectedFloor('all');
     setSearchQuery('');
-    setHistoryRoomFilter('all');
-  }, [activePropertyId]);
+    setHistoryRoomFilter(initialRoomNumber || 'all');
+  }, [activePropertyId, initialRoomNumber, visible]);
 
   const floorsList = useMemo(() => {
     return Array.from(new Set(rooms.map(r => r.floorNumber))).sort((a, b) => a - b);
@@ -808,6 +810,20 @@ export const SubMeterModal: React.FC<SubMeterModalProps> = ({
                           </Text>
                         </View>
                       ))}
+                    </View>
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        marginTop: 6,
+                        paddingTop: 5,
+                        borderTopWidth: 1,
+                        borderTopColor: '#E5DDCD',
+                      }}
+                    >
+                      <Text style={{ fontSize: 10, fontWeight: '700', color: '#15803D' }}>
+                        ✓ Synced to monthly tenant dues & invoices
+                      </Text>
                     </View>
                   </View>
                 ) : reading.unitsConsumed === 0 ? (

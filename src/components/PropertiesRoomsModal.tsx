@@ -35,6 +35,7 @@ import { EditFloorModal } from './EditFloorModal';
 import { AddBedModal } from './AddBedModal';
 import { EditBedModal } from './EditBedModal';
 import { SubscriptionModal } from './SubscriptionModal';
+import { SubMeterModal } from './SubMeterModal';
 import { formatINR } from '../utils/currency';
 import { IProperty, PropertyMatrixData, IMatrixFloor, IMatrixRoom, IMatrixBed } from '../types/api';
 import { getPropertyImage } from '../utils/assetImages';
@@ -72,6 +73,8 @@ export const PropertiesRoomsModal: React.FC<PropertiesRoomsModalProps> = ({ visi
   const [showAddBed, setShowAddBed] = useState(false);
   const [bedToEdit, setBedToEdit] = useState<IMatrixBed | null>(null);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+  const [showSubMeterModal, setShowSubMeterModal] = useState(false);
+  const [subMeterRoomNumber, setSubMeterRoomNumber] = useState<string | undefined>(undefined);
 
   // Synchronize active property when opening
   React.useEffect(() => {
@@ -486,47 +489,6 @@ export const PropertiesRoomsModal: React.FC<PropertiesRoomsModalProps> = ({ visi
                 })}
               </View>
             </ScrollView>
-
-            {/* Bottom Add Property Button */}
-            <View
-              style={{
-                padding: 16,
-                borderTopWidth: 1,
-                borderTopColor: '#E5DDCD',
-                backgroundColor: '#FAF5EB',
-                paddingBottom: Platform.OS === 'ios' ? 34 : 16,
-              }}
-            >
-              <TouchableOpacity
-                activeOpacity={0.85}
-                onPress={() => {
-                  if (isAtPropertyLimit) {
-                    setShowSubscriptionModal(true);
-                  } else {
-                    setShowAddProperty(true);
-                  }
-                }}
-                style={{
-                  width: '100%',
-                  height: 50,
-                  backgroundColor: '#4F5330',
-                  borderRadius: 9999,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  shadowColor: '#000',
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.1,
-                  shadowRadius: 4,
-                  elevation: 2,
-                }}
-              >
-                <Plus size={18} color="#FFFFFF" strokeWidth={2.5} style={{ marginRight: 6 }} />
-                <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 15 }}>
-                  Add property
-                </Text>
-              </TouchableOpacity>
-            </View>
           </View>
         )}
 
@@ -797,12 +759,17 @@ export const PropertiesRoomsModal: React.FC<PropertiesRoomsModalProps> = ({ visi
                   justifyContent: 'space-between',
                 }}
               >
-                <View
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    setSubMeterRoomNumber(undefined);
+                    setShowSubMeterModal(true);
+                  }}
                   style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}
                 >
-                  <Zap size={14} color="#4F5330" style={{ marginRight: 6 }} />
+                  <Zap size={14} color="#00838F" style={{ marginRight: 6 }} />
                   <Text
-                    style={{ fontSize: 12, fontWeight: '600', color: '#0C192B' }}
+                    style={{ fontSize: 12, fontWeight: '700', color: '#0C192B' }}
                     numberOfLines={1}
                   >
                     EB:{' '}
@@ -810,7 +777,22 @@ export const PropertiesRoomsModal: React.FC<PropertiesRoomsModalProps> = ({ visi
                       ? `${formatINR(activeProperty.electricityRatePaisePerUnit)}/unit`
                       : '₹12/unit'}
                   </Text>
-                </View>
+                  <View
+                    style={{
+                      backgroundColor: '#E0F7FA',
+                      paddingHorizontal: 8,
+                      paddingVertical: 3,
+                      borderRadius: 6,
+                      marginLeft: 8,
+                      borderWidth: 1,
+                      borderColor: '#80DEEA',
+                    }}
+                  >
+                    <Text style={{ fontSize: 10, fontWeight: '800', color: '#00838F' }}>
+                      ⚡ View / Log EB
+                    </Text>
+                  </View>
+                </TouchableOpacity>
                 <Text
                   style={{ fontSize: 12, fontWeight: '700', color: '#657080' }}
                   numberOfLines={1}
@@ -1200,6 +1182,29 @@ export const PropertiesRoomsModal: React.FC<PropertiesRoomsModalProps> = ({ visi
 
                           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                             <TouchableOpacity
+                              onPress={e => {
+                                e.stopPropagation?.();
+                                setSubMeterRoomNumber(room.roomNumber);
+                                setShowSubMeterModal(true);
+                              }}
+                              activeOpacity={0.7}
+                              style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                paddingHorizontal: 7,
+                                paddingVertical: 5,
+                                borderRadius: 10,
+                                backgroundColor: '#E0F7FA',
+                                borderWidth: 1,
+                                borderColor: '#80DEEA',
+                              }}
+                            >
+                              <Zap size={11} color="#00838F" style={{ marginRight: 3 }} />
+                              <Text style={{ fontSize: 11, fontWeight: '800', color: '#00838F' }}>
+                                EB
+                              </Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
                               onPress={() => setRoomToEdit(room)}
                               activeOpacity={0.7}
                               style={{
@@ -1362,6 +1367,26 @@ export const PropertiesRoomsModal: React.FC<PropertiesRoomsModalProps> = ({ visi
               </View>
 
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <TouchableOpacity
+                  onPress={() => {
+                    setSubMeterRoomNumber(activeRoom.roomNumber);
+                    setShowSubMeterModal(true);
+                  }}
+                  activeOpacity={0.7}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    paddingHorizontal: 10,
+                    paddingVertical: 7,
+                    borderRadius: 9999,
+                    backgroundColor: '#E0F7FA',
+                    borderWidth: 1,
+                    borderColor: '#80DEEA',
+                  }}
+                >
+                  <Zap size={13} color="#00838F" style={{ marginRight: 4 }} />
+                  <Text style={{ fontSize: 12, fontWeight: '800', color: '#00838F' }}>EB Bill</Text>
+                </TouchableOpacity>
                 <TouchableOpacity
                   onPress={() => setRoomToEdit(activeRoom)}
                   activeOpacity={0.7}
@@ -1784,6 +1809,18 @@ export const PropertiesRoomsModal: React.FC<PropertiesRoomsModalProps> = ({ visi
         <SubscriptionModal
           visible={showSubscriptionModal}
           onClose={() => setShowSubscriptionModal(false)}
+        />
+
+        {/* Sub-meter Electricity Modal */}
+        <SubMeterModal
+          visible={showSubMeterModal}
+          onClose={() => {
+            setShowSubMeterModal(false);
+            setSubMeterRoomNumber(undefined);
+          }}
+          property={activeProperty || null}
+          properties={properties}
+          initialRoomNumber={subMeterRoomNumber}
         />
       </View>
     </Modal>

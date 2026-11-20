@@ -24,6 +24,7 @@ import {
   Building,
   ChevronDown,
   Wallet,
+  Zap,
 } from 'lucide-react-native';
 import { useProperties } from '../../src/context/PropertyContext';
 import { useInvoices } from '../../src/hooks/useInvoices';
@@ -723,6 +724,38 @@ export default function DuesScreen() {
                           {item.items[0].description}
                         </Text>
                       ) : null}
+                      {(() => {
+                        const ebItem = item.items?.find(it => it.category === 'electricity');
+                        if (!ebItem) return null;
+                        return (
+                          <View
+                            style={{
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              backgroundColor: '#E0F7FA',
+                              paddingHorizontal: 7,
+                              paddingVertical: 2,
+                              borderRadius: 6,
+                              borderWidth: 1,
+                              borderColor: '#80DEEA',
+                              marginTop: 4,
+                              alignSelf: 'flex-start',
+                            }}
+                          >
+                            <Zap size={10} color="#00838F" />
+                            <Text
+                              style={{
+                                fontSize: 10,
+                                fontWeight: '800',
+                                color: '#00838F',
+                                marginLeft: 4,
+                              }}
+                            >
+                              Includes EB: {formatINR(ebItem.amountPaise)}
+                            </Text>
+                          </View>
+                        );
+                      })()}
                       {!duesPropertyFilterId && item.property?.name && (
                         <View
                           style={{

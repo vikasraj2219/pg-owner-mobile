@@ -1614,11 +1614,53 @@ export default function TenantDetailScreen() {
                     fontWeight: '900',
                     color: '#991B1B',
                     letterSpacing: -0.5,
-                    marginBottom: 14,
+                    marginBottom: 10,
                   }}
                 >
                   {formatINR(overdueInvoice.balanceDuePaise)}
                 </Text>
+
+                {overdueInvoice.items && overdueInvoice.items.length > 0 && (
+                  <View
+                    style={{
+                      backgroundColor: '#FFFFFF',
+                      borderRadius: 12,
+                      padding: 10,
+                      marginBottom: 14,
+                      borderWidth: 1,
+                      borderColor: '#FECDD3',
+                      gap: 4,
+                    }}
+                  >
+                    {overdueInvoice.items.map((it, idx) => (
+                      <View
+                        key={idx}
+                        style={{
+                          flexDirection: 'row',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <Text
+                          style={{
+                            fontSize: 11,
+                            fontWeight: '600',
+                            color: '#4B5563',
+                            flex: 1,
+                            marginRight: 6,
+                          }}
+                          numberOfLines={1}
+                        >
+                          {it.category === 'electricity' ? '⚡ ' : '🏠 '}
+                          {it.description}
+                        </Text>
+                        <Text style={{ fontSize: 11, fontWeight: '800', color: '#0C192B' }}>
+                          {formatINR(it.amountPaise)}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
 
                 <View style={{ flexDirection: 'row', gap: 10 }}>
                   <TouchableOpacity
