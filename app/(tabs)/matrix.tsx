@@ -866,6 +866,11 @@ export default function MatrixScreen() {
                       borderRadius: 16,
                       padding: 16,
                       marginBottom: 14,
+                      shadowColor: '#000',
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.06,
+                      shadowRadius: 5,
+                      elevation: 2.5,
                     }}
                   >
                     {/* Room Header with Edit & Quick Add Bed */}
@@ -971,6 +976,11 @@ export default function MatrixScreen() {
                                 borderRadius: 14,
                                 padding: 12,
                                 justifyContent: 'space-between',
+                                shadowColor: '#15803D',
+                                shadowOffset: { width: 0, height: 1.5 },
+                                shadowOpacity: 0.08,
+                                shadowRadius: 3,
+                                elevation: 2,
                               }}
                             >
                               <Text style={{ fontSize: 12, fontWeight: '700', color: '#15803D' }}>
@@ -1018,6 +1028,11 @@ export default function MatrixScreen() {
                                 borderRadius: 14,
                                 padding: 12,
                                 justifyContent: 'space-between',
+                                shadowColor: '#E11D48',
+                                shadowOffset: { width: 0, height: 1.5 },
+                                shadowOpacity: 0.08,
+                                shadowRadius: 3,
+                                elevation: 2,
                               }}
                             >
                               <View
@@ -1126,6 +1141,11 @@ export default function MatrixScreen() {
                                 borderRadius: 14,
                                 padding: 12,
                                 justifyContent: 'space-between',
+                                shadowColor: '#D97706',
+                                shadowOffset: { width: 0, height: 1.5 },
+                                shadowOpacity: 0.08,
+                                shadowRadius: 3,
+                                elevation: 2,
                               }}
                             >
                               <View
@@ -1210,6 +1230,11 @@ export default function MatrixScreen() {
                               borderRadius: 14,
                               padding: 12,
                               justifyContent: 'space-between',
+                              shadowColor: '#000',
+                              shadowOffset: { width: 0, height: 1.5 },
+                              shadowOpacity: 0.05,
+                              shadowRadius: 3,
+                              elevation: 1.5,
                             }}
                           >
                             <Text style={{ fontSize: 12, fontWeight: '700', color: '#657080' }}>

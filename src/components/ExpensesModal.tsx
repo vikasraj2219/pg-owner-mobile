@@ -395,7 +395,7 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({
                 letterSpacing: -0.3,
               }}
             >
-              Expenses & Monthly P&L
+              {activeTab === 'pnl' ? 'Expenses & Monthly P&L' : 'Log New Expense'}
             </Text>
             <Text
               style={{
@@ -406,7 +406,9 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({
               }}
               numberOfLines={1}
             >
-              Track your expenses and financial summary
+              {activeTab === 'pnl'
+                ? 'Track your expenses and financial summary'
+                : 'Record maintenance, groceries, staff salary'}
             </Text>
           </View>
 
@@ -441,70 +443,6 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Top Tabs (Live P&L vs Log New Expense) */}
-          <View style={{ flexDirection: 'row', gap: 10, marginBottom: 16 }}>
-            <TouchableOpacity
-              onPress={() => setActiveTab('pnl')}
-              activeOpacity={0.8}
-              style={{
-                flex: 1,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                paddingVertical: 12,
-                paddingHorizontal: 10,
-                borderRadius: 9999,
-                backgroundColor: activeTab === 'pnl' ? '#19D3E6' : '#FFFDF8',
-                borderWidth: 1,
-                borderColor: activeTab === 'pnl' ? '#19D3E6' : '#E5DDCD',
-              }}
-            >
-              <TrendingUp size={15} color="#0C192B" strokeWidth={2.3} style={{ marginRight: 6 }} />
-              <Text
-                numberOfLines={1}
-                style={{
-                  fontSize: 12,
-                  fontWeight: '800',
-                  color: '#0C192B',
-                }}
-              >
-                Live P&L & Monthly Ledger
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => {
-                resetAddForm();
-                setActiveTab('add');
-              }}
-              activeOpacity={0.8}
-              style={{
-                flex: 1,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                paddingVertical: 12,
-                paddingHorizontal: 10,
-                borderRadius: 9999,
-                backgroundColor: activeTab === 'add' ? '#19D3E6' : '#FFFDF8',
-                borderWidth: 1,
-                borderColor: activeTab === 'add' ? '#19D3E6' : '#E5DDCD',
-              }}
-            >
-              <Plus size={15} color="#0C192B" strokeWidth={2.5} style={{ marginRight: 6 }} />
-              <Text
-                numberOfLines={1}
-                style={{
-                  fontSize: 12,
-                  fontWeight: '800',
-                  color: '#0C192B',
-                }}
-              >
-                Log New Expense
-              </Text>
-            </TouchableOpacity>
-          </View>
-
           {activeTab === 'pnl' ? (
             <>
               {/* Filter By Property */}

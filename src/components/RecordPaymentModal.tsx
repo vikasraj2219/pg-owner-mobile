@@ -104,16 +104,21 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
       const receiptNumber = response.payment?.receiptNumber || 'RCP-RECENT';
 
       if (shareReceipt) {
-        await generateAndShareReceipt({
-          receiptNo: receiptNumber,
-          tenantName: invoice.tenant?.fullName || 'Tenant',
-          bedNo: getBedNumber(),
-          amountPaise: currentPayablePaise,
-          date: formatSafeDate(new Date()),
-          property: invoice.property?.name || 'PG Property',
-          paymentMethod,
-          transactionRef: transactionRef.trim() || undefined,
-        });
+        try {
+          await generateAndShareReceipt({
+            receiptNo: receiptNumber,
+            tenantName: invoice.tenant?.fullName || 'Tenant',
+            bedNo: getBedNumber(),
+            amountPaise: currentPayablePaise,
+            date: formatSafeDate(new Date()),
+            property: invoice.property?.name || 'PG Property',
+            paymentMethod,
+            transactionRef: transactionRef.trim() || undefined,
+          });
+        } catch (shareErr) {
+          // If share sheet is cancelled by user, continue seamlessly
+          console.warn('PDF share dismissed:', shareErr);
+        }
       }
 
       setPaymentSuccessData({
@@ -133,18 +138,57 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        className="flex-1 justify-end bg-black/60"
+        style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.55)' }}
       >
-        <View className="bg-white rounded-t-3xl p-6 max-h-[90%] shadow-2xl">
+        <View
+          style={{
+            backgroundColor: '#FAF5EB',
+            borderTopLeftRadius: 28,
+            borderTopRightRadius: 28,
+            borderTopWidth: 1,
+            borderColor: '#E5DDCD',
+            maxHeight: '92%',
+            paddingTop: 18,
+            paddingHorizontal: 20,
+            paddingBottom: Platform.OS === 'ios' ? 32 : 20,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: -4 },
+            shadowOpacity: 0.12,
+            shadowRadius: 10,
+            elevation: 12,
+          }}
+        >
           {/* Header */}
-          <View className="flex-row items-center justify-between pb-4 border-b border-slate-100">
-            <View className="flex-row items-center gap-2.5">
-              <View className="w-10 h-10 rounded-full bg-[#FAF7F2] border border-[#D0D7B4] items-center justify-center">
-                <Receipt size={22} color="#4F5330" />
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingBottom: 14,
+              borderBottomWidth: 1,
+              borderColor: '#E5DDCD',
+            }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <View
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 20,
+                  backgroundColor: '#FFFDF8',
+                  borderWidth: 1,
+                  borderColor: '#E5DDCD',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Receipt size={20} color="#4F5330" />
               </View>
               <View>
-                <Text className="text-lg font-black text-slate-900">Record Rent Payment</Text>
-                <Text className="text-xs font-semibold text-slate-500">
+                <Text style={{ fontSize: 18, fontWeight: '800', color: '#0C192B' }}>
+                  Record Rent Payment
+                </Text>
+                <Text style={{ fontSize: 12, fontWeight: '600', color: '#657080' }}>
                   {invoice.tenant?.fullName} · {getBedNumber()}
                 </Text>
               </View>
@@ -152,50 +196,126 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
             <TouchableOpacity
               onPress={onClose}
               hitSlop={{ top: 12, right: 12, bottom: 12, left: 12 }}
-              className="w-8 h-8 rounded-full bg-slate-100 items-center justify-center"
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: 17,
+                backgroundColor: '#FFFDF8',
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
             >
-              <X size={18} color="#64748B" />
+              <X size={18} color="#0C192B" />
             </TouchableOpacity>
           </View>
 
-          <ScrollView showsVerticalScrollIndicator={false} className="mt-4">
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingTop: 14, paddingBottom: 12 }}
+          >
             {/* Balance Due Card */}
-            <View className="bg-slate-50 border border-slate-200/70 rounded-2xl p-4 flex-row items-center justify-between mb-4">
+            <View
+              style={{
+                backgroundColor: '#FFFDF8',
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+                borderRadius: 18,
+                padding: 16,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: 16,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.04,
+                shadowRadius: 4,
+                elevation: 2,
+              }}
+            >
               <View>
-                <Text className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                <Text
+                  style={{
+                    fontSize: 11,
+                    fontWeight: '800',
+                    color: '#657080',
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.5,
+                  }}
+                >
                   Outstanding Balance
                 </Text>
-                <Text className="text-2xl font-black text-rose-600 mt-0.5">
+                <Text
+                  style={{
+                    fontSize: 24,
+                    fontWeight: '900',
+                    color: '#E11D48',
+                    marginTop: 2,
+                  }}
+                >
                   {formatINR(balanceDuePaise)}
                 </Text>
               </View>
-              <View className="bg-rose-100 px-3 py-1 rounded-full">
-                <Text className="text-xs font-bold text-rose-700">Due</Text>
+              <View
+                style={{
+                  backgroundColor: '#FFE4E6',
+                  borderWidth: 1,
+                  borderColor: '#FECDD3',
+                  paddingHorizontal: 12,
+                  paddingVertical: 4,
+                  borderRadius: 9999,
+                }}
+              >
+                <Text style={{ fontSize: 12, fontWeight: '800', color: '#E11D48' }}>Due</Text>
               </View>
             </View>
 
             {/* Payment Amount Choice */}
-            <Text className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+            <Text
+              style={{
+                fontSize: 11,
+                fontWeight: '800',
+                color: '#657080',
+                textTransform: 'uppercase',
+                letterSpacing: 0.5,
+                marginBottom: 8,
+              }}
+            >
               Payment Amount
             </Text>
-            <View className="flex-row gap-3 mb-4">
+            <View style={{ flexDirection: 'row', gap: 10, marginBottom: 14 }}>
               <TouchableOpacity
                 onPress={() => setIsFullPayment(true)}
-                className={`flex-1 p-3.5 rounded-xl border items-center ${
-                  isFullPayment ? 'border-[#4F5330] bg-[#FAF7F2]' : 'border-slate-200 bg-white'
-                }`}
+                activeOpacity={0.7}
+                style={{
+                  flex: 1,
+                  paddingVertical: 12,
+                  paddingHorizontal: 10,
+                  borderRadius: 14,
+                  borderWidth: 1.5,
+                  alignItems: 'center',
+                  backgroundColor: isFullPayment ? '#19D3E6' : '#FFFDF8',
+                  borderColor: isFullPayment ? '#19D3E6' : '#E5DDCD',
+                }}
               >
                 <Text
-                  className={`text-xs font-bold ${
-                    isFullPayment ? 'text-[#4F5330]' : 'text-slate-600'
-                  }`}
+                  style={{
+                    fontSize: 11,
+                    fontWeight: '800',
+                    textTransform: 'uppercase',
+                    color: isFullPayment ? '#0C192B' : '#657080',
+                  }}
                 >
                   Full Payment
                 </Text>
                 <Text
-                  className={`text-base font-extrabold mt-0.5 ${
-                    isFullPayment ? 'text-[#4F5330]' : 'text-slate-800'
-                  }`}
+                  style={{
+                    fontSize: 15,
+                    fontWeight: '900',
+                    marginTop: 2,
+                    color: '#0C192B',
+                  }}
                 >
                   {formatINR(balanceDuePaise)}
                 </Text>
@@ -203,21 +323,35 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
 
               <TouchableOpacity
                 onPress={() => setIsFullPayment(false)}
-                className={`flex-1 p-3.5 rounded-xl border items-center ${
-                  !isFullPayment ? 'border-[#4F5330] bg-[#FAF7F2]' : 'border-slate-200 bg-white'
-                }`}
+                activeOpacity={0.7}
+                style={{
+                  flex: 1,
+                  paddingVertical: 12,
+                  paddingHorizontal: 10,
+                  borderRadius: 14,
+                  borderWidth: 1.5,
+                  alignItems: 'center',
+                  backgroundColor: !isFullPayment ? '#19D3E6' : '#FFFDF8',
+                  borderColor: !isFullPayment ? '#19D3E6' : '#E5DDCD',
+                }}
               >
                 <Text
-                  className={`text-xs font-bold ${
-                    !isFullPayment ? 'text-[#4F5330]' : 'text-slate-600'
-                  }`}
+                  style={{
+                    fontSize: 11,
+                    fontWeight: '800',
+                    textTransform: 'uppercase',
+                    color: !isFullPayment ? '#0C192B' : '#657080',
+                  }}
                 >
                   Partial Payment
                 </Text>
                 <Text
-                  className={`text-base font-extrabold mt-0.5 ${
-                    !isFullPayment ? 'text-[#4F5330]' : 'text-slate-800'
-                  }`}
+                  style={{
+                    fontSize: 15,
+                    fontWeight: '900',
+                    marginTop: 2,
+                    color: '#0C192B',
+                  }}
                 >
                   Custom ₹
                 </Text>
@@ -226,41 +360,83 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
 
             {/* Custom Amount Input if Partial */}
             {!isFullPayment && (
-              <View className="mb-4">
-                <Text className="text-xs font-semibold text-slate-600 mb-1">
+              <View style={{ marginBottom: 14 }}>
+                <Text
+                  style={{ fontSize: 12, fontWeight: '700', color: '#0C192B', marginBottom: 6 }}
+                >
                   Enter partial amount (₹)
                 </Text>
-                <View className="flex-row items-center border border-slate-300 rounded-xl px-3 bg-white">
-                  <Text className="text-base font-bold text-slate-500 mr-2">₹</Text>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    borderWidth: 1,
+                    borderColor: '#E5DDCD',
+                    borderRadius: 14,
+                    paddingHorizontal: 14,
+                    backgroundColor: '#FFFDF8',
+                  }}
+                >
+                  <Text
+                    style={{ fontSize: 16, fontWeight: '800', color: '#657080', marginRight: 6 }}
+                  >
+                    ₹
+                  </Text>
                   <TextInput
                     value={customAmountStr}
                     onChangeText={setCustomAmountStr}
                     placeholder="e.g. 5000"
+                    placeholderTextColor="#94A3B8"
                     keyboardType="numeric"
-                    className="flex-1 py-3 text-base font-bold text-slate-900"
+                    style={{
+                      flex: 1,
+                      paddingVertical: 12,
+                      fontSize: 16,
+                      fontWeight: '800',
+                      color: '#0C192B',
+                    }}
                   />
                 </View>
               </View>
             )}
 
             {/* Payment Method Selector */}
-            <Text className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+            <Text
+              style={{
+                fontSize: 11,
+                fontWeight: '800',
+                color: '#657080',
+                textTransform: 'uppercase',
+                letterSpacing: 0.5,
+                marginBottom: 8,
+              }}
+            >
               Payment Mode
             </Text>
-            <View className="flex-row gap-2 mb-4">
+            <View style={{ flexDirection: 'row', gap: 8, marginBottom: 14 }}>
               <TouchableOpacity
                 onPress={() => setPaymentMethod('upi')}
-                className={`flex-1 py-2.5 px-3 rounded-xl border flex-row items-center justify-center gap-1.5 ${
-                  paymentMethod === 'upi'
-                    ? 'border-[#4F5330] bg-[#FAF7F2]'
-                    : 'border-slate-200 bg-white'
-                }`}
+                activeOpacity={0.7}
+                style={{
+                  flex: 1,
+                  paddingVertical: 10,
+                  borderRadius: 12,
+                  borderWidth: 1.5,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                  backgroundColor: paymentMethod === 'upi' ? '#4F5330' : '#FFFDF8',
+                  borderColor: paymentMethod === 'upi' ? '#4F5330' : '#E5DDCD',
+                }}
               >
-                <CreditCard size={16} color={paymentMethod === 'upi' ? '#4F5330' : '#64748B'} />
+                <CreditCard size={16} color={paymentMethod === 'upi' ? '#FFFFFF' : '#657080'} />
                 <Text
-                  className={`text-xs font-bold ${
-                    paymentMethod === 'upi' ? 'text-[#4F5330]' : 'text-slate-700'
-                  }`}
+                  style={{
+                    fontSize: 12,
+                    fontWeight: '800',
+                    color: paymentMethod === 'upi' ? '#FFFFFF' : '#0C192B',
+                  }}
                 >
                   UPI
                 </Text>
@@ -268,17 +444,27 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
 
               <TouchableOpacity
                 onPress={() => setPaymentMethod('cash')}
-                className={`flex-1 py-2.5 px-3 rounded-xl border flex-row items-center justify-center gap-1.5 ${
-                  paymentMethod === 'cash'
-                    ? 'border-[#4F5330] bg-[#FAF7F2]'
-                    : 'border-slate-200 bg-white'
-                }`}
+                activeOpacity={0.7}
+                style={{
+                  flex: 1,
+                  paddingVertical: 10,
+                  borderRadius: 12,
+                  borderWidth: 1.5,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                  backgroundColor: paymentMethod === 'cash' ? '#4F5330' : '#FFFDF8',
+                  borderColor: paymentMethod === 'cash' ? '#4F5330' : '#E5DDCD',
+                }}
               >
-                <Banknote size={16} color={paymentMethod === 'cash' ? '#4F5330' : '#64748B'} />
+                <Banknote size={16} color={paymentMethod === 'cash' ? '#FFFFFF' : '#657080'} />
                 <Text
-                  className={`text-xs font-bold ${
-                    paymentMethod === 'cash' ? 'text-[#4F5330]' : 'text-slate-700'
-                  }`}
+                  style={{
+                    fontSize: 12,
+                    fontWeight: '800',
+                    color: paymentMethod === 'cash' ? '#FFFFFF' : '#0C192B',
+                  }}
                 >
                   Cash
                 </Text>
@@ -286,20 +472,30 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
 
               <TouchableOpacity
                 onPress={() => setPaymentMethod('bank_transfer')}
-                className={`flex-1 py-2.5 px-3 rounded-xl border flex-row items-center justify-center gap-1.5 ${
-                  paymentMethod === 'bank_transfer'
-                    ? 'border-[#4F5330] bg-[#FAF7F2]'
-                    : 'border-slate-200 bg-white'
-                }`}
+                activeOpacity={0.7}
+                style={{
+                  flex: 1,
+                  paddingVertical: 10,
+                  borderRadius: 12,
+                  borderWidth: 1.5,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                  backgroundColor: paymentMethod === 'bank_transfer' ? '#4F5330' : '#FFFDF8',
+                  borderColor: paymentMethod === 'bank_transfer' ? '#4F5330' : '#E5DDCD',
+                }}
               >
                 <Building2
                   size={16}
-                  color={paymentMethod === 'bank_transfer' ? '#4F5330' : '#64748B'}
+                  color={paymentMethod === 'bank_transfer' ? '#FFFFFF' : '#657080'}
                 />
                 <Text
-                  className={`text-xs font-bold ${
-                    paymentMethod === 'bank_transfer' ? 'text-[#4F5330]' : 'text-slate-700'
-                  }`}
+                  style={{
+                    fontSize: 12,
+                    fontWeight: '800',
+                    color: paymentMethod === 'bank_transfer' ? '#FFFFFF' : '#0C192B',
+                  }}
                 >
                   Bank
                 </Text>
@@ -307,28 +503,50 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
             </View>
 
             {/* Reference / UTR input */}
-            <View className="mb-3">
-              <Text className="text-xs font-semibold text-slate-600 mb-1">
+            <View style={{ marginBottom: 12 }}>
+              <Text style={{ fontSize: 12, fontWeight: '700', color: '#0C192B', marginBottom: 4 }}>
                 Transaction Reference / UTR (optional)
               </Text>
               <TextInput
                 value={transactionRef}
                 onChangeText={setTransactionRef}
                 placeholder="e.g. UPI Ref / Cheque No."
-                className="border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-900 bg-white"
+                placeholderTextColor="#94A3B8"
+                style={{
+                  borderWidth: 1,
+                  borderColor: '#E5DDCD',
+                  borderRadius: 14,
+                  paddingHorizontal: 14,
+                  paddingVertical: 10,
+                  fontSize: 13,
+                  fontWeight: '600',
+                  color: '#0C192B',
+                  backgroundColor: '#FFFDF8',
+                }}
               />
             </View>
 
             {/* Notes input */}
-            <View className="mb-4">
-              <Text className="text-xs font-semibold text-slate-600 mb-1">
+            <View style={{ marginBottom: 14 }}>
+              <Text style={{ fontSize: 12, fontWeight: '700', color: '#0C192B', marginBottom: 4 }}>
                 Internal Note (optional)
               </Text>
               <TextInput
                 value={notes}
                 onChangeText={setNotes}
                 placeholder="e.g. Paid in cash at reception"
-                className="border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-900 bg-white"
+                placeholderTextColor="#94A3B8"
+                style={{
+                  borderWidth: 1,
+                  borderColor: '#E5DDCD',
+                  borderRadius: 14,
+                  paddingHorizontal: 14,
+                  paddingVertical: 10,
+                  fontSize: 13,
+                  fontWeight: '600',
+                  color: '#0C192B',
+                  backgroundColor: '#FFFDF8',
+                }}
               />
             </View>
 
@@ -336,37 +554,65 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={() => setShareReceipt(!shareReceipt)}
-              className="flex-row items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200/80 mb-6"
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 12,
+                padding: 12,
+                backgroundColor: '#FFFDF8',
+                borderRadius: 14,
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+                marginBottom: 16,
+              }}
             >
               <View
-                className={`w-5 h-5 rounded-md border items-center justify-center ${
-                  shareReceipt ? 'bg-[#4F5330] border-[#4F5330]' : 'border-slate-400 bg-white'
-                }`}
+                style={{
+                  width: 22,
+                  height: 22,
+                  borderRadius: 6,
+                  borderWidth: 1.5,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: shareReceipt ? '#4F5330' : '#FFFDF8',
+                  borderColor: shareReceipt ? '#4F5330' : '#94A3B8',
+                }}
               >
-                {shareReceipt && <Check size={14} color="#ffffff" strokeWidth={3} />}
+                {shareReceipt && <Check size={14} color="#FFFFFF" strokeWidth={3} />}
               </View>
-              <View className="flex-1">
-                <Text className="text-xs font-bold text-slate-800">
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 12, fontWeight: '800', color: '#0C192B' }}>
                   Generate & Share PDF Receipt
                 </Text>
-                <Text className="text-[11px] text-slate-500">
+                <Text style={{ fontSize: 11, fontWeight: '500', color: '#657080' }}>
                   Opens share sheet with branded PDF receipt upon confirmation
                 </Text>
               </View>
             </TouchableOpacity>
 
-            {/* Submit Button */}
+            {/* Sticky/Fixed Height Submit Button */}
             <TouchableOpacity
               onPress={handleSubmit}
               disabled={isSubmitting || currentPayablePaise <= 0}
-              className={`h-13 rounded-2xl items-center justify-center mb-6 shadow-md ${
-                isSubmitting || currentPayablePaise <= 0 ? 'bg-slate-300' : 'bg-[#4F5330]'
-              }`}
+              activeOpacity={0.85}
+              style={{
+                height: 52,
+                borderRadius: 9999,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: isSubmitting || currentPayablePaise <= 0 ? '#CBD5E1' : '#4F5330',
+                shadowColor: '#4F5330',
+                shadowOffset: { width: 0, height: 3 },
+                shadowOpacity: isSubmitting || currentPayablePaise <= 0 ? 0 : 0.25,
+                shadowRadius: 6,
+                elevation: 3,
+                marginBottom: 6,
+              }}
             >
               {isSubmitting ? (
                 <ActivityIndicator size="small" color="#FFFFFF" />
               ) : (
-                <Text className="text-white font-black text-base">
+                <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 15 }}>
                   Confirm Received {formatINR(currentPayablePaise)}
                 </Text>
               )}

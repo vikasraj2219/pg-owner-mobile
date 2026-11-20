@@ -24,6 +24,9 @@ import {
   Building,
   ChevronDown,
   Wallet,
+  Plus,
+  Pencil,
+  Trash2,
 } from 'lucide-react-native';
 import { useProperties } from '../../src/context/PropertyContext';
 import { useInvoices } from '../../src/hooks/useInvoices';
@@ -35,6 +38,9 @@ import { resolveRoomAndBed } from '../../src/utils/bedResolution';
 import { RecordPaymentModal } from '../../src/components/RecordPaymentModal';
 import { DynamicUpiQrModal } from '../../src/components/DynamicUpiQrModal';
 import { PropertySwitcherModal } from '../../src/components/PropertySwitcherModal';
+import { AddInvoiceModal } from '../../src/components/AddInvoiceModal';
+import { EditInvoiceModal } from '../../src/components/EditInvoiceModal';
+import { deleteInvoiceApi } from '../../src/api/invoices';
 import { DueInvoiceItem } from '../../src/types/api';
 import { getTenantAvatar } from '../../src/utils/assetImages';
 
@@ -52,6 +58,8 @@ export default function DuesScreen() {
   // Modals state
   const [paymentInvoice, setPaymentInvoice] = useState<DueInvoiceItem | null>(null);
   const [qrInvoice, setQrInvoice] = useState<DueInvoiceItem | null>(null);
+  const [isAddInvoiceOpen, setIsAddInvoiceOpen] = useState(false);
+  const [editingInvoice, setEditingInvoice] = useState<DueInvoiceItem | null>(null);
 
   const { invoices, isLoading, isRefetching, refetch, markPaid, isMarkingPaid } = useInvoices(
     duesPropertyFilterId,
@@ -179,6 +187,40 @@ export default function DuesScreen() {
     }
   };
 
+  const handleDeleteInvoice = (item: DueInvoiceItem) => {
+    if ((item.amountPaidPaise || 0) > 0) {
+      Alert.alert(
+        'Cannot Delete',
+        `Invoice ${item.invoiceNumber} has recorded payments of ${formatINR(item.amountPaidPaise)}. Paid invoices cannot be deleted.`,
+      );
+      return;
+    }
+
+    Alert.alert(
+      'Delete Invoice?',
+      `Are you sure you want to delete invoice ${item.invoiceNumber} for ${item.tenant?.fullName}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteInvoiceApi(item._id);
+              Alert.alert('Deleted', `Invoice ${item.invoiceNumber} deleted.`);
+              refetch();
+            } catch (err: unknown) {
+              const msg =
+                (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+                'Failed to delete invoice.';
+              Alert.alert('Error', msg);
+            }
+          },
+        },
+      ],
+    );
+  };
+
   return (
     <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: '#FAF5EB' }}>
       <StatusBar style="dark" />
@@ -194,7 +236,7 @@ export default function DuesScreen() {
           borderBottomColor: '#E5DDCD',
         }}
       >
-        {/* Title & Month Badge */}
+        {/* Title & Month Badge & Add Invoice */}
         <View
           style={{
             flexDirection: 'row',
@@ -213,19 +255,45 @@ export default function DuesScreen() {
             Dues
           </Text>
 
-          <View
-            style={{
-              paddingHorizontal: 10,
-              paddingVertical: 4,
-              borderRadius: 8,
-              backgroundColor: '#FAF7F2',
-              borderWidth: 1,
-              borderColor: '#E5DDCD',
-            }}
-          >
-            <Text style={{ fontSize: 12, fontWeight: '700', color: '#4F5330' }}>
-              {currentMonthYear}
-            </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <TouchableOpacity
+              onPress={() => setIsAddInvoiceOpen(true)}
+              activeOpacity={0.8}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 5,
+                backgroundColor: '#4F5330',
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+                borderRadius: 9999,
+                shadowColor: '#4F5330',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.2,
+                shadowRadius: 3,
+                elevation: 2,
+              }}
+            >
+              <Plus size={14} color="#FFFFFF" strokeWidth={3} />
+              <Text style={{ fontSize: 12, fontWeight: '800', color: '#FFFFFF' }}>
+                + Add Invoice
+              </Text>
+            </TouchableOpacity>
+
+            <View
+              style={{
+                paddingHorizontal: 10,
+                paddingVertical: 6,
+                borderRadius: 9999,
+                backgroundColor: '#FAF7F2',
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+              }}
+            >
+              <Text style={{ fontSize: 12, fontWeight: '700', color: '#4F5330' }}>
+                {currentMonthYear}
+              </Text>
+            </View>
           </View>
         </View>
 
@@ -558,23 +626,22 @@ export default function DuesScreen() {
                 )
               : 0;
 
+            const isOverdue = !isPaid && overdueDays > 0;
             const statusLabel = isPaid
-              ? 'Paid'
-              : overdueDays > 0
-                ? `${overdueDays} days overdue`
+              ? '✓ Paid'
+              : isOverdue
+                ? `⚠️ Overdue by ${overdueDays}d`
                 : daysUntilDue === 0
-                  ? 'Due today'
-                  : daysUntilDue === 2
-                    ? '2 days left (Pre-reminder)'
-                    : daysUntilDue === 1
-                      ? '1 day left'
-                      : daysUntilDue > 2
-                        ? `${daysUntilDue} days left`
-                        : 'Upcoming';
+                  ? '⏳ Due today'
+                  : daysUntilDue === 1
+                    ? '⏳ 1 day left'
+                    : daysUntilDue > 1
+                      ? `⏳ ${daysUntilDue} days left`
+                      : `⏳ Due on ${formatSafeDate(item.dueDate)}`;
 
-            const statusBadgeBg = isPaid ? '#F0FDF4' : overdueDays > 0 ? '#FFF1F2' : '#FEF3C7';
-            const statusBadgeBorder = isPaid ? '#86EFAC' : overdueDays > 0 ? '#FECDD3' : '#FDE68A';
-            const statusBadgeText = isPaid ? '#15803D' : overdueDays > 0 ? '#E11D48' : '#B45309';
+            const statusBadgeBg = isPaid ? '#F0FDF4' : isOverdue ? '#FFF1F2' : '#FEF3C7';
+            const statusBadgeBorder = isPaid ? '#86EFAC' : isOverdue ? '#FECDD3' : '#FDE68A';
+            const statusBadgeText = isPaid ? '#15803D' : isOverdue ? '#E11D48' : '#B45309';
 
             return (
               <View
@@ -703,18 +770,18 @@ export default function DuesScreen() {
                   </View>
                 </View>
 
-                {/* Actions: WhatsApp + QR Code + Mark received */}
+                {/* Actions: WhatsApp + QR Code + Edit + Delete + Mark received */}
                 {!isPaid ? (
                   <View
-                    style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 14 }}
+                    style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 14 }}
                   >
                     {/* WhatsApp 1-tap reminder */}
                     <TouchableOpacity
                       activeOpacity={0.8}
                       onPress={() => handleSendWhatsApp(item)}
                       style={{
-                        width: 44,
-                        height: 44,
+                        width: 40,
+                        height: 40,
                         borderRadius: 12,
                         backgroundColor: '#F0FDF4',
                         borderWidth: 1,
@@ -723,7 +790,7 @@ export default function DuesScreen() {
                         justifyContent: 'center',
                       }}
                     >
-                      <MessageCircle size={19} color="#15803D" strokeWidth={2.2} />
+                      <MessageCircle size={18} color="#15803D" strokeWidth={2.2} />
                     </TouchableOpacity>
 
                     {/* Show Dynamic UPI QR Code */}
@@ -731,8 +798,8 @@ export default function DuesScreen() {
                       activeOpacity={0.8}
                       onPress={() => setQrInvoice(item)}
                       style={{
-                        width: 44,
-                        height: 44,
+                        width: 40,
+                        height: 40,
                         borderRadius: 12,
                         backgroundColor: '#FAF7F2',
                         borderWidth: 1,
@@ -741,7 +808,43 @@ export default function DuesScreen() {
                         justifyContent: 'center',
                       }}
                     >
-                      <QrCode size={19} color="#4F5330" strokeWidth={2} />
+                      <QrCode size={18} color="#4F5330" strokeWidth={2} />
+                    </TouchableOpacity>
+
+                    {/* Edit Invoice Button */}
+                    <TouchableOpacity
+                      activeOpacity={0.8}
+                      onPress={() => setEditingInvoice(item)}
+                      style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: 12,
+                        backgroundColor: '#FAF7F2',
+                        borderWidth: 1,
+                        borderColor: '#E5DDCD',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Pencil size={17} color="#4F5330" strokeWidth={2} />
+                    </TouchableOpacity>
+
+                    {/* Delete Invoice Button */}
+                    <TouchableOpacity
+                      activeOpacity={0.8}
+                      onPress={() => handleDeleteInvoice(item)}
+                      style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: 12,
+                        backgroundColor: '#FFF1F2',
+                        borderWidth: 1,
+                        borderColor: '#FECDD3',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Trash2 size={17} color="#E11D48" strokeWidth={2} />
                     </TouchableOpacity>
 
                     {/* Mark Received Button */}
@@ -751,7 +854,7 @@ export default function DuesScreen() {
                       disabled={isMarkingPaid}
                       style={{
                         flex: 1,
-                        height: 44,
+                        height: 40,
                         borderRadius: 12,
                         backgroundColor: '#4F5330',
                         alignItems: 'center',
@@ -761,7 +864,7 @@ export default function DuesScreen() {
                       {isMarkingPaid ? (
                         <ActivityIndicator size="small" color="#FFFFFF" />
                       ) : (
-                        <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 14 }}>
+                        <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 13 }}>
                           Mark received
                         </Text>
                       )}
@@ -780,6 +883,26 @@ export default function DuesScreen() {
                       gap: 8,
                     }}
                   >
+                    <TouchableOpacity
+                      activeOpacity={0.8}
+                      onPress={() => setEditingInvoice(item)}
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        paddingHorizontal: 10,
+                        paddingVertical: 7,
+                        borderRadius: 8,
+                        backgroundColor: '#FAF7F2',
+                        borderWidth: 1,
+                        borderColor: '#E5DDCD',
+                      }}
+                    >
+                      <Pencil size={13} color="#0C192B" style={{ marginRight: 5 }} />
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: '#0C192B' }}>
+                        Edit
+                      </Text>
+                    </TouchableOpacity>
+
                     <TouchableOpacity
                       activeOpacity={0.8}
                       onPress={() => handleViewReceipt(item)}
@@ -866,6 +989,22 @@ export default function DuesScreen() {
           setIsPropertySwitcherOpen(false);
           router.push('/(tabs)/matrix' as any);
         }}
+      />
+
+      {/* Add Manual Invoice Modal */}
+      <AddInvoiceModal
+        visible={isAddInvoiceOpen}
+        onClose={() => setIsAddInvoiceOpen(false)}
+        onSuccess={() => refetch()}
+        defaultPropertyId={duesPropertyFilterId || activeDuesProperty?._id}
+      />
+
+      {/* Edit Invoice Modal */}
+      <EditInvoiceModal
+        visible={!!editingInvoice}
+        invoice={editingInvoice}
+        onClose={() => setEditingInvoice(null)}
+        onSuccess={() => refetch()}
       />
     </SafeAreaView>
   );

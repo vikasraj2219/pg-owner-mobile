@@ -306,22 +306,26 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
     }
   };
 
-  // Tenant's billing cycle recurring date based on joined date
+  // Tenant's billing cycle recurring date based on joined date or billingCycleDay
   const tenantCycleDay = useMemo(() => {
-    if (tenant?.joinedDate) {
+    const cycleDay = (tenant as any)?.billingCycleDay;
+    if (cycleDay && cycleDay >= 1 && cycleDay <= 31) return cycleDay;
+    const jdStr = tenant?.joinedDate || (tenant as any)?.joinDate;
+    if (jdStr) {
       try {
-        const jd = new Date(tenant.joinedDate);
+        const jd = new Date(jdStr);
         if (!isNaN(jd.getTime())) return jd.getDate();
       } catch {
         // fallback
       }
     }
     return 1;
-  }, [tenant?.joinedDate]);
+  }, [tenant]);
 
   const nextBillingCycleDate = useMemo(() => {
-    return getNextBillingCycleDate(tenant?.joinedDate);
-  }, [tenant?.joinedDate]);
+    const jdStr = tenant?.joinedDate || (tenant as any)?.joinDate;
+    return getNextBillingCycleDate(jdStr);
+  }, [tenant]);
 
   // Compute calculated effective date
   const calculatedEffectiveDate = useMemo(() => {
@@ -730,8 +734,20 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
                       marginBottom: 12,
                     }}
                   >
-                    <TrendingDown size={16} color="#2E7D32" style={{ marginRight: 6 }} />
-                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#2E7D32' }}>
+                    <TrendingDown
+                      size={16}
+                      color="#2E7D32"
+                      style={{ marginRight: 8, marginTop: 1 }}
+                    />
+                    <Text
+                      style={{
+                        flex: 1,
+                        flexWrap: 'wrap',
+                        fontSize: 12,
+                        fontWeight: '700',
+                        color: '#2E7D32',
+                      }}
+                    >
                       Rent reduces by ₹
                       {(originalRentRupees - parsedTargetRentRupees).toLocaleString('en-IN')}/mo
                       (from ₹{originalRentRupees.toLocaleString('en-IN')} to ₹
@@ -751,8 +767,20 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
                       marginBottom: 12,
                     }}
                   >
-                    <TrendingUp size={16} color="#1D4ED8" style={{ marginRight: 6 }} />
-                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#1D4ED8' }}>
+                    <TrendingUp
+                      size={16}
+                      color="#1D4ED8"
+                      style={{ marginRight: 8, marginTop: 1 }}
+                    />
+                    <Text
+                      style={{
+                        flex: 1,
+                        flexWrap: 'wrap',
+                        fontSize: 12,
+                        fontWeight: '700',
+                        color: '#1D4ED8',
+                      }}
+                    >
                       Rent increases by ₹
                       {(parsedTargetRentRupees - originalRentRupees).toLocaleString('en-IN')}/mo
                       (from ₹{originalRentRupees.toLocaleString('en-IN')} to ₹
@@ -1036,7 +1064,7 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
                     )}
                   </TouchableOpacity>
 
-                  {/* Option 2: From Next Billing Cycle */}
+                  {/* Option 2: From Next Billing Cycle / Due Date */}
                   <TouchableOpacity
                     onPress={() => setEffectiveType('next_month')}
                     activeOpacity={0.7}
@@ -1065,7 +1093,7 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
                             color: '#0C192B',
                           }}
                         >
-                          From Next Billing Cycle ({formatSafeDate(nextBillingCycleDate)})
+                          From Next Due Date ({formatSafeDate(nextBillingCycleDate)})
                         </Text>
                         <Text
                           style={{
@@ -1076,7 +1104,7 @@ export const BedTransferModal: React.FC<BedTransferModalProps> = ({
                           }}
                         >
                           {isDifferentRent
-                            ? `Recommended · Takes effect after current month completes (cycle day ${tenantCycleDay})`
+                            ? `Recommended · Takes effect on next recurring due date (${formatSafeDate(nextBillingCycleDate)}). ₹0 adjustment.`
                             : `Next billing cycle starts on day ${tenantCycleDay}`}
                         </Text>
                       </View>

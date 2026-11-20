@@ -229,7 +229,7 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
                 }}
               >
                 <Text style={{ fontSize: 11, fontWeight: '700', color: '#657080' }}>
-                  Property Preview
+                  🏢 Property Preview
                 </Text>
                 <View
                   style={{
@@ -274,7 +274,7 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
                 marginBottom: 8,
               }}
             >
-              Select Property Building Photo
+              📸 Select Property Building Photo
             </Text>
             <View style={{ flexDirection: 'row', gap: 12 }}>
               {PROPERTY_IMAGES.map((img, idx) => {
@@ -332,7 +332,7 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
                 marginBottom: 8,
               }}
             >
-              Property Name *
+              🏷️ Property Name *
             </Text>
             <TextInput
               value={name}
@@ -363,21 +363,26 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
                 marginBottom: 8,
               }}
             >
-              Property Type *
+              👥 Property Type *
             </Text>
             <View style={{ flexDirection: 'row', gap: 10 }}>
-              {(['boys', 'girls', 'coliving'] as PropertyType[]).map(item => {
-                const isSelected = type === item;
-                const label = item === 'boys' ? 'Boys' : item === 'girls' ? 'Girls' : 'Coliving';
+              {[
+                { id: 'boys', label: 'Boys', icon: '👦' },
+                { id: 'girls', label: 'Girls', icon: '👧' },
+                { id: 'coliving', label: 'Coliving', icon: '👥' },
+              ].map(item => {
+                const isSelected = type === item.id;
                 return (
                   <TouchableOpacity
-                    key={item}
+                    key={item.id}
                     activeOpacity={0.8}
-                    onPress={() => setType(item)}
+                    onPress={() => setType(item.id as PropertyType)}
                     style={{
                       flex: 1,
                       paddingVertical: 12,
+                      paddingHorizontal: 8,
                       borderRadius: 14,
+                      flexDirection: 'row',
                       alignItems: 'center',
                       justifyContent: 'center',
                       backgroundColor: isSelected ? '#19D3E6' : '#FFFDF8',
@@ -385,6 +390,7 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
                       borderColor: isSelected ? '#19D3E6' : '#E5DDCD',
                     }}
                   >
+                    <Text style={{ fontSize: 16, marginRight: 6 }}>{item.icon}</Text>
                     <Text
                       style={{
                         fontSize: 13,
@@ -392,7 +398,7 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
                         color: '#0C192B',
                       }}
                     >
-                      {label}
+                      {item.label}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -410,7 +416,7 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
                 marginBottom: 8,
               }}
             >
-              Street Address
+              📍 Street Address
             </Text>
             <TextInput
               value={street}
@@ -442,7 +448,7 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
                   marginBottom: 8,
                 }}
               >
-                City
+                🏙️ City
               </Text>
               <TextInput
                 value={city}
@@ -471,7 +477,7 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
                   marginBottom: 8,
                 }}
               >
-                Pincode
+                📮 Pincode
               </Text>
               <TextInput
                 value={pincode}
@@ -506,7 +512,7 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
                   color: '#0C192B',
                 }}
               >
-                UPI ID for Rent *
+                💳 UPI ID for Rent *
               </Text>
             </View>
             <TextInput
@@ -544,7 +550,7 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
                   color: '#0C192B',
                 }}
               >
-                Electricity Rate (₹ / Unit)
+                ⚡ Electricity Rate (₹ / Unit)
               </Text>
             </View>
             <View

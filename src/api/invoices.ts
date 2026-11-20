@@ -24,6 +24,27 @@ export interface MarkPaidPayload {
   notes?: string;
 }
 
+export interface InvoiceLineItemPayload {
+  description: string;
+  amountPaise: number;
+  category: 'rent' | 'electricity' | 'mess' | 'late_fee' | 'damage';
+}
+
+export interface CreateManualInvoicePayload {
+  tenantId: string;
+  propertyId?: string;
+  dueDate: string;
+  month?: number;
+  year?: number;
+  items: InvoiceLineItemPayload[];
+}
+
+export interface UpdateInvoicePayload {
+  dueDate?: string;
+  items?: InvoiceLineItemPayload[];
+  status?: 'unpaid' | 'partially_paid' | 'paid' | 'canceled';
+}
+
 export const markInvoicePaidApi = async (
   payload: MarkPaidPayload,
 ): Promise<MarkPaidResponseData> => {
@@ -37,4 +58,23 @@ export const markInvoicePaidApi = async (
     },
   );
   return response.data.data;
+};
+
+export const createManualInvoiceApi = async (
+  payload: CreateManualInvoicePayload,
+): Promise<DueInvoiceItem> => {
+  const response = await apiClient.post<ApiResponse<DueInvoiceItem>>('/invoices', payload);
+  return response.data.data;
+};
+
+export const updateInvoiceApi = async (
+  id: string,
+  payload: UpdateInvoicePayload,
+): Promise<DueInvoiceItem> => {
+  const response = await apiClient.put<ApiResponse<DueInvoiceItem>>(`/invoices/${id}`, payload);
+  return response.data.data;
+};
+
+export const deleteInvoiceApi = async (id: string): Promise<void> => {
+  await apiClient.delete(`/invoices/${id}`);
 };
