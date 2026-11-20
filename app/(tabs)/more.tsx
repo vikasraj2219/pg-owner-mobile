@@ -20,8 +20,6 @@ import {
   ChevronRight,
   Fingerprint,
   Sparkles,
-  PlusCircle,
-  Receipt,
 } from 'lucide-react-native';
 import { useAuth } from '../../src/hooks/useAuth';
 import { useProperties } from '../../src/context/PropertyContext';
@@ -51,9 +49,7 @@ export default function MoreScreen() {
   const { properties, selectedProperty } = useProperties();
   const [showSplashPreview, setShowSplashPreview] = useState(false);
   const [showExpensesModal, setShowExpensesModal] = useState(false);
-  const [expensesInitialTab, setExpensesInitialTab] = useState<'pnl' | 'add'>('pnl');
   const [showSubMeterModal, setShowSubMeterModal] = useState(false);
-  const [subMeterInitialTab, setSubMeterInitialTab] = useState<'logs' | 'add'>('logs');
   const [showStaffModal, setShowStaffModal] = useState(false);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const [showPropertiesRoomsModal, setShowPropertiesRoomsModal] = useState(false);
@@ -97,39 +93,15 @@ export default function MoreScreen() {
       items: [
         {
           icon: Zap,
-          label: 'Sub-meter Electricity Logs',
-          detail: 'View history & consumption logs',
-          onPress: () => {
-            setSubMeterInitialTab('logs');
-            setShowSubMeterModal(true);
-          },
-        },
-        {
-          icon: PlusCircle,
-          label: 'Log Sub-meter Reading',
-          detail: 'Record room dial & split bill',
-          onPress: () => {
-            setSubMeterInitialTab('add');
-            setShowSubMeterModal(true);
-          },
+          label: 'Sub-meter Electricity Log',
+          detail: 'Readings & automatic splits',
+          onPress: () => setShowSubMeterModal(true),
         },
         {
           icon: TrendingDown,
           label: 'Expenses & Monthly P&L',
-          detail: 'Live P&L, collections & ledger',
-          onPress: () => {
-            setExpensesInitialTab('pnl');
-            setShowExpensesModal(true);
-          },
-        },
-        {
-          icon: Receipt,
-          label: 'Log New Expense',
-          detail: 'Maintenance, groceries, salary',
-          onPress: () => {
-            setExpensesInitialTab('add');
-            setShowExpensesModal(true);
-          },
+          detail: 'Groceries, Maintenance, EB',
+          onPress: () => setShowExpensesModal(true),
         },
         {
           icon: Building,
@@ -450,7 +422,6 @@ export default function MoreScreen() {
         visible={showExpensesModal}
         onClose={() => setShowExpensesModal(false)}
         propertyId={selectedProperty?._id}
-        initialTab={expensesInitialTab}
       />
 
       {/* Sub-meter Electricity Modal */}
@@ -459,7 +430,6 @@ export default function MoreScreen() {
         onClose={() => setShowSubMeterModal(false)}
         property={selectedProperty}
         properties={properties}
-        initialTab={subMeterInitialTab}
       />
 
       {/* Staff & Manager Access Modal */}
