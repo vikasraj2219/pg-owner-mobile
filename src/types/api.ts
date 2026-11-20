@@ -389,6 +389,7 @@ export interface IMatrixBedTenant {
   kycDocType?: string;
   kycMaskedNumber?: string;
   photoUrl?: string;
+  gender?: string;
 }
 
 export interface IMatrixBed {
@@ -554,6 +555,8 @@ export interface DueInvoiceItem {
     _id: string;
     fullName: string;
     phone: string;
+    photoUrl?: string;
+    gender?: string;
     currentBed?:
       | {
           _id: string;

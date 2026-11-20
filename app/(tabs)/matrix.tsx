@@ -177,7 +177,7 @@ export default function MatrixScreen() {
         return (
           acc +
           f.rooms.reduce((rAcc, r) => {
-            return rAcc + r.beds.filter(b => b.status === 'available').length;
+            return rAcc + r.beds.filter(b => b.status === 'available' && !b.currentTenant).length;
           }, 0)
         );
       }, 0);
@@ -210,7 +210,7 @@ export default function MatrixScreen() {
           .map(room => {
             let beds = room.beds;
             if (vacantOnly) {
-              beds = beds.filter(b => b.status === 'available');
+              beds = beds.filter(b => b.status === 'available' && !b.currentTenant);
             }
             if (q.length > 0) {
               const roomMatches = room.roomNumber.toLowerCase().includes(q);
@@ -243,9 +243,9 @@ export default function MatrixScreen() {
   }, [displayFloors]);
 
   const handleBedPress = (bed: IMatrixBed, room: IMatrixRoom) => {
-    if (bed.status === 'available') {
+    if (bed.status === 'available' && !bed.currentTenant) {
       setActiveVacantBed({ bed, room });
-    } else if (bed.status === 'occupied' || bed.status === 'notice_period') {
+    } else if (bed.status === 'occupied' || bed.currentTenant || bed.status === 'notice_period') {
       setActiveOccupiedBed({ bed, room });
     } else if (bed.status === 'maintenance') {
       setActiveMaintenanceBed({ bed, room });
@@ -959,8 +959,8 @@ export default function MatrixScreen() {
                     {/* Bed Chips Row / Grid */}
                     <View style={{ flexDirection: 'row', gap: 10, flexWrap: 'wrap' }}>
                       {room.beds.map(bed => {
-                        // 1. Available / Vacant Bed
-                        if (bed.status === 'available') {
+                        // 1. Available / Vacant Bed (Only if truly vacant without assigned tenant)
+                        if (bed.status === 'available' && !bed.currentTenant) {
                           return (
                             <TouchableOpacity
                               key={bed._id}
@@ -1005,8 +1005,13 @@ export default function MatrixScreen() {
                           );
                         }
 
-                        // 2. Occupied Bed
-                        if (bed.status === 'occupied') {
+                        // 2. Occupied Bed (or any bed with an assigned currentTenant)
+                        if (
+                          bed.status === 'occupied' ||
+                          (Boolean(bed.currentTenant) &&
+                            bed.status !== 'notice_period' &&
+                            bed.status !== 'maintenance')
+                        ) {
                           const tenantName = bed.currentTenant?.fullName || 'Tenant';
                           const firstName = tenantName.split(' ')[0];
                           const isDue =
