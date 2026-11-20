@@ -8,7 +8,6 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
-  Platform,
   Image,
   Linking,
 } from 'react-native';
@@ -892,41 +891,6 @@ export const SubMeterModal: React.FC<SubMeterModalProps> = ({
             ))
           )}
         </ScrollView>
-
-        {/* Bottom Full-Width Action Button matching Properties & Rooms lines 460-498 */}
-        <View
-          style={{
-            padding: 16,
-            borderTopWidth: 1,
-            borderTopColor: '#E5DDCD',
-            backgroundColor: '#FAF5EB',
-            paddingBottom: Platform.OS === 'ios' ? 34 : 16,
-          }}
-        >
-          <TouchableOpacity
-            activeOpacity={0.85}
-            onPress={() => setShowAddReadingModal(true)}
-            style={{
-              width: '100%',
-              height: 50,
-              backgroundColor: '#4F5330',
-              borderRadius: 9999,
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.1,
-              shadowRadius: 4,
-              elevation: 2,
-            }}
-          >
-            <Plus size={18} color="#FFFFFF" strokeWidth={2.5} style={{ marginRight: 6 }} />
-            <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 15 }}>
-              Log dial reading
-            </Text>
-          </TouchableOpacity>
-        </View>
 
         {/* Dedicated Add Meter Reading Modal */}
         <AddMeterReadingModal

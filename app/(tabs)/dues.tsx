@@ -24,9 +24,6 @@ import {
   Building,
   ChevronDown,
   Wallet,
-  Plus,
-  Pencil,
-  Trash2,
 } from 'lucide-react-native';
 import { useProperties } from '../../src/context/PropertyContext';
 import { useInvoices } from '../../src/hooks/useInvoices';
@@ -38,9 +35,6 @@ import { resolveRoomAndBed } from '../../src/utils/bedResolution';
 import { RecordPaymentModal } from '../../src/components/RecordPaymentModal';
 import { DynamicUpiQrModal } from '../../src/components/DynamicUpiQrModal';
 import { PropertySwitcherModal } from '../../src/components/PropertySwitcherModal';
-import { AddInvoiceModal } from '../../src/components/AddInvoiceModal';
-import { EditInvoiceModal } from '../../src/components/EditInvoiceModal';
-import { deleteInvoiceApi } from '../../src/api/invoices';
 import { DueInvoiceItem } from '../../src/types/api';
 import { getTenantAvatar } from '../../src/utils/assetImages';
 
@@ -61,8 +55,6 @@ export default function DuesScreen() {
   // Modals state
   const [paymentInvoice, setPaymentInvoice] = useState<DueInvoiceItem | null>(null);
   const [qrInvoice, setQrInvoice] = useState<DueInvoiceItem | null>(null);
-  const [isAddInvoiceOpen, setIsAddInvoiceOpen] = useState(false);
-  const [editingInvoice, setEditingInvoice] = useState<DueInvoiceItem | null>(null);
 
   const { invoices, isLoading, isRefetching, refetch, markPaid, isMarkingPaid } = useInvoices(
     duesPropertyFilterId,
@@ -216,40 +208,6 @@ export default function DuesScreen() {
     }
   };
 
-  const handleDeleteInvoice = (item: DueInvoiceItem) => {
-    if ((item.amountPaidPaise || 0) > 0) {
-      Alert.alert(
-        'Cannot Delete',
-        `Invoice ${item.invoiceNumber} has recorded payments of ${formatINR(item.amountPaidPaise)}. Paid invoices cannot be deleted.`,
-      );
-      return;
-    }
-
-    Alert.alert(
-      'Delete Invoice?',
-      `Are you sure you want to delete invoice ${item.invoiceNumber} for ${item.tenant?.fullName}?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteInvoiceApi(item._id);
-              Alert.alert('Deleted', `Invoice ${item.invoiceNumber} deleted.`);
-              refetch();
-            } catch (err: unknown) {
-              const msg =
-                (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-                'Failed to delete invoice.';
-              Alert.alert('Error', msg);
-            }
-          },
-        },
-      ],
-    );
-  };
-
   return (
     <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: '#FAF5EB' }}>
       <StatusBar style="dark" />
@@ -265,7 +223,7 @@ export default function DuesScreen() {
           borderBottomColor: '#E5DDCD',
         }}
       >
-        {/* Title & Month Badge & Add Invoice */}
+        {/* Title & Month Badge */}
         <View
           style={{
             flexDirection: 'row',
@@ -284,45 +242,19 @@ export default function DuesScreen() {
             Dues
           </Text>
 
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <TouchableOpacity
-              onPress={() => setIsAddInvoiceOpen(true)}
-              activeOpacity={0.8}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 5,
-                backgroundColor: '#4F5330',
-                paddingHorizontal: 12,
-                paddingVertical: 6,
-                borderRadius: 9999,
-                shadowColor: '#4F5330',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.2,
-                shadowRadius: 3,
-                elevation: 2,
-              }}
-            >
-              <Plus size={14} color="#FFFFFF" strokeWidth={3} />
-              <Text style={{ fontSize: 12, fontWeight: '800', color: '#FFFFFF' }}>
-                + Add Invoice
-              </Text>
-            </TouchableOpacity>
-
-            <View
-              style={{
-                paddingHorizontal: 10,
-                paddingVertical: 6,
-                borderRadius: 9999,
-                backgroundColor: '#FAF7F2',
-                borderWidth: 1,
-                borderColor: '#E5DDCD',
-              }}
-            >
-              <Text style={{ fontSize: 12, fontWeight: '700', color: '#4F5330' }}>
-                {currentMonthYear}
-              </Text>
-            </View>
+          <View
+            style={{
+              paddingHorizontal: 10,
+              paddingVertical: 6,
+              borderRadius: 9999,
+              backgroundColor: '#FAF7F2',
+              borderWidth: 1,
+              borderColor: '#E5DDCD',
+            }}
+          >
+            <Text style={{ fontSize: 12, fontWeight: '700', color: '#4F5330' }}>
+              {currentMonthYear}
+            </Text>
           </View>
         </View>
 
@@ -850,48 +782,9 @@ export default function DuesScreen() {
                   </View>
 
                   <View style={{ alignItems: 'flex-end' }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                      <Text style={{ fontSize: 18, fontWeight: '800', color: '#0C192B' }}>
-                        {amountFormatted}
-                      </Text>
-                      {/* Compact Edit & Delete in card header */}
-                      <TouchableOpacity
-                        activeOpacity={0.7}
-                        onPress={() => setEditingInvoice(item)}
-                        hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
-                        style={{
-                          width: 28,
-                          height: 28,
-                          borderRadius: 8,
-                          backgroundColor: '#FAF7F2',
-                          borderWidth: 1,
-                          borderColor: '#E5DDCD',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                      >
-                        <Pencil size={13} color="#4F5330" />
-                      </TouchableOpacity>
-                      {!isPaid && (
-                        <TouchableOpacity
-                          activeOpacity={0.7}
-                          onPress={() => handleDeleteInvoice(item)}
-                          hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
-                          style={{
-                            width: 28,
-                            height: 28,
-                            borderRadius: 8,
-                            backgroundColor: '#FFF1F2',
-                            borderWidth: 1,
-                            borderColor: '#FECDD3',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }}
-                        >
-                          <Trash2 size={13} color="#E11D48" />
-                        </TouchableOpacity>
-                      )}
-                    </View>
+                    <Text style={{ fontSize: 18, fontWeight: '800', color: '#0C192B' }}>
+                      {amountFormatted}
+                    </Text>
                     <View
                       style={{
                         paddingHorizontal: 8,
@@ -1073,22 +966,6 @@ export default function DuesScreen() {
           setIsPropertySwitcherOpen(false);
           router.push('/(tabs)/matrix' as any);
         }}
-      />
-
-      {/* Add Manual Invoice Modal */}
-      <AddInvoiceModal
-        visible={isAddInvoiceOpen}
-        onClose={() => setIsAddInvoiceOpen(false)}
-        onSuccess={() => refetch()}
-        defaultPropertyId={duesPropertyFilterId || activeDuesProperty?._id}
-      />
-
-      {/* Edit Invoice Modal */}
-      <EditInvoiceModal
-        visible={!!editingInvoice}
-        invoice={editingInvoice}
-        onClose={() => setEditingInvoice(null)}
-        onSuccess={() => refetch()}
       />
     </SafeAreaView>
   );
