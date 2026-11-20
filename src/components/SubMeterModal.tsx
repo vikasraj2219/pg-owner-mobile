@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   Platform,
   Image,
+  Linking,
 } from 'react-native';
 import {
   Zap,
@@ -22,6 +23,7 @@ import {
   Layers,
   Plus,
   Calendar,
+  MessageCircle,
 } from 'lucide-react-native';
 import { getPropertyImage } from '../utils/assetImages';
 import { useQueryClient } from '@tanstack/react-query';
@@ -197,19 +199,57 @@ export const SubMeterModal: React.FC<SubMeterModalProps> = ({
     }
   };
 
+  const handleShareSplit = (reading: IMeterReading) => {
+    const propertyName = activeProperty?.name || 'PG';
+    const units = reading.unitsConsumed;
+    const rate = (reading.ratePaisePerUnit / 100).toFixed(1);
+    const total = formatINR(reading.totalAmountPaise);
+    let text =
+      `⚡ *${propertyName} - Electricity Bill*\n` +
+      `📍 ${reading.meterIdentifier || 'Sub-meter'}\n` +
+      `🗓 Date: ${formatSafeDate(reading.readingDate)}\n` +
+      `📊 Dial: ${reading.previousReading} → ${reading.currentReading} (${units} units @ ₹${rate}/u)\n` +
+      `💰 Total: ${total}\n\n`;
+
+    if (reading.tenantSplits && reading.tenantSplits.length > 0) {
+      text += `*Tenant Split (${reading.splitMethod === 'by_days_occupied' ? 'By Days' : 'Equal'}):*\n`;
+      reading.tenantSplits.forEach(s => {
+        text += `• ${s.tenant?.fullName || 'Tenant'}: ${formatINR(s.sharePaise)}\n`;
+      });
+    } else if (reading.unitsConsumed === 0) {
+      text += `*Status:* 0 Units Consumed (₹0 Bill)\n`;
+    } else {
+      text += `*Status:* Vacant Room (₹0 charged to tenants)\n`;
+    }
+
+    Linking.openURL(`whatsapp://send?text=${encodeURIComponent(text)}`).catch(() => {
+      Alert.alert('Unable to open WhatsApp', 'Please ensure WhatsApp is installed.');
+    });
+  };
+
   // Filtered readings list
   const filteredReadings = useMemo(() => {
     return readings.filter(r => {
       const ident = (r.meterIdentifier || '').toLowerCase();
+      const roomObj = r.room && typeof r.room === 'object' ? (r.room as IRoom) : null;
+      const rNum = (roomObj?.roomNumber || '').toLowerCase();
+      const rFloor = roomObj?.floorNumber;
+
       if (historyRoomFilter !== 'all') {
-        if (!ident.includes(`room ${historyRoomFilter.toLowerCase()}`)) return false;
+        const target = historyRoomFilter.toLowerCase();
+        const matchesRoom = rNum === target || ident.includes(`room ${target}`);
+        if (!matchesRoom) return false;
       }
       if (selectedFloor !== 'all') {
-        const roomsOnFloor = rooms
-          .filter(rm => rm.floorNumber === selectedFloor)
-          .map(rm => rm.roomNumber.toLowerCase());
-        const matchesFloor = roomsOnFloor.some(rn => ident.includes(`room ${rn}`));
-        if (!matchesFloor) return false;
+        if (rFloor !== undefined) {
+          if (rFloor !== selectedFloor) return false;
+        } else {
+          const roomsOnFloor = rooms
+            .filter(rm => rm.floorNumber === selectedFloor)
+            .map(rm => rm.roomNumber.toLowerCase());
+          const matchesFloor = roomsOnFloor.some(rn => ident.includes(`room ${rn}`));
+          if (!matchesFloor) return false;
+        }
       }
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
@@ -723,6 +763,90 @@ export const SubMeterModal: React.FC<SubMeterModalProps> = ({
                   {reading.currentReading} (₹{(reading.ratePaisePerUnit / 100).toFixed(1)}/u)
                 </Text>
 
+                {/* Real-time Case: Tenant Splits Breakdown or Vacant / 0 Units Status */}
+                {reading.tenantSplits && reading.tenantSplits.length > 0 ? (
+                  <View
+                    style={{
+                      backgroundColor: '#FAF5EB',
+                      borderRadius: 12,
+                      padding: 10,
+                      marginBottom: 10,
+                      borderWidth: 1,
+                      borderColor: '#E5DDCD',
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 10,
+                        fontWeight: '800',
+                        color: '#4F5330',
+                        textTransform: 'uppercase',
+                        letterSpacing: 0.3,
+                        marginBottom: 6,
+                      }}
+                    >
+                      Tenant Split ({reading.tenantSplits.length} Occupant
+                      {reading.tenantSplits.length === 1 ? '' : 's'})
+                    </Text>
+                    <View style={{ gap: 4 }}>
+                      {reading.tenantSplits.map((split, sIdx) => (
+                        <View
+                          key={`split-${reading._id}-${sIdx}`}
+                          style={{
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                          }}
+                        >
+                          <Text style={{ fontSize: 12, fontWeight: '600', color: '#0C192B' }}>
+                            👤 {split.tenant?.fullName || 'Tenant'}
+                            {reading.splitMethod === 'by_days_occupied' && split.daysOccupied
+                              ? ` (${split.daysOccupied}d)`
+                              : ''}
+                          </Text>
+                          <Text style={{ fontSize: 12, fontWeight: '700', color: '#00838F' }}>
+                            {formatINR(split.sharePaise)}
+                          </Text>
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                ) : reading.unitsConsumed === 0 ? (
+                  <View
+                    style={{
+                      backgroundColor: '#FAF5EB',
+                      borderRadius: 10,
+                      paddingHorizontal: 10,
+                      paddingVertical: 5,
+                      marginBottom: 10,
+                      alignSelf: 'flex-start',
+                      borderWidth: 1,
+                      borderColor: '#E5DDCD',
+                    }}
+                  >
+                    <Text style={{ fontSize: 11, fontWeight: '700', color: '#657080' }}>
+                      ⚡ 0 Units · Zero consumption / Room locked
+                    </Text>
+                  </View>
+                ) : (
+                  <View
+                    style={{
+                      backgroundColor: '#FFF7ED',
+                      borderRadius: 10,
+                      paddingHorizontal: 10,
+                      paddingVertical: 5,
+                      marginBottom: 10,
+                      alignSelf: 'flex-start',
+                      borderWidth: 1,
+                      borderColor: '#FED7AA',
+                    }}
+                  >
+                    <Text style={{ fontSize: 11, fontWeight: '700', color: '#B45309' }}>
+                      🏠 Vacant Room · ₹0 charged to tenants (Cost absorbed by owner)
+                    </Text>
+                  </View>
+                )}
+
                 <View
                   style={{
                     flexDirection: 'row',
@@ -740,13 +864,25 @@ export const SubMeterModal: React.FC<SubMeterModalProps> = ({
                       {reading.splitMethod === 'equal' ? 'Equal' : 'By Days'}
                     </Text>
                   </View>
-                  <View style={{ flexDirection: 'row', gap: 14 }}>
-                    <TouchableOpacity onPress={() => handleOpenEdit(reading)} activeOpacity={0.7}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+                    <TouchableOpacity
+                      onPress={() => handleShareSplit(reading)}
+                      activeOpacity={0.7}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    >
+                      <MessageCircle size={16} color="#15803D" />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => handleOpenEdit(reading)}
+                      activeOpacity={0.7}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    >
                       <Edit2 size={15} color="#4F5330" />
                     </TouchableOpacity>
                     <TouchableOpacity
                       onPress={() => handleDeleteReading(reading)}
                       activeOpacity={0.7}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                     >
                       <Trash2 size={15} color="#BE123C" />
                     </TouchableOpacity>

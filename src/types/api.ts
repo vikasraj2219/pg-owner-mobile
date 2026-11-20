@@ -669,6 +669,8 @@ export interface CheckoutConfirmPayload {
 
 export interface IMeterReading {
   _id: string;
+  property?: { _id: string; name: string; code?: string } | string;
+  room?: { _id: string; roomNumber: string; floorNumber: number } | string;
   meterIdentifier?: string;
   previousReading: number;
   currentReading: number;

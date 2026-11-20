@@ -154,13 +154,8 @@ export const AddMeterReadingModal: React.FC<AddMeterReadingModalProps> = ({
     if (currNum < prevNum) {
       Alert.alert(
         'Invalid Reading',
-        `Current dial (${currNum}) cannot be lower than previous dial (${prevNum}).`,
+        `Current dial (${currNum}) cannot be lower than previous dial (${prevNum}). If a new meter was installed, you can edit the previous dial.`,
       );
-      return;
-    }
-
-    if (unitsConsumed === 0) {
-      Alert.alert('Zero Units', 'Current dial is identical to previous dial.');
       return;
     }
 
@@ -571,6 +566,9 @@ export const AddMeterReadingModal: React.FC<AddMeterReadingModalProps> = ({
                   value={previousReading}
                   onChangeText={setPreviousReading}
                 />
+                <Text style={{ fontSize: 10, color: '#657080', marginTop: 4 }}>
+                  Meter reset? Edit dial
+                </Text>
               </View>
               <View style={{ flex: 1 }}>
                 <Text
@@ -673,9 +671,9 @@ export const AddMeterReadingModal: React.FC<AddMeterReadingModalProps> = ({
             {/* Live Calculation Banner */}
             <View
               style={{
-                backgroundColor: '#E0F7FA',
+                backgroundColor: unitsConsumed === 0 ? '#FAF5EB' : '#E0F7FA',
                 borderWidth: 1,
-                borderColor: '#80DEEA',
+                borderColor: unitsConsumed === 0 ? '#E5DDCD' : '#80DEEA',
                 padding: 14,
                 borderRadius: 16,
                 flexDirection: 'row',
@@ -685,8 +683,16 @@ export const AddMeterReadingModal: React.FC<AddMeterReadingModalProps> = ({
               }}
             >
               <View>
-                <Text style={{ fontSize: 12, fontWeight: '700', color: '#00838F' }}>
-                  {unitsConsumed} Units Consumed
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontWeight: '700',
+                    color: unitsConsumed === 0 ? '#657080' : '#00838F',
+                  }}
+                >
+                  {unitsConsumed === 0
+                    ? '0 Units (Locked / No Usage)'
+                    : `${unitsConsumed} Units Consumed`}
                 </Text>
                 <Text style={{ fontSize: 20, fontWeight: '800', color: '#0C192B', marginTop: 2 }}>
                   {formatINR(totalAmountPaise)}
@@ -697,26 +703,27 @@ export const AddMeterReadingModal: React.FC<AddMeterReadingModalProps> = ({
                   width: 38,
                   height: 38,
                   borderRadius: 19,
-                  backgroundColor: '#B2EBF2',
+                  backgroundColor: unitsConsumed === 0 ? '#E5DDCD' : '#B2EBF2',
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
               >
-                <Zap size={20} color="#00838F" />
+                <Zap size={20} color={unitsConsumed === 0 ? '#657080' : '#00838F'} />
               </View>
             </View>
 
             {/* Submit Button */}
             <TouchableOpacity
               activeOpacity={0.85}
-              disabled={isSubmitting || unitsConsumed === 0}
+              disabled={isSubmitting || !currentReading.trim() || currNum < prevNum}
               onPress={handleRecord}
               style={{
                 borderRadius: 9999,
                 height: 50,
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: unitsConsumed > 0 ? '#4F5330' : '#CBD5E1',
+                backgroundColor:
+                  currentReading.trim() && currNum >= prevNum ? '#4F5330' : '#CBD5E1',
                 shadowColor: '#000',
                 shadowOffset: { width: 0, height: 2 },
                 shadowOpacity: 0.1,
@@ -728,7 +735,7 @@ export const AddMeterReadingModal: React.FC<AddMeterReadingModalProps> = ({
                 <ActivityIndicator size="small" color="#FFFFFF" />
               ) : (
                 <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 15 }}>
-                  Record & Split Bill
+                  {unitsConsumed === 0 ? 'Record 0 Units Reading (₹0)' : 'Record & Split Bill'}
                 </Text>
               )}
             </TouchableOpacity>
@@ -745,12 +752,18 @@ export const AddMeterReadingModal: React.FC<AddMeterReadingModalProps> = ({
             if (onSuccess) onSuccess();
           }}
           title="Reading Recorded Successfully!"
-          message={`Room ${recordedSuccessInfo?.roomNumber} meter reading has been saved and the bill split among active tenants.`}
+          message={
+            recordedSuccessInfo?.units === 0
+              ? `Room ${recordedSuccessInfo?.roomNumber} logged 0 units consumed (₹0 bill). No tenant charges applied.`
+              : `Room ${recordedSuccessInfo?.roomNumber} meter reading has been saved and the bill split among active tenants.`
+          }
           highlightCard={{
             icon: <Zap size={16} color="#00838F" />,
             title: `Room ${recordedSuccessInfo?.roomNumber} · ${recordedSuccessInfo?.units} Units`,
             subtitle: recordedSuccessInfo
-              ? `Total EB Charge: ${formatINR(recordedSuccessInfo.amountPaise)}`
+              ? recordedSuccessInfo.amountPaise === 0
+                ? 'Zero consumption (₹0)'
+                : `Total EB Charge: ${formatINR(recordedSuccessInfo.amountPaise)}`
               : '',
           }}
         />
