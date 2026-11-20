@@ -52,6 +52,7 @@ export interface IProperty {
     totalBeds: number;
     occupiedBeds: number;
     availableBeds: number;
+    noticePeriodBeds?: number;
     occupancyRate: number;
   };
   createdAt?: string;

@@ -103,12 +103,17 @@ export default function PulseScreen() {
   // Consolidated bed inventory counts
   const consolidatedStats = useMemo(() => {
     if (selectedPropertyId !== 'all') return selectedProperty?.stats;
+    const totalB = properties.reduce((sum, p) => sum + (p.stats?.totalBeds || 0), 0);
+    const occB = properties.reduce(
+      (sum, p) => sum + (p.stats?.occupiedBeds || 0) + (p.stats?.noticePeriodBeds || 0),
+      0,
+    );
     return {
       totalRooms: properties.reduce((sum, p) => sum + (p.stats?.totalRooms || 0), 0),
-      totalBeds: properties.reduce((sum, p) => sum + (p.stats?.totalBeds || 0), 0),
-      occupiedBeds: properties.reduce((sum, p) => sum + (p.stats?.occupiedBeds || 0), 0),
+      totalBeds: totalB,
+      occupiedBeds: occB,
       availableBeds: properties.reduce((sum, p) => sum + (p.stats?.availableBeds || 0), 0),
-      occupancyRate: 0,
+      occupancyRate: totalB > 0 ? Math.round((occB / totalB) * 100) : 0,
     };
   }, [selectedPropertyId, selectedProperty, properties]);
 
@@ -117,7 +122,7 @@ export default function PulseScreen() {
     stats?.totalBeds && stats.totalBeds > 0 ? stats.totalBeds : activePropertyStats?.totalBeds || 0;
   const displayOccupiedBeds =
     stats?.occupiedBeds !== undefined && (stats?.totalBeds || 0) > 0
-      ? stats.occupiedBeds
+      ? stats.occupiedBeds + (stats.noticeBeds || 0)
       : activePropertyStats?.occupiedBeds || 0;
 
   // Comparison rate vs previous period (dynamic)
@@ -451,7 +456,8 @@ export default function PulseScreen() {
                   <View style={{ gap: 12 }}>
                     {properties.slice(0, 4).map(prop => {
                       const pTotal = prop.stats?.totalBeds || 0;
-                      const pOccupied = prop.stats?.occupiedBeds || 0;
+                      const pOccupied =
+                        (prop.stats?.occupiedBeds || 0) + (prop.stats?.noticePeriodBeds || 0);
                       const pVacant = Math.max(0, pTotal - pOccupied);
                       const pRooms = prop.stats?.totalRooms || 0;
                       const pRate =

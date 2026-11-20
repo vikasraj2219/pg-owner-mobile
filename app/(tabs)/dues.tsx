@@ -45,7 +45,7 @@ export default function DuesScreen() {
   const [duesPropertyFilterId, setDuesPropertyFilterId] = useState<string | null>(
     selectedPropertyId === 'all' ? null : selectedPropertyId || null,
   );
-  const [filter, setFilter] = useState<'all' | 'overdue' | 'unpaid' | 'paid'>('overdue');
+  const [filter, setFilter] = useState<'all' | 'overdue' | 'paid'>('overdue');
   const [overdueDaysFilter, setOverdueDaysFilter] = useState<
     'all' | '1-7' | '8-15' | '15+' | '30+'
   >('all');
@@ -376,33 +376,6 @@ export default function DuesScreen() {
                 </Text>
               </View>
             )}
-          </TouchableOpacity>
-
-          {/* Unpaid */}
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={() => setFilter('unpaid')}
-            style={{
-              paddingHorizontal: 18,
-              paddingVertical: 9,
-              borderRadius: 9999,
-              borderWidth: 1,
-              marginRight: 8,
-              flexDirection: 'row',
-              alignItems: 'center',
-              backgroundColor: filter === 'unpaid' ? '#19D3E6' : '#FFFDF8',
-              borderColor: filter === 'unpaid' ? '#19D3E6' : '#E5DDCD',
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 13,
-                fontWeight: '800',
-                color: filter === 'unpaid' ? '#0C192B' : '#657080',
-              }}
-            >
-              Unpaid
-            </Text>
           </TouchableOpacity>
 
           {/* Paid */}

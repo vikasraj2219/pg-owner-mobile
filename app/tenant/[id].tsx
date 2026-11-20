@@ -1149,21 +1149,41 @@ export default function TenantDetailScreen() {
                   borderWidth: 1,
                   borderColor: '#DCE8FA',
                   borderRadius: 18,
-                  paddingVertical: 14,
-                  paddingHorizontal: 12,
+                  paddingVertical: 12,
+                  paddingHorizontal: 6,
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
               >
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Calendar size={15} color="#0284C7" strokeWidth={2.4} />
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Calendar size={13} color="#0284C7" strokeWidth={2.4} />
                   <Text
-                    style={{ fontSize: 12, fontWeight: '600', color: '#1E293B', marginLeft: 6 }}
+                    style={{
+                      fontSize: 11,
+                      fontWeight: '700',
+                      color: '#1E293B',
+                      marginLeft: 4,
+                      textAlign: 'center',
+                    }}
                     numberOfLines={1}
                   >
                     Monthly Rent
                   </Text>
                 </View>
                 <Text
-                  style={{ fontSize: 18, fontWeight: '800', color: '#0C192B', marginTop: 10 }}
+                  style={{
+                    fontSize: 15,
+                    fontWeight: '800',
+                    color: '#0C192B',
+                    marginTop: 6,
+                    textAlign: 'center',
+                  }}
                   numberOfLines={1}
                 >
                   {formatINR(tenant.monthlyRentPaise || 0)}
@@ -1178,21 +1198,41 @@ export default function TenantDetailScreen() {
                   borderWidth: 1,
                   borderColor: '#DCE8FA',
                   borderRadius: 18,
-                  paddingVertical: 14,
-                  paddingHorizontal: 12,
+                  paddingVertical: 12,
+                  paddingHorizontal: 6,
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
               >
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Wallet size={15} color="#0284C7" strokeWidth={2.4} />
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Wallet size={13} color="#0284C7" strokeWidth={2.4} />
                   <Text
-                    style={{ fontSize: 12, fontWeight: '600', color: '#1E293B', marginLeft: 6 }}
+                    style={{
+                      fontSize: 11,
+                      fontWeight: '700',
+                      color: '#1E293B',
+                      marginLeft: 4,
+                      textAlign: 'center',
+                    }}
                     numberOfLines={1}
                   >
                     Deposit Held
                   </Text>
                 </View>
                 <Text
-                  style={{ fontSize: 18, fontWeight: '800', color: '#0C192B', marginTop: 10 }}
+                  style={{
+                    fontSize: 15,
+                    fontWeight: '800',
+                    color: '#0C192B',
+                    marginTop: 6,
+                    textAlign: 'center',
+                  }}
                   numberOfLines={1}
                 >
                   {formatINR(tenant.depositPaise || 0)}
@@ -1207,22 +1247,31 @@ export default function TenantDetailScreen() {
                   borderWidth: 1,
                   borderColor: balanceDuePaise > 0 ? '#FECACA' : '#DCFCE7',
                   borderRadius: 18,
-                  paddingVertical: 14,
-                  paddingHorizontal: 12,
+                  paddingVertical: 12,
+                  paddingHorizontal: 6,
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
               >
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
                   <AlertTriangle
-                    size={15}
+                    size={13}
                     color={balanceDuePaise > 0 ? '#DC2626' : '#15803D'}
                     strokeWidth={2.4}
                   />
                   <Text
                     style={{
-                      fontSize: 12,
-                      fontWeight: '600',
+                      fontSize: 11,
+                      fontWeight: '700',
                       color: '#1E293B',
-                      marginLeft: 6,
+                      marginLeft: 4,
+                      textAlign: 'center',
                     }}
                     numberOfLines={1}
                   >
@@ -1231,10 +1280,11 @@ export default function TenantDetailScreen() {
                 </View>
                 <Text
                   style={{
-                    fontSize: 18,
+                    fontSize: 15,
                     fontWeight: '800',
                     color: balanceDuePaise > 0 ? '#DC2626' : '#15803D',
-                    marginTop: 10,
+                    marginTop: 6,
+                    textAlign: 'center',
                   }}
                   numberOfLines={1}
                 >

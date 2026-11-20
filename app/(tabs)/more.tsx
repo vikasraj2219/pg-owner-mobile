@@ -20,6 +20,7 @@ import {
   ChevronRight,
   Fingerprint,
   Sparkles,
+  Crown,
 } from 'lucide-react-native';
 import { useAuth } from '../../src/hooks/useAuth';
 import { useProperties } from '../../src/context/PropertyContext';
@@ -114,6 +115,14 @@ export default function MoreScreen() {
           label: 'Staff & Manager Logins',
           detail: 'Access controls & roles',
           onPress: () => setShowStaffModal(true),
+        },
+        {
+          icon: Crown,
+          label: 'Subscription & Plans',
+          detail: isReadOnly
+            ? 'Plan expired · Tap to upgrade'
+            : `${activePlan.toUpperCase()} Plan · ${daysRemaining}d remaining`,
+          onPress: () => setShowSubscriptionModal(true),
         },
       ],
     },
