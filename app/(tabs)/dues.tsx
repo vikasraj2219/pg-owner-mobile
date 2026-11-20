@@ -52,6 +52,9 @@ export default function DuesScreen() {
     selectedPropertyId === 'all' ? null : selectedPropertyId || null,
   );
   const [filter, setFilter] = useState<'all' | 'overdue' | 'unpaid' | 'paid'>('overdue');
+  const [overdueDaysFilter, setOverdueDaysFilter] = useState<
+    'all' | '1-7' | '8-15' | '15+' | '30+'
+  >('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isPropertySwitcherOpen, setIsPropertySwitcherOpen] = useState(false);
 
@@ -66,6 +69,32 @@ export default function DuesScreen() {
     filter,
     searchQuery,
   );
+
+  const overdueBracketCounts = useMemo(() => {
+    const overdueList = invoices.filter(i => (i.overdueDays ?? 0) > 0 && i.status !== 'paid');
+    return {
+      all: overdueList.length,
+      '1-7': overdueList.filter(i => (i.overdueDays ?? 0) >= 1 && (i.overdueDays ?? 0) <= 7).length,
+      '8-15': overdueList.filter(i => (i.overdueDays ?? 0) >= 8 && (i.overdueDays ?? 0) <= 15)
+        .length,
+      '15+': overdueList.filter(i => (i.overdueDays ?? 0) >= 15).length,
+      '30+': overdueList.filter(i => (i.overdueDays ?? 0) >= 30).length,
+    };
+  }, [invoices]);
+
+  const displayedInvoices = useMemo(() => {
+    if (filter !== 'overdue' || overdueDaysFilter === 'all') {
+      return invoices;
+    }
+    return invoices.filter(item => {
+      const days = item.overdueDays ?? 0;
+      if (overdueDaysFilter === '1-7') return days >= 1 && days <= 7;
+      if (overdueDaysFilter === '8-15') return days >= 8 && days <= 15;
+      if (overdueDaysFilter === '15+') return days >= 15;
+      if (overdueDaysFilter === '30+') return days >= 30;
+      return true;
+    });
+  }, [invoices, filter, overdueDaysFilter]);
 
   const activeDuesProperty = useMemo(() => {
     if (!duesPropertyFilterId) return selectedProperty || properties[0] || null;
@@ -374,7 +403,7 @@ export default function DuesScreen() {
             activeOpacity={0.8}
             onPress={() => setFilter('overdue')}
             style={{
-              paddingHorizontal: 18,
+              paddingHorizontal: 16,
               paddingVertical: 9,
               borderRadius: 9999,
               borderWidth: 1,
@@ -394,6 +423,27 @@ export default function DuesScreen() {
             >
               Overdue
             </Text>
+            {overdueBracketCounts.all > 0 && (
+              <View
+                style={{
+                  backgroundColor: filter === 'overdue' ? '#0C192B' : '#FFE4E6',
+                  paddingHorizontal: 6,
+                  paddingVertical: 1.5,
+                  borderRadius: 9999,
+                  marginLeft: 6,
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 10,
+                    fontWeight: '800',
+                    color: filter === 'overdue' ? '#FFFFFF' : '#E11D48',
+                  }}
+                >
+                  {overdueBracketCounts.all}
+                </Text>
+              </View>
+            )}
           </TouchableOpacity>
 
           {/* Unpaid */}
@@ -477,6 +527,57 @@ export default function DuesScreen() {
             </Text>
           </TouchableOpacity>
         </ScrollView>
+
+        {/* Overdue Days Range Sub-Filter Pills */}
+        {filter === 'overdue' && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={{
+              flexDirection: 'row',
+              marginTop: 10,
+              marginHorizontal: -20,
+              paddingHorizontal: 20,
+            }}
+            contentContainerStyle={{ paddingRight: 30 }}
+          >
+            {[
+              { id: 'all', label: `All Overdue (${overdueBracketCounts.all})` },
+              { id: '1-7', label: `1-7 Days (${overdueBracketCounts['1-7']})` },
+              { id: '8-15', label: `8-15 Days (${overdueBracketCounts['8-15']})` },
+              { id: '15+', label: `15+ Days (${overdueBracketCounts['15+']})` },
+              { id: '30+', label: `30+ Days (${overdueBracketCounts['30+']})` },
+            ].map(tab => {
+              const isSelected = overdueDaysFilter === tab.id;
+              return (
+                <TouchableOpacity
+                  key={tab.id}
+                  activeOpacity={0.8}
+                  onPress={() => setOverdueDaysFilter(tab.id as any)}
+                  style={{
+                    paddingHorizontal: 12,
+                    paddingVertical: 5,
+                    borderRadius: 8,
+                    borderWidth: 1,
+                    marginRight: 6,
+                    backgroundColor: isSelected ? '#4F5330' : '#FAF7F2',
+                    borderColor: isSelected ? '#4F5330' : '#E5DDCD',
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 11.5,
+                      fontWeight: isSelected ? '800' : '600',
+                      color: isSelected ? '#FFFFFF' : '#4F5330',
+                    }}
+                  >
+                    {tab.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        )}
       </View>
 
       {/* Main Content Area */}
@@ -559,7 +660,7 @@ export default function DuesScreen() {
         )}
 
         {/* Empty State */}
-        {!isLoading && invoices.length === 0 && (
+        {!isLoading && displayedInvoices.length === 0 && (
           <View
             style={{
               backgroundColor: '#FFFDF8',
@@ -608,7 +709,7 @@ export default function DuesScreen() {
 
         {/* Invoices List */}
         {!isLoading &&
-          invoices.map(item => {
+          displayedInvoices.map(item => {
             const tenantName = item.tenant?.fullName || 'Tenant';
             const bedInfo = getBedInfo(item);
             const bedName = bedInfo.formattedLabel;
@@ -749,9 +850,48 @@ export default function DuesScreen() {
                   </View>
 
                   <View style={{ alignItems: 'flex-end' }}>
-                    <Text style={{ fontSize: 18, fontWeight: '800', color: '#0C192B' }}>
-                      {amountFormatted}
-                    </Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <Text style={{ fontSize: 18, fontWeight: '800', color: '#0C192B' }}>
+                        {amountFormatted}
+                      </Text>
+                      {/* Compact Edit & Delete in card header */}
+                      <TouchableOpacity
+                        activeOpacity={0.7}
+                        onPress={() => setEditingInvoice(item)}
+                        hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+                        style={{
+                          width: 28,
+                          height: 28,
+                          borderRadius: 8,
+                          backgroundColor: '#FAF7F2',
+                          borderWidth: 1,
+                          borderColor: '#E5DDCD',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <Pencil size={13} color="#4F5330" />
+                      </TouchableOpacity>
+                      {!isPaid && (
+                        <TouchableOpacity
+                          activeOpacity={0.7}
+                          onPress={() => handleDeleteInvoice(item)}
+                          hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+                          style={{
+                            width: 28,
+                            height: 28,
+                            borderRadius: 8,
+                            backgroundColor: '#FFF1F2',
+                            borderWidth: 1,
+                            borderColor: '#FECDD3',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <Trash2 size={13} color="#E11D48" />
+                        </TouchableOpacity>
+                      )}
+                    </View>
                     <View
                       style={{
                         paddingHorizontal: 8,
@@ -770,18 +910,18 @@ export default function DuesScreen() {
                   </View>
                 </View>
 
-                {/* Actions: WhatsApp + QR Code + Edit + Delete + Mark received */}
+                {/* Actions: WhatsApp + QR Code + Mark received */}
                 {!isPaid ? (
                   <View
-                    style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 14 }}
+                    style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 14 }}
                   >
                     {/* WhatsApp 1-tap reminder */}
                     <TouchableOpacity
                       activeOpacity={0.8}
                       onPress={() => handleSendWhatsApp(item)}
                       style={{
-                        width: 40,
-                        height: 40,
+                        width: 44,
+                        height: 44,
                         borderRadius: 12,
                         backgroundColor: '#F0FDF4',
                         borderWidth: 1,
@@ -790,7 +930,7 @@ export default function DuesScreen() {
                         justifyContent: 'center',
                       }}
                     >
-                      <MessageCircle size={18} color="#15803D" strokeWidth={2.2} />
+                      <MessageCircle size={19} color="#15803D" strokeWidth={2.2} />
                     </TouchableOpacity>
 
                     {/* Show Dynamic UPI QR Code */}
@@ -798,8 +938,8 @@ export default function DuesScreen() {
                       activeOpacity={0.8}
                       onPress={() => setQrInvoice(item)}
                       style={{
-                        width: 40,
-                        height: 40,
+                        width: 44,
+                        height: 44,
                         borderRadius: 12,
                         backgroundColor: '#FAF7F2',
                         borderWidth: 1,
@@ -808,43 +948,7 @@ export default function DuesScreen() {
                         justifyContent: 'center',
                       }}
                     >
-                      <QrCode size={18} color="#4F5330" strokeWidth={2} />
-                    </TouchableOpacity>
-
-                    {/* Edit Invoice Button */}
-                    <TouchableOpacity
-                      activeOpacity={0.8}
-                      onPress={() => setEditingInvoice(item)}
-                      style={{
-                        width: 40,
-                        height: 40,
-                        borderRadius: 12,
-                        backgroundColor: '#FAF7F2',
-                        borderWidth: 1,
-                        borderColor: '#E5DDCD',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <Pencil size={17} color="#4F5330" strokeWidth={2} />
-                    </TouchableOpacity>
-
-                    {/* Delete Invoice Button */}
-                    <TouchableOpacity
-                      activeOpacity={0.8}
-                      onPress={() => handleDeleteInvoice(item)}
-                      style={{
-                        width: 40,
-                        height: 40,
-                        borderRadius: 12,
-                        backgroundColor: '#FFF1F2',
-                        borderWidth: 1,
-                        borderColor: '#FECDD3',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <Trash2 size={17} color="#E11D48" strokeWidth={2} />
+                      <QrCode size={19} color="#4F5330" strokeWidth={2} />
                     </TouchableOpacity>
 
                     {/* Mark Received Button */}
@@ -854,7 +958,7 @@ export default function DuesScreen() {
                       disabled={isMarkingPaid}
                       style={{
                         flex: 1,
-                        height: 40,
+                        height: 44,
                         borderRadius: 12,
                         backgroundColor: '#4F5330',
                         alignItems: 'center',
@@ -864,7 +968,7 @@ export default function DuesScreen() {
                       {isMarkingPaid ? (
                         <ActivityIndicator size="small" color="#FFFFFF" />
                       ) : (
-                        <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 13 }}>
+                        <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 14 }}>
                           Mark received
                         </Text>
                       )}
@@ -883,26 +987,6 @@ export default function DuesScreen() {
                       gap: 8,
                     }}
                   >
-                    <TouchableOpacity
-                      activeOpacity={0.8}
-                      onPress={() => setEditingInvoice(item)}
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        paddingHorizontal: 10,
-                        paddingVertical: 7,
-                        borderRadius: 8,
-                        backgroundColor: '#FAF7F2',
-                        borderWidth: 1,
-                        borderColor: '#E5DDCD',
-                      }}
-                    >
-                      <Pencil size={13} color="#0C192B" style={{ marginRight: 5 }} />
-                      <Text style={{ fontSize: 12, fontWeight: '700', color: '#0C192B' }}>
-                        Edit
-                      </Text>
-                    </TouchableOpacity>
-
                     <TouchableOpacity
                       activeOpacity={0.8}
                       onPress={() => handleViewReceipt(item)}

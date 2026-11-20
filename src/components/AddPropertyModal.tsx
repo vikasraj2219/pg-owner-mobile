@@ -229,7 +229,7 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
                 }}
               >
                 <Text style={{ fontSize: 11, fontWeight: '700', color: '#657080' }}>
-                  🏢 Property Preview
+                  Property Preview
                 </Text>
                 <View
                   style={{
@@ -274,7 +274,7 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
                 marginBottom: 8,
               }}
             >
-              📸 Select Property Building Photo
+              Select Property Building Photo
             </Text>
             <View style={{ flexDirection: 'row', gap: 12 }}>
               {PROPERTY_IMAGES.map((img, idx) => {
@@ -332,7 +332,7 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
                 marginBottom: 8,
               }}
             >
-              🏷️ Property Name *
+              Property Name *
             </Text>
             <TextInput
               value={name}
@@ -363,7 +363,7 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
                 marginBottom: 8,
               }}
             >
-              👥 Property Type *
+              Property Type
             </Text>
             <View style={{ flexDirection: 'row', gap: 10 }}>
               {[
@@ -416,7 +416,7 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
                 marginBottom: 8,
               }}
             >
-              📍 Street Address
+              Street Address
             </Text>
             <TextInput
               value={street}
@@ -448,7 +448,7 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
                   marginBottom: 8,
                 }}
               >
-                🏙️ City
+                City
               </Text>
               <TextInput
                 value={city}
@@ -477,7 +477,7 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
                   marginBottom: 8,
                 }}
               >
-                📮 Pincode
+                Pincode
               </Text>
               <TextInput
                 value={pincode}
@@ -512,7 +512,7 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
                   color: '#0C192B',
                 }}
               >
-                💳 UPI ID for Rent *
+                UPI ID for Rent *
               </Text>
             </View>
             <TextInput
@@ -550,7 +550,7 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
                   color: '#0C192B',
                 }}
               >
-                ⚡ Electricity Rate (₹ / Unit)
+                Electricity Rate (₹ / Unit)
               </Text>
             </View>
             <View
