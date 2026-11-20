@@ -57,6 +57,7 @@ interface ExpensesModalProps {
   visible: boolean;
   onClose: () => void;
   propertyId?: string;
+  initialTab?: 'pnl' | 'add';
 }
 
 const CATEGORIES = [
@@ -77,10 +78,15 @@ const getCurrentMonthLabel = () => {
   return new Date().toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
 };
 
-export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, propertyId }) => {
+export const ExpensesModal: React.FC<ExpensesModalProps> = ({
+  visible,
+  onClose,
+  propertyId,
+  initialTab = 'pnl',
+}) => {
   const queryClient = useQueryClient();
   const { properties } = useProperties();
-  const [activeTab, setActiveTab] = useState<'pnl' | 'add'>('pnl');
+  const [activeTab, setActiveTab] = useState<'pnl' | 'add'>(initialTab);
 
   // Property filtering state: null = All properties (consolidated)
   const [selectedFilterPropertyId, setSelectedFilterPropertyId] = useState<string | null>(
@@ -122,11 +128,12 @@ export const ExpensesModal: React.FC<ExpensesModalProps> = ({ visible, onClose, 
   // Sync initial propertyId when opening modal
   useEffect(() => {
     if (visible) {
+      setActiveTab(initialTab || 'pnl');
       const initialId = propertyId || null;
       setSelectedFilterPropertyId(initialId);
       setFormPropertyId(initialId || (properties.length === 1 ? properties[0]._id : null));
     }
-  }, [visible, propertyId, properties]);
+  }, [visible, propertyId, properties, initialTab]);
 
   const resetAddForm = useCallback(() => {
     setCategory('maintenance');

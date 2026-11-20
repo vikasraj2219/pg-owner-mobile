@@ -21,6 +21,8 @@ export interface UploadStatusData {
   allowedFormats: string[];
 }
 
+const MAX_UPLOAD_BYTES = 2 * 1024 * 1024; // Strict 2MB Limit
+
 /**
  * Uploads a KYC document or ID proof to Cloudinary via backend endpoint
  */
@@ -34,6 +36,24 @@ export const uploadKycDocumentApi = async (
   if (fileUri.startsWith('data:')) {
     base64Data = fileUri;
   } else {
+    // Assert 2MB file size constraint before reading/uploading
+    try {
+      const fileInfo = await FileSystem.getInfoAsync(fileUri);
+      if (
+        fileInfo.exists &&
+        typeof fileInfo.size === 'number' &&
+        fileInfo.size > MAX_UPLOAD_BYTES
+      ) {
+        throw new Error(
+          `Image file size (${(fileInfo.size / (1024 * 1024)).toFixed(1)}MB) exceeds the 2MB limit. Please choose a smaller photo.`,
+        );
+      }
+    } catch (sizeErr) {
+      if (sizeErr instanceof Error && sizeErr.message.includes('2MB limit')) {
+        throw sizeErr;
+      }
+    }
+
     try {
       // Read local file as base64 using expo-file-system
       const rawBase64 = await FileSystem.readAsStringAsync(fileUri, {

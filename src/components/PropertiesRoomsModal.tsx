@@ -217,6 +217,37 @@ export const PropertiesRoomsModal: React.FC<PropertiesRoomsModalProps> = ({ visi
                   {maxPropsAllowed === 1 ? 'property' : 'properties'} used
                 </Text>
               </View>
+
+              {/* Header Add Property Button */}
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => {
+                  if (isAtPropertyLimit) {
+                    setShowSubscriptionModal(true);
+                  } else {
+                    setShowAddProperty(true);
+                  }
+                }}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  backgroundColor: '#4F5330',
+                  paddingHorizontal: 13,
+                  paddingVertical: 8,
+                  borderRadius: 9999,
+                  marginLeft: 8,
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: 0.1,
+                  shadowRadius: 2,
+                  elevation: 1,
+                }}
+              >
+                <Plus size={14} color="#FFFFFF" strokeWidth={2.5} style={{ marginRight: 4 }} />
+                <Text style={{ fontSize: 12, fontWeight: '800', color: '#FFFFFF' }}>
+                  Add Property
+                </Text>
+              </TouchableOpacity>
             </View>
 
             <ScrollView

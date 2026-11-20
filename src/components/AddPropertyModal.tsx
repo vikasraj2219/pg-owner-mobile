@@ -12,7 +12,7 @@ import {
   Alert,
   Image,
 } from 'react-native';
-import { ArrowLeft, Building2 } from 'lucide-react-native';
+import { ArrowLeft, Building2, Check, MapPin, Zap, QrCode } from 'lucide-react-native';
 import { PROPERTY_IMAGES } from '../utils/assetImages';
 import { IProperty, PropertyType } from '../types/api';
 import { useProperties } from '../context/PropertyContext';
@@ -43,7 +43,10 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
   const [city, setCity] = useState('Hyderabad');
   const [pincode, setPincode] = useState('500081');
   const [upiVpa, setUpiVpa] = useState('');
-  const [electricityRate, setElectricityRate] = useState('0');
+  const [electricityRate, setElectricityRate] = useState('12');
+  const [selectedImageIndex, setSelectedImageIndex] = useState(
+    properties.length % PROPERTY_IMAGES.length,
+  );
   const [createdPropertySuccess, setCreatedPropertySuccess] = useState<IProperty | null>(null);
 
   const handleSave = async () => {
@@ -118,10 +121,21 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        className="flex-1 bg-[#F8F9FA]"
+        style={{ flex: 1, backgroundColor: '#FAF5EB' }}
       >
-        {/* Top App Bar */}
-        <View className="px-5 py-4 bg-white border-b border-slate-200 flex-row items-center">
+        {/* Top App Bar Header */}
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingHorizontal: 20,
+            paddingTop: 16,
+            paddingBottom: 14,
+            borderBottomWidth: 1,
+            borderBottomColor: '#E5DDCD',
+            backgroundColor: '#FAF5EB',
+          }}
+        >
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={onClose}
@@ -139,78 +153,219 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
           >
             <ArrowLeft size={20} color="#0C192B" strokeWidth={2.3} />
           </TouchableOpacity>
-          <Text className="text-xl font-extrabold text-slate-900">Add property</Text>
+          <View style={{ flex: 1 }}>
+            <Text
+              style={{
+                fontSize: 20,
+                fontWeight: '800',
+                color: '#0C192B',
+                letterSpacing: -0.3,
+              }}
+            >
+              Add Property
+            </Text>
+            <Text
+              style={{
+                fontSize: 12,
+                fontWeight: '500',
+                color: '#657080',
+                marginTop: 2,
+              }}
+            >
+              Create new property and settings
+            </Text>
+          </View>
         </View>
 
         <ScrollView
-          className="flex-1 px-5 pt-4"
-          contentContainerStyle={{ paddingBottom: 40 }}
+          style={{ flex: 1 }}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 40 }}
           keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
-          {/* Property Building Photo Preview */}
+          {/* Property Building Photo Preview Card */}
           <View
             style={{
               backgroundColor: '#FFFDF8',
               borderWidth: 1,
               borderColor: '#E5DDCD',
-              borderRadius: 18,
+              borderRadius: 20,
               padding: 14,
               flexDirection: 'row',
               alignItems: 'center',
-              marginBottom: 18,
+              marginBottom: 16,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.04,
+              shadowRadius: 3,
+              elevation: 1,
             }}
           >
             <View
               style={{
-                width: 72,
-                height: 64,
+                width: 84,
+                height: 74,
                 borderRadius: 14,
                 overflow: 'hidden',
                 borderWidth: 1,
                 borderColor: '#E5DDCD',
                 marginRight: 14,
+                backgroundColor: '#EAE8DF',
               }}
             >
               <Image
-                source={PROPERTY_IMAGES[properties.length % PROPERTY_IMAGES.length]}
+                source={PROPERTY_IMAGES[selectedImageIndex % PROPERTY_IMAGES.length]}
                 style={{ width: '100%', height: '100%' }}
                 resizeMode="cover"
               />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 16, fontWeight: '800', color: '#0C192B' }} numberOfLines={1}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: 4,
+                }}
+              >
+                <Text style={{ fontSize: 11, fontWeight: '700', color: '#657080' }}>
+                  Property Preview
+                </Text>
+                <View
+                  style={{
+                    backgroundColor: '#E8F5E9',
+                    paddingHorizontal: 8,
+                    paddingVertical: 2,
+                    borderRadius: 9999,
+                  }}
+                >
+                  <Text style={{ fontSize: 10, fontWeight: '800', color: '#2E7D32' }}>Active</Text>
+                </View>
+              </View>
+              <Text style={{ fontSize: 17, fontWeight: '800', color: '#0C192B' }} numberOfLines={1}>
                 {name.trim() || 'New PG Property'}
               </Text>
-              <Text style={{ fontSize: 12, fontWeight: '500', color: '#657080', marginTop: 2 }}>
-                {type === 'boys'
-                  ? 'Boys Hostel / PG'
-                  : type === 'girls'
-                    ? 'Girls Hostel / PG'
-                    : 'Coliving PG'}
-              </Text>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  marginTop: 3,
+                }}
+              >
+                <MapPin size={12} color="#657080" style={{ marginRight: 4 }} />
+                <Text
+                  style={{ fontSize: 12, fontWeight: '500', color: '#657080' }}
+                  numberOfLines={1}
+                >
+                  {city.trim() || 'Hyderabad'}
+                  {pincode ? `, ${pincode}` : ''}
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Select Building Image Row */}
+          <View style={{ marginBottom: 20 }}>
+            <Text
+              style={{
+                fontSize: 12,
+                fontWeight: '800',
+                color: '#0C192B',
+                marginBottom: 8,
+              }}
+            >
+              Select Property Building Photo
+            </Text>
+            <View style={{ flexDirection: 'row', gap: 12 }}>
+              {PROPERTY_IMAGES.map((img, idx) => {
+                const isSelected = selectedImageIndex === idx;
+                return (
+                  <TouchableOpacity
+                    key={`prop-img-${idx}`}
+                    onPress={() => setSelectedImageIndex(idx)}
+                    activeOpacity={0.8}
+                    style={{
+                      flex: 1,
+                      height: 72,
+                      borderRadius: 14,
+                      overflow: 'hidden',
+                      borderWidth: isSelected ? 2.5 : 1,
+                      borderColor: isSelected ? '#19D3E6' : '#E5DDCD',
+                      position: 'relative',
+                    }}
+                  >
+                    <Image
+                      source={img}
+                      style={{ width: '100%', height: '100%' }}
+                      resizeMode="cover"
+                    />
+                    {isSelected && (
+                      <View
+                        style={{
+                          position: 'absolute',
+                          top: 4,
+                          right: 4,
+                          width: 20,
+                          height: 20,
+                          borderRadius: 10,
+                          backgroundColor: '#19D3E6',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <Check size={12} color="#0C192B" strokeWidth={3} />
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           </View>
 
           {/* Property Name */}
-          <View className="mb-5">
-            <Text className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-              Property name
+          <View style={{ marginBottom: 18 }}>
+            <Text
+              style={{
+                fontSize: 12,
+                fontWeight: '800',
+                color: '#0C192B',
+                marginBottom: 8,
+              }}
+            >
+              Property Name *
             </Text>
             <TextInput
               value={name}
               onChangeText={setName}
               placeholder="e.g. Sri Sai Boys PG"
               placeholderTextColor="#94A3B8"
-              className="bg-white border border-slate-300 rounded-xl px-4 py-3.5 text-base text-slate-900"
+              style={{
+                backgroundColor: '#FFFDF8',
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+                borderRadius: 14,
+                paddingHorizontal: 16,
+                paddingVertical: 13,
+                fontSize: 15,
+                fontWeight: '600',
+                color: '#0C192B',
+              }}
             />
           </View>
 
           {/* Type Segmented Control */}
-          <View className="mb-5">
-            <Text className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-              Type
+          <View style={{ marginBottom: 18 }}>
+            <Text
+              style={{
+                fontSize: 12,
+                fontWeight: '800',
+                color: '#0C192B',
+                marginBottom: 8,
+              }}
+            >
+              Property Type *
             </Text>
-            <View className="flex-row gap-3">
+            <View style={{ flexDirection: 'row', gap: 10 }}>
               {(['boys', 'girls', 'coliving'] as PropertyType[]).map(item => {
                 const isSelected = type === item;
                 const label = item === 'boys' ? 'Boys' : item === 'girls' ? 'Girls' : 'Coliving';
@@ -246,23 +401,47 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
           </View>
 
           {/* Street Address */}
-          <View className="mb-5">
-            <Text className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-              Street address
+          <View style={{ marginBottom: 18 }}>
+            <Text
+              style={{
+                fontSize: 12,
+                fontWeight: '800',
+                color: '#0C192B',
+                marginBottom: 8,
+              }}
+            >
+              Street Address
             </Text>
             <TextInput
               value={street}
               onChangeText={setStreet}
-              placeholder="Street, area"
+              placeholder="Street, area, landmark"
               placeholderTextColor="#94A3B8"
-              className="bg-white border border-slate-300 rounded-xl px-4 py-3.5 text-base text-slate-900"
+              style={{
+                backgroundColor: '#FFFDF8',
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+                borderRadius: 14,
+                paddingHorizontal: 16,
+                paddingVertical: 13,
+                fontSize: 15,
+                fontWeight: '600',
+                color: '#0C192B',
+              }}
             />
           </View>
 
           {/* City & Pincode Row */}
-          <View className="flex-row gap-3 mb-5">
-            <View className="flex-1">
-              <Text className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+          <View style={{ flexDirection: 'row', gap: 12, marginBottom: 18 }}>
+            <View style={{ flex: 1 }}>
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: '800',
+                  color: '#0C192B',
+                  marginBottom: 8,
+                }}
+              >
                 City
               </Text>
               <TextInput
@@ -270,11 +449,28 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
                 onChangeText={setCity}
                 placeholder="City"
                 placeholderTextColor="#94A3B8"
-                className="bg-white border border-slate-300 rounded-xl px-4 py-3.5 text-base text-slate-900"
+                style={{
+                  backgroundColor: '#FFFDF8',
+                  borderWidth: 1,
+                  borderColor: '#E5DDCD',
+                  borderRadius: 14,
+                  paddingHorizontal: 16,
+                  paddingVertical: 13,
+                  fontSize: 15,
+                  fontWeight: '600',
+                  color: '#0C192B',
+                }}
               />
             </View>
-            <View className="flex-1">
-              <Text className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+            <View style={{ flex: 1 }}>
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: '800',
+                  color: '#0C192B',
+                  marginBottom: 8,
+                }}
+              >
                 Pincode
               </Text>
               <TextInput
@@ -284,45 +480,106 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
                 placeholderTextColor="#94A3B8"
                 keyboardType="numeric"
                 maxLength={6}
-                className="bg-white border border-slate-300 rounded-xl px-4 py-3.5 text-base text-slate-900"
+                style={{
+                  backgroundColor: '#FFFDF8',
+                  borderWidth: 1,
+                  borderColor: '#E5DDCD',
+                  borderRadius: 14,
+                  paddingHorizontal: 16,
+                  paddingVertical: 13,
+                  fontSize: 15,
+                  fontWeight: '600',
+                  color: '#0C192B',
+                }}
               />
             </View>
           </View>
 
           {/* UPI ID for Rent */}
-          <View className="mb-5">
-            <Text className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-              UPI ID for rent
-            </Text>
+          <View style={{ marginBottom: 18 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+              <QrCode size={14} color="#0C192B" style={{ marginRight: 6 }} />
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: '800',
+                  color: '#0C192B',
+                }}
+              >
+                UPI ID for Rent *
+              </Text>
+            </View>
             <TextInput
               value={upiVpa}
               onChangeText={setUpiVpa}
-              placeholder="name@bank"
+              placeholder="e.g. owner@okhdfcbank"
               placeholderTextColor="#94A3B8"
               autoCapitalize="none"
               autoCorrect={false}
-              className="bg-white border border-slate-300 rounded-xl px-4 py-3.5 text-base text-slate-900"
+              style={{
+                backgroundColor: '#FFFDF8',
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+                borderRadius: 14,
+                paddingHorizontal: 16,
+                paddingVertical: 13,
+                fontSize: 15,
+                fontWeight: '600',
+                color: '#0C192B',
+              }}
             />
-            <Text className="text-xs text-slate-500 mt-1.5">Tenants pay rent to this ID</Text>
+            <Text style={{ fontSize: 11, fontWeight: '500', color: '#657080', marginTop: 4 }}>
+              Tenants pay rent directly to this UPI ID via Dynamic QR
+            </Text>
           </View>
 
           {/* Electricity Rate */}
-          <View className="mb-7">
-            <Text className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-              Electricity rate
-            </Text>
-            <View className="flex-row items-center bg-white border border-slate-300 rounded-xl px-4 py-3.5">
+          <View style={{ marginBottom: 26 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+              <Zap size={14} color="#0C192B" style={{ marginRight: 6 }} />
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: '800',
+                  color: '#0C192B',
+                }}
+              >
+                Electricity Rate (₹ / Unit)
+              </Text>
+            </View>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                backgroundColor: '#FFFDF8',
+                borderWidth: 1,
+                borderColor: '#E5DDCD',
+                borderRadius: 14,
+                paddingHorizontal: 16,
+                paddingVertical: 12,
+              }}
+            >
               <TextInput
                 value={electricityRate}
                 onChangeText={setElectricityRate}
-                placeholder="0"
+                placeholder="12"
                 placeholderTextColor="#94A3B8"
                 keyboardType="numeric"
-                className="flex-1 text-base text-slate-900 p-0"
+                style={{
+                  flex: 1,
+                  fontSize: 15,
+                  fontWeight: '600',
+                  color: '#0C192B',
+                  padding: 0,
+                }}
               />
-              <Text className="text-sm font-semibold text-slate-500 ml-2">₹ / unit</Text>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: '#657080', marginLeft: 8 }}>
+                ₹ / unit
+              </Text>
             </View>
-            <Text className="text-xs text-slate-500 mt-1.5">Used to price sub-meter readings</Text>
+            <Text style={{ fontSize: 11, fontWeight: '500', color: '#657080', marginTop: 4 }}>
+              Used to price sub-meter readings and automatic tenant bill splits
+            </Text>
           </View>
 
           {/* Save Property Button */}
@@ -330,12 +587,26 @@ export const AddPropertyModal: React.FC<AddPropertyModalProps> = ({
             activeOpacity={0.8}
             onPress={handleSave}
             disabled={isCreating}
-            className="w-full bg-[#4F5330] rounded-xl py-4 items-center justify-center shadow-sm"
+            style={{
+              width: '100%',
+              backgroundColor: '#4F5330',
+              borderRadius: 9999,
+              paddingVertical: 16,
+              alignItems: 'center',
+              justifyContent: 'center',
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.1,
+              shadowRadius: 4,
+              elevation: 2,
+            }}
           >
             {isCreating ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
-              <Text className="text-base font-extrabold text-white">Save property</Text>
+              <Text style={{ fontSize: 16, fontWeight: '800', color: '#FFFFFF' }}>
+                Save Property
+              </Text>
             )}
           </TouchableOpacity>
         </ScrollView>

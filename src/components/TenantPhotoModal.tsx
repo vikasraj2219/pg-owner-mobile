@@ -14,6 +14,7 @@ import {
 import { Camera, Image as ImageIcon, Trash2, X } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
+import * as FileSystem from 'expo-file-system';
 
 export interface TenantPhotoModalProps {
   visible: boolean;
@@ -25,6 +26,8 @@ export interface TenantPhotoModalProps {
   subtitle?: string;
 }
 
+const MAX_ALLOWED_BYTES = 2 * 1024 * 1024; // 2MB
+
 export const TenantPhotoModal: React.FC<TenantPhotoModalProps> = ({
   visible,
   onClose,
@@ -32,33 +35,80 @@ export const TenantPhotoModal: React.FC<TenantPhotoModalProps> = ({
   onPhotoRemoved,
   hasExistingPhoto = false,
   title = 'Tenant Profile Photo',
-  subtitle = 'Take a real portrait photo or choose from your gallery',
+  subtitle = 'Take a portrait photo or choose from gallery (Max 2MB)',
 }) => {
   const [isProcessing, setIsProcessing] = useState(false);
 
   if (!visible) return null;
 
+  const compressImageIfNeeded = async (uri: string): Promise<string> => {
+    let currentUri = uri;
+
+    // Pass 1: Standard high-quality resize to 720px width @ 0.75 quality
+    try {
+      const manip1 = await ImageManipulator.manipulateAsync(uri, [{ resize: { width: 720 } }], {
+        compress: 0.75,
+        format: ImageManipulator.SaveFormat.JPEG,
+      });
+      if (manip1?.uri) {
+        currentUri = manip1.uri;
+      }
+    } catch {
+      // Fallback to original uri
+    }
+
+    // Check size with FileSystem
+    try {
+      const info1 = await FileSystem.getInfoAsync(currentUri);
+      if (info1.exists && typeof info1.size === 'number' && info1.size > MAX_ALLOWED_BYTES) {
+        // Pass 2: More aggressive compression 500px width @ 0.6 quality
+        const manip2 = await ImageManipulator.manipulateAsync(
+          currentUri,
+          [{ resize: { width: 500 } }],
+          { compress: 0.6, format: ImageManipulator.SaveFormat.JPEG },
+        );
+        if (manip2?.uri) {
+          currentUri = manip2.uri;
+        }
+
+        const info2 = await FileSystem.getInfoAsync(currentUri);
+        if (info2.exists && typeof info2.size === 'number' && info2.size > MAX_ALLOWED_BYTES) {
+          // Pass 3: Maximum compression 350px width @ 0.45 quality
+          const manip3 = await ImageManipulator.manipulateAsync(
+            currentUri,
+            [{ resize: { width: 350 } }],
+            { compress: 0.45, format: ImageManipulator.SaveFormat.JPEG },
+          );
+          if (manip3?.uri) {
+            currentUri = manip3.uri;
+          }
+
+          const info3 = await FileSystem.getInfoAsync(currentUri);
+          if (info3.exists && typeof info3.size === 'number' && info3.size > MAX_ALLOWED_BYTES) {
+            throw new Error(
+              `Photo file size (${(info3.size / (1024 * 1024)).toFixed(1)}MB) exceeds the 2MB limit. Please select a smaller photo.`,
+            );
+          }
+        }
+      }
+    } catch (sizeErr) {
+      if (sizeErr instanceof Error && sizeErr.message.includes('2MB limit')) {
+        throw sizeErr;
+      }
+    }
+
+    return currentUri;
+  };
+
   const processAndSelect = async (uri: string) => {
     try {
       setIsProcessing(true);
-      // Compress and resize portrait photo to a light, crisp format
-      let finalUri = uri;
-      try {
-        const manip = await ImageManipulator.manipulateAsync(uri, [{ resize: { width: 700 } }], {
-          compress: 0.8,
-          format: ImageManipulator.SaveFormat.JPEG,
-        });
-        if (manip.uri) {
-          finalUri = manip.uri;
-        }
-      } catch {
-        // Fallback to original uri if manipulator fails
-      }
-
+      const finalUri = await compressImageIfNeeded(uri);
       await onPhotoSelected(finalUri);
       onClose();
-    } catch (err: any) {
-      Alert.alert('Photo Error', err?.message || 'Could not process photo. Please try again.');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Could not process photo. Please try again.';
+      Alert.alert('Photo Size Error', msg);
     } finally {
       setIsProcessing(false);
     }
@@ -92,11 +142,9 @@ export const TenantPhotoModal: React.FC<TenantPhotoModalProps> = ({
       if (!result.canceled && result.assets && result.assets.length > 0) {
         await processAndSelect(result.assets[0].uri);
       }
-    } catch (err: any) {
-      Alert.alert(
-        'Camera Error',
-        'Could not launch camera: ' + (err?.message || 'Please choose from gallery.'),
-      );
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Please choose from gallery.';
+      Alert.alert('Camera Error', 'Could not launch camera: ' + msg);
     }
   };
 
@@ -127,8 +175,9 @@ export const TenantPhotoModal: React.FC<TenantPhotoModalProps> = ({
       if (!result.canceled && result.assets && result.assets.length > 0) {
         await processAndSelect(result.assets[0].uri);
       }
-    } catch (err: any) {
-      Alert.alert('Gallery Error', err?.message || 'Could not open image library.');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Could not open image library.';
+      Alert.alert('Gallery Error', msg);
     }
   };
 
@@ -138,8 +187,9 @@ export const TenantPhotoModal: React.FC<TenantPhotoModalProps> = ({
       try {
         await onPhotoRemoved();
         onClose();
-      } catch (err: any) {
-        Alert.alert('Error', err?.message || 'Could not remove photo.');
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : 'Could not remove photo.';
+        Alert.alert('Error', msg);
       } finally {
         setIsProcessing(false);
       }
@@ -164,35 +214,40 @@ export const TenantPhotoModal: React.FC<TenantPhotoModalProps> = ({
                   <Text style={styles.subtitle}>{subtitle}</Text>
                 </View>
                 <TouchableOpacity
+                  activeOpacity={0.7}
                   onPress={onClose}
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                   style={styles.closeBtn}
+                  disabled={isProcessing}
                 >
-                  <X size={18} color="#657080" />
+                  <X size={18} color="#0C192B" />
                 </TouchableOpacity>
               </View>
 
+              {/* Action Buttons */}
               {isProcessing ? (
-                <View
-                  style={{ paddingVertical: 36, alignItems: 'center', justifyContent: 'center' }}
-                >
+                <View style={{ paddingVertical: 36, alignItems: 'center' }}>
                   <ActivityIndicator size="large" color="#4F5330" />
                   <Text
-                    style={{ marginTop: 12, fontSize: 13, fontWeight: '600', color: '#4F5330' }}
+                    style={{ fontSize: 13, color: '#657080', marginTop: 12, fontWeight: '600' }}
                   >
-                    Processing photo...
+                    Optimizing portrait photo (under 2MB)...
                   </Text>
                 </View>
               ) : (
                 <View style={{ gap: 12, marginBottom: 16 }}>
-                  {/* Take Photo */}
+                  {/* Take Photo with Camera */}
                   <TouchableOpacity
                     activeOpacity={0.8}
                     onPress={handleLaunchCamera}
                     style={styles.optionRow}
                   >
-                    <View style={[styles.iconCircle, { backgroundColor: '#4F5330' }]}>
-                      <Camera size={20} color="#FFFFFF" />
+                    <View
+                      style={[
+                        styles.iconCircle,
+                        { backgroundColor: '#FAF5EB', borderWidth: 1, borderColor: '#E5DDCD' },
+                      ]}
+                    >
+                      <Camera size={20} color="#4F5330" />
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={styles.optionTitle}>Take Photo</Text>
